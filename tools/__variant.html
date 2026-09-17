@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>자리배치 프로그램 v3.0.1</title>
+  <meta name="description" content="학급 좌석 배치 추첨 · 저장 · 인쇄 프로그램">
+  <meta name="theme-color" content="#4a6cf7">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="자리배치">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="header-left">
+      <h1>🪑 자리배치 프로그램</h1>
+      <span class="version">v3.0.1</span>
+    </div>
+    <div class="header-right">
+      <select id="currentClass"></select>
+      <input type="date" id="periodStart">
+      <span>~</span>
+      <input type="date" id="periodEnd">
+    </div>
+  </header>
+
+  <!-- 액션 버튼 -->
+  <div class="action-bar">
+    <div class="action-left">
+      <button id="shuffleBtn" class="btn primary">🎱 추첨 시작</button>
+    </div>
+    <div class="action-right">
+      <button id="saveBtn" class="btn">💾 저장</button>
+      <button id="historyBtn" class="btn">📋 기록</button>
+      <button id="downloadHistoryBtn" class="btn">📊 이력 다운로드</button>
+      <button id="studentViewBtn" class="btn">🖨️ 학생용</button>
+      <button id="teacherViewBtn" class="btn">🖨️ 교탁용</button>
+      <button id="guideBtn" class="btn guide-cta">📖 사용법</button>
+      <button id="settingsBtn" class="btn">⚙️ 설정</button>
+    </div>
+  </div>
+
+  <!-- 설정 위자드 -->
+  <div id="setupWizard" class="wizard">
+    <div class="wizard-content">
+      <div class="step">
+        <h3>🪑 총 책상 개수</h3>
+        <div class="desk-count-input">
+          <button type="button" id="deskMinus" class="count-btn">−</button>
+          <input type="number" id="totalDesks" value="30" min="10" max="50">
+          <button type="button" id="deskPlus" class="count-btn">+</button>
+        </div>
+      </div>
+      <div class="step">
+        <h3>📐 열(분단) 수</h3>
+        <div id="columnOptions" class="column-options"></div>
+      </div>
+      <div class="step">
+        <h3>👥 자리 형태</h3>
+        <div class="seat-type-options">
+          <div class="type-card" data-type="single">
+            <div class="preview"><div class="seat"></div></div>
+            <p>시험대형</p>
+          </div>
+          <div class="type-card active" data-type="pair">
+            <div class="preview"><div class="seat"></div><div class="seat"></div></div>
+            <p>짝꿍</p>
+          </div>
+          <div class="type-card" data-type="triple">
+            <div class="preview"><div class="seat"></div><div class="seat"></div><div class="seat"></div></div>
+            <p>트리플</p>
+          </div>
+        </div>
+      </div>
+      <div class="step" id="layoutStep" style="display:none;">
+        <h3>🎯 레이아웃</h3>
+        <div id="layoutOptions" class="layout-options"></div>
+      </div>
+      <div class="step">
+        <h3>👥 학생 수</h3>
+        <div class="student-count-section">
+          <div class="count-display">
+            <span>책상 <strong id="deskCountDisplay">30</strong>개</span>
+            <span>vs</span>
+            <span>학생 <input type="number" id="studentCount" value="28" min="1" max="50">명</span>
+          </div>
+          <p id="emptySeatInfo" class="empty-seat-info"></p>
+        </div>
+      </div>
+      <button type="button" id="applyConfigBtn" class="btn primary large">설정 완료</button>
+    </div>
+    <div class="preview-panel">
+      <h3>👁️ 미리보기</h3>
+      <div class="preview-desk">교탁</div>
+      <div id="previewGrid" class="preview-grid"></div>
+      <p class="preview-info">배치: <span id="previewLayout">2-2</span></p>
+    </div>
+  </div>
+
+  <!-- 메인 영역 -->
+  <main id="mainArea" style="display:none;">
+    <div class="desk">교 탁</div>
+    <div id="seatingArea" class="seating-area"></div>
+  </main>
+
+  <!-- 추첨 패널 -->
+  <div id="lotteryPanel" class="lottery-panel">
+    <div class="lottery-stage">
+      <div id="lotteryHeadline" class="lottery-headline">🎉 자리 추첨</div>
+      <div class="lottery-box">
+        <div class="lottery-machine">
+          <div id="ballsArea" class="balls-area"></div>
+          <div class="ball-exit"></div>
+        </div>
+        <div class="lottery-info">
+          <div id="currentBall" class="current-ball">
+            <span class="ball-number"></span>
+            <span class="ball-name"></span>
+          </div>
+          <div id="lotterySeatLabel" class="lottery-seat-label"></div>
+          <div class="progress-section">
+            <span id="lotteryProgress">0 / 28</span>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          </div>
+          <div class="lottery-remain">남은 인원 <strong id="lotteryRemain">0</strong>명</div>
+        </div>
+      </div>
+    </div>
+    <div class="lottery-controls">
+      <div class="speed-group" role="group" aria-label="추첨 속도">
+        <button type="button" class="speed-btn" data-speed="slow">🐢 천천히</button>
+        <button type="button" class="speed-btn active" data-speed="normal">▶ 보통</button>
+        <button type="button" class="speed-btn" data-speed="fast">⏩ 빠르게</button>
+      </div>
+      <button type="button" id="soundToggleBtn" class="sound-btn" aria-label="소리 켜기/끄기">🔊 소리 켜짐</button>
+      <button type="button" id="skipLotteryBtn" class="skip-btn">건너뛰기 ▶▶</button>
+    </div>
+  </div>
+  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+  <!-- 빈자리 모달 -->
+  <div id="emptySeatModal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>🪑 빈자리 설정</h3>
+        <button class="close-btn" data-modal="emptySeatModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="emptySeatInfo2"></p>
+        <button type="button" id="toggleEmptyLockBtn" class="btn full-width">
+          <span id="emptyLockBtnText">🔒 이 자리 고정</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 설정 모달 (메모 탭 추가) -->
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👤 <span id="selectedStudentName">학생</span></h3>
+        <button class="close-btn" data-modal="studentModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="currentSeatSection" class="seat-section">
+          <p>현재 자리: <strong id="currentSeatDisplay">-</strong></p>
+          <div class="seat-actions">
+            <button type="button" id="modalLockBtn" class="btn">🔒 자리 고정</button>
+            <button type="button" id="modalMoveBtn" class="btn primary">🎯 자리 이동</button>
+          </div>
+        </div>
+        <div class="tab-menu">
+          <button class="tab-btn active" data-tab="memo">📝 메모</button>
+          <button class="tab-btn" data-tab="relations">💚 관계설정</button>
+          <button class="tab-btn" data-tab="history">📅 이력</button>
+        </div>
+        <div class="tab-content active" id="memoTab">
+          <textarea id="studentMemoInput" rows="4" placeholder="학생 메모 입력..."></textarea>
+          <p class="hint">메모는 자동 저장됩니다</p>
+        </div>
+        <div class="tab-content" id="relationsTab">
+          <div class="relation-section">
+            <h4>💚 가까이 배치</h4>
+            <div id="closeStudentsList" class="chips"></div>
+            <button type="button" id="addCloseBtn" class="add-btn">+ 추가</button>
+          </div>
+          <div class="relation-section">
+            <h4>💔 멀리 배치</h4>
+            <div id="farStudentsList" class="chips"></div>
+            <button type="button" id="addFarBtn" class="add-btn">+ 추가</button>
+          </div>
+        </div>
+        <div class="tab-content" id="historyTab">
+          <p class="hint">💾 저장 버튼을 눌러야 기록됩니다</p>
+          <div id="pairHistoryList" class="history-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="studentModal">취소</button>
+        <button type="button" id="saveRelationsBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저장 모달 -->
+  <div id="saveModal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>💾 저장</h3>
+        <button class="close-btn" data-modal="saveModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>메모</label>
+        <input type="text" id="saveMemo" placeholder="예: 1차 배치">
+        <p>📅 <span id="saveDateTime"></span></p>
+        <p>👥 <span id="saveStudentCount"></span>명</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="saveModal">취소</button>
+        <button type="button" id="confirmSaveBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기록 모달 -->
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📋 저장된 기록</h3>
+        <button class="close-btn" data-modal="historyModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="historyList" class="history-records"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ 설정</h3>
+        <button class="close-btn" data-modal="settingsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-menu">
+          <button type="button" id="openExcelUploadBtn" class="settings-item">📥 엑셀 업로드</button>
+          <button type="button" id="downloadSampleExcelBtn" class="settings-item">📄 엑셀 샘플 양식 다운로드</button>
+          <button type="button" id="openRosterBtn" class="settings-item">👥 명렬표 수정</button>
+          <button type="button" id="openSectionConfigBtn" class="settings-item">📐 자리 배치 설정</button>
+          <button type="button" id="openBackupBtn" class="settings-item">📦 데이터 백업</button>
+          <button type="button" id="confirmResetBtn" class="settings-item danger">🗑️ 전체 초기화</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 명렬표 모달 -->
+  <div id="rosterModal" class="modal">
+    <div class="modal-content wide">
+      <div class="modal-header">
+        <h3>👥 명렬표</h3>
+        <button class="close-btn" data-modal="rosterModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="rosterClassTabs" class="class-tabs"></div>
+        <!-- 엑셀 업로드 섹션 (상단 배치) -->
+        <div class="excel-upload-section">
+          <div class="excel-buttons">
+            <button type="button" id="downloadSampleBtn" class="btn">📥 샘플 양식 다운로드</button>
+            <button type="button" id="uploadExcelInRosterBtn" class="btn primary">📤 엑셀 파일 업로드</button>
+          </div>
+          <input type="file" id="rosterExcelInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+        <hr class="section-divider">
+        <div class="roster-name-row">
+          <label>학급명:</label>
+          <input type="text" id="rosterClassName" placeholder="예: 3학년 2반">
+        </div>
+        <p class="hint">형식: 학번 이름 성별 (한 줄에 한 명)</p>
+        <textarea id="rosterInput" rows="10" placeholder="1 홍길동 남&#10;2 김영희 여"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="rosterModal">취소</button>
+        <button type="button" id="saveRosterBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 엑셀 업로드 모달 -->
+  <div id="excelModal" class="modal">
+    <div class="modal-content wide">
+      <div class="modal-header">
+        <h3>📥 엑셀 명렬표 업로드</h3>
+        <button class="close-btn" data-modal="excelModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="excelDropZone" class="drop-zone">
+          <div class="drop-icon">📂</div>
+          <p>엑셀 파일을 끌어다 놓거나 클릭하세요</p>
+          <p class="hint">.xlsx, .xls 파일 지원</p>
+          <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+        <div class="format-info">
+          <h4>📋 지원 양식</h4>
+          <div class="format-list">
+            <div class="format-item">🅰️ <strong>멀티 시트</strong> - 시트별 학급</div>
+            <div class="format-item">🅱️ <strong>단일시트+학급열</strong> - 한 시트에 모든 학급</div>
+            <div class="format-item">🅲️ <strong>피벗</strong> - 헤더가 학급명</div>
+          </div>
+        </div>
+        <div id="excelPreview" class="excel-preview" style="display:none;">
+          <h4>👁️ 미리보기</h4>
+          <div id="excelPreviewContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="excelModal">취소</button>
+        <button type="button" id="confirmExcelBtn" class="btn primary" disabled>업로드</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 백업 모달 -->
+  <div id="backupModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📦 데이터 백업</h3>
+        <button class="close-btn" data-modal="backupModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="backup-section">
+          <h4>💾 내보내기</h4>
+          <textarea id="exportCode" readonly placeholder="코드 생성 버튼을 누르세요"></textarea>
+          <div class="btn-row">
+            <button type="button" id="exportBtn" class="btn primary">코드 생성</button>
+            <button type="button" id="copyExportBtn" class="btn">📋 복사</button>
+          </div>
+        </div>
+        <hr>
+        <div class="backup-section">
+          <h4>📥 가져오기</h4>
+          <textarea id="importCode" placeholder="코드 붙여넣기..."></textarea>
+          <button type="button" id="importBtn" class="btn primary">가져오기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 선택 피커 -->
+  <div id="studentPicker" class="picker-overlay">
+    <div class="picker-content">
+      <div class="picker-header">
+        <h4>학생 선택</h4>
+        <button type="button" id="closePickerBtn" class="close-btn">&times;</button>
+      </div>
+      <input type="text" id="studentSearch" placeholder="이름 검색...">
+      <div id="studentPickerList" class="picker-list"></div>
+    </div>
+  </div>
+
+  <!-- 사용 설명서 (스크린샷 캐러셀) -->
+  <div id="guideModal" class="modal guide-modal">
+    <div class="modal-content guide-content">
+      <div class="modal-header guide-head">
+        <h3>📖 사용 설명서</h3>
+        <button class="close-btn" data-modal="guideModal">&times;</button>
+      </div>
+      <div class="guide-viewport">
+        <div id="guideTrack" class="guide-track"></div>
+        <button type="button" id="guidePrev" class="guide-nav prev" aria-label="이전">&#8249;</button>
+        <button type="button" id="guideNext" class="guide-nav next" aria-label="다음">&#8250;</button>
+      </div>
+      <div class="guide-foot">
+        <div id="guideDots" class="guide-dots"></div>
+        <div class="guide-foot-right">
+          <label class="guide-skip"><input type="checkbox" id="guideDontShow"> 다음부터 열지 않기</label>
+          <button type="button" id="guideStartBtn" class="btn primary">시작하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-links">
+      <button type="button" id="footerGuideBtn" class="footer-link-btn">📖 사용 설명서</button>
+      <span class="footer-sep">·</span>
+      <a href="https://blog.naver.com/math-tong/224367003351" target="_blank" rel="noopener noreferrer">📘 제작 후기</a>
+    </div>
+    <p class="footer-copy">copyright ⓒ math-tong&nbsp;&nbsp;All right reserved</p>
+    <p class="footer-note">🔒 모든 데이터는 서버가 아닌 <strong>이 브라우저 안에만</strong> 저장됩니다. 정기적으로 <em>설정 → 데이터 백업</em>을 이용해 주세요.</p>
+  </footer>
+
+  <div id="printArea" class="print-only"></div>
+  <div id="toast" class="toast"></div>
+
+  <script src="/tools/__seed.js"></script>
+  <script src="/app.js"></script>
+  <script src="/tools/__variant.js"></script>
+</body>
+</html>

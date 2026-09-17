@@ -1,0 +1,343 @@
+{"kind":"deck","id":"pr/9zok4k","name":"Deck"}
+{"kind":"layout","layoutId":"3a950ce6-dbc5-412e-abb4-8033bf5844a7","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"64f33818-67eb-43f3-988b-f888354f2fb7","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/3s35zi","slide":1,"title":"T-ong 사용 안내","textShapes":9}
+{"kind":"shape","id":"sh/3ux43udw","slide":1,"bbox":[0,0,22,720]}
+{"kind":"shape","id":"sh/4v65wzeh","slide":1,"bbox":[72,58,162,34]}
+{"kind":"textbox","id":"sh/5wfm54v2","slide":1,"text":"T-ong 사용 안내","textPreview":"T-ong 사용 안내","textChars":11,"textLines":1,"bbox":[82,64,142,22]}
+{"kind":"textbox","id":"sh/qxony9wn","slide":1,"text":"T-ong ×\nGoogle Calendar","textPreview":"T-ong × | Google Calendar","textChars":23,"textLines":2,"bbox":[72,125,520,132]}
+{"kind":"textbox","id":"sh/ryxo7ed8","slide":1,"text":"양방향 동기화","textPreview":"양방향 동기화","textChars":7,"textLines":1,"bbox":[72,266,500,58]}
+{"kind":"textbox","id":"sh/szq50jet","slide":1,"text":"처음 설정부터 누락 일정 복구까지\n교사가 그대로 따라 하는 10분 가이드","textPreview":"처음 설정부터 누락 일정 복구까지 | 교사가 그대로 따라 하는 10분 가이드","textChars":40,"textLines":2,"bbox":[72,342,500,82]}
+{"kind":"shape","id":"sh/d0z69ove","slide":1,"bbox":[72,466,424,100]}
+{"kind":"textbox","id":"sh/e18n29wz","slide":1,"text":"핵심 결과","textPreview":"핵심 결과","textChars":5,"textLines":1,"bbox":[96,486,120,24]}
+{"kind":"textbox","id":"sh/f2hobed4","slide":1,"text":"T-ong 일정 ⇄ Google 기본 캘린더","textPreview":"T-ong 일정 ⇄ Google 기본 캘린더","textChars":24,"textLines":1,"bbox":[96,518,370,32]}
+{"kind":"shape","id":"sh/jep07q9s","slide":1,"bbox":[612,112,576,230]}
+{"kind":"shape","id":"sh/5g7i9gry","slide":1,"bbox":[680,372,496,314]}
+{"kind":"shape","id":"sh/va5036tw","slide":1,"bbox":[742,636,358,34]}
+{"kind":"textbox","id":"sh/a9wza1sb","slide":1,"text":"안전한 예시 화면 · 키와 토큰 미포함","textPreview":"안전한 예시 화면 · 키와 토큰 미포함","textChars":21,"textLines":1,"bbox":[752,642,338,22]}
+{"kind":"textbox","id":"sh/xcni5gbm","slide":1,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/wbehcba1","slide":1,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/hcra5o3m","slide":1,"name":"","geometry":"roundRect","alt":"T-ong Google 캘린더 양방향 동기화 패널","bbox":[620,120,560,214]}
+{"kind":"image","id":"im/faps3ylg","slide":1,"name":"","geometry":"roundRect","alt":"Google OAuth 승인된 JavaScript 원본 설정 예시","bbox":[688,380,480,298]}
+{"kind":"notes","id":"nt/3s35zi","slide":1,"text":"이 자료는 교직원이 직접 Google Cloud 설정을 완료하는 실습형 안내서입니다.\n\n[Sources]\n- T-ong project screenshot: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\tools\\preview62-google-full-sync-panel-tablet.jpg\n- T-ong project guide image: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-3.png\n- https://t-ong.vercel.app\n[/Sources]"}
+{"kind":"slide","id":"sl/9dfwoj","slide":2,"title":"전체 흐름","textShapes":18}
+{"kind":"shape","id":"sh/ve58fm5o","slide":2,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/wfy98rm9","slide":2,"text":"전체 흐름","textPreview":"전체 흐름","textChars":5,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/hg7qhwnu","slide":2,"text":"한 번 설정하고, 이후에는 버튼 한 번","textPreview":"한 번 설정하고, 이후에는 버튼 한 번","textChars":21,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/ihgra14f","slide":2,"text":"Google Cloud 준비 → T-ong 연결 → 양방향 확인","textPreview":"Google Cloud 준비 → T-ong 연결 → 양방향 확인","textChars":35,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/jip8j65k","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/4jy9cbm5","slide":2,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/5k7qlgnq","slide":2,"bbox":[72,210,320,398]}
+{"kind":"shape","id":"sh/ylc7ex4v","slide":2,"bbox":[94,230,38,38]}
+{"kind":"textbox","id":"sh/zml8725g","slide":2,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[94,235,38,28]}
+{"kind":"textbox","id":"sh/jmxkvqdc","slide":2,"text":"Google Cloud 준비","textPreview":"Google Cloud 준비","textChars":15,"textLines":1,"bbox":[144,234,222,30]}
+{"kind":"textbox","id":"sh/5of2xgvi","slide":2,"text":"Calendar API와 OAuth 웹 클라이언트를 처음 한 번 설정합니다.","textPreview":"Calendar API와 OAuth 웹 클라이언트를 처음 한 번 설정합니다.","textChars":42,"textLines":1,"bbox":[96,486,272,80]}
+{"kind":"shape","id":"sh/4n61ovex","slide":2,"bbox":[430,210,320,398]}
+{"kind":"shape","id":"sh/vydkr6d0","slide":2,"bbox":[452,230,38,38]}
+{"kind":"textbox","id":"sh/ux4ji1wv","slide":2,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[452,235,38,28]}
+{"kind":"textbox","id":"sh/hkf2tgv6","slide":2,"text":"T-ong 연결","textPreview":"T-ong 연결","textChars":8,"textLines":1,"bbox":[502,234,222,30]}
+{"kind":"textbox","id":"sh/7udkn6d4","slide":2,"text":"클라이언트 ID를 저장하고 사용할 Google 계정을 승인합니다.","textPreview":"클라이언트 ID를 저장하고 사용할 Google 계정을 승인합니다.","textChars":36,"textLines":1,"bbox":[454,486,272,80]}
+{"kind":"shape","id":"sh/mt4je1wj","slide":2,"bbox":[788,210,320,398]}
+{"kind":"shape","id":"sh/apk361gb","slide":2,"bbox":[810,230,38,38]}
+{"kind":"textbox","id":"sh/bqtkz6xw","slide":2,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[810,235,38,28]}
+{"kind":"textbox","id":"sh/cr2l8ryh","slide":2,"text":"일상 동기화","textPreview":"일상 동기화","textChars":6,"textLines":1,"bbox":[860,234,222,30]}
+{"kind":"textbox","id":"sh/yt43a1gn","slide":2,"text":"‘Google 동기화’로 두 캘린더의 변경 내용을 함께 확인합니다.","textPreview":"‘Google 동기화’로 두 캘린더의 변경 내용을 함께 확인합니다.","textChars":37,"textLines":1,"bbox":[812,486,272,80]}
+{"kind":"textbox","id":"sh/zudk36x8","slide":2,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[392,365,36,44]}
+{"kind":"textbox","id":"sh/kvmlcbyd","slide":2,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[750,365,36,44]}
+{"kind":"shape","id":"sh/lwv25gfy","slide":2,"bbox":[72,626,1036,42]}
+{"kind":"textbox","id":"sh/mx43elgj","slide":2,"text":"양방향 = T-ong에서 만든 일정은 Google로, Google 기본 캘린더에서 만든 일정은 T-ong으로","textPreview":"양방향 = T-ong에서 만든 일정은 Google로, Google 기본 캘린더에서 만든 일정은 T-ong으로","textChars":60,"textLines":1,"bbox":[92,637,996,24]}
+{"kind":"textbox","id":"sh/7idk7qx4","slide":2,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/hcz6xkz6","slide":2,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/9sbmx8r2","slide":2,"name":"","geometry":"roundRect","alt":"Google Cloud 준비","bbox":[94,286,276,172]}
+{"kind":"image","id":"im/bud4zy98","slide":2,"name":"","geometry":"roundRect","alt":"T-ong 연결","bbox":[452,286,276,172]}
+{"kind":"image","id":"im/6d03ed0n","slide":2,"name":"","geometry":"roundRect","alt":"일상 동기화","bbox":[810,286,276,172]}
+{"kind":"notes","id":"nt/9dfwoj","slide":2,"text":"\n[Sources]\n- https://developers.google.com/workspace/calendar/api/v3/reference/events/list\n- T-ong project screenshots: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-1.png, C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-4.png, C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\tools\\preview62-google-full-sync-panel-tablet.jpg\n[/Sources]"}
+{"kind":"slide","id":"sl/67gjkb","slide":3,"title":"시작 전","textShapes":27}
+{"kind":"shape","id":"sh/zilgzexs","slide":3,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/kjuxsjed","slide":3,"text":"시작 전","textPreview":"시작 전","textChars":4,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/lk3y1ofy","slide":3,"text":"먼저 확인하면 설정이 훨씬 빨라집니다","textPreview":"먼저 확인하면 설정이 훨씬 빨라집니다","textChars":20,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/mlcfutwj","slide":3,"text":"같은 계정·정확한 주소·안전한 화면 공유가 핵심입니다","textPreview":"같은 계정·정확한 주소·안전한 화면 공유가 핵심입니다","textChars":29,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/7mlg3yx4","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/8nuxwjep","slide":3,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/9o3y5ofu","slide":3,"bbox":[78,210,38,38]}
+{"kind":"textbox","id":"sh/2p8fipwz","slide":3,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[78,215,38,28]}
+{"kind":"textbox","id":"sh/nq1gruxk","slide":3,"text":"같은 Google 계정","textPreview":"같은 Google 계정","textChars":12,"textLines":1,"bbox":[130,210,240,28]}
+{"kind":"textbox","id":"sh/fyt8za1w","slide":3,"text":"Cloud 프로젝트·Google Calendar·권한 승인에 같은 계정을 사용합니다.","textPreview":"Cloud 프로젝트·Google Calendar·권한 승인에 같은 계정을 사용합니다.","textChars":47,"textLines":1,"bbox":[130,241,505,42]}
+{"kind":"shape","id":"sh/exk765kr","slide":3,"bbox":[78,298,38,38]}
+{"kind":"textbox","id":"sh/1kbq10j2","slide":3,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[78,303,38,28]}
+{"kind":"textbox","id":"sh/0z298v2h","slide":3,"text":"운영 주소","textPreview":"운영 주소","textChars":5,"textLines":1,"bbox":[130,298,240,28]}
+{"kind":"textbox","id":"sh/ru98vq10","slide":3,"text":"반드시 https://t-ong.vercel.app 에서 연결합니다.","textPreview":"반드시 https://t-ong.vercel.app 에서 연결합니다.","textChars":38,"textLines":1,"bbox":[130,329,505,42]}
+{"kind":"shape","id":"sh/qt072lkf","slide":3,"bbox":[78,386,38,38]}
+{"kind":"textbox","id":"sh/dwrqx0j6","slide":3,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[78,391,38,28]}
+{"kind":"textbox","id":"sh/svip4v2l","slide":3,"text":"팝업 허용","textPreview":"팝업 허용","textChars":5,"textLines":1,"bbox":[130,386,240,28]}
+{"kind":"textbox","id":"sh/3q98rq14","slide":3,"text":"Chrome 등 일반 브라우저에서 Google 로그인 팝업을 허용합니다.","textPreview":"Chrome 등 일반 브라우저에서 Google 로그인 팝업을 허용합니다.","textChars":40,"textLines":1,"bbox":[130,417,505,42]}
+{"kind":"shape","id":"sh/ipg7ylkj","slide":3,"bbox":[78,474,38,38]}
+{"kind":"textbox","id":"sh/61gra14b","slide":3,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[78,479,38,28]}
+{"kind":"textbox","id":"sh/7mp8365w","slide":3,"text":"브라우저별 재승인","textPreview":"브라우저별 재승인","textChars":9,"textLines":1,"bbox":[130,474,240,28]}
+{"kind":"textbox","id":"sh/8ny9cbmh","slide":3,"text":"새 기기·토큰 만료·탭 재실행 뒤에는 다시 연결할 수 있습니다.","textPreview":"새 기기·토큰 만료·탭 재실행 뒤에는 다시 연결할 수 있습니다.","textChars":35,"textLines":1,"bbox":[130,505,505,42]}
+{"kind":"shape","id":"sh/to7q5gnm","slide":3,"bbox":[78,562,38,38]}
+{"kind":"textbox","id":"sh/upgrel47","slide":3,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[78,567,38,28]}
+{"kind":"textbox","id":"sh/vq9s7q5s","slide":3,"text":"더미 일정으로 시험","textPreview":"더미 일정으로 시험","textChars":10,"textLines":1,"bbox":[130,562,240,28]}
+{"kind":"textbox","id":"sh/gri9gvmd","slide":3,"text":"학생 이름이나 상담 내용이 없는 [테스트] 일정 2건으로 확인합니다.","textPreview":"학생 이름이나 상담 내용이 없는 [테스트] 일정 2건으로 확인합니다.","textChars":38,"textLines":1,"bbox":[130,593,505,42]}
+{"kind":"shape","id":"sh/hsra903y","slide":3,"bbox":[690,208,458,400]}
+{"kind":"textbox","id":"sh/it0ril4j","slide":3,"text":"화면 캡처 보안 경계","textPreview":"화면 캡처 보안 경계","textChars":11,"textLines":1,"bbox":[724,238,390,36]}
+{"kind":"textbox","id":"sh/3u9sbql4","slide":3,"text":"보여도 되는 것","textPreview":"보여도 되는 것","textChars":8,"textLines":1,"bbox":[724,300,180,25]}
+{"kind":"textbox","id":"sh/dobuh476","slide":3,"text":"• 페이지 제목과 왼쪽 메뉴\n• 권한 범위 이름\n• 승인된 원본 주소","textPreview":"• 페이지 제목과 왼쪽 메뉴 | • 권한 범위 이름 | • 승인된 원본 주소","textChars":38,"textLines":3,"bbox":[724,332,360,100]}
+{"kind":"shape","id":"sh/sn2t8z6l","slide":3,"bbox":[714,442,410,1]}
+{"kind":"textbox","id":"sh/rmtcfup0","slide":3,"text":"캡처하지 않는 것","textPreview":"캡처하지 않는 것","textChars":9,"textLines":1,"bbox":[724,466,200,25]}
+{"kind":"textbox","id":"sh/qlkb6pof","slide":3,"text":"• Client Secret\n• API Key · Access Token\n• 계정 이메일과 실제 일정 제목","textPreview":"• Client Secret | • API Key · Access Token | • 계정 이메일과 실제 일정 제목","textChars":59,"textLines":3,"bbox":[724,498,370,90]}
+{"kind":"shape","id":"sh/1cvul4n2","slide":3,"bbox":[712,620,414,34]}
+{"kind":"textbox","id":"sh/0rmtcz6h","slide":3,"text":"클라이언트 ID는 식별값이지만 제출본에서는 가림","textPreview":"클라이언트 ID는 식별값이지만 제출본에서는 가림","textChars":26,"textLines":1,"bbox":[722,626,394,22]}
+{"kind":"textbox","id":"sh/fqdcju5c","slide":3,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/ep4bapor","slide":3,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"notes","id":"nt/67gjkb","slide":3,"text":"\n[Sources]\n- https://developers.google.com/identity/oauth2/web/guides/use-token-model\n- https://developers.google.com/identity/protocols/oauth2/policies\n[/Sources]"}
+{"kind":"slide","id":"sl/1jgw6f","slide":4,"title":"Google Cloud 설정 1/5","textShapes":16}
+{"kind":"shape","id":"sh/9gny54re","slide":4,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/mdwfups3","slide":4,"text":"Google Cloud 설정 1/5","textPreview":"Google Cloud 설정 1/5","textChars":19,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/7e5g3u9o","slide":4,"text":"Google Calendar API를 활성화합니다","textPreview":"Google Calendar API를 활성화합니다","textChars":27,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/kbuxsfax","slide":4,"text":"올바른 프로젝트를 선택한 뒤 API 라이브러리에서 ‘Google Calendar API’를 찾습니다","textPreview":"올바른 프로젝트를 선택한 뒤 API 라이브러리에서 ‘Google Calendar API’를 찾습니다","textChars":55,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/lc3y1kri","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/ypcfq5sr","slide":4,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/zalwza9c","slide":4,"bbox":[64,198,786,493]}
+{"kind":"shape","id":"sh/587ydorm","slide":4,"bbox":[884,224,38,38]}
+{"kind":"textbox","id":"sh/x4zyh47y","slide":4,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[884,229,38,28]}
+{"kind":"textbox","id":"sh/w36xoz6d","slide":4,"text":"프로젝트 확인","textPreview":"프로젝트 확인","textChars":7,"textLines":1,"bbox":[936,224,248,30]}
+{"kind":"textbox","id":"sh/b2xgfups","slide":4,"text":"상단 프로젝트 선택기가 T-ong용 프로젝트인지 확인합니다.","textPreview":"상단 프로젝트 선택기가 T-ong용 프로젝트인지 확인합니다.","textChars":33,"textLines":1,"bbox":[936,258,248,58]}
+{"kind":"shape","id":"sh/a1ofmpon","slide":4,"bbox":[884,340,38,38]}
+{"kind":"textbox","id":"sh/90fydk72","slide":4,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[884,345,38,28]}
+{"kind":"textbox","id":"sh/oz6xkf6h","slide":4,"text":"API 검색","textPreview":"API 검색","textChars":6,"textLines":1,"bbox":[936,340,248,30]}
+{"kind":"textbox","id":"sh/nyxgbapw","slide":4,"text":"API 및 서비스 › 라이브러리에서 Google Calendar API를 검색합니다.","textPreview":"API 및 서비스 › 라이브러리에서 Google Calendar API를 검색합니다.","textChars":47,"textLines":1,"bbox":[936,374,248,58]}
+{"kind":"shape","id":"sh/2xofi5ob","slide":4,"bbox":[884,466,38,38]}
+{"kind":"textbox","id":"sh/twjypo76","slide":4,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[884,471,38,28]}
+{"kind":"textbox","id":"sh/8vqxwj6l","slide":4,"text":"‘사용’ 클릭","textPreview":"‘사용’ 클릭","textChars":7,"textLines":1,"bbox":[936,466,248,30]}
+{"kind":"textbox","id":"sh/sbi987i9","slide":4,"text":"버튼이 ‘관리’로 보이면 이미 활성화된 상태입니다.","textPreview":"버튼이 ‘관리’로 보이면 이미 활성화된 상태입니다.","textChars":28,"textLines":1,"bbox":[936,500,248,58]}
+{"kind":"shape","id":"sh/dcrqhczu","slide":4,"bbox":[884,586,300,72]}
+{"kind":"textbox","id":"sh/q90r6h03","slide":4,"text":"다른 프로젝트에서 활성화하면\nT-ong OAuth 설정과 연결되지 않습니다.","textPreview":"다른 프로젝트에서 활성화하면 | T-ong OAuth 설정과 연결되지 않습니다.","textChars":42,"textLines":2,"bbox":[902,602,264,46]}
+{"kind":"textbox","id":"sh/ra98fmho","slide":4,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/4ni947ix","slide":4,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/l07ah0z2","slide":4,"name":"","geometry":"roundRect","alt":"Google Cloud API 라이브러리에서 Google Calendar API를 검색하는 화면","bbox":[72,206,770,477]}
+{"kind":"notes","id":"nt/1jgw6f","slide":4,"text":"\n[Sources]\n- https://developers.google.com/workspace/calendar/api/quickstart/js\n- T-ong project guide image: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-1.png\n[/Sources]"}
+{"kind":"slide","id":"sl/0716lg","slide":5,"title":"Google Cloud 설정 2/5","textShapes":11}
+{"kind":"shape","id":"sh/3ix8fedc","slide":5,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/4j69ojex","slide":5,"text":"Google Cloud 설정 2/5","textPreview":"Google Cloud 설정 2/5","textChars":19,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/5kfqhovi","slide":5,"text":"브랜딩과 대상 사용자를 설정합니다","textPreview":"브랜딩과 대상 사용자를 설정합니다","textChars":18,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/ut4ri9wv","slide":5,"text":"일반 Gmail 계정이라면 보통 External(외부) + Testing에서 시작합니다","textPreview":"일반 Gmail 계정이라면 보통 External(외부) + Testing에서 시작합니다","textChars":48,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/vud8redg","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/gvm9kjel","slide":5,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/hwfqdov6","slide":5,"bbox":[64,202,760,477]}
+{"kind":"shape","id":"sh/7qd8nud4","slide":5,"bbox":[854,212,330,196]}
+{"kind":"textbox","id":"sh/jix8rmhc","slide":5,"text":"브랜딩","textPreview":"브랜딩","textChars":3,"textLines":1,"bbox":[880,236,280,30]}
+{"kind":"textbox","id":"sh/yho7yh0r","slide":5,"text":"앱 이름\n사용자 지원 이메일\n개발자 연락처 이메일","textPreview":"앱 이름 | 사용자 지원 이메일 | 개발자 연락처 이메일","textChars":27,"textLines":3,"bbox":[880,280,260,105]}
+{"kind":"shape","id":"sh/lkfqtwzi","slide":5,"bbox":[854,430,330,170]}
+{"kind":"textbox","id":"sh/kj6p0rix","slide":5,"text":"External / Testing","textPreview":"External / Testing","textChars":18,"textLines":1,"bbox":[880,454,260,28]}
+{"kind":"textbox","id":"sh/76h8v6ho","slide":5,"text":"‘대상’의 테스트 사용자에 실제 연결할 Google 계정을 추가합니다.","textPreview":"‘대상’의 테스트 사용자에 실제 연결할 Google 계정을 추가합니다.","textChars":39,"textLines":1,"bbox":[880,496,270,62]}
+{"kind":"textbox","id":"sh/6lo72103","slide":5,"text":"※ 학교 Workspace의 Internal 사용 가능 여부는 관리자 정책에 따릅니다.","textPreview":"※ 학교 Workspace의 Internal 사용 가능 여부는 관리자 정책에 따릅니다.","textChars":48,"textLines":1,"bbox":[854,620,330,48]}
+{"kind":"textbox","id":"sh/t8zqxwze","slide":5,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/87q94bi9","slide":5,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/3mx4bmt4","slide":5,"name":"","geometry":"roundRect","alt":"Google 인증 플랫폼의 앱 정보와 대상 사용자 설정 예시","bbox":[72,210,744,461]}
+{"kind":"notes","id":"nt/0716lg","slide":5,"text":"Testing 상태의 비기본 권한 승인은 일정 기간 뒤 재승인이 필요할 수 있습니다.\n\n[Sources]\n- https://developers.google.com/workspace/guides/configure-oauth-consent\n- https://support.google.com/cloud/answer/15549945\n- T-ong project guide image: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-2.png\n[/Sources]"}
+{"kind":"slide","id":"sl/vuvsm8","slide":6,"title":"Google Cloud 설정 3/5","textShapes":16}
+{"kind":"shape","id":"sh/vq1kzq98","slide":6,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/wralsvat","slide":6,"text":"Google Cloud 설정 3/5","textPreview":"Google Cloud 설정 3/5","textChars":19,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/xsj21gre","slide":6,"text":"캘린더 읽기·쓰기 권한 범위를 추가합니다","textPreview":"캘린더 읽기·쓰기 권한 범위를 추가합니다","textChars":22,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/ml83m1sr","slide":6,"text":"데이터 액세스에서 T-ong이 실제 사용하는 하나의 Calendar 범위를 선택합니다","textPreview":"데이터 액세스에서 T-ong이 실제 사용하는 하나의 Calendar 범위를 선택합니다","textChars":47,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/nmhkv69c","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/8nqlobax","slide":6,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/9oz2xgr2","slide":6,"bbox":[64,200,786,476]}
+{"kind":"shape","id":"sh/zyxkr690","slide":6,"bbox":[872,218,312,160]}
+{"kind":"textbox","id":"sh/fatg3i94","slide":6,"text":"정확한 범위","textPreview":"정확한 범위","textChars":6,"textLines":1,"bbox":[896,242,260,28]}
+{"kind":"textbox","id":"sh/u9kfudsj","slide":6,"text":"calendar.events.owned","textPreview":"calendar.events.owned","textChars":21,"textLines":1,"bbox":[896,292,260,34]}
+{"kind":"textbox","id":"sh/hcby5sra","slide":6,"text":"https://www.googleapis.com/auth/","textPreview":"https://www.googleapis.com/auth/","textChars":32,"textLines":1,"bbox":[896,330,260,24]}
+{"kind":"shape","id":"sh/gb2xwnap","slide":6,"bbox":[872,408,38,38]}
+{"kind":"textbox","id":"sh/3etg7290","slide":6,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[872,413,38,28]}
+{"kind":"textbox","id":"sh/2dkfyxsf","slide":6,"text":"범위 추가 또는 삭제","textPreview":"범위 추가 또는 삭제","textChars":11,"textLines":1,"bbox":[924,408,260,30]}
+{"kind":"textbox","id":"sh/p0vy9cr6","slide":6,"text":"데이터 액세스 메뉴에서 범위 선택 창을 엽니다.","textPreview":"데이터 액세스 메뉴에서 범위 선택 창을 엽니다.","textChars":26,"textLines":1,"bbox":[924,442,260,58]}
+{"kind":"shape","id":"sh/4z2x07al","slide":6,"bbox":[872,510,38,38]}
+{"kind":"textbox","id":"sh/ji9wvy9w","slide":6,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[872,515,38,28]}
+{"kind":"textbox","id":"sh/yhgf2tsb","slide":6,"text":"범위 선택·저장","textPreview":"범위 선택·저장","textChars":8,"textLines":1,"bbox":[924,510,260,30]}
+{"kind":"textbox","id":"sh/mxoja1cz","slide":6,"text":"소유한 캘린더의 일정 조회·생성·변경·삭제 권한입니다.","textPreview":"소유한 캘린더의 일정 조회·생성·변경·삭제 권한입니다.","textChars":30,"textLines":1,"bbox":[924,544,260,58]}
+{"kind":"shape","id":"sh/nyx036tk","slide":6,"bbox":[872,618,312,50]}
+{"kind":"textbox","id":"sh/oz61cbu5","slide":6,"text":"최소 권한 원칙: 더 넓은 calendar 범위는 선택하지 않습니다.","textPreview":"최소 권한 원칙: 더 넓은 calendar 범위는 선택하지 않습니다.","textChars":38,"textLines":1,"bbox":[886,630,284,30]}
+{"kind":"textbox","id":"sh/90zi5gba","slide":6,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/etoj61cn","slide":6,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/j254b654","slide":6,"name":"","geometry":"roundRect","alt":"Google 인증 플랫폼 데이터 액세스 화면의 calendar.events.owned 범위","bbox":[72,208,770,460]}
+{"kind":"notes","id":"nt/vuvsm8","slide":6,"text":"\n[Sources]\n- https://developers.google.com/workspace/calendar/api/auth\n- https://developers.google.com/workspace/guides/configure-oauth-consent\n- User-provided screenshot, redaction checked: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\tmp\\google-sync-slide-build\\data-access-scopes.png\n[/Sources]"}
+{"kind":"slide","id":"sl/pykxk7","slide":7,"title":"Google Cloud 설정 4/5","textShapes":14}
+{"kind":"shape","id":"sh/87mlc7ep","slide":7,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/76dk32d4","slide":7,"text":"Google Cloud 설정 4/5","textPreview":"Google Cloud 설정 4/5","textChars":19,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/ml43axwj","slide":7,"text":"웹 OAuth 클라이언트를 만듭니다","textPreview":"웹 OAuth 클라이언트를 만듭니다","textChars":19,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/lkb21sve","slide":7,"text":"웹 애플리케이션을 선택하고 승인된 JavaScript 원본에 주소만 입력합니다","textPreview":"웹 애플리케이션을 선택하고 승인된 JavaScript 원본에 주소만 입력합니다","textChars":43,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/kj218net","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/zitkzid8","slide":7,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/yhkj6xwn","slide":7,"bbox":[64,200,786,493]}
+{"kind":"shape","id":"sh/cf214neh","slide":7,"bbox":[888,222,72,34]}
+{"kind":"textbox","id":"sh/2psz61or","slide":7,"text":"운영","textPreview":"운영","textChars":2,"textLines":1,"bbox":[898,228,52,22]}
+{"kind":"textbox","id":"sh/3q1gf65c","slide":7,"text":"https://t-ong.vercel.app","textPreview":"https://t-ong.vercel.app","textChars":24,"textLines":1,"bbox":[970,225,214,26]}
+{"kind":"shape","id":"sh/orah8b6x","slide":7,"bbox":[888,278,72,34]}
+{"kind":"textbox","id":"sh/psjyhgni","slide":7,"text":"로컬","textPreview":"로컬","textChars":2,"textLines":1,"bbox":[898,284,52,22]}
+{"kind":"textbox","id":"sh/e18z21ov","slide":7,"text":"http://localhost:4321","textPreview":"http://localhost:4321","textChars":21,"textLines":1,"bbox":[970,281,214,26]}
+{"kind":"shape","id":"sh/f21gb65g","slide":7,"bbox":[880,332,304,118]}
+{"kind":"textbox","id":"sh/g3ah4r6l","slide":7,"text":"원본(origin) 규칙","textPreview":"원본(origin) 규칙","textChars":13,"textLines":1,"bbox":[904,352,250,28]}
+{"kind":"textbox","id":"sh/1ojydwn6","slide":7,"text":"프로토콜 + 호스트 + 포트만\n경로·쿼리·와일드카드는 입력하지 않음","textPreview":"프로토콜 + 호스트 + 포트만 | 경로·쿼리·와일드카드는 입력하지 않음","textChars":37,"textLines":2,"bbox":[904,390,250,52]}
+{"kind":"shape","id":"sh/6x8fyhoj","slide":7,"bbox":[880,472,304,156]}
+{"kind":"textbox","id":"sh/ryhg7m54","slide":7,"text":"추가하지 않습니다","textPreview":"추가하지 않습니다","textChars":9,"textLines":1,"bbox":[904,494,250,28]}
+{"kind":"textbox","id":"sh/v2dwfilw","slide":7,"text":"✕ https://seattong.vercel.app\n✕ http://192.168.x.x:4321\n✕ /calendar 같은 경로","textPreview":"✕ https://seattong.vercel.app | ✕ http://192.168.x.x:4321 | ✕ /calendar 같은 경로","textChars":73,"textLines":3,"bbox":[904,536,250,80]}
+{"kind":"textbox","id":"sh/u14v6d4b","slide":7,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/h4fehs32","slide":7,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/ojmhc3y1","slide":7,"name":"","geometry":"roundRect","alt":"OAuth 웹 클라이언트와 승인된 JavaScript 원본 설정 예시","bbox":[72,208,770,477]}
+{"kind":"notes","id":"nt/pykxk7","slide":7,"text":"\n[Sources]\n- https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid\n- https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow\n- T-ong project guide image: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-3.png\n[/Sources]"}
+{"kind":"slide","id":"sl/nie46w","slide":8,"title":"Google Cloud 설정 5/5","textShapes":16}
+{"kind":"shape","id":"sh/bm98jqto","slide":8,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/cnipsvat","slide":8,"text":"Google Cloud 설정 5/5","textPreview":"Google Cloud 설정 5/5","textChars":19,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/dorql0be","slide":8,"text":"클라이언트 ID만 T-ong에 저장합니다","textPreview":"클라이언트 ID만 T-ong에 저장합니다","textChars":22,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/yp07u5sz","slide":8,"text":"생성 완료 화면에서 ID를 복사하고 T-ong의 앱 관리자 설정에 붙여넣습니다","textPreview":"생성 완료 화면에서 ID를 복사하고 T-ong의 앱 관리자 설정에 붙여넣습니다","textChars":43,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/zq98natk","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/0ripwfa5","slide":8,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/lsbqp0bq","slide":8,"bbox":[64,200,786,493]}
+{"kind":"shape","id":"sh/fupob6tg","slide":8,"bbox":[880,218,38,38]}
+{"kind":"textbox","id":"sh/vil03itw","slide":8,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[880,223,38,28]}
+{"kind":"textbox","id":"sh/ahczadsr","slide":8,"text":"클라이언트 생성","textPreview":"클라이언트 생성","textChars":8,"textLines":1,"bbox":[932,218,256,30]}
+{"kind":"textbox","id":"sh/xk3i5sb2","slide":8,"text":"Google Auth Platform › 클라이언트에서 웹 클라이언트를 만듭니다.","textPreview":"Google Auth Platform › 클라이언트에서 웹 클라이언트를 만듭니다.","textChars":45,"textLines":1,"bbox":[932,252,256,58]}
+{"kind":"shape","id":"sh/wjuhcnah","slide":8,"bbox":[880,324,38,38]}
+{"kind":"textbox","id":"sh/ne1gzit0","slide":8,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[880,329,38,28]}
+{"kind":"textbox","id":"sh/mdsz6dsf","slide":8,"text":"ID 복사","textPreview":"ID 복사","textChars":5,"textLines":1,"bbox":[932,324,256,30]}
+{"kind":"textbox","id":"sh/9g3y1sb6","slide":8,"text":"…apps.googleusercontent.com 형식의 클라이언트 ID를 복사합니다.","textPreview":"…apps.googleusercontent.com 형식의 클라이언트 ID를 복사합니다.","textChars":48,"textLines":1,"bbox":[932,358,256,58]}
+{"kind":"shape","id":"sh/8fah8nal","slide":8,"bbox":[880,440,38,38]}
+{"kind":"textbox","id":"sh/zq1gvyto","slide":8,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[880,445,38,28]}
+{"kind":"textbox","id":"sh/ypsz2tsj","slide":8,"text":"T-ong에 저장","textPreview":"T-ong에 저장","textChars":9,"textLines":1,"bbox":[932,440,256,30]}
+{"kind":"textbox","id":"sh/2l8zetwb","slide":8,"text":"일정관리 › Google 동기화 › 앱 관리자 설정에서 저장합니다.","textPreview":"일정관리 › Google 동기화 › 앱 관리자 설정에서 저장합니다.","textChars":37,"textLines":1,"bbox":[932,474,256,58]}
+{"kind":"shape","id":"sh/3mh0nydw","slide":8,"bbox":[880,558,304,92]}
+{"kind":"textbox","id":"sh/onqhg3eh","slide":8,"text":"Client Secret은 입력하거나\n공유하지 않습니다.","textPreview":"Client Secret은 입력하거나 | 공유하지 않습니다.","textChars":31,"textLines":2,"bbox":[902,580,260,50]}
+{"kind":"textbox","id":"sh/pozip8vm","slide":8,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/qpsjidw7","slide":8,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/rahov6po","slide":8,"name":"","geometry":"roundRect","alt":"OAuth 클라이언트 ID를 가린 상태로 T-ong 관리자 설정에 입력하는 예시","bbox":[72,208,770,477]}
+{"kind":"notes","id":"nt/nie46w","slide":8,"text":"\n[Sources]\n- https://developers.google.com/workspace/calendar/api/quickstart/js\n- T-ong project guide image: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\guide\\oauth-client-step-4.png\n[/Sources]"}
+{"kind":"slide","id":"sl/4s77zl","slide":9,"title":"T-ong 연결","textShapes":16}
+{"kind":"shape","id":"sh/dwja5cnm","slide":9,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/qt8ruh4b","slide":9,"text":"T-ong 연결","textPreview":"T-ong 연결","textChars":8,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/buhs3m5w","slide":9,"text":"Google 계정을 연결하고 ‘연결됨’을 확인합니다","textPreview":"Google 계정을 연결하고 ‘연결됨’을 확인합니다","textChars":28,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/0zat0rmd","slide":9,"text":"현재 사용할 Google 계정을 선택하고 요청 권한을 승인합니다","textPreview":"현재 사용할 Google 계정을 선택하고 요청 권한을 승인합니다","textChars":35,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/l0ja9wny","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/yxsryh47","slide":9,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/zy1s7m5s","slide":9,"bbox":[64,194,764,482]}
+{"kind":"shape","id":"sh/14zaxsne","slide":9,"bbox":[862,214,38,38]}
+{"kind":"textbox","id":"sh/dkri10b2","slide":9,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[862,219,38,28]}
+{"kind":"textbox","id":"sh/cji18vah","slide":9,"text":"Google 동기화 열기","textPreview":"Google 동기화 열기","textChars":13,"textLines":1,"bbox":[914,214,268,30]}
+{"kind":"textbox","id":"sh/ri90zqtw","slide":9,"text":"일정관리 화면 위쪽의 ‘Google 동기화’를 누릅니다.","textPreview":"일정관리 화면 위쪽의 ‘Google 동기화’를 누릅니다.","textChars":31,"textLines":1,"bbox":[914,248,268,58]}
+{"kind":"shape","id":"sh/qh0j6lcb","slide":9,"bbox":[862,322,38,38]}
+{"kind":"textbox","id":"sh/1ob25kby","slide":9,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[862,327,38,28]}
+{"kind":"textbox","id":"sh/0n21cfad","slide":9,"text":"Google 계정 연결","textPreview":"Google 계정 연결","textChars":12,"textLines":1,"bbox":[914,322,268,30]}
+{"kind":"textbox","id":"sh/zm9k3ats","slide":9,"text":"등록한 테스트 사용자 계정을 선택하고 권한을 승인합니다.","textPreview":"등록한 테스트 사용자 계정을 선택하고 권한을 승인합니다.","textChars":31,"textLines":1,"bbox":[914,356,268,58]}
+{"kind":"shape","id":"sh/el0ja5sn","slide":9,"bbox":[862,430,38,38]}
+{"kind":"textbox","id":"sh/9cb29kba","slide":9,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[862,435,38,28]}
+{"kind":"textbox","id":"sh/ob21gfap","slide":9,"text":"연결됨 확인","textPreview":"연결됨 확인","textChars":6,"textLines":1,"bbox":[914,430,268,30]}
+{"kind":"textbox","id":"sh/8valc3il","slide":9,"text":"상태 배지와 본문에 ‘연결됨’이 보이는지 확인합니다.","textPreview":"상태 배지와 본문에 ‘연결됨’이 보이는지 확인합니다.","textChars":29,"textLines":1,"bbox":[914,464,268,58]}
+{"kind":"shape","id":"sh/twjmloj6","slide":9,"bbox":[862,552,320,98]}
+{"kind":"textbox","id":"sh/mts3at0v","slide":9,"text":"‘연결됨’은 API 권한을 얻었다는 뜻입니다.\n과거 일정 확인은 다음 단계에서 진행합니다.","textPreview":"‘연결됨’은 API 권한을 얻었다는 뜻입니다. | 과거 일정 확인은 다음 단계에서 진행합니다.","textChars":50,"textLines":2,"bbox":[882,574,280,60]}
+{"kind":"textbox","id":"sh/7u14jy1g","slide":9,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/gjulg3ix","slide":9,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/hwfqx4ri","slide":9,"name":"","geometry":"roundRect","alt":"T-ong 일정관리의 Google 캘린더 양방향 동기화 최신 화면","bbox":[72,202,748,466]}
+{"kind":"notes","id":"nt/4s77zl","slide":9,"text":"액세스 토큰은 짧은 수명이므로 새 기기나 만료 뒤에는 Google 동기화를 다시 눌러야 할 수 있습니다.\n\n[Sources]\n- https://developers.google.com/identity/oauth2/web/guides/use-token-model\n- T-ong project screenshot: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\tools\\preview62-google-full-sync-tablet.png\n[/Sources]"}
+{"kind":"slide","id":"sl/898xyp","slide":10,"title":"동작 확인","textShapes":17}
+{"kind":"shape","id":"sh/0bml8rep","slide":10,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/fadkfmd4","slide":10,"text":"동작 확인","textPreview":"동작 확인","textChars":5,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/e9436hwj","slide":10,"text":"더미 일정 2건으로 양방향을 시험합니다","textPreview":"더미 일정 2건으로 양방향을 시험합니다","textChars":21,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/d8b2dcvy","slide":10,"text":"같은 달을 열어 둔 상태에서 각 방향을 한 번씩 확인하면 문제 위치를 빠르게 찾을 수 있습니다","textPreview":"같은 달을 열어 둔 상태에서 각 방향을 한 번씩 확인하면 문제 위치를 빠르게 찾을 수 있습니다","textChars":52,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/s72l4ret","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/r6tkbmd8","slide":10,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/q5k32hwn","slide":10,"bbox":[72,216,468,348]}
+{"kind":"shape","id":"sh/54b29cv2","slide":10,"bbox":[104,240,216,34]}
+{"kind":"textbox","id":"sh/432l07eh","slide":10,"text":"A · T-ong → Google","textPreview":"A · T-ong → Google","textChars":18,"textLines":1,"bbox":[114,246,196,22]}
+{"kind":"textbox","id":"sh/e943ihcn","slide":10,"text":"[테스트] T-ong→Google","textPreview":"[테스트] T-ong→Google","textChars":18,"textLines":1,"bbox":[104,300,394,36]}
+{"kind":"textbox","id":"sh/fad4rmts","slide":10,"text":"1. T-ong에서 일정 1건 생성\n2. 지금 양방향 동기화\n3. Google Calendar 새로고침 후 확인","textPreview":"1. T-ong에서 일정 1건 생성 | 2. 지금 양방향 동기화 | 3. Google Calendar 새로고침 후 확인","textChars":62,"textLines":3,"bbox":[104,354,390,114]}
+{"kind":"shape","id":"sh/0bmlkrud","slide":10,"bbox":[104,492,390,44]}
+{"kind":"textbox","id":"sh/1cvmtcby","slide":10,"text":"성공 기준: Google 기본 캘린더에 같은 일정이 보임","textPreview":"성공 기준: Google 기본 캘린더에 같은 일정이 보임","textChars":31,"textLines":1,"bbox":[118,503,362,24]}
+{"kind":"textbox","id":"sh/q5k3excb","slide":10,"text":"⇄","textPreview":"⇄","textChars":1,"textLines":1,"bbox":[574,340,132,76]}
+{"kind":"textbox","id":"sh/r6t4n2tw","slide":10,"text":"calendarId = primary","textPreview":"calendarId = primary","textChars":20,"textLines":1,"bbox":[566,426,148,24]}
+{"kind":"shape","id":"sh/s7mlg7uh","slide":10,"bbox":[740,216,468,348]}
+{"kind":"shape","id":"sh/d8vmpcb2","slide":10,"bbox":[772,240,216,34]}
+{"kind":"textbox","id":"sh/ihk3axcf","slide":10,"text":"B · Google → T-ong","textPreview":"B · Google → T-ong","textChars":18,"textLines":1,"bbox":[782,246,196,22]}
+{"kind":"textbox","id":"sh/3it4j2tk","slide":10,"text":"[테스트] Google→T-ong","textPreview":"[테스트] Google→T-ong","textChars":18,"textLines":1,"bbox":[772,300,394,36]}
+{"kind":"textbox","id":"sh/7mp0ry9c","slide":10,"text":"1. Google ‘기본 캘린더’에 일정 1건 생성\n2. T-ong으로 돌아와 지금 양방향 동기화\n3. 같은 달에서 일정 확인","textPreview":"1. Google ‘기본 캘린더’에 일정 1건 생성 | 2. T-ong으로 돌아와 지금 양방향 동기화 | 3. 같은 달에서 일정 확인","textChars":70,"textLines":3,"bbox":[772,354,390,114]}
+{"kind":"shape","id":"sh/6lgjits7","slide":10,"bbox":[772,492,390,44]}
+{"kind":"textbox","id":"sh/toridori","slide":10,"text":"성공 기준: T-ong 일정에 같은 일정이 보임","textPreview":"성공 기준: T-ong 일정에 같은 일정이 보임","textChars":26,"textLines":1,"bbox":[786,503,362,24]}
+{"kind":"shape","id":"sh/8ny1k3ax","slide":10,"bbox":[72,592,1136,62]}
+{"kind":"textbox","id":"sh/va90fy9o","slide":10,"text":"시험이 끝나면 두 테스트 일정을 삭제합니다. 학생 이름·상담 내용·메모는 시험 제목에 넣지 않습니다.","textPreview":"시험이 끝나면 두 테스트 일정을 삭제합니다. 학생 이름·상담 내용·메모는 시험 제목에 넣지 않습니다.","textChars":56,"textLines":1,"bbox":[100,610,1080,28]}
+{"kind":"textbox","id":"sh/up0jmts3","slide":10,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/hcr2h8ru","slide":10,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"notes","id":"nt/898xyp","slide":10,"text":"\n[Sources]\n- https://developers.google.com/workspace/calendar/api/v3/reference/events/list\n- https://t-ong.vercel.app\n[/Sources]"}
+{"kind":"slide","id":"sl/x6gk7r","slide":11,"title":"누락 일정 복구","textShapes":15}
+{"kind":"shape","id":"sh/9oby1wru","slide":11,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/mlkfq183","slide":11,"text":"누락 일정 복구","textPreview":"누락 일정 복구","textChars":8,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/nmtgzm9o","slide":11,"text":"Google 일정이 안 보이면 ‘전체 다시 가져오기’","textPreview":"Google 일정이 안 보이면 ‘전체 다시 가져오기’","textChars":29,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/0j2xorqx","slide":11,"text":"평소에는 지금 양방향 동기화, 누락된 Google 일정이 있을 때만 전체 재확인을 사용합니다","textPreview":"평소에는 지금 양방향 동기화, 누락된 Google 일정이 있을 때만 전체 재확인을 사용합니다","textChars":51,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/lkbyxwri","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/yhkfmhs7","slide":11,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/zitgvm9s","slide":11,"bbox":[64,200,758,301]}
+{"kind":"shape","id":"sh/dwrytcrm","slide":11,"bbox":[850,210,334,280]}
+{"kind":"textbox","id":"sh/tg7ahw3u","slide":11,"text":"이럴 때 사용","textPreview":"이럴 때 사용","textChars":7,"textLines":1,"bbox":[878,238,280,30]}
+{"kind":"textbox","id":"sh/sfyt8rmp","slide":11,"text":"• Google에서 직접 만든 일정이 안 보임\n• 같은 계정·같은 달인데 일부만 빠짐\n• 오래된 동기화 토큰 이후 누락 의심","textPreview":"• Google에서 직접 만든 일정이 안 보임 | • 같은 계정·같은 달인데 일부만 빠짐 | • 오래된 동기화 토큰 이후 누락 의심","textChars":69,"textLines":3,"bbox":[878,286,280,112]}
+{"kind":"shape","id":"sh/7epsfml4","slide":11,"bbox":[874,418,286,48]}
+{"kind":"textbox","id":"sh/6dgb6h4j","slide":11,"text":"기존 T-ong 일정을 일괄 삭제하지 않음","textPreview":"기존 T-ong 일정을 일괄 삭제하지 않음","textChars":23,"textLines":1,"bbox":[884,431,266,24]}
+{"kind":"textbox","id":"sh/5c7adc3y","slide":11,"text":"그래도 안 보이면","textPreview":"그래도 안 보이면","textChars":9,"textLines":1,"bbox":[72,528,250,30]}
+{"kind":"shape","id":"sh/kryt47md","slide":11,"bbox":[72,574,252,62]}
+{"kind":"textbox","id":"sh/jq5sb2ls","slide":11,"text":"1. 같은 Google 계정","textPreview":"1. 같은 Google 계정","textChars":15,"textLines":1,"bbox":[88,592,220,28]}
+{"kind":"shape","id":"sh/ipwb2h47","slide":11,"bbox":[350,574,252,62]}
+{"kind":"textbox","id":"sh/xona9c32","slide":11,"text":"2. 기본(primary) 캘린더","textPreview":"2. 기본(primary) 캘린더","textChars":18,"textLines":1,"bbox":[366,592,220,28]}
+{"kind":"shape","id":"sh/wnet07mh","slide":11,"bbox":[628,574,252,62]}
+{"kind":"textbox","id":"sh/8321cby9","slide":11,"text":"3. 앱 버전 .62 이상","textPreview":"3. 앱 버전 .62 이상","textChars":14,"textLines":1,"bbox":[644,592,220,28]}
+{"kind":"shape","id":"sh/94b25wfu","slide":11,"bbox":[906,574,252,62]}
+{"kind":"textbox","id":"sh/mh0ja1gj","slide":11,"text":"4. 연결 해제 후 재연결","textPreview":"4. 연결 해제 후 재연결","textChars":14,"textLines":1,"bbox":[922,592,220,28]}
+{"kind":"textbox","id":"sh/nitk36xo","slide":11,"text":"대상 아님: 구독 공휴일 · 공유/보조 캘린더 · 예전 별도 ‘T-ong 일정’ 캘린더","textPreview":"대상 아님: 구독 공휴일 · 공유/보조 캘린더 · 예전 별도 ‘T-ong 일정’ 캘린더","textChars":48,"textLines":1,"bbox":[72,648,1110,24]}
+{"kind":"textbox","id":"sh/0fi18ryd","slide":11,"text":"T-ong 교무수첩 · Google Calendar 동기화 안내","textPreview":"T-ong 교무수첩 · Google Calendar 동기화 안내","textChars":35,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/lgr21wfy","slide":11,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"image","id":"im/hg7ahcj2","slide":11,"name":"","geometry":"roundRect","alt":"Google 일정 전체 다시 가져오기 버튼과 완료 메시지","bbox":[72,208,742,285]}
+{"kind":"notes","id":"nt/x6gk7r","slide":11,"text":"전체 다시 가져오기는 Google 기본 캘린더를 전체 재조회하면서 현재 양방향 동기화도 수행합니다.\n\n[Sources]\n- https://developers.google.com/workspace/calendar/api/v3/reference/events/list\n- https://developers.google.com/workspace/calendar/api/guides/sync\n- T-ong project screenshot: C:\\Users\\place\\Documents\\담임,교과교사용 자리추첨앱\\tools\\preview62-google-full-sync-panel-tablet.jpg\n[/Sources]"}
+{"kind":"slide","id":"sl/2cfdyw","slide":12,"title":"빠른 문제 해결","textShapes":25}
+{"kind":"shape","id":"sh/hgvit0ny","slide":12,"bbox":[0,0,16,720]}
+{"kind":"textbox","id":"sh/ud4zi547","slide":12,"text":"빠른 문제 해결","textPreview":"빠른 문제 해결","textChars":8,"textLines":1,"bbox":[72,38,480,24]}
+{"kind":"textbox","id":"sh/ved0rq5s","slide":12,"text":"증상별로 이 순서만 확인하세요","textPreview":"증상별로 이 순서만 확인하세요","textChars":16,"textLines":1,"bbox":[72,70,1090,58]}
+{"kind":"textbox","id":"sh/8b2hgvm1","slide":12,"text":"오류 문구는 원인 범위를 빠르게 좁혀 줍니다","textPreview":"오류 문구는 원인 범위를 빠르게 좁혀 줍니다","textChars":24,"textLines":1,"bbox":[72,128,1080,34]}
+{"kind":"textbox","id":"sh/9cbip0nm","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1184,42,40,24]}
+{"kind":"shape","id":"sh/mpkzel4b","slide":12,"bbox":[72,172,1136,1]}
+{"kind":"shape","id":"sh/7at0nq5w","slide":12,"bbox":[72,212,286,52]}
+{"kind":"textbox","id":"sh/kn2hcbm5","slide":12,"text":"화면에 보이는 증상","textPreview":"화면에 보이는 증상","textChars":10,"textLines":1,"bbox":[84,226,262,24]}
+{"kind":"shape","id":"sh/lobilgnq","slide":12,"bbox":[370,212,298,52]}
+{"kind":"textbox","id":"sh/p0j6pwnm","slide":12,"text":"가능한 원인","textPreview":"가능한 원인","textChars":6,"textLines":1,"bbox":[382,226,274,24]}
+{"kind":"shape","id":"sh/ozapwrm1","slide":12,"bbox":[680,212,528,52]}
+{"kind":"textbox","id":"sh/ny1onm5g","slide":12,"text":"해결 순서","textPreview":"해결 순서","textChars":5,"textLines":1,"bbox":[692,226,504,24]}
+{"kind":"shape","id":"sh/2xsnuh4v","slide":12,"bbox":[72,264,286,70]}
+{"kind":"textbox","id":"sh/1wj6lcna","slide":12,"text":"origin_mismatch","textPreview":"origin_mismatch","textChars":15,"textLines":1,"bbox":[86,277,258,46]}
+{"kind":"shape","id":"sh/0va5s7mp","slide":12,"bbox":[370,264,298,70]}
+{"kind":"textbox","id":"sh/fa1ojm54","slide":12,"text":"승인된 JavaScript 원본 불일치","textPreview":"승인된 JavaScript 원본 불일치","textChars":21,"textLines":1,"bbox":[384,277,270,46]}
+{"kind":"shape","id":"sh/e98nqh4z","slide":12,"bbox":[680,264,528,70]}
+{"kind":"textbox","id":"sh/d8z6hcne","slide":12,"text":"https://t-ong.vercel.app 정확히 입력 · 경로 제거","textPreview":"https://t-ong.vercel.app 정확히 입력 · 경로 제거","textChars":39,"textLines":1,"bbox":[694,277,500,46]}
+{"kind":"shape","id":"sh/s7q5o7mt","slide":12,"bbox":[72,334,286,70]}
+{"kind":"textbox","id":"sh/4bup47up","slide":12,"text":"access_denied / 앱 차단","textPreview":"access_denied / 앱 차단","textChars":20,"textLines":1,"bbox":[86,347,258,46]}
+{"kind":"shape","id":"sh/5c36xcva","slide":12,"bbox":[370,334,298,70]}
+{"kind":"textbox","id":"sh/ipc72xwj","slide":12,"text":"테스트 사용자 또는 학교 정책","textPreview":"테스트 사용자 또는 학교 정책","textChars":16,"textLines":1,"bbox":[384,347,270,46]}
+{"kind":"shape","id":"sh/jqlov2d4","slide":12,"bbox":[680,334,528,70]}
+{"kind":"textbox","id":"sh/wna507ed","slide":12,"text":"테스트 사용자·scope 저장·Workspace 관리자 정책 확인","textPreview":"테스트 사용자·scope 저장·Workspace 관리자 정책 확인","textChars":36,"textLines":1,"bbox":[694,347,500,46]}
+{"kind":"shape","id":"sh/ho36tsvy","slide":12,"bbox":[72,404,286,70]}
+{"kind":"textbox","id":"sh/ulsnyxwn","slide":12,"text":"연결됐지만 Google→T-ong 누락","textPreview":"연결됐지만 Google→T-ong 누락","textChars":21,"textLines":1,"bbox":[86,417,258,46]}
+{"kind":"shape","id":"sh/vm1or2ds","slide":12,"bbox":[370,404,298,70]}
+{"kind":"textbox","id":"sh/gjepcrux","slide":12,"text":"계정·primary·증분 토큰","textPreview":"계정·primary·증분 토큰","textChars":16,"textLines":1,"bbox":[384,417,270,46]}
+{"kind":"shape","id":"sh/1kn65wv2","slide":12,"bbox":[680,404,528,70]}
+{"kind":"textbox","id":"sh/bepsvqxk","slide":12,"text":"같은 계정 확인 → 전체 다시 가져오기","textPreview":"같은 계정 확인 → 전체 다시 가져오기","textChars":21,"textLines":1,"bbox":[694,417,500,46]}
+{"kind":"shape","id":"sh/qdgr2lwz","slide":12,"bbox":[72,474,286,70]}
+{"kind":"textbox","id":"sh/dgrax0fa","slide":12,"text":"팝업이 보이지 않음","textPreview":"팝업이 보이지 않음","textChars":10,"textLines":1,"bbox":[86,487,258,46]}
+{"kind":"shape","id":"sh/cfi94ve5","slide":12,"bbox":[370,474,298,70]}
+{"kind":"textbox","id":"sh/z29szaxg","slide":12,"text":"브라우저 팝업 차단","textPreview":"브라우저 팝업 차단","textChars":10,"textLines":1,"bbox":[384,487,270,46]}
+{"kind":"shape","id":"sh/y10r65wv","slide":12,"bbox":[680,474,528,70]}
+{"kind":"textbox","id":"sh/l4ra10fm","slide":12,"text":"일반 Chrome에서 팝업 허용 후 다시 연결","textPreview":"일반 Chrome에서 팝업 허용 후 다시 연결","textChars":25,"textLines":1,"bbox":[694,487,500,46]}
+{"kind":"shape","id":"sh/03i98fe1","slide":12,"bbox":[72,544,286,70]}
+{"kind":"textbox","id":"sh/f65836xc","slide":12,"text":"태블릿에서 재접속 요구","textPreview":"태블릿에서 재접속 요구","textChars":12,"textLines":1,"bbox":[86,557,258,46]}
+{"kind":"shape","id":"sh/e5wru1gr","slide":12,"bbox":[370,544,298,70]}
+{"kind":"textbox","id":"sh/61kj65sz","slide":12,"text":"토큰 만료 또는 오래된 탭","textPreview":"토큰 만료 또는 오래된 탭","textChars":14,"textLines":1,"bbox":[384,557,270,46]}
+{"kind":"shape","id":"sh/r2t0za9k","slide":12,"bbox":[680,544,528,70]}
+{"kind":"textbox","id":"sh/s3218fap","slide":12,"text":"앱 완전 종료·재실행 → Google 동기화","textPreview":"앱 완전 종료·재실행 → Google 동기화","textChars":24,"textLines":1,"bbox":[694,557,500,46]}
+{"kind":"shape","id":"sh/t4bi1kra","slide":12,"bbox":[72,630,1136,42]}
+{"kind":"textbox","id":"sh/e5kjapsv","slide":12,"text":"마지막 보안 확인 · Client Secret·API Key·Access Token은 공유하지 않고, 제출용 캡처의 ID·이메일은 가립니다.","textPreview":"마지막 보안 확인 · Client Secret·API Key·Access Token은 공유하지 않고, 제출용 캡처의 ID·이메일은 가립니다.","textChars":78,"textLines":1,"bbox":[92,641,1096,24]}
+{"kind":"textbox","id":"sh/f6d03a9g","slide":12,"text":"T-ong 교무수첩 · 문의 전 이 표를 캡처해 두세요","textPreview":"T-ong 교무수첩 · 문의 전 이 표를 캡처해 두세요","textChars":30,"textLines":1,"bbox":[72,684,700,18]}
+{"kind":"textbox","id":"sh/grm1cfa1","slide":12,"text":"v5.17.0-preview.62 · 2026.09","textPreview":"v5.17.0-preview.62 · 2026.09","textChars":28,"textLines":1,"bbox":[900,684,308,18]}
+{"kind":"notes","id":"nt/2cfdyw","slide":12,"text":"\n[Sources]\n- https://developers.google.com/identity/oauth2/web/guides/error\n- https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow\n- https://support.google.com/cloud/answer/15549945\n- https://t-ong.vercel.app\n[/Sources]"}

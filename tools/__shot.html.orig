@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T-ong 교무수첩 | 학급 관리, 하나로 통(通)하다</title>
+  <meta name="description" content="자리배치·출결·일정·상담·교실운영을 한곳에서 관리하는 교사용 디지털 교무수첩.">
+  <meta name="theme-color" content="#4a6cf7">
+  <!-- Google OAuth Web Client ID: 발급 후 content에 입력합니다. 클라이언트 ID는 공개 설정값이며 비밀키가 아닙니다. -->
+  <meta name="google-oauth-client-id" content="">
+  <script>
+    (function () {
+      var allowed = ['botanical','classic','romance','cute','waterblue','forestletter','night','campus','teacherdesk'];
+      var selected = 'botanical';
+      try { selected = localStorage.getItem('tongTheme_v1') || selected; } catch (e) {}
+      if (allowed.indexOf(selected) < 0) selected = 'botanical';
+      document.documentElement.setAttribute('data-theme', selected);
+    })();
+  </script>
+
+  <!-- 링크 공유 미리보기 -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="T-ong">
+  <meta property="og:title" content="T-ong 교무수첩 | 학급 관리, 하나로 통(通)하다">
+  <meta property="og:description" content="자리배치부터 출결·일정·상담·교실운영까지. 담임·교과교사를 위한 디지털 교무수첩.">
+  <meta property="og:url" content="https://t-ong.vercel.app/">
+  <meta property="og:image" content="https://t-ong.vercel.app/assets/og-notetong.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="T-ong 교무수첩 - 학급 관리, 하나로 통(通)하다">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="T-ong 교무수첩 | 학급 관리, 하나로 통(通)하다">
+  <meta name="twitter:description" content="자리배치·출결·일정·상담·교실운영을 한곳에서 관리합니다.">
+  <meta name="twitter:image" content="https://t-ong.vercel.app/assets/og-notetong.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="T-ong">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.54">
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="home-wrap"><button type="button" class="brand-home" id="homeBtn" aria-label="홈 메뉴" title="홈 메뉴">🏠</button><div id="homeMenu" class="home-menu"><button type="button" data-home="first">🏠 첫 화면</button><button type="button" data-home="guide">📖 사용 설명서</button></div></div>
+      <h1 class="sr-only">T-ong 교무수첩</h1>
+      <nav class="mode-tabs" id="modeTabs" aria-label="주요 메뉴">
+        <button type="button" class="mode-tab active" data-mode="seat">자리배치</button>
+        <button type="button" class="mode-tab" data-mode="attend">✅ 출결관리</button>
+        <div class="more-wrap">
+          <button type="button" class="mode-tab" id="extraBtn">➕ 교실운영 ▾</button>
+          <div class="more-menu" id="extraMenu">
+            <a href="http://컴시간교사.kr" target="_blank" rel="noopener noreferrer">🕒 컴시간알리미(교사용)</a>
+            <a href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">💬 담임 5분 멘트</a>
+            <button type="button" data-open="timer">⏱️ 간편 타이머</button>
+            <button type="button" data-open="praise">🏆 칭찬 포인트</button>
+            <button type="button" data-open="ladder">🪜 사다리타기</button>
+            <button type="button" data-open="duty">🧹 1인 1역</button>
+            <button type="button" data-open="pick">🎯 룰렛 뽑기</button>
+            <button type="button" data-open="notice">📢 알림장</button>
+          </div>
+        </div>
+        <button type="button" class="mode-tab" id="calendarBtn">📅 일정관리</button>
+        <div class="more-wrap">
+          <button type="button" class="mode-tab" id="favBtn">🔖 즐겨찾기 ▾</button>
+          <div class="more-menu fav-menu" id="favMenu">
+            <div class="fav-category-list">
+              <details class="fav-category" open>
+                <summary>🏫 수업 및 클래스 <small>5개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://www.miricanvas.com/" target="_blank" rel="noopener noreferrer">미리캔버스</a>
+                  <a href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer">클래스룸</a>
+                  <a href="https://hi.goe.go.kr/" target="_blank" rel="noopener noreferrer">하이러닝</a>
+                  <a href="https://teacher.ebsi.co.kr/ercapp/main.do" target="_blank" rel="noopener noreferrer">EBSi 교사지원센터</a>
+                  <a href="https://www.canva.com/" target="_blank" rel="noopener noreferrer">캔바</a>
+                </div>
+              </details>
+              <details class="fav-category">
+                <summary>📚 교과서 사이트 <small>3개 + 직접 추가</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://www.m-teacher.co.kr/" target="_blank" rel="noopener noreferrer">미래엔</a>
+                  <a href="https://www.vivasam.com/" target="_blank" rel="noopener noreferrer">비바샘</a>
+                  <a href="https://teachingsaem.cmass.kr/" target="_blank" rel="noopener noreferrer">씨마스</a>
+                </div>
+                <div class="fav-custom-body textbook-custom">
+                  <div class="fav-sub-label">내 교과서 사이트</div>
+                  <div id="customTextbookList" class="custom-fav-list"></div>
+                  <button type="button" id="customTextbookAddBtn" class="custom-fav-add">＋ 교과서 사이트 추가</button>
+                </div>
+              </details>
+              <details class="fav-category">
+                <summary>🤖 생성형 AI <small>6개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>
+                  <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>
+                  <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">Gemini</a>
+                  <a href="https://www.perplexity.ai/" target="_blank" rel="noopener noreferrer">Perplexity</a>
+                  <a href="https://notebooklm.google.com/" target="_blank" rel="noopener noreferrer">NotebookLM</a>
+                  <a href="https://chat.qwen.ai/" target="_blank" rel="noopener noreferrer">Qwen</a>
+                </div>
+              </details>
+              <details class="fav-category">
+                <summary>🗂️ 교무업무 <small>3개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://stas.moe.go.kr/cmn/main" target="_blank" rel="noopener noreferrer">교육과정 성취기준</a>
+                  <a href="https://ncic.re.kr/board/B0024.cs?m=10" target="_blank" rel="noopener noreferrer">국가교육과정정보센터</a>
+                  <a href="https://star.moe.go.kr/web/contents/m21100.do" target="_blank" rel="noopener noreferrer">학교생활기록부</a>
+                </div>
+              </details>
+              <details class="fav-category admissions-favorites">
+                <summary>🎓 진로진학 <small>7개 + 직접 추가</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://more.goe.go.kr/jinhak/index.do" target="_blank" rel="noopener noreferrer">경기진학정보센터(경기진협)</a>
+                  <a href="https://www.adiga.kr/" target="_blank" rel="noopener noreferrer">대입정보포털 어디가</a>
+                  <a href="https://www.kcue.or.kr/" target="_blank" rel="noopener noreferrer">한국대학교육협의회</a>
+                  <a href="https://www.hischool.go.kr/" target="_blank" rel="noopener noreferrer">고입정보포털</a>
+                  <a href="https://www.career.go.kr/cnet/front/main/main.do" target="_blank" rel="noopener noreferrer">진로넷</a>
+                  <a href="https://jinro.goedu.kr/" target="_blank" rel="noopener noreferrer">꿈잇다</a>
+                  <a href="https://www.ggoomgil.go.kr/" target="_blank" rel="noopener noreferrer">꿈길</a>
+                </div>
+                <div class="fav-custom-body admission-custom">
+                  <div class="fav-sub-label">내 진로진학 사이트</div>
+                  <div id="customAdmissionList" class="custom-fav-list"></div>
+                  <button type="button" id="customAdmissionAddBtn" class="custom-fav-add">＋ 진로진학 사이트 추가</button>
+                </div>
+              </details>
+              <details class="fav-category teacher-tools-favorites">
+                <summary>🧰 교사 도구함 <small>1개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://www.notiontalk.com/contents/tools/exam-question-cropper/" target="_blank" rel="noopener noreferrer">기출문항 크롭퍼</a>
+                </div>
+              </details>
+              <details class="fav-category personal-favorites">
+                <summary>🌐 나만의 즐겨찾기 <small>이 브라우저에 저장</small></summary>
+                <div class="fav-custom-body">
+                  <div id="customFavList" class="custom-fav-list"></div>
+                  <button type="button" id="customFavAddBtn" class="custom-fav-add">＋ 나만의 사이트 추가</button>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+        <div class="more-wrap game-wrap">
+          <button type="button" class="mode-tab" id="gameBtn">🎮 게임 ▾</button>
+          <div class="more-menu game-menu" id="gameMenu">
+            <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">🖐️ 핸드러시</a>
+            <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">⚾ 야구게임</a>
+            <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">🔷 SET(셋)</a>
+            <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">🎲 랜덤게임</a>
+            <a href="https://yutnori-seven.vercel.app/" target="_blank" rel="noopener noreferrer">🪵 윷놀이</a>
+            <a href="https://pangpang-six.vercel.app/" target="_blank" rel="noopener noreferrer">🙆 기지개팡팡</a>
+            <a href="https://stock-arena.vercel.app/" target="_blank" rel="noopener noreferrer">📈 모의주식투자</a>
+            <a href="https://stretching-zeta.vercel.app/" target="_blank" rel="noopener noreferrer">🐢 거북목탈출</a>
+            <a href="https://iamsinger.vercel.app/" target="_blank" rel="noopener noreferrer">🎤 나는 가수다</a>
+            <a href="https://joker-nine-pink.vercel.app/" target="_blank" rel="noopener noreferrer">🙂 안면근육훈련</a>
+          </div>
+        </div>      </nav>
+    </div>
+    <div class="header-right">
+      <div class="header-class-tools">
+        <select id="currentClass" aria-label="현재 학급"></select>
+        <button type="button" id="headerRosterBtn" class="header-roster-btn">👥 학급 명렬표 등록</button>
+
+      </div>
+      <div class="header-theme-wrap">
+        <button type="button" id="themeBtn" class="header-theme" aria-expanded="false">🎨 테마 ▾</button>
+        <div id="themeMenu" class="theme-menu" role="group" aria-label="화면 테마 선택">
+          <button type="button" class="theme-choice" data-theme="botanical" aria-pressed="false"><span class="theme-swatch botanical"></span><span><b>초록 식물도감</b><small>기본 · 차분한 보태니컬 종이</small></span></button>
+          <button type="button" class="theme-choice" data-theme="classic" aria-pressed="false"><span class="theme-swatch classic"></span><span><b>T-ong 클래식</b><small>깔끔한 기본 보라</small></span></button>
+          <button type="button" class="theme-choice" data-theme="romance" aria-pressed="false"><span class="theme-swatch romance"></span><span><b>순정만화</b><small>핑크와 하늘빛 감성</small></span></button>
+          <button type="button" class="theme-choice" data-theme="cute" aria-pressed="false"><span class="theme-swatch cute"></span><span><b>몽글 스티커</b><small>발랄한 문구점 컬러</small></span></button>
+          <button type="button" class="theme-choice" data-theme="waterblue" aria-pressed="false"><span class="theme-swatch waterblue"></span><span><b>물빛 산책</b><small>맑은 수채화 블루</small></span></button>
+          <button type="button" class="theme-choice" data-theme="forestletter" aria-pressed="false"><span class="theme-swatch forestletter"></span><span><b>초록 숲편지</b><small>연초록 종이와 식물</small></span></button>
+          <button type="button" class="theme-choice" data-theme="night" aria-pressed="false"><span class="theme-swatch night"></span><span><b>별빛 야간</b><small>눈이 편한 네이비</small></span></button>
+          <button type="button" class="theme-choice" data-theme="campus" aria-pressed="false"><span class="theme-swatch campus"></span><span><b>맑은 교정</b><small>하늘빛 수채화 학교</small></span></button>
+          <button type="button" class="theme-choice" data-theme="teacherdesk" aria-pressed="false"><span class="theme-swatch teacherdesk"></span><span><b>포근한 교사 책상</b><small>커피와 문구의 온기</small></span></button>
+        </div>
+      </div>
+      <div class="header-help-wrap">
+        <button type="button" id="helpBtn" class="header-help">❓ 도움말 ▾</button>
+        <div id="helpMenu" class="help-menu">
+          <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.54</small></button>
+          <button type="button" data-help="updates">✨ 업데이트 사항</button>
+          <button type="button" data-help="support">💜 개발자 응원하기 <small>응원 한마디</small></button>
+          <button type="button" data-help="school">🏫 오늘의 학교 <small>실험</small></button>
+          <a href="https://hot-narcissus-8cf.notion.site/281ea939afdb40a89a8a01ea4db46e12?pvs=105" target="_blank" rel="noopener noreferrer">🛠️ 오류, 기능개선 문의</a>
+          <div class="help-data-notice">
+            <b>🔒 데이터 저장 안내</b>
+            <p>오늘 방문자 수와 총 접속 횟수만 익명 통계로 집계합니다. 명렬표·출결·좌석·상담 기록은 현재 브라우저에만 저장됩니다. Google 동기화를 직접 켠 일정만 본인 Google 계정에도 저장되며 T-ong 서버는 수집하지 않습니다.</p>
+            <div class="help-visit-stats" aria-label="방문 통계">
+              <span>오늘 접속자 수 <b id="todayVisitorCount">__</b></span>
+              <span>누적 접속자 수 <b id="totalVisitCount">__</b></span>
+            </div>
+            <small id="usageStatsStatus">날짜별 익명 방문 수와 총 접속 횟수만 집계합니다.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- 액션 버튼 -->
+  <div class="action-bar mode-screen-hidden" hidden>
+    <div class="action-left">
+      <button id="shuffleBtn" class="btn primary">🎱 추첨 시작</button>
+    </div>
+    <div class="action-right">
+      <button id="settingsBtn" class="btn settings-cta" hidden>⚙️ 설정</button>
+      <button id="saveBtn" class="btn">💾 저장</button>
+      <button id="historyBtn" class="btn">📋 기록</button>
+      <button id="downloadHistoryBtn" class="btn">📊 이력 다운로드</button>
+      <button id="studentViewBtn" class="btn">🖨️ 학생용</button>
+      <button id="teacherViewBtn" class="btn">🖨️ 교탁용</button>
+      <button id="guideBtn" class="btn guide-cta" hidden>📖 사용법 1</button>
+      <a id="blogBtn" class="btn" href="https://blog.naver.com/math-tong/224367003351" target="_blank" rel="noopener noreferrer" hidden>📘 제작 후기</a>
+    </div>
+  </div>
+
+  <!-- 설정 위자드 (게임앱 스타일 단계 진행) -->
+  <div id="setupWizard" class="wizard">
+    <div class="wizard-hero">
+      <div class="hero-badge">👩‍🏫 담임·교과교사를 위한 올인원 교무수첩</div>
+      <h2 class="tong-title"><span class="tong-word">T-ong</span><small>교무수첩</small></h2>
+      <p class="hero-tagline">학급 관리, 하나로 <strong>통(通)</strong>하다</p>
+      <p class="hero-sub">자리배치부터 출결·일정·상담까지, 교사의 하루를 한 화면에서.</p>
+      <div class="hero-tags" id="heroTags">
+        <button type="button" class="hero-tag hero-feature-card" data-key="추첨 시작">
+          <span class="hero-feature-ic">🪑</span><span><b>좌석·모둠 배치</b><small>관계·고정 조건을 반영해 구성</small></span>
+        </button>
+        <button type="button" class="hero-tag hero-feature-card" data-key="누가기록">
+          <span class="hero-feature-ic">✅</span><span><b>출결·통합 기록</b><small>날짜별 입력부터 엑셀 정리까지</small></span>
+        </button>
+        <button type="button" class="hero-tag hero-feature-card" data-key="일정관리">
+          <span class="hero-feature-ic">📅</span><span><b>일정·상담 관리</b><small>캘린더와 상담 기록을 한곳에서</small></span>
+        </button>
+        <button type="button" class="hero-tag hero-feature-card" data-key="교실운영">
+          <span class="hero-feature-ic">🧰</span><span><b>교실운영 도구</b><small>타이머·칭찬·알림장·룰렛</small></span>
+        </button>
+      </div>
+      <div class="hero-onboarding">
+        <button type="button" id="introGuideBtn" class="hero-guide-btn">📖 처음이신가요? 3분 사용법 먼저 보기</button>
+        <span>기능 카드를 누르면 해당 사용법으로 바로 이동합니다.</span>
+      </div>
+      <p class="hero-hint">명렬표와 기록은 현재 브라우저에만 저장되므로 정기적인 백업을 권장합니다.</p>
+      <p class="hero-device-note">💻 노트북과 태블릿 화면에 최적화되어 있습니다.</p>
+      <p class="hero-home-prompt">상단 메뉴에서 원하는 업무를 선택하세요. <b>자리배치</b>를 누르면 좌석 화면으로 이동합니다.</p>
+      <nav class="step-tabs" id="stepTabs">
+        <button type="button" class="step-tab active" data-step="1">
+          <span class="st-no">1</span><span class="st-label">교실 크기</span>
+        </button>
+        <span class="step-line"></span>
+        <button type="button" class="step-tab" data-step="2">
+          <span class="st-no">2</span><span class="st-label">자리 형태</span>
+        </button>
+        <span class="step-line"></span>
+        <button type="button" class="step-tab" data-step="3">
+          <span class="st-no">3</span><span class="st-label">학생 수</span>
+        </button></nav>
+      <div class="step-progress"><div id="stepProgressFill"></div></div>
+    </div>
+    <div class="wizard-content">
+      <div class="wizard-form-head">
+        <strong>우리 반 교실 설정</strong>
+        <span>책상 수 → 자리 형태 → 학생 수, 세 단계면 바로 시작합니다.</span>
+      </div>
+      <div class="step" data-step="1">
+        <h3>🪑 총 책상 개수</h3>
+        <div class="desk-count-input">
+          <button type="button" id="deskMinus" class="count-btn">−</button>
+          <input type="number" id="totalDesks" value="30" min="10" max="50">
+          <button type="button" id="deskPlus" class="count-btn">+</button>
+        </div>
+      </div>
+      <div class="step" data-step="1">
+        <h3 id="columnStepTitle">📐 열(분단) 수</h3>
+        <div id="columnOptions" class="column-options"></div>
+      </div>
+      <div class="step" data-step="2">
+        <h3>👥 자리 형태</h3>
+        <div class="seat-type-options">
+          <div class="type-card" data-type="single">
+            <div class="preview"><div class="seat"></div></div>
+            <p>시험대형</p>
+          </div>
+          <div class="type-card active" data-type="pair">
+            <div class="preview"><div class="seat"></div><div class="seat"></div></div>
+            <p>짝꿍</p>
+          </div>
+          <div class="type-card" data-type="triple">
+            <div class="preview"><div class="seat"></div><div class="seat"></div><div class="seat"></div></div>
+            <p>트리플</p>
+          </div>
+          <div class="type-card" data-type="group">
+            <div class="preview cluster"><div class="seat"></div><div class="seat"></div><div class="seat"></div><div class="seat"></div></div>
+            <p>모둠</p>
+          </div>
+        </div>
+      </div>
+      <div class="step" id="layoutStep" data-step="2" style="display:none;">
+        <h3 id="layoutStepTitle">🎯 레이아웃</h3>
+        <div id="layoutOptions" class="layout-options"></div>
+      </div>
+      <div class="step" data-step="3">
+        <h3>👥 학생 수</h3>
+        <div class="student-count-section">
+          <div class="count-display">
+            <span>책상 <strong id="deskCountDisplay">30</strong>개</span>
+            <span>vs</span>
+            <span>학생 <input type="number" id="studentCount" value="28" min="1" max="50">명</span>
+          </div>
+          <p id="emptySeatInfo" class="empty-seat-info"></p>
+        </div>
+      </div>
+      <div class="wizard-nav">
+        <button type="button" id="stepPrevBtn" class="btn">← 이전</button>
+        <button type="button" id="stepNextBtn" class="btn primary large">다음 →</button>
+        <button type="button" id="applyConfigBtn" class="btn primary large">🎉 시작하기</button>
+      </div>
+    </div>
+    <div class="preview-panel">
+      <h3>👁️ 미리보기</h3>
+      <div class="preview-desk">교탁</div>
+      <div id="previewGrid" class="preview-grid"></div>
+      <p class="preview-info">배치: <span id="previewLayout">2-2</span></p>
+    </div>
+  </div>
+
+  <!-- 메인 무대: 좌석표 + 담임 도구 독 -->
+  <div id="stage" class="stage mode-screen-hidden" hidden style="display:none;">
+    <!-- 좌측 접기 메뉴 — 학기 초에만 쓰는 항목들 -->
+    <aside class="side-rail" id="sideRail">
+      <button type="button" class="rail-toggle" id="railToggle" aria-label="메뉴 펼치기">
+        <span class="rail-ic">☰</span><span class="rail-tx">메뉴 접기</span>
+      </button>
+      <button type="button" class="rail-item" data-proxy="settingsBtn">
+        <span class="rail-ic">⚙️</span><span class="rail-tx">설정 · 명렬표</span>
+      </button>
+      <button type="button" class="rail-item" data-proxy="guideBtn">
+        <span class="rail-ic">📖</span><span class="rail-tx">사용법</span>
+      </button>
+      <button type="button" class="rail-item" data-proxy="blogBtn">
+        <span class="rail-ic">📘</span><span class="rail-tx">제작 후기</span>
+      </button>
+      <div class="rail-drop">
+        <button type="button" class="rail-item" id="railBackup" aria-haspopup="true" aria-expanded="false">
+          <span class="rail-ic">📦</span><span class="rail-tx">데이터 · 기록 ▾</span>
+        </button>
+        <div class="rail-menu" id="railBackupMenu">
+          <button type="button" data-proxy="historyBtn">📋 저장한 기록</button>
+          <button type="button" data-proxy="downloadHistoryBtn">📊 이력 다운로드</button>
+          <button type="button" id="railBackupOpen">📦 데이터 백업</button>
+          <button type="button" data-proxy="confirmResetBtn" class="danger-text">🗑️ 전체 초기화</button>
+        </div>
+      </div>
+    </aside>
+
+    <main id="mainArea">
+      <div class="desk">교 탁</div>
+      <div class="classroom">
+        <div class="cr-side hall">복도</div>
+        <div id="seatingArea" class="seating-area"></div>
+        <div class="cr-side window">창가</div>
+      </div>
+    </main>
+
+    <aside class="dock" id="toolDock" style="display:none;">
+      <!-- 타이머 -->
+      <section class="dock-card timer-card">
+        <div class="dock-title">⏱️ 타이머</div>
+        <div id="timerDisplay" class="timer-display">03:00</div>
+        <div id="timerPresets" class="timer-presets">
+          <button type="button" class="chip active" data-min="3">3분</button>
+          <button type="button" class="chip" data-min="5">5분</button>
+          <button type="button" class="chip" data-min="10">10분</button>
+          <button type="button" id="timerCustomBtn" class="chip custom" data-custom="true">기타(입력)</button>
+        </div>
+        <div class="timer-manual">
+          <input type="number" id="timerMinInput" min="0" max="180" placeholder="분" aria-label="분">
+          <span>분</span>
+          <input type="number" id="timerSecInput" min="0" max="59" placeholder="초" aria-label="초">
+          <span>초</span>
+          <button type="button" id="timerSetBtn" class="tbtn ghost">설정</button>
+        </div>
+        <div class="timer-controls">
+          <button type="button" id="timerToggleBtn" class="tbtn play">▶ 시작</button>
+          <button type="button" id="timerResetBtn" class="tbtn ghost" aria-label="초기화">↺</button>
+        </div>
+      </section>
+
+      <!-- 담임 도구 -->
+      <section class="dock-card tools-card">
+        <button type="button" class="tool-tile" id="pickStudentBtn">
+          <span class="tt-icon">🎯</span><span class="tt-label">룰렛 뽑기</span>
+        </button>
+        <a class="tool-tile" href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">
+          <span class="tt-icon">💬</span><span class="tt-label">조회 멘트</span>
+        </a>
+        <button type="button" class="tool-tile" id="noticeBtn">
+          <span class="tt-icon">📢</span><span class="tt-label">알림장</span>
+        </button>
+        <button type="button" class="tool-tile" id="praiseBtn">
+          <span class="tt-icon">🏆</span><span class="tt-label">칭찬 포인트</span>
+        </button>
+        <button type="button" class="tool-tile" id="attendBtn">
+          <span class="tt-icon">✅</span><span class="tt-label">출결 체크</span>
+        </button>
+        <button type="button" class="tool-tile" id="dutyBtn">
+          <span class="tt-icon">🧹</span><span class="tt-label">1인 1역</span>
+        </button>
+        <button type="button" class="tool-tile" id="ladderBtn">
+          <span class="tt-icon">🪜</span><span class="tt-label">사다리타기</span>
+        </button>
+        <button type="button" class="tool-tile" id="linksBtn">
+          <span class="tt-icon">🔖</span><span class="tt-label">즐겨찾기</span>
+        </button>
+      </section>
+
+      <!-- 오늘의 알림장 미리보기 -->
+      <section class="dock-card notice-card" id="noticePreviewCard">
+        <div class="dock-title">📢 오늘의 알림장</div>
+        <div id="noticePreview" class="notice-preview empty">아직 작성한 알림장이 없습니다</div>
+      </section>
+    </aside>
+
+    <!-- 좌석 설정 요약 — 지금 어떻게 설정돼 있는지 항상 보이게 -->
+    <aside class="seat-panel" id="seatPanel">
+      <div class="sp-drop sp-period">
+        <button type="button" id="spPeriodBtn" class="sp-btn drop-t period-cta"><span class="sp-period-title">📅 배치기간</span><span class="sp-period-date"><span id="spPeriodSummary"></span><span class="sp-period-arrow" aria-hidden="true">▾</span></span></button>
+        <div class="sp-menu sp-period-menu">
+          <strong>좌석배치 기록 기간</strong>
+          <label>시작일<input type="date" id="periodStart"></label>
+          <label>종료일<input type="date" id="periodEnd"></label>
+          <small>저장·출력 기록에 표시되는 기간입니다.</small>
+        </div>
+      </div>
+
+      <div class="sp-drop sp-roster">
+        <button type="button" class="sp-btn drop-t roster-cta">👥 명렬표 업로드 ▾</button>
+        <div class="sp-menu">
+          <button type="button" data-proxy="openExcelUploadBtn">📤 엑셀 업로드</button>
+          <button type="button" data-proxy="openRosterBtn">✏️ 직접 입력</button>
+          <button type="button" data-proxy="downloadSampleExcelBtn">📄 샘플 양식 받기</button>
+          <button type="button" id="downloadRosterExcelBtn">📊 현재 명렬표 엑셀 받기</button>
+        </div>
+      </div>
+
+      <div class="sp-head">📐 좌석 설정</div>
+      <div id="spBody" class="sp-body"></div>
+      <button type="button" id="spEditBtn" class="btn primary sp-edit">설정 바꾸기</button>
+
+      <div class="sp-actions">
+        <button type="button" class="sp-btn go" data-proxy="shuffleBtn">🎱 추첨 시작</button>
+        <button type="button" class="sp-btn" data-proxy="saveBtn">💾 저장</button>
+
+        <div class="sp-drop">
+          <button type="button" class="sp-btn drop-t">🖨️ 출력 ▾</button>
+          <div class="sp-menu">
+            <button type="button" data-proxy="studentViewBtn">🖨️ 학생용</button>
+            <button type="button" data-proxy="teacherViewBtn">🖨️ 교탁용 (좌우반전)</button>
+          </div>
+        </div>
+
+      </div>
+      <div class="sp-tips">
+        <p><b>✋ 끌어다 놓기</b><span>두 학생 자리 교환</span></p>
+        <p><b>🔒 자물쇠</b><span>추첨해도 자리 유지</span></p>
+        <p><b>👤 카드 클릭</b><span>메모 · 교우관계 · 기록</span></p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 출석부 뷰 (상단 탭으로 전환) -->
+  <div id="attendView" class="attend-view mode-screen-hidden" hidden style="display:none;">
+    <div class="av-head">
+      <div class="av-title">✅ 출결관리</div>
+      <div class="av-class-tools">
+        <select id="avClassSelect" aria-label="출결관리 학급 선택"></select>
+        <button type="button" id="avRosterBtn" class="btn av-roster-btn">👥 명렬표 등록·업로드</button>
+      </div>
+      <div class="av-date">
+        <button type="button" id="avPrevDay" class="day-nav" aria-label="어제">‹</button>
+        <input type="date" id="avDate">
+        <button type="button" id="avNextDay" class="day-nav" aria-label="내일">›</button>
+        <button type="button" id="avToday" class="btn day-today">오늘</button>
+      </div>
+      <div id="avSummary" class="attend-summary"></div>
+      <div class="av-actions">
+        <select id="avPeriod" class="av-period" aria-label="다운로드 기간">
+          <option value="this">이번 달</option>
+          <option value="prev">지난 달</option>
+          <option value="all">전체 기간</option>
+        </select>
+        <button type="button" id="avMonthBtn" class="btn">📥 출결 엑셀</button>
+        <button type="button" id="avSheetBtn" class="btn">📋 구글시트로 복사</button>
+        <button type="button" id="avPurgeBtn" class="btn danger-text">🗑️ 다운로드 후 초기화</button>
+        <button type="button" id="avResetBtn" class="btn">오늘 전원 출석</button>
+      </div>
+    </div>
+    <p class="hint av-hint">학생 이름을 누르면 <b>좌석·칭찬·관찰·세특</b> 종합 기록이 열립니다. 출결 상태는 드롭다운에서 선택하세요.</p>
+    <div id="avList" class="attend-list av-list"></div>
+  </div>
+
+  <!-- 추첨 시작 스플래시 -->
+  <div id="lotterySplash" class="splash">
+    <div class="splash-rays"></div>
+    <div class="splash-inner">
+      <div id="splashClass" class="splash-class">3학년 2반</div>
+      <div id="splashSub" class="splash-sub">28명의 새로운 자리</div>
+      <div id="splashCount" class="splash-count">3</div>
+      <div class="splash-hint">두구두구두구…</div>
+    </div>
+    <button type="button" id="splashSkipBtn" class="splash-skip">건너뛰기 ▶▶</button>
+  </div>
+
+  <!-- 전체화면 타이머 -->
+  <div id="timerStage" class="timer-stage">
+    <div class="ts-rays"></div>
+    <div class="ts-inner">
+      <div id="tsLabel" class="ts-label">조회 타이머</div>
+      <div class="ts-main">
+        <!-- 모래시계 -->
+        <svg class="hourglass" id="hourglass" viewBox="0 0 120 190" aria-hidden="true">
+          <defs>
+            <clipPath id="hgTop"><path d="M22 18 H98 L64 92 H56 L22 18 Z"/></clipPath>
+            <clipPath id="hgBot"><path d="M56 98 H64 L98 172 H22 L56 98 Z"/></clipPath>
+          </defs>
+          <path class="hg-frame" d="M18 10 H102 M18 180 H102" />
+          <path class="hg-glass" d="M22 18 H98 L64 92 V98 L98 172 H22 L56 98 V92 L22 18 Z"/>
+          <g clip-path="url(#hgTop)"><rect id="sandTop" class="hg-sand" x="20" y="18" width="80" height="76"/></g>
+          <g clip-path="url(#hgBot)"><rect id="sandBot" class="hg-sand" x="20" y="172" width="80" height="0"/></g>
+          <line id="sandStream" class="hg-stream" x1="60" y1="94" x2="60" y2="168"/>
+        </svg>
+
+        <!-- 원형 진행 + 숫자 -->
+        <div class="ts-ring-wrap">
+          <svg class="ts-ring" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="ring-bg" cx="100" cy="100" r="88"/>
+            <circle id="ringFill" class="ring-fill" cx="100" cy="100" r="88"/>
+          </svg>
+          <div id="tsTime" class="ts-time">03:00</div>
+        </div>
+      </div>
+      <div class="ts-options">
+        <div id="tsPresets" class="ts-presets" aria-label="타이머 빠른 선택">
+          <button type="button" class="ts-preset active" data-ts-min="3">3분</button>
+          <button type="button" class="ts-preset" data-ts-min="5">5분</button>
+          <button type="button" class="ts-preset" data-ts-min="10">10분</button>
+          <button type="button" id="tsCustomBtn" class="ts-preset custom" data-ts-custom="true">기타(입력)</button>
+        </div>
+        <div id="tsManual" class="ts-manual" hidden>
+          <input type="number" id="tsMinInput" min="0" max="180" placeholder="분" aria-label="분">
+          <span>분</span>
+          <input type="number" id="tsSecInput" min="0" max="59" placeholder="초" aria-label="초">
+          <span>초</span>
+          <button type="button" id="tsSetBtn" class="ts-set">적용</button>
+        </div>
+      </div>
+      <div class="ts-controls">
+        <button type="button" id="tsToggleBtn" class="tbtn play">⏸ 멈춤</button>
+        <button type="button" id="tsResetBtn" class="tbtn ghost">↺ 다시</button>
+      </div>
+    </div>
+    <button type="button" id="tsCloseBtn" class="ts-close">작게 보기 ✕</button>
+  </div>
+
+  <!-- 오늘의 알림장 -->
+  <div id="noticeModal" class="modal">
+    <div class="modal-content notice-modal-content">
+      <div class="modal-header">
+        <h3>📢 오늘의 알림장</h3>
+        <button class="close-btn" data-modal="noticeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint">준비물 · 과제 · 공지사항을 적어두면 좌석표 옆에 계속 보입니다.</p>
+        <textarea id="noticeInput" rows="7" placeholder="예)&#10;· 내일 체육복 지참&#10;· 수학 익힘책 42~45쪽&#10;· 금요일 현장체험학습 동의서 제출"></textarea>
+        <p class="hint" id="noticeSavedAt"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="noticeClearBtn" class="btn">지우기</button>
+        <button type="button" id="noticeBigBtn" class="btn">🖥️ 크게 보기</button>
+        <button type="button" id="noticeSaveBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 알림장 크게 보기 (교실 TV용) -->
+  <div id="noticeBoard" class="notice-board">
+    <div class="nb-inner">
+      <div class="nb-head"><span id="nbClass"></span><span id="nbDate"></span></div>
+      <div id="nbBody" class="nb-body"></div>
+    </div>
+    <button type="button" id="nbCloseBtn" class="nb-close">닫기 ✕</button>
+  </div>
+
+  <!-- 칭찬 포인트 -->
+  <div id="praiseModal" class="modal">
+    <div class="modal-content praise-modal-content">
+      <div class="modal-header">
+        <h3>🏆 칭찬 포인트</h3>
+        <button class="close-btn" data-modal="praiseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint">이름을 누르면 +1, 오른쪽 −를 누르면 차감됩니다. 좌석표에도 표시됩니다.</p>
+        <div id="praiseList" class="praise-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="praiseResetBtn" class="btn danger-text">전체 초기화</button>
+        <button type="button" class="btn primary" data-modal="praiseModal">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 출결 체크 -->
+  <div id="attendModal" class="modal">
+    <div class="modal-content wide attend-content">
+      <div class="modal-header">
+        <h3>✅ 출결 체크 <span id="attendDate" class="head-sub"></span></h3>
+        <button class="close-btn" data-modal="attendModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="attendSummary" class="attend-summary"></div>
+        <p class="hint">학생 이름을 누르면 좌석표와 연결된 종합 기록이 열립니다. 출결 상태는 드롭다운에서 선택하세요.</p>
+        <div id="attendList" class="attend-list"></div>
+      </div>
+      <div class="modal-footer attend-foot">
+        <button type="button" id="attendMonthBtn" class="btn">📥 이달 기록 엑셀</button>
+        <button type="button" id="attendPurgeBtn" class="btn danger-text">🗑️ 다운로드 후 초기화</button>
+        <button type="button" id="attendResetBtn" class="btn">오늘 전원 출석</button>
+        <button type="button" class="btn primary" data-modal="attendModal">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1인 1역 -->
+  <div id="dutyModal" class="modal">
+    <div class="modal-content wide duty-content">
+      <div class="modal-header">
+        <h3>🧹 1인 1역 배정</h3>
+        <button class="close-btn" data-modal="dutyModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>역할 목록 <small class="hint-inline">한 줄에 하나씩. 학생 수보다 적으면 여러 명이 같은 역할을 맡습니다.</small></label>
+        <textarea id="dutyRoles" rows="4" placeholder="칠판 담당&#10;분리수거&#10;창문 담당&#10;우유 담당&#10;책상 줄맞추기"></textarea>
+        <div class="duty-actions">
+          <button type="button" id="dutyAssignBtn" class="btn primary">🎲 무작위 배정</button>
+          <button type="button" id="dutyTemplateBtn" class="btn">📄 엑셀 양식 받기</button>
+          <button type="button" id="dutyUploadBtn" class="btn">📤 엑셀 올리기</button>
+          <button type="button" id="dutyClearBtn" class="btn">배정 지우기</button>
+          <input type="file" id="dutyFileInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+        <p class="hint duty-hint">엑셀로 올리면 좌석표 · 학생 카드 · 통합 기록에 <b>바로 연동</b>됩니다.
+          양식은 두 가지 — <b>①직접 배정</b>(학번·이름·역할) / <b>②역할 목록</b>(역할만 적고 무작위 배정)</p>
+        <div id="dutyResult" class="duty-result"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="dutyPrintBtn" class="btn">🖨️ 인쇄</button>
+        <button type="button" class="btn primary" data-modal="dutyModal">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 통합 기록 (생기부용 관계형 데이터) -->
+  <div id="recordsModal" class="modal">
+    <div class="modal-content records-content">
+      <div class="modal-header">
+        <h3>📊 통합 기록 <span id="recCount" class="head-sub"></span></h3>
+        <button class="close-btn" data-modal="recordsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint">학생 한 명이 한 줄입니다. 자리 이력 · 짝 · 출결 · 1인 1역 · 칭찬 · 메모 · 관찰·세특 기록이 학생번호로 연결되어 있습니다.</p>
+        <div class="rec-actions">
+          <button type="button" id="recXlsxBtn" class="btn primary">📥 엑셀 다운로드</button>
+          <button type="button" id="recSheetBtn" class="btn">📋 통합표 시트 복사</button>
+          <button type="button" id="recSpecialSheetBtn" class="btn">✍️ 세특 원본 시트 복사</button>
+          <button type="button" id="recCsvBtn" class="btn">📄 CSV 다운로드</button>
+        </div>
+        <div id="recTableWrap" class="rec-table-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사다리타기 -->
+  <div id="ladderModal" class="modal">
+    <div class="modal-content wide ladder-content">
+      <div class="modal-header">
+        <h3>🪜 사다리타기</h3>
+        <button class="close-btn" data-modal="ladderModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="lp-row">
+          <label>참여 인원</label>
+          <div class="lp-count">
+            <button type="button" id="ladderMinus" class="count-btn">−</button>
+            <input type="number" id="ladderCount" value="4" min="2" max="8">
+            <button type="button" id="ladderPlus" class="count-btn">+</button>
+          </div>
+          <button type="button" id="ladderPickBtn" class="btn">🎲 학생에서 뽑기</button>
+          <button type="button" id="ladderMakeBtn" class="btn primary">🪜 사다리 만들기</button>
+        </div>
+        <div class="lp-cols">
+          <div>
+            <label>참여자 <small class="hint-inline">한 줄에 한 명</small></label>
+            <textarea id="ladderNames" rows="3" placeholder="강민준&#10;고은서&#10;김도윤&#10;김서아"></textarea>
+          </div>
+          <div>
+            <label>결과 <small class="hint-inline">한 줄에 하나</small></label>
+            <textarea id="ladderPrizes" rows="3" placeholder="칠판 담당&#10;분리수거&#10;꽝&#10;우유 담당"></textarea>
+          </div>
+        </div>
+        <canvas id="ladderCanvas" class="ladder-canvas" width="720" height="240"></canvas>
+        <div id="ladderResult" class="ladder-result"><p class="hint">사다리를 만든 뒤 위쪽 이름을 누르면 길을 따라갑니다.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 즐겨찾기 -->
+  <div id="linksModal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>🔖 자주 가는 사이트</h3>
+        <button class="close-btn" data-modal="linksModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="fav-category-list modal-categories">
+          <details class="fav-category" open>
+            <summary>🏫 수업 및 클래스 <small>5개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://www.miricanvas.com/" target="_blank" rel="noopener noreferrer">미리캔버스</a>
+              <a href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer">클래스룸</a>
+              <a href="https://hi.goe.go.kr/" target="_blank" rel="noopener noreferrer">하이러닝</a>
+              <a href="https://teacher.ebsi.co.kr/ercapp/main.do" target="_blank" rel="noopener noreferrer">EBSi 교사지원센터</a>
+              <a href="https://www.canva.com/" target="_blank" rel="noopener noreferrer">캔바</a>
+            </div>
+          </details>
+          <details class="fav-category">
+            <summary>📚 교과서 사이트 <small>3개 + 직접 추가</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://www.m-teacher.co.kr/" target="_blank" rel="noopener noreferrer">미래엔</a>
+              <a href="https://www.vivasam.com/" target="_blank" rel="noopener noreferrer">비바샘</a>
+              <a href="https://teachingsaem.cmass.kr/" target="_blank" rel="noopener noreferrer">씨마스</a>
+            </div>
+            <div class="fav-custom-body textbook-custom">
+              <div class="fav-sub-label">내 교과서 사이트</div>
+              <div id="customTextbookModalList" class="custom-fav-list modal-list"></div>
+              <button type="button" id="customTextbookModalAddBtn" class="btn primary full-width">＋ 교과서 사이트 추가</button>
+            </div>
+          </details>
+          <details class="fav-category">
+            <summary>🤖 생성형 AI <small>6개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>
+              <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>
+              <a href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">Gemini</a>
+              <a href="https://www.perplexity.ai/" target="_blank" rel="noopener noreferrer">Perplexity</a>
+              <a href="https://notebooklm.google.com/" target="_blank" rel="noopener noreferrer">NotebookLM</a>
+                  <a href="https://chat.qwen.ai/" target="_blank" rel="noopener noreferrer">Qwen</a>
+            </div>
+          </details>
+          <details class="fav-category">
+            <summary>🗂️ 교무업무 <small>3개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://stas.moe.go.kr/cmn/main" target="_blank" rel="noopener noreferrer">교육과정 성취기준</a>
+                  <a href="https://ncic.re.kr/board/B0024.cs?m=10" target="_blank" rel="noopener noreferrer">국가교육과정정보센터</a>
+              <a href="https://star.moe.go.kr/web/contents/m21100.do" target="_blank" rel="noopener noreferrer">학교생활기록부</a>
+            </div>
+          </details>
+          <details class="fav-category admissions-favorites">
+            <summary>🎓 진로진학 <small>7개 + 직접 추가</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://more.goe.go.kr/jinhak/index.do" target="_blank" rel="noopener noreferrer">경기진학정보센터(경기진협)</a>
+                  <a href="https://www.adiga.kr/" target="_blank" rel="noopener noreferrer">대입정보포털 어디가</a>
+                  <a href="https://www.kcue.or.kr/" target="_blank" rel="noopener noreferrer">한국대학교육협의회</a>
+                  <a href="https://www.hischool.go.kr/" target="_blank" rel="noopener noreferrer">고입정보포털</a>
+                  <a href="https://www.career.go.kr/cnet/front/main/main.do" target="_blank" rel="noopener noreferrer">진로넷</a>
+                  <a href="https://jinro.goedu.kr/" target="_blank" rel="noopener noreferrer">꿈잇다</a>
+                  <a href="https://www.ggoomgil.go.kr/" target="_blank" rel="noopener noreferrer">꿈길</a>
+                </div>
+                <div class="fav-custom-body admission-custom">
+              <div class="fav-sub-label">내 진로진학 사이트</div>
+              <div id="customAdmissionModalList" class="custom-fav-list modal-list"></div>
+              <button type="button" id="customAdmissionModalAddBtn" class="btn primary full-width">＋ 진로진학 사이트 추가</button>
+            </div>
+          </details>
+          <details class="fav-category teacher-tools-favorites">
+            <summary>🧰 교사 도구함 <small>1개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://www.notiontalk.com/contents/tools/exam-question-cropper/" target="_blank" rel="noopener noreferrer">기출문항 크롭퍼</a>
+            </div>
+          </details>
+          <details class="fav-category personal-favorites" open>
+            <summary>🌐 나만의 즐겨찾기 <small>이 브라우저에 저장</small></summary>
+            <div class="fav-custom-body">
+              <div id="customFavModalList" class="custom-fav-list modal-list"></div>
+              <button type="button" id="customFavModalAddBtn" class="btn primary full-width">＋ 나만의 사이트 추가</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 내 즐겨찾기 편집 -->
+  <div id="favoriteEditModal" class="modal">
+    <div class="modal-content small favorite-edit-content">
+      <div class="modal-header"><h3 id="customFavModalTitle">🔖 내 사이트</h3><button class="close-btn" data-modal="favoriteEditModal">&times;</button></div>
+      <form id="customFavForm" class="modal-body">
+        <input type="hidden" id="customFavId"><input type="hidden" id="customFavKind" value="general">
+        <label>사이트 이름<input type="text" id="customFavName" maxlength="40" placeholder="예: 우리 학교 홈페이지" required></label>
+        <label>사이트 주소<input type="text" id="customFavUrl" inputmode="url" maxlength="300" placeholder="https://example.com" required></label>
+        <p class="hint">http:// 또는 https://가 없으면 자동으로 https://를 붙입니다.</p>
+        <div class="favorite-edit-actions">
+          <button type="button" id="customFavDeleteBtn" class="btn danger-text" hidden>삭제</button>
+          <button type="button" class="btn" data-modal="favoriteEditModal">취소</button>
+          <button type="submit" class="btn primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 도움말 실험 기능: NEIS 오늘의 학교 -->
+  <div id="schoolTodayModal" class="modal">
+    <div class="modal-content wide school-data-content">
+      <div class="modal-header school-modal-head">
+        <div><span class="school-today-kicker">NEIS 학교정보 · 도움말 실험 기능</span><h3>🏫 오늘의 학교 <span class="experimental-badge">실험</span></h3><p id="schoolTodaySubtitle">학교를 설정하면 날짜별 학급 시간표와 급식을 확인할 수 있습니다.</p></div>
+        <button class="close-btn" data-modal="schoolTodayModal">&times;</button>
+      </div>
+      <div class="modal-body school-data-body">
+        <section class="school-today-card">
+          <div class="school-today-head">
+            <div><h3 id="schoolTodayName">🏫 오늘의 학교 <span class="experimental-badge">실험</span></h3><p id="schoolTodayClass">학교 설정이 필요합니다.</p></div>
+            <div class="school-today-actions"><input type="date" id="schoolTodayDate" aria-label="조회 날짜"><button type="button" id="schoolTodayRefreshBtn" class="btn">↻ 새로고침</button><button type="button" id="schoolSettingsBtn" class="btn primary">학교 설정</button></div>
+          </div>
+          <div id="schoolSettingsPanel" class="school-settings-panel" hidden>
+            <section class="school-setting-section">
+              <h4>1. 학교 검색</h4>
+              <div class="school-search-row"><input type="search" id="schoolSearchInput" maxlength="40" placeholder="예: 서울고등학교"><button type="button" id="schoolSearchBtn" class="btn primary">검색</button></div>
+              <div id="schoolSearchStatus" class="school-search-status">학교 이름을 두 글자 이상 입력해 주세요.</div>
+              <div id="schoolSearchResults" class="school-search-results"></div>
+              <div id="schoolSelectedInfo" class="school-selected-info">선택한 학교가 없습니다.</div>
+            </section>
+            <section class="school-setting-section">
+              <h4>2. 조회할 학급</h4>
+              <div class="school-class-fields"><label>학년<input type="number" id="schoolGradeInput" min="1" max="6" value="1" inputmode="numeric"></label><label>반<input type="number" id="schoolClassInput" min="1" max="30" value="1" inputmode="numeric"></label></div>
+              <p class="school-setting-hint">NEIS에 공개된 학급 시간표를 조회하기 위한 값입니다. 교사용 개인 시간표는 교실운영 맨 위의 ‘컴시간알리미(교사용)’을 이용해 주세요.</p>
+              <div class="school-setting-actions"><button type="button" id="schoolSettingsCancelBtn" class="btn">취소</button><button type="button" id="schoolSettingsSaveBtn" class="btn primary">저장하고 조회</button></div>
+            </section>
+          </div>
+          <div id="schoolTodayEmpty" class="school-today-empty"><span>🏫</span><p><b>학교를 먼저 설정해 주세요.</b><small>학교명·학년·반은 현재 브라우저에만 저장됩니다.</small></p></div>
+          <div id="schoolTodayGrid" class="school-today-grid" hidden>
+            <section class="school-today-pane timetable-pane"><div class="school-pane-title"><h4>🗓️ 학급 시간표</h4><span id="schoolTimetableMeta"></span></div><div id="schoolTimetableList" class="school-today-list"></div></section>
+            <section class="school-today-pane meal-pane"><div class="school-pane-title"><h4>🍱 급식</h4><span id="schoolMealMeta"></span></div><div id="schoolMealList" class="school-today-list"></div></section>
+          </div>
+          <div id="schoolTodayStatus" class="school-today-status">학교 설정 후 조회할 수 있습니다.</div>
+        </section>
+        <p class="school-data-notice">학교·학년·반 설정은 현재 브라우저에만 저장됩니다. 조회할 때 선택한 학교 코드와 날짜만 NEIS 공개 API에 전달되며 명렬표·출결·상담 자료는 전송하지 않습니다.</p>
+      </div>
+    </div>
+  </div>
+  <!-- 도움말 정보 -->
+  <div id="helpInfoModal" class="modal">
+    <div class="modal-content wide help-info-content">
+      <div class="modal-header"><h3 id="helpInfoTitle">도움말</h3><button class="close-btn" data-modal="helpInfoModal">&times;</button></div>
+      <div id="helpInfoBody" class="modal-body help-info-body"></div>
+    </div>
+  </div>
+
+  <!-- 일정관리 캘린더 -->
+  <div id="calendarModal" class="modal">
+    <div class="modal-content wide calendar-content">
+      <div class="modal-header calendar-head">
+        <h3>📅 일정관리</h3>
+        <div class="cal-head-actions">
+          <button type="button" id="calAddBtn" class="btn primary">＋ 일정 추가</button>
+          <button type="button" id="calGoogleBtn" class="btn google-cal-head-btn"><span aria-hidden="true">G</span> Google 동기화</button>
+          <button type="button" id="calHelpBtn" class="btn">❓ 사용법</button>
+          <button type="button" id="calTransferBtn" class="btn">⇄ 가져오기·내보내기</button>
+          <button class="close-btn" data-modal="calendarModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body calendar-body">
+        <div class="cal-view-bar">
+          <div class="cal-view-tabs" role="tablist" aria-label="일정 보기">
+            <button type="button" class="cal-view-tab active" data-cal-view="month" role="tab" aria-selected="true">월간일정</button>
+            <button type="button" class="cal-view-tab" data-cal-view="week" role="tab" aria-selected="false">주간일정</button>
+            <button type="button" class="cal-view-tab" data-cal-view="day" role="tab" aria-selected="false">오늘일정</button>
+          </div>
+          <small class="cal-gesture-hint">휠·트랙패드 또는 좌우 스와이프로 이동</small>
+        </div>
+        <div class="cal-toolbar">
+          <button type="button" id="calPrevBtn" class="cal-nav" aria-label="이전 달">‹</button>
+          <strong id="calMonthLabel"></strong>
+          <button type="button" id="calNextBtn" class="cal-nav" aria-label="다음 달">›</button>
+          <button type="button" id="calTodayBtn" class="btn">오늘</button>
+        </div>
+        <div id="calLayout" class="calendar-layout">
+          <section id="calMonthPane" class="cal-month-pane">
+            <div class="cal-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div id="calGrid" class="cal-grid"></div>
+          </section>
+
+        </div>
+
+        <section id="calWeekPane" class="cal-week-pane" hidden>
+          <div id="calWeekGrid" class="cal-week-grid"></div>
+        </section>
+        <section id="calTodayPane" class="cal-today-pane" hidden>
+          <div class="cal-today-head"><strong id="calTodayLabel"></strong><button type="button" id="calTodayAddBtn" class="btn primary">＋ 오늘 일정 추가</button></div>
+          <div id="calTodayList" class="cal-today-list"></div>
+        </section>
+
+        <div id="calEditorOverlay" class="cal-editor-overlay" hidden>
+          <section class="cal-editor-card" role="dialog" aria-modal="true" aria-labelledby="calEditorTitle">
+            <div class="cal-editor-head"><h4 id="calEditorTitle">일정 입력</h4><button type="button" id="calEditorCloseBtn" class="close-btn" aria-label="일정 입력 닫기">&times;</button></div>
+            <form id="calForm" class="cal-form">
+              <input type="hidden" id="calEditId">
+              <label>일정명<input type="text" id="calTitleInput" maxlength="80" placeholder="예: 개학식" required></label>
+              <div class="cal-form-row">
+                <label>시작일<input type="date" id="calStartInput" required></label>
+                <label>종료일<input type="date" id="calEndInput"></label>
+              </div>
+              <div class="cal-form-row">
+                <label>속성<div class="cal-property-control"><select id="calPropertyInput"></select><button type="button" id="calAddPropertyBtn" title="새 속성 추가" aria-label="새 속성 추가">＋</button><button type="button" id="calEditPropertyBtn" title="선택 속성 이름 수정" aria-label="선택 속성 이름 수정">✎</button><button type="button" id="calDeletePropertyBtn" title="선택 속성 삭제" aria-label="선택 속성 삭제">−</button></div><div id="calPropertyAdder" class="cal-property-add" hidden><input type="text" id="calNewPropertyInput" maxlength="12" placeholder="예: 연수, 행사, 평가"><button type="button" id="calPropertySaveBtn">추가</button><button type="button" id="calPropertyCancelBtn">취소</button></div></label>
+                <label id="calGeneralTargetLabel">대상<select id="calTargetInput"><option value="전체">전체</option><option value="현재 학급">현재 학급</option><option value="학생" hidden>학생</option><option value="학부모" hidden>학부모</option></select></label>
+              </div>
+              <label>메모<input type="text" id="calMemoInput" maxlength="160" placeholder="일정 내용 또는 준비 사항"></label>
+              <div id="calConsultFields" class="cal-consult-fields" hidden>
+                <div class="cal-consult-title">💬 상담 기록 항목</div>
+                <div class="cal-form-row">
+                  <label>상담 대상<select id="calConsultTargetInput"><option value="학생">학생</option><option value="학부모">학부모</option></select></label>
+                  <label>관련 학생<select id="calStudentInput"></select></label>
+                </div>
+                <div class="cal-form-row">
+                  <label>상담 방식<select id="calConsultMethodInput"><option>학생 상담</option><option>학부모 상담</option><option>전화 상담</option><option>대면 상담</option></select></label>
+                  <label>진행 상태<select id="calStatusInput"><option>예정</option><option>완료</option><option>후속 필요</option></select></label>
+                </div>
+                <label>후속 조치<input type="text" id="calFollowUpInput" maxlength="160" placeholder="추가 상담, 확인할 내용 등"></label>
+              </div>
+              <div class="cal-form-actions">
+                <button type="button" id="calFormResetBtn" class="btn">취소</button>
+                <button type="submit" id="calSaveBtn" class="btn primary">일정 저장</button>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <details id="calGooglePanel" class="cal-import-box google-sync-panel">
+          <summary><span class="google-mark" aria-hidden="true">G</span> Google 캘린더 양방향 동기화 <small id="googleCalSummaryStatus">연결 안 됨</small></summary>
+          <div class="google-sync-body">
+            <div class="google-sync-intro">
+              <div><strong id="googleCalStatus">Google 계정을 연결해 주세요.</strong><span id="googleCalAccount">같은 계정의 전용 ‘T-ong 일정’ 캘린더를 찾아 연결합니다.</span></div>
+              <span id="googleCalStateBadge" class="google-sync-badge">대기</span>
+            </div>
+            <div class="google-sync-actions">
+              <button type="button" id="googleCalConnectBtn" class="btn google-connect-btn">Google 계정 연결</button>
+              <button type="button" id="googleCalSyncBtn" class="btn primary" disabled>지금 동기화</button>
+              <button type="button" id="googleCalDisconnectBtn" class="btn" disabled>연결 해제</button>
+            </div>
+            <div class="google-sync-options">
+              <label><input type="checkbox" id="googleCalAutoInput" checked> 앱을 사용하는 동안 자동 동기화 <small>변경 즉시 + 약 1분 간격</small></label>
+              <label><input type="checkbox" id="googleCalConsultInput"> 상담 일정도 Google에 보내기 <small>학생 관련 정보가 포함될 수 있어 기본 해제</small></label>
+              <label><input type="checkbox" id="googleCalMemoInput"> 일정 메모도 Google에 보내기 <small>기본 해제</small></label>
+            </div>
+            <p class="google-sync-privacy"><b>개인정보 보호</b> 접근 토큰은 현재 탭의 메모리에만 두며 T-ong 서버에 저장하지 않습니다. 상담 세부 항목(학생 번호·이름·상담 방식·후속 조치)은 전송하지 않습니다. Google에 보낸 일정은 Google 계정의 개인정보 처리방침을 따릅니다.</p>
+            <details id="googleCalDeveloperSettings" class="google-dev-settings">
+              <summary>앱 관리자 설정</summary>
+              <p>Google Cloud에서 웹 애플리케이션용 OAuth 클라이언트 ID를 만든 뒤 입력합니다. 일반 사용자는 배포본에 설정된 값을 사용합니다.</p>
+              <div><input type="text" id="googleClientIdInput" autocomplete="off" spellcheck="false" placeholder="000000000000-xxxx.apps.googleusercontent.com"><button type="button" id="googleClientIdSaveBtn" class="btn">클라이언트 ID 저장</button><button type="button" id="googleOAuthHelpBtn" class="google-oauth-help-btn" aria-label="OAuth 클라이언트 ID 연결 방법" title="OAuth 연결 방법" aria-haspopup="dialog">?</button></div>
+              <small>승인된 JavaScript 원본: https://t-ong.vercel.app · 로컬 시험: http://localhost:4321</small>
+            </details>
+            <p id="googleCalLastSync" class="google-last-sync">마지막 동기화: 없음</p>
+          </div>
+        </details>
+        <details id="calTransferPanel" class="cal-import-box">
+          <summary>📋 구글시트 일정 복사·붙여넣기</summary>
+          <p class="hint">시트에서 아래 열을 포함한 표를 복사해 붙여넣으세요. 필수 열은 <b>날짜(또는 시작일)</b>와 <b>일정명</b>입니다.</p>
+          <div class="cal-template">날짜　종료일　일정명　속성　메모</div>
+          <textarea id="calPasteInput" rows="5" placeholder="날짜&#9;종료일&#9;일정명&#9;속성&#9;메모&#10;2026-08-17&#9;&#9;교직원 회의&#9;회의&#9;2학기 준비"></textarea>
+          <div class="cal-import-actions">
+            <button type="button" id="calSampleBtn" class="btn">예시 넣기</button>
+            <button type="button" id="calPreviewBtn" class="btn">붙여넣기 미리보기</button>
+            <button type="button" id="calImportBtn" class="btn primary" disabled>일정 가져오기</button>
+            <button type="button" id="calIcsBtn" class="btn">📤 구글 캘린더용 ICS</button>
+            <button type="button" id="calConsultExcelBtn" class="btn">📊 상담기록 엑셀</button>
+            <span class="sheet-copy-help-pair"><button type="button" id="calConsultCopyBtn" class="btn">📋 상담기록 시트 복사</button><button type="button" id="calConsultCopyHelpBtn" class="sheet-copy-help-btn" aria-label="상담기록 시트 복사 방법" title="시트 복사 방법" aria-haspopup="dialog">?</button></span>
+          </div>
+          <div id="calImportPreview" class="cal-import-preview"><p class="hint">붙여넣은 내용을 먼저 미리보기로 확인합니다.</p></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Google OAuth 클라이언트 ID 연결 도움말 -->
+  <div id="googleOAuthHelpModal" class="modal oauth-help-modal">
+    <div class="modal-content wide oauth-help-content">
+      <div class="modal-header oauth-help-head"><div><h3><span class="google-mark" aria-hidden="true">G</span> OAuth 클라이언트 ID 연결 방법</h3><p>Google Cloud에서 한 번만 설정하면 T-ong 사용자는 Google 계정 연결 버튼만 누르면 됩니다.</p></div><button class="close-btn" data-modal="googleOAuthHelpModal" aria-label="OAuth 도움말 닫기">&times;</button></div>
+      <div class="modal-body oauth-help-body">
+        <div class="oauth-help-topnote"><b>먼저 확인</b><span>Google Cloud 프로젝트 소유자 계정으로 진행하세요. 아래 이미지는 2026년 Google Cloud 메뉴를 바탕으로 만든 화면 예시이며 메뉴 위치는 바뀔 수 있습니다.</span></div>
+        <ol class="oauth-help-steps">
+          <li>
+            <div class="oauth-step-copy"><span class="oauth-step-no">1</span><div><h4>Google Calendar API 사용 설정</h4><p><b>API 및 서비스 → 라이브러리</b>에서 <em>Google Calendar API</em>를 검색한 뒤 <b>사용</b>을 누릅니다.</p><a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener noreferrer">Google Calendar API 열기 ↗</a></div></div>
+            <a class="oauth-shot-link" href="/guide/oauth-client-step-1.png" target="_blank" title="큰 화면으로 보기"><img src="/guide/oauth-client-step-1.png" alt="Google Cloud API 라이브러리에서 Google Calendar API를 검색하고 사용하는 화면 예시"></a>
+          </li>
+          <li>
+            <div class="oauth-step-copy"><span class="oauth-step-no">2</span><div><h4>Google Auth Platform 동의 화면 설정</h4><p><b>브랜딩</b>에서 앱 이름을 <em>T-ong 교무수첩</em>으로 입력합니다. <b>대상</b>은 여러 선생님이 사용하므로 <em>외부</em>를 선택하고, 시험 중에는 사용할 Google 계정을 테스트 사용자로 추가합니다.</p><p><b>데이터 액세스</b>에는 이메일·openid와 Calendar의 앱 생성 캘린더·캘린더 목록 읽기 범위를 등록합니다.</p><a href="https://console.cloud.google.com/auth/branding" target="_blank" rel="noopener noreferrer">Google Auth Platform 열기 ↗</a></div></div>
+            <a class="oauth-shot-link" href="/guide/oauth-client-step-2.png" target="_blank" title="큰 화면으로 보기"><img src="/guide/oauth-client-step-2.png" alt="Google Auth Platform 브랜딩에서 앱 이름과 이메일을 설정하는 화면 예시"></a>
+          </li>
+          <li>
+            <div class="oauth-step-copy"><span class="oauth-step-no">3</span><div><h4>웹 애플리케이션 클라이언트 만들기</h4><p><b>클라이언트 → 클라이언트 만들기 → 웹 애플리케이션</b>을 선택합니다. 승인된 JavaScript 원본에는 아래 주소를 경로 없이 각각 등록합니다.</p><div class="oauth-origin-list"><code>https://t-ong.vercel.app</code><code>http://localhost:4321</code></div><p class="oauth-warning">내부망 주소(예: 192.168.x.x)는 승인 원본으로 사용할 수 없습니다.</p><a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener noreferrer">OAuth 클라이언트 화면 열기 ↗</a></div></div>
+            <a class="oauth-shot-link" href="/guide/oauth-client-step-3.png" target="_blank" title="큰 화면으로 보기"><img src="/guide/oauth-client-step-3.png" alt="웹 애플리케이션 OAuth 클라이언트와 승인된 JavaScript 원본을 등록하는 화면 예시"></a>
+          </li>
+          <li>
+            <div class="oauth-step-copy"><span class="oauth-step-no">4</span><div><h4>클라이언트 ID를 복사해 T-ong에 저장</h4><p><code>…apps.googleusercontent.com</code>으로 끝나는 <b>클라이언트 ID</b>만 복사합니다. T-ong의 <b>앱 관리자 설정</b>에 붙여넣고 저장한 뒤 <b>Google 계정 연결</b>을 누릅니다.</p><p class="oauth-warning"><b>Client Secret은 입력하거나 공개하지 마세요.</b> T-ong의 브라우저 방식에서는 사용하지 않습니다.</p></div></div>
+            <a class="oauth-shot-link" href="/guide/oauth-client-step-4.png" target="_blank" title="큰 화면으로 보기"><img src="/guide/oauth-client-step-4.png" alt="Google OAuth 클라이언트 ID를 복사해 T-ong 앱 관리자 설정에 붙여넣는 화면 예시"></a>
+          </li>
+        </ol>
+        <section class="oauth-help-finish"><h4>연결이 안 될 때 확인하세요</h4><ul><li><b>origin_mismatch</b> — 현재 주소와 승인된 JavaScript 원본이 정확히 같은지 확인합니다.</li><li><b>access_denied</b> — 외부 앱 시험 상태라면 Google Auth Platform의 테스트 사용자에 계정을 추가합니다.</li><li><b>403 / Calendar API</b> — 현재 프로젝트에서 Google Calendar API가 사용 설정됐는지 확인합니다.</li><li>여러 선생님에게 공개하기 전에는 Google의 OAuth 앱 확인 또는 검증이 필요할 수 있습니다.</li></ul></section>
+      </div>
+      <div class="modal-footer oauth-help-footer"><span>이미지를 누르면 원본 크기로 열립니다.</span><button type="button" class="btn primary" data-modal="googleOAuthHelpModal">확인</button></div>
+    </div>
+  </div>
+
+  <!-- 상담기록 시트 복사 도움말 -->
+  <div id="sheetCopyHelpModal" class="modal">
+    <div class="modal-content wide sheet-copy-help-content">
+      <div class="modal-header"><h3>📋 상담기록 시트 복사 예시</h3><button class="close-btn" data-modal="sheetCopyHelpModal">&times;</button></div>
+      <div class="modal-body sheet-copy-help-body">
+        <div class="sheet-copy-steps" aria-label="시트 붙여넣기 순서">
+          <span><b>1</b><em>상담기록 시트 복사</em> 버튼을 누릅니다.</span>
+          <span><b>2</b>새 구글시트에서 <em>A1 셀</em>을 선택합니다.</span>
+          <span><b>3</b><em>Ctrl+V</em> 또는 길게 눌러 붙여넣습니다.</span>
+        </div>
+        <figure class="sheet-copy-example">
+          <img src="/assets/sheet-copy-example.png" alt="상담기록을 구글시트 A1 셀에 붙여넣어 학급, 날짜, 상담 대상, 학생명, 상담 방식 등이 열별로 나뉜 예시">
+          <figcaption>첫 번째 칸(A1)에 붙여넣으면 학급·날짜·상담 대상·관련 학생·상담 방식·내용이 자동으로 열별 분리됩니다.</figcaption>
+        </figure>
+        <p class="sheet-copy-note">태블릿에서는 구글시트의 A1 셀을 길게 누른 뒤 <b>붙여넣기</b>를 선택하세요. 상담 자료는 복사할 때만 클립보드로 전달되며 앱에서는 현재 브라우저에 저장됩니다.</p>
+      </div>
+    </div>
+  </div>
+  <!-- 랜덤 뽑기 -->
+  <div id="pickModal" class="modal">
+    <div class="modal-content small pick-content">
+      <div class="modal-header">
+        <h3>🎯 룰렛 뽑기</h3>
+        <button class="close-btn" data-modal="pickModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="pickResult" class="pick-result">
+          <span class="pick-no"></span>
+          <span class="pick-name">준비!</span>
+        </div>
+        <p class="hint" id="pickHint">발표자·도우미·심부름 정할 때 쓰세요</p>
+        <div class="pick-count">
+          <label>몇 명 뽑을까요?</label>
+          <button type="button" id="pickMinus" class="count-btn">−</button>
+          <input type="number" id="pickHowMany" value="1" min="1" max="10">
+          <span>명</span>
+          <button type="button" id="pickPlus" class="count-btn">+</button>
+        </div>
+        <label class="pick-opt">
+          <input type="checkbox" id="pickNoRepeat" checked> 이미 뽑힌 학생 제외
+        </label>
+        <div id="pickPicked" class="pick-picked"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="pickResetBtn" class="btn">기록 지우기</button>
+        <button type="button" id="pickGoBtn" class="btn primary">뽑기!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 추첨 패널 -->
+  <div id="lotteryPanel" class="lottery-panel">
+    <div class="lottery-stage">
+      <div id="lotteryHeadline" class="lottery-headline">🎉 자리 추첨</div>
+      <div class="lottery-box">
+        <div class="lottery-machine">
+          <div id="ballsArea" class="balls-area"></div>
+          <div class="ball-exit"></div>
+        </div>
+        <div class="lottery-info">
+          <div id="currentBall" class="current-ball">
+            <span class="ball-number"></span>
+            <span class="ball-name"></span>
+          </div>
+          <div id="lotterySeatLabel" class="lottery-seat-label"></div>
+          <div class="progress-section">
+            <span id="lotteryProgress">0 / 28</span>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          </div>
+          <div class="lottery-remain">남은 인원 <strong id="lotteryRemain">0</strong>명</div>
+        </div>
+      </div>
+    </div>
+    <div class="lottery-controls">
+      <div class="speed-group" role="group" aria-label="추첨 속도">
+        <button type="button" class="speed-btn" data-speed="slow">🐢 천천히</button>
+        <button type="button" class="speed-btn active" data-speed="normal">▶ 보통</button>
+        <button type="button" class="speed-btn" data-speed="fast">⏩ 빠르게</button>
+      </div>
+      <button type="button" id="soundToggleBtn" class="sound-btn" aria-label="소리 켜기/끄기">🔊 소리 켜짐</button>
+      <button type="button" id="skipLotteryBtn" class="skip-btn">건너뛰기 ▶▶</button>
+    </div>
+  </div>
+  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+  <!-- 빈자리 모달 -->
+  <div id="emptySeatModal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>🪑 빈자리 설정</h3>
+        <button class="close-btn" data-modal="emptySeatModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="emptySeatInfo2"></p>
+        <button type="button" id="toggleEmptyLockBtn" class="btn full-width">
+          <span id="emptyLockBtnText">🔒 이 자리 고정</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 설정 모달 (메모 탭 추가) -->
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👤 <span id="selectedStudentName">학생</span></h3>
+        <button class="close-btn" data-modal="studentModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="currentSeatSection" class="seat-section">
+          <p>현재 자리: <strong id="currentSeatDisplay">-</strong></p>
+          <div class="seat-actions">
+            <button type="button" id="studentPraiseBtn" class="btn praise-quick">⭐ 칭찬 +1 · 현재 0점</button>
+            <button type="button" id="studentPraiseMinusBtn" class="btn praise-minus-quick" disabled>➖ 칭찬 −1</button>
+            <button type="button" id="studentSpecialQuickBtn" class="btn special-quick">✍️ 관찰·세특</button>
+            <button type="button" id="modalLockBtn" class="btn">🔒 자리 고정</button>
+            <button type="button" id="modalMoveBtn" class="btn primary">🎯 자리 이동</button>
+          </div>
+        </div>
+        <div class="tab-menu">
+          <button class="tab-btn active" data-tab="summary">📋 종합</button>
+          <button class="tab-btn" data-tab="memo">📝 메모</button>
+          <button class="tab-btn" data-tab="special">✍️ 관찰·세특</button>
+          <button class="tab-btn" data-tab="relations">💚 관계설정</button>
+          <button class="tab-btn" data-tab="history">📅 이력</button>
+        </div>
+        <div class="tab-content active" id="summaryTab">
+          <div id="studentSummary" class="stu-summary"></div>
+        </div>
+        <div class="tab-content" id="memoTab">
+          <textarea id="studentMemoInput" rows="4" placeholder="학생 메모 입력..."></textarea>
+          <p class="hint">메모는 자동 저장됩니다</p>
+        </div>
+        <div class="tab-content" id="specialTab">
+          <div class="special-note-form">
+            <input type="hidden" id="specialNoteId">
+            <div class="special-note-fields">
+              <label>날짜<input type="date" id="specialNoteDate"></label>
+              <label>교과<input type="text" id="specialNoteSubject" placeholder="예: 수학"></label>
+              <label>기록 유형
+                <select id="specialNoteCategory">
+                  <option>수업 참여</option><option>학업 역량</option><option>탐구 활동</option>
+                  <option>발표·토론</option><option>협업·소통</option><option>기타</option>
+                </select>
+              </label>
+            </div>
+            <label class="special-note-content-label">관찰 내용
+              <textarea id="specialNoteContent" rows="4" maxlength="1200" placeholder="관찰한 사실을 구체적으로 기록해 주세요."></textarea>
+            </label>
+            <div class="special-note-form-foot">
+              <small>학생번호를 기준으로 좌석·출결·역할·칭찬·통합 기록에 연결됩니다.</small>
+              <div>
+                <button type="button" id="specialNoteCancelBtn" class="btn" hidden>수정 취소</button>
+                <button type="button" id="specialNoteSaveBtn" class="btn primary">＋ 기록 저장</button>
+              </div>
+            </div>
+          </div>
+          <div class="special-note-history-head"><strong>누적 기록</strong><span id="specialNoteCount">0건</span></div>
+          <div id="specialNoteList" class="special-note-list"></div>
+        </div>
+        <div class="tab-content" id="relationsTab">
+          <div class="relation-section">
+            <h4>💚 가까이 배치</h4>
+            <div id="closeStudentsList" class="chips"></div>
+            <button type="button" id="addCloseBtn" class="add-btn">+ 추가</button>
+          </div>
+          <div class="relation-section">
+            <h4>💔 멀리 배치</h4>
+            <div id="farStudentsList" class="chips"></div>
+            <button type="button" id="addFarBtn" class="add-btn">+ 추가</button>
+          </div>
+        </div>
+        <div class="tab-content" id="historyTab">
+          <p class="hint">💾 저장 버튼을 눌러야 기록됩니다</p>
+          <div id="pairHistoryList" class="history-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="studentModal">취소</button>
+        <button type="button" id="saveRelationsBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저장 모달 -->
+  <div id="saveModal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>💾 저장</h3>
+        <button class="close-btn" data-modal="saveModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>메모</label>
+        <input type="text" id="saveMemo" placeholder="예: 1차 배치">
+        <p>📅 <span id="saveDateTime"></span></p>
+        <p>👥 <span id="saveStudentCount"></span>명</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="saveModal">취소</button>
+        <button type="button" id="confirmSaveBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기록 모달 -->
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📋 저장된 기록</h3>
+        <button class="close-btn" data-modal="historyModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="historyList" class="history-records"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚙️ 설정</h3>
+        <button class="close-btn" data-modal="settingsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-menu">
+          <p class="settings-guide">아래 순서대로 진행하시면 됩니다</p>
+          <div class="set-tabs">
+            <button type="button" class="set-tab active" data-set="1"><b>1</b> 학생 명단</button>
+            <button type="button" class="set-tab" data-set="2"><b>2</b> 자리 배치</button>
+            <button type="button" class="set-tab" data-set="3"><b>3</b> 기록 · 보관</button>
+          </div>
+
+          <div class="si-group" data-set="1">
+            <div class="si-head"><span class="si-num">1</span>학생 명단 준비 <em>둘 중 하나만 하면 됩니다</em></div>
+            <button type="button" id="openRosterBtn" class="settings-item">
+              <span class="si-step">1-1</span>
+              <span class="si-body"><b>명렬표 직접 입력</b><small>학번 · 이름 · 성별을 한 줄에 한 명씩 적습니다</small></span>
+            </button>
+            <button type="button" id="openExcelUploadBtn" class="settings-item">
+              <span class="si-step alt">1-2</span>
+              <span class="si-body"><b>엑셀로 한 번에 올리기</b><small>이미 만들어 둔 명렬표 파일을 그대로 불러옵니다</small></span>
+            </button>
+            <button type="button" id="downloadSampleExcelBtn" class="settings-item sub">
+              <span class="si-step ghost">📄</span>
+              <span class="si-body"><b>엑셀 샘플 양식 받기</b><small>어떤 형식으로 만들지 모를 때 먼저 받아보세요</small></span>
+            </button>
+          </div>
+
+          <div class="si-group" data-set="2">
+            <div class="si-head"><span class="si-num">2</span>자리 배치</div>
+            <button type="button" id="openSectionConfigBtn" class="settings-item">
+              <span class="si-step">2-1</span>
+              <span class="si-body"><b>자리 배치 설정</b><small>책상 수 · 열(모둠) 수 · 자리 형태를 다시 정합니다</small></span>
+            </button>
+            <p class="si-tip">배치한 뒤 좌석표에서 바로 할 수 있는 것들</p>
+            <ul class="si-tips">
+              <li><b>✋ 수동으로 옮기기</b> — 좌석 카드를 <b>끌어다 놓으면</b> 두 학생의 자리가 서로 바뀝니다.</li>
+              <li><b>🔒 자리 고정</b> — 카드의 자물쇠를 누르면 <b>다시 추첨해도 그 자리가 유지</b>됩니다. 빈자리도 고정할 수 있습니다.</li>
+              <li><b>💚 교우관계</b> — 카드를 눌러 <b>가까이 배치</b> · <b>멀리 배치</b>를 지정하면 추첨할 때 먼저 반영됩니다.</li>
+            </ul>
+          </div>
+
+          <div class="si-group" data-set="3">
+            <div class="si-head"><span class="si-num">3</span>기록과 보관</div>
+            <p class="si-tip">상단 <b>💾 저장</b>을 눌러야 <b>📋 기록</b>과 <b>📊 이력 다운로드</b>에 남습니다. 추첨만 하고 넘어가면 쌓이지 않습니다.</p>
+            <button type="button" id="openBackupBtn" class="settings-item">
+              <span class="si-step">3-1</span>
+              <span class="si-body"><b>데이터 백업</b><small>다른 컴퓨터로 옮기거나 학기말에 보관합니다</small></span>
+            </button>
+            <button type="button" id="confirmResetBtn" class="settings-item danger">
+              <span class="si-step warn">!</span>
+              <span class="si-body"><b>전체 초기화</b><small>모든 학급 자료가 지워집니다. 되돌릴 수 없습니다</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 명렬표 모달 -->
+  <div id="rosterModal" class="modal">
+    <div class="modal-content wide">
+      <div class="modal-header">
+        <h3>👥 명렬표</h3>
+        <button class="close-btn" data-modal="rosterModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="rosterClassTabs" class="class-tabs"></div>
+        <!-- 엑셀 업로드 섹션 (상단 배치) -->
+        <div class="excel-upload-section">
+          <div class="excel-buttons">
+            <button type="button" id="downloadSampleBtn" class="btn">📥 샘플 양식 다운로드</button>
+            <button type="button" id="downloadRosterBtn" class="btn">📊 현재 명렬표 다운로드</button>
+            <button type="button" id="uploadExcelInRosterBtn" class="btn primary">📤 엑셀 파일 업로드</button>
+          </div>
+          <p class="hint roster-download-hint">현재 선택한 학급의 입력 내용을 학번·이름·성별 엑셀 파일로 저장합니다.</p>
+          <input type="file" id="rosterExcelInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+        <hr class="section-divider">
+        <div class="roster-name-row">
+          <label>학급명:</label>
+          <input type="text" id="rosterClassName" placeholder="예: 3학년 2반">
+        </div>
+        <p class="hint">형식: 학번 이름 성별 (한 줄에 한 명)</p>
+        <textarea id="rosterInput" rows="10" placeholder="1 홍길동 남&#10;2 김영희 여"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="rosterModal">취소</button>
+        <button type="button" id="saveRosterBtn" class="btn primary">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 엑셀 업로드 모달 -->
+  <div id="excelModal" class="modal">
+    <div class="modal-content wide">
+      <div class="modal-header">
+        <h3>📥 엑셀 명렬표 업로드</h3>
+        <button class="close-btn" data-modal="excelModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="excelDropZone" class="drop-zone">
+          <div class="drop-icon">📂</div>
+          <p>엑셀 파일을 끌어다 놓거나 클릭하세요</p>
+          <p class="hint">.xlsx, .xls 파일 지원</p>
+          <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+        </div>
+        <div class="format-info">
+          <h4>📋 지원 양식</h4>
+          <div class="format-list">
+            <div class="format-item">🅰️ <strong>멀티 시트</strong> - 시트별 학급</div>
+            <div class="format-item">🅱️ <strong>단일시트+학급열</strong> - 한 시트에 모든 학급</div>
+            <div class="format-item">🅲️ <strong>피벗</strong> - 헤더가 학급명</div>
+          </div>
+        </div>
+        <div id="excelPreview" class="excel-preview" style="display:none;">
+          <h4>👁️ 미리보기</h4>
+          <div id="excelPreviewContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-modal="excelModal">취소</button>
+        <button type="button" id="confirmExcelBtn" class="btn primary" disabled>업로드</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 백업 모달 -->
+  <div id="backupModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📦 데이터 백업</h3>
+        <button class="close-btn" data-modal="backupModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="backup-section">
+          <h4>💾 내보내기</h4>
+          <textarea id="exportCode" readonly placeholder="코드 생성 버튼을 누르세요"></textarea>
+          <div class="btn-row">
+            <button type="button" id="exportBtn" class="btn primary">코드 생성</button>
+            <button type="button" id="copyExportBtn" class="btn">📋 복사</button>
+          </div>
+        </div>
+        <hr>
+        <div class="backup-section">
+          <h4>📥 가져오기</h4>
+          <textarea id="importCode" placeholder="코드 붙여넣기..."></textarea>
+          <button type="button" id="importBtn" class="btn primary">가져오기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 선택 피커 -->
+  <div id="studentPicker" class="picker-overlay">
+    <div class="picker-content">
+      <div class="picker-header">
+        <h4>학생 선택</h4>
+        <button type="button" id="closePickerBtn" class="close-btn">&times;</button>
+      </div>
+      <input type="text" id="studentSearch" placeholder="이름 검색...">
+      <div id="studentPickerList" class="picker-list"></div>
+    </div>
+  </div>
+
+  <!-- 사용 설명서 (스크린샷 캐러셀) -->
+  <div id="guideModal" class="modal guide-modal">
+    <div class="modal-content guide-content">
+      <div class="modal-header guide-head">
+        <h3>📖 사용 설명서</h3>
+        <button class="close-btn" data-modal="guideModal">&times;</button>
+      </div>
+      <div id="guideSections" class="guide-sections" role="tablist" aria-label="사용법 분야"></div>
+      <div class="guide-viewport">
+        <div id="guideTrack" class="guide-track"></div>
+        <button type="button" id="guidePrev" class="guide-nav prev" aria-label="이전">&#8249;</button>
+        <button type="button" id="guideNext" class="guide-nav next" aria-label="다음">&#8250;</button>
+      </div>
+      <div class="guide-foot">
+        <div class="guide-progress-wrap">
+          <span id="guideStatus" class="guide-status" aria-live="polite">1 / 36</span>
+          <div id="guideDots" class="guide-dots"></div>
+        </div>
+        <div class="guide-foot-right">
+          <label class="guide-skip"><input type="checkbox" id="guideDontShow"> 다음부터 열지 않기</label>
+          <button type="button" id="guideStartBtn" class="btn primary">다음 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <a class="book-mini" href="https://vibecoding25.notion.site" target="_blank" rel="noopener noreferrer">
+      <img src="/assets/vibecoding-book-cover.png" alt="교사와 학부모를 위한 바이브 코딩 표지">
+      <span>교사와 학부모를 위한 <b>바이브 코딩</b></span>
+    </a>
+    <p class="footer-visit-stats" aria-label="방문 통계"><span>Today : <b id="footerTodayVisitorCount">__</b></span><span>Total : <b id="footerTotalVisitCount">__</b></span></p>
+    <p class="footer-copy">copyright ⓒ <a href="https://blog.naver.com/math-tong/224360770967" target="_blank" rel="noopener noreferrer">math-tong</a>&nbsp;&nbsp;All right reserved</p>
+    <p class="footer-note">🔒 <strong>익명 방문 횟수 통계만 집계</strong>하며, 교무 자료는 T-ong 서버에 저장하지 않습니다. Google 동기화를 직접 켠 일정만 본인 Google 계정에도 저장됩니다. 정기적으로 <em>설정 → 데이터 백업</em>을 이용해 주세요.</p>
+  </footer>
+
+  <div id="printArea" class="print-only"></div>
+  <div id="toast" class="toast"></div>
+
+  <script src="/tools/__seed.js"></script>
+  <script src="/app.js?v=5.17.0-preview.54-shot1"></script>
+  <script src="/tools/__pose.js?v=3"></script>
+  <script>
+    // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
+    var localHost = location.hostname;
+    var isLocalDev = ['localhost', '127.0.0.1', '::1'].indexOf(localHost) !== -1 || /^192\.168\./.test(localHost) || /^10\./.test(localHost) || /^172\.(1[6-9]|2\d|3[01])\./.test(localHost);
+    if ('serviceWorker' in navigator) {
+      if (isLocalDev) {
+        navigator.serviceWorker.getRegistrations().then(function (rs) {
+          rs.forEach(function (r) { r.unregister(); });
+        });
+        if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
+      } else {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function (e) {
+            console.warn('SW 등록 실패:', e);
+          });
+        });
+      }
+    }
+  </script>
+</body>
+</html>

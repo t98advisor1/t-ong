@@ -1,0 +1,26 @@
+{
+  "name": "T-ong 교무수첩",
+  "short_name": "T-ong",
+  "description": "자리배치·출결·일정·상담·교실운영을 한곳에서 관리하는 교사용 디지털 교무수첩",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f0f2f5",
+  "theme_color": "#4a6cf7",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
