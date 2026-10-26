@@ -171,7 +171,7 @@ async function assertTodayAttendanceAfterViewingPreviousDate(page, dates) {
   );
 
   await page.screenshot({
-    path: 'tools/preview63-seat-attendance-tablet.png',
+    path: 'tools/preview66-seat-attendance-tablet.png',
     fullPage: true
   });
   await closeStudentModal(page);
@@ -323,7 +323,9 @@ async function assertMobileNoHorizontalOverflow(page) {
 
   const page = await context.newPage();
   page.on('console', message => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
+    if (message.type() === 'error' && !message.text().includes('Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED')) {
+      consoleErrors.push(message.text());
+    }
   });
   page.on('pageerror', error => consoleErrors.push(error.message));
 
@@ -387,7 +389,7 @@ async function assertMobileNoHorizontalOverflow(page) {
   await page.setViewportSize({ width: 390, height: 844 });
   await assertMobileNoHorizontalOverflow(page);
   await page.screenshot({
-    path: 'tools/preview63-seat-attendance-mobile.png',
+    path: 'tools/preview66-seat-attendance-mobile.png',
     fullPage: true
   });
   await page.setViewportSize({ width: 1024, height: 768 });

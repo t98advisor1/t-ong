@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.63';
+var APP_VERSION = '5.17.0-preview.70';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -62,6 +62,21 @@ function sortStudentsByName(list) {
     } catch (e2) {
       return String(a && a.id || '').localeCompare(String(b && b.id || ''));
     }
+  });
+}
+
+function sortStudentsByNumber(list) {
+  return (Array.isArray(list) ? list.slice() : []).sort(function(a, b) {
+    var aid = String(a && a.id || '').trim();
+    var bid = String(b && b.id || '').trim();
+    var compared = 0;
+    try {
+      compared = aid.localeCompare(bid, 'ko-KR', { sensitivity: 'base', numeric: true });
+    } catch (e) {
+      compared = aid.localeCompare(bid);
+    }
+    if (compared !== 0) return compared;
+    return String(a && a.name || '').localeCompare(String(b && b.name || ''), 'ko-KR');
   });
 }
 
@@ -262,6 +277,20 @@ function initEventListeners() {
     saveCurrentClassData();
     showToast(this.checked ? '👫 같은 성별 우선 배치를 켰습니다' : '같은 성별 우선 배치를 껐습니다');
   });
+  document.querySelectorAll('input[name="numberOrderMode"]').forEach(function(input) {
+    input.addEventListener('change', function() {
+      if (!this.checked) return;
+      config.numberOrderMode = this.value;
+      config.numberOrderSeating = this.value !== 'random';
+      syncSameGenderSeatingOption();
+      saveCurrentClassData();
+      renderSeatPanel();
+      var message = this.value === 'row'
+        ? '↔ 학번 가로순 배치로 설정했습니다'
+        : (this.value === 'column' ? '↕ 학번 세로순 배치로 설정했습니다' : '🎱 무작위 추첨으로 전환했습니다');
+      showToast(message);
+    });
+  });
   syncSameGenderSeatingOption();
   document.getElementById('settingsBtn').addEventListener('click', function() {
     openModal('settingsModal');
@@ -297,6 +326,11 @@ function initEventListeners() {
 
   // 창 크기가 바뀌어도 좌석표가 한 화면에 유지되도록
   window.addEventListener('resize', scheduleFit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleFit);
+  var appHeader = document.querySelector('.app-header');
+  if (appHeader && window.ResizeObserver) {
+    new ResizeObserver(scheduleFit).observe(appHeader);
+  }
   
   // 모달 닫기
   document.querySelectorAll('.close-btn, [data-modal]').forEach(function(btn) {
@@ -933,7 +967,57 @@ function loadCurrentClassData() {
 
 function syncSameGenderSeatingOption() {
   var input = document.getElementById('sameGenderSeating');
-  if (input) input.checked = !!config.sameGenderSeating;
+  var orderMode = getNumberOrderMode();
+  var useNumberOrder = orderMode !== 'random';
+  if (input) {
+    input.checked = !!config.sameGenderSeating;
+    input.disabled = useNumberOrder;
+    if (input.parentElement) {
+      input.parentElement.hidden = false;
+      input.parentElement.classList.toggle('sp-seat-option-inactive', useNumberOrder);
+    }
+  }
+  document.querySelectorAll('input[name="numberOrderMode"]').forEach(function(orderInput) {
+    orderInput.checked = orderInput.value === orderMode;
+  });
+  var orderSummary = document.getElementById('numberOrderSummary');
+  if (orderSummary) {
+    orderSummary.textContent = orderMode === 'row' ? '학번 가로순' : (orderMode === 'column' ? '학번 세로순' : '무작위');
+  }
+  var hint = document.getElementById('numberOrderHint');
+  if (hint) {
+    hint.textContent = orderMode === 'row'
+      ? '앞줄 왼쪽부터 오른쪽으로 채운 뒤 다음 행으로 이동합니다.'
+      : (orderMode === 'column'
+        ? '왼쪽 열의 앞자리부터 뒷자리로 채운 뒤 다음 열로 이동합니다.'
+        : '무작위 추첨은 관계·성별 조건을 반영할 수 있습니다.');
+  }
+  var mainButton = document.getElementById('shuffleBtn');
+  var proxyButton = document.querySelector('.sp-actions [data-proxy="shuffleBtn"]');
+  var buttonText = orderMode === 'row'
+    ? '↔ 학번 가로순 배치'
+    : (orderMode === 'column' ? '↕ 학번 세로순 배치' : '🎱 추첨 시작');
+  if (mainButton) mainButton.textContent = buttonText;
+  if (proxyButton) proxyButton.textContent = buttonText;
+}
+
+function getNumberOrderMode() {
+  if (config.numberOrderMode === 'row' || config.numberOrderMode === 'column') return config.numberOrderMode;
+  return config.numberOrderSeating ? 'row' : 'random';
+}
+
+function usesNumberOrderSeating() {
+  return getNumberOrderMode() !== 'random';
+}
+
+function orderSeatsForNumberMode(seats) {
+  var ordered = seats.slice();
+  if (getNumberOrderMode() === 'column') {
+    ordered.sort(function(a, b) {
+      return a.col - b.col || a.row - b.row;
+    });
+  }
+  return ordered;
 }
 
 function getLayouts(cols) {
@@ -1038,6 +1122,7 @@ function selectSeatType(type) {
     initColumnOptions();
   }
   updateLayoutOptions();
+  syncSameGenderSeatingOption();
   updatePreview();
   updateEmptySeatInfo();
 }
@@ -1256,13 +1341,14 @@ function renderSeating() {
           }
           
           var pts = (typeof Praise !== 'undefined') ? Praise.get(seatData.studentId) : 0;
+          var praiseGrowth = (typeof Praise !== 'undefined') ? Praise.stage(pts) : null;
           var seatWhere = config.seatType === 'group'
             ? (r * layout.length + groupIndex + 1) + '모둠'
             : (groupIndex + 1) + '분단 ' + (r + 1) + '행';
           seatCard.innerHTML = '<span class="student-id">' + seatData.studentId + '번</span>' +
             '<span class="student-name">' + seatData.name + '</span>' +
             '<span class="seat-number">' + seatWhere + '</span>' +
-            (pts ? '<span class="praise-badge">⭐' + pts + '</span>' : '') +
+            (praiseGrowth ? '<span class="praise-badge stage-' + praiseGrowth.key + '" title="칭찬 ' + praiseGrowth.score + '점 · ' + praiseGrowth.label + '" aria-label="칭찬 ' + praiseGrowth.score + '점, ' + praiseGrowth.label + '"><span>' + praiseGrowth.icon + '</span><b>' + praiseGrowth.score + '</b></span>' : '') +
             ((typeof Attend !== 'undefined' && Attend.mark(seatData.studentId))
               ? '<span class="attend-badge s' + Attend.get(seatData.studentId) + '">' + Attend.mark(seatData.studentId) + '</span>' : '') +
             '<button type="button" class="lock-btn">' + (isLocked ? '🔒' : '🔓') + '</button>';
@@ -1481,7 +1567,9 @@ function startLottery() {
     });
   }
   
-  var relationResult = assignWithRelations(availableStudents, allSeats, layout);
+  var relationResult = usesNumberOrderSeating()
+    ? { students: sortStudentsByNumber(availableStudents), seats: orderSeatsForNumberMode(allSeats) }
+    : assignWithRelations(availableStudents, allSeats, layout);
   var shuffledStudents = relationResult.students;
   var shuffledSeats = relationResult.seats;
   
@@ -1514,7 +1602,8 @@ function startLottery() {
   Sound.startRoll();
 
   updateLotteryHud(0, total);
-  setHeadline('🎉 자리 추첨', false);
+  var orderMode = getNumberOrderMode();
+  setHeadline(orderMode === 'row' ? '↔ 학번 가로순 배치' : (orderMode === 'column' ? '↕ 학번 세로순 배치' : '🎉 자리 추첨'), false);
 
   function processNext() {
     if (currentIndex >= assignments.length || !isLotteryRunning) {
@@ -1783,7 +1872,17 @@ function skipLottery() {
     return placedIds.indexOf(s.id) === -1;
   });
   
-  if (config.sameGenderSeating) {
+  if (usesNumberOrderSeating()) {
+    remainingStudents = sortStudentsByNumber(remainingStudents);
+    orderSeatsForNumberMode(allSeats).forEach(function(seat, idx) {
+      if (idx < remainingStudents.length) {
+        currentSeats[seat.id] = {
+          studentId: remainingStudents[idx].id,
+          name: remainingStudents[idx].name
+        };
+      }
+    });
+  } else if (config.sameGenderSeating) {
     var genderResult = assignSameGenderGroups(remainingStudents, allSeats, layout, true);
     genderResult.seats.forEach(function(seat, idx) {
       var student = genderResult.students[idx];
@@ -2151,7 +2250,8 @@ function openStudentSettings(studentId) {
   if (praiseBtn && praiseMinusBtn) {
     function refreshPraiseButtons() {
       var score = Praise.get(studentId);
-      praiseBtn.textContent = '⭐ 칭찬 +1 · 현재 ' + score + '점';
+      var growth = Praise.stage(score);
+      praiseBtn.textContent = growth.icon + ' 칭찬 +1 · ' + growth.label + ' ' + score + '점';
       praiseMinusBtn.disabled = score <= 0;
     }
     refreshPraiseButtons();
@@ -3434,10 +3534,11 @@ var GUIDE_SLIDES = [
     callout: { type: 'good', text: '페이지 스크롤을 열어 두었습니다. 화면이 작거나 좌석이 많아도 아래로 내려가며 확인할 수 있습니다.' }
   },
   {
-    img: 'guide/0A-topmenu.png',
+    section: 'start',
+    img: 'guide/v67-home-backup.png',
     title: '상단 탭에서 필요한 화면을 고릅니다',
     desc: '<ul>' +
-      '<li><strong>🏠 홈</strong> — 하위메뉴에서 첫 화면 또는 사용 설명서를 엽니다.</li>' +
+      '<li><strong>🏠 홈</strong> — 하위메뉴에서 첫 화면·사용 설명서·<strong>① 📦 데이터 백업</strong>을 엽니다.</li>' +
       '<li><strong>자리배치 · ✅ 출결관리</strong> — 좌석표와 날짜별 출결 화면을 오갑니다.</li>' +
       '<li><strong>➕ 교실운영</strong> — 컴시간알리미(교사용)·담임 5분 멘트·타이머·칭찬·사다리·1인 1역·룰렛·알림장을 엽니다.</li>' +
       '<li><strong>📅 일정관리</strong> — 전체화면 달력과 상담 일정을 엽니다.</li>' +
@@ -3454,7 +3555,7 @@ var GUIDE_SLIDES = [
       '<li><strong>🕒 컴시간알리미(교사용)</strong> — 학교 코드를 설정해 교사용 개인 시간표를 확인합니다.</li>' +
       '<li><strong>💬 담임 5분 멘트</strong> — 조회 시간에 사용할 뉴스·명언·감동 이야기를 빠르게 준비합니다.</li>' +
       '<li><strong>⏱️ 간편 타이머</strong> — 3분·5분·10분 또는 직접 입력한 시간을 전체화면으로 보여줍니다.</li>' +
-      '<li><strong>🏆 칭찬 포인트</strong> — 학생들은 칭찬 포인트를 좋아합니다. 좌석표에서 바로 +1을 줄 수 있습니다.</li>' +
+      '<li><strong>🏆 칭찬 포인트</strong> — +1·−1로 점수를 조절하고 알·부화 중·병아리·닭 성장 단계를 확인합니다.</li>' +
       '<li><strong>🪜 사다리타기</strong> — 발표 뽑기는 사다리타기로! 이름과 결과를 재미있게 연결합니다.</li>' +
       '<li><strong>🧹 1인 1역</strong> — 학생의 역할을 메모해 두세요. 엑셀로 불러오거나 무작위로 배정할 수 있습니다.</li>' +
       '<li><strong>🎯 룰렛 뽑기</strong> — 발표자나 활동 인원을 한 명 또는 여러 명 무작위로 뽑습니다.</li>' +
@@ -3463,7 +3564,7 @@ var GUIDE_SLIDES = [
     callout: { type: 'good', text: '교실운영 메뉴는 현재 좌석표를 떠나지 않고 열리며, 입력한 자료는 학급별로 저장됩니다.' }
   },  {
     section: 'calendar',
-    img: 'guide/22-calendar.png',
+    img: 'guide/v67-calendar.png',
     title: '📅 일정관리 ① — 월간·주간·오늘 보기',
     desc: '<ul>' +
       '<li><strong>월간일정 · 주간일정 · 오늘일정</strong> 탭으로 필요한 범위를 바로 바꿉니다.</li>' +
@@ -3473,9 +3574,21 @@ var GUIDE_SLIDES = [
       '<li><strong>수정·삭제</strong> — 월간 일정 카드를 한 번 누르면 수정 창이 열리고, 아래 🗑️ 일정 삭제 버튼으로 지웁니다.</li>' +
       '<li><strong>일정 이동</strong> — 월간·주간 일정 카드를 원하는 날짜로 끌어 놓습니다. 모바일에서는 일정을 약 0.4초 길게 누른 뒤 이동합니다.</li>' +
       '<li><strong>여러 날 일정</strong>은 전체 기간을 그대로 유지해 이동하며, 이동 직후 <strong>실행 취소</strong>할 수 있습니다.</li>' +
-      '<li>일정 원본은 <strong>현재 브라우저에 저장</strong>되고 데이터 백업 코드에 포함됩니다. Google 동기화를 켜면 이동 결과도 본인 Google 계정에 자동 반영됩니다.</li>' +
+      '<li>일정은 <strong>현재 브라우저에 저장</strong>되고 백업 코드에 포함됩니다. Google 계정 연결과 자동 동기화가 유효하면 전송 대상 일정의 이동도 본인 계정에 반영됩니다.</li>' +
       '</ul>',
     callout: { type: 'good', text: '드래그 이동은 날짜만 바꾸며 제목·속성·메모·상담 기록과 여러 날 일정의 기간은 그대로 유지합니다.' }
+  },
+  {
+    section: 'calendar',
+    img: 'guide/v67-calendar-delete.png',
+    title: '일정 수정과 삭제 — 카드에서 바로 엽니다',
+    desc: '<ul>' +
+      '<li>월간 달력의 <strong>일정 카드</strong>를 한 번 누르면 수정 창이 열립니다.</li>' +
+      '<li>제목·날짜·속성·메모를 고친 뒤 <strong>수정 저장</strong>을 누릅니다.</li>' +
+      '<li>지우려면 아래 <strong>🗑️ 일정 삭제</strong>를 누르고 확인합니다. 여러 날 일정은 전체 일정이 삭제됩니다.</li>' +
+      '<li>주간·오늘 보기에서도 일정 옆 <strong>삭제</strong> 버튼을 사용할 수 있습니다.</li>' +
+      '</ul>',
+    callout: { type: 'danger', text: '삭제는 드래그 이동의 실행 취소와 다릅니다. 연결된 Google 일정 삭제도 동기화될 수 있으므로 중요한 일정은 백업 후 처리하세요.' }
   },
   {
     section: 'calendar',
@@ -3496,7 +3609,7 @@ var GUIDE_SLIDES = [
     title: '📅 일정관리 ③ — 가져오기와 상담 기록 내보내기',
     desc: '<ul>' +
       '<li><strong>구글시트 가져오기</strong> — 날짜·종료일·일정명·속성·메모 열을 복사해 붙여넣습니다.</li>' +
-      '<li><strong>Google 동기화</strong> — 로그인 계정의 Google 기본 캘린더와 양방향으로 연결합니다. 앱 사용 중 변경 즉시·약 1분 간격으로 확인합니다.</li>' +
+      '<li><strong>Google 동기화</strong> — 로그인 계정의 Google 기본 캘린더와 양방향으로 연결합니다. 자동 동기화를 켜고 앱을 활성 상태로 열어 두면 변경 후·약 1분 간격으로 확인합니다.</li>' +
       '<li><strong>개인정보 보호</strong> — 상담 일정과 메모는 기본적으로 Google에 보내지 않으며, 접근 토큰은 현재 탭의 메모리에만 둡니다.</li>' +
       '<li><strong>ICS</strong> — 전체 일정을 Google 캘린더로 옮길 일회성 파일을 만듭니다.</li>' +
       '<li><strong>상담기록 엑셀</strong> — 상담 속성의 기록만 학생별 열로 정리해 내려받습니다.</li>' +
@@ -3506,18 +3619,19 @@ var GUIDE_SLIDES = [
   },
   {
     section: 'calendar',
-    img: 'guide/22C-google-calendar-sync.png',
+    img: 'guide/v67-google-calendar-sync.png',
     title: '📅 일정관리 ④ — Google 캘린더 양방향 동기화',
     desc: '<ul>' +
       '<li><strong>앱 관리자 설정의 ? 버튼</strong>에서 OAuth 클라이언트 ID 발급과 연결 과정을 4단계 화면으로 확인합니다.</li>' +
-      '<li><strong>Google 계정 연결</strong>을 누르면 로그인 계정의 <strong>Google 기본 캘린더</strong>와 연결합니다.</li>' +
-      '<li>T-ong에서 저장·수정·삭제하면 곧바로 반영하고, 앱을 열어 둔 동안 Google 변경을 <strong>약 1분 간격</strong>으로 확인합니다.</li>' +
-      '<li><strong>Google 일정 전체 다시 가져오기</strong>는 누락된 일정이 있을 때 동기화 기준점만 초기화하고 기본 캘린더 전체를 다시 확인합니다. T-ong의 학급·학생 자료는 지우지 않습니다.</li>' +
+      '<li><strong>① Google 계정 연결</strong>을 누르면 로그인 계정의 <strong>Google 기본 캘린더</strong>와 연결합니다.</li>' +
+      '<li>연결 권한이 유효하고 자동 동기화가 켜져 있으면 T-ong의 변경 후 동기화하고, 활성 화면에서 Google 변경을 <strong>약 1분 간격</strong>으로 확인합니다. 앱을 닫으면 자동 확인도 멈춥니다.</li>' +
+      '<li><strong>지금 양방향 동기화</strong>로 수동 실행합니다. 다른 캘린더·공유 캘린더의 일정은 기본 캘린더 동기화 대상이 아닙니다.</li>' +
+      '<li><strong>② Google 일정 전체 다시 가져오기</strong>는 증분 기준을 사용하지 않고 기본 캘린더 전체를 다시 확인합니다. 학급·학생 자료는 지우지 않지만 <strong>양방향</strong>이므로 T-ong의 일정 수정·삭제도 Google에 반영됩니다.</li>' +
       '<li><strong>상담 일정 · 메모 전송</strong>은 개인정보 보호를 위해 기본 해제되어 있습니다. 필요한 경우에만 직접 켭니다.</li>' +
       '<li>접근 토큰은 현재 탭의 메모리에만 있으며 만료되면 <strong>Google 계정 연결</strong>을 다시 누릅니다.</li>' +
       '<li>공용 PC에서 서로 다른 교사가 쓸 때는 각자의 브라우저 프로필을 사용합니다.</li>' +
       '</ul>',
-    callout: { type: 'good', text: 'Google 캘린더에서 직접 만든 일정도 지금 양방향 동기화 버튼 또는 자동 동기화 때 T-ong으로 가져옵니다. 일부 일정이 보이지 않으면 Google 일정 전체 다시 가져오기를 사용하세요.' }
+    callout: { type: '', text: '사진은 계정 연결 전 실제 화면입니다. 누락 시 같은 계정의 기본 캘린더인지 확인하세요. 전체 다시 가져오기 전에는 백업하고 확인창을 읽으세요. 시간 일정은 날짜 중심으로 표시됩니다.' }
   },
   {
     section: 'favorites',
@@ -3555,6 +3669,7 @@ var GUIDE_SLIDES = [
     desc: '<ul>' +
       '<li><strong>핸드러시</strong> — 손의 빠른 반응을 활용하는 자동차 활동 게임입니다.</li>' +
       '<li><strong>핸드 카트라이더</strong> — 손동작으로 카트를 조작하는 교실 활동 게임입니다.</li>' +
+      '<li><strong>온몸으로 찰칵! 포즈 챌린지</strong> — 일곱 가지 포즈를 따라 하며 도전하는 몸동작 활동입니다. 연습 모드로 먼저 익힐 수 있습니다.</li>' +
       '<li><strong>야구게임</strong> — 학급이 함께 즐기는 야구 방식의 참여 게임입니다.</li>' +
       '<li><strong>SET(셋)</strong> — 카드의 색·모양·개수·채움을 관찰하여 같은 규칙의 세 장을 찾는 게임입니다.</li>' +
       '<li><strong>랜덤게임</strong> — 룰렛을 이용해 학생·활동·순서를 무작위로 정합니다.</li>' +
@@ -3611,7 +3726,9 @@ var GUIDE_SLIDES = [
       '<li><strong>명렬표 업로드</strong> — 엑셀 업로드·직접 입력·샘플 양식을 선택합니다.</li>' +
       '<li><strong>좌석 설정</strong> — 현재 책상 수·분단 수·자리 형태를 확인하고 바꿉니다.</li>' +
       '<li><strong>추첨 시작</strong> — 현재 조건으로 새 자리를 추첨합니다.</li>' +
-      '<li><strong>저장</strong> — 지금 배치를 이력에 남기고, <strong>출력</strong>에서 학생용·교탁용을 고릅니다.</li>' +
+      '<li><strong>배치 순서</strong> — 무작위·학번 가로순·학번 세로순 중에서 고릅니다. 모든 자리 형태에 적용됩니다.</li>' +
+      '<li><strong>저장 · 배치 불러오기</strong> — 지금 배치를 이력에 남기고 저장한 배치를 복원합니다.</li>' +
+      '<li><strong>교탁 시점</strong> — 인쇄 없이 수업 중 화면 방향을 뒤집습니다. 출력은 별도 버튼입니다.</li>' +
       '</ul>',
     callout: { type: 'good', text: '주요 버튼은 같은 색·크기·정렬로 통일했습니다. 위에서 아래로 따라가면 됩니다.' }
   },
@@ -3623,7 +3740,7 @@ var GUIDE_SLIDES = [
       '<li><strong>1단계</strong> 총 책상 개수와 열(분단) 수를 정합니다.</li>' +
       '<li><strong>2단계</strong> 자리 형태는 시험대형(1인) · 짝꿍(2인) · 트리플(3인) · <strong>모둠</strong> 중에 고릅니다.</li>' +
       '<li>학생 수를 입력하면 <strong>빈자리가 몇 개 생기는지</strong> 바로 알려줍니다.</li>' +
-      '<li>오른쪽 미리보기로 실제 배열을 확인한 뒤 <strong>설정 완료</strong>를 누르세요.</li>' +
+      '<li>오른쪽 미리보기로 실제 배열을 확인한 뒤 <strong>🎉 시작하기</strong>를 누르세요.</li>' +
       '</ul>'
   },
   {
@@ -3653,11 +3770,12 @@ var GUIDE_SLIDES = [
   },
   {
     section: 'attend',
-    img: 'guide/20B-attend-student.png',
+    img: 'guide/v67-student-record.png',
     title: '👤 출결 학생 팝업 — 칭찬과 관찰·세특까지 연결합니다',
     desc: '<ul>' +
       '<li>출결관리에서 <strong>학생 이름</strong>을 누르면 좌석표와 연결된 학생 종합 기록 팝업이 열립니다.</li>' +
-      '<li><strong>⭐ 칭찬 +1</strong>과 <strong>➖ 칭찬 −1</strong>로 점수를 바로 조절하며, 좌석 카드의 별 배지에도 즉시 반영됩니다.</li>' +
+      '<li><strong>⭐ 칭찬 +1</strong>과 <strong>➖ 칭찬 −1</strong>로 점수를 조절하며, 좌석 카드의 성장 배지에도 반영됩니다.</li>' +
+      '<li>팝업 위쪽 <strong>오늘 출결 바로 등록</strong>은 오늘 날짜용입니다. 다른 날짜는 출결관리 화면에서 선택합니다.</li>' +
       '<li><strong>✍️ 관찰·세특</strong>에서 날짜·교과·기록 유형과 구체적인 관찰 내용을 누적합니다.</li>' +
       '<li><strong>종합</strong> 탭에서는 자리·짝·출결·1인 1역·칭찬·메모·관찰 기록을 한눈에 확인합니다.</li>' +
       '<li>학생번호를 기준으로 연결되므로 자리배치에서 열어도 같은 기록이 나타납니다.</li>' +
@@ -3720,11 +3838,13 @@ var GUIDE_SLIDES = [
       '</ul>'
   },
   {
-    img: 'guide/16-praise.png',
+    section: 'classroom',
+    img: 'guide/v67-praise-growth.png',
     title: '🏆 칭찬 포인트',
     desc: '<ul>' +
       '<li><strong>학생 팝업의 칭찬 +1·−1</strong>로 바로 조절할 수 있고, 칭찬 목록에서는 이름을 누르면 +1, 오른쪽 −를 누르면 1점이 차감됩니다.</li>' +
-      '<li>점수를 받은 학생은 좌석 카드에 <strong>⭐ 배지</strong>가 붙습니다.</li>' +
+      '<li><strong>🥚 알 0점 → 🐣 부화 중 1~4점 → 🐥 병아리 5~9점 → 🐔 닭 10점 이상</strong>으로 성장합니다. 실제 숫자 점수도 함께 표시합니다.</li>' +
+      '<li>학생 팝업·칭찬 목록·좌석 카드의 성장 표시가 연결됩니다. 0점에서는 −1이 비활성화됩니다.</li>' +
       '<li>목록은 점수가 높은 순으로 정렬되어, 누가 많이 받았는지 한눈에 보입니다.</li>' +
       '<li>학급마다 따로 관리되고, <strong>전체 초기화</strong>로 새 학기에 리셋할 수 있습니다.</li>' +
       '</ul>'
@@ -3735,7 +3855,8 @@ var GUIDE_SLIDES = [
     desc: '<ul>' +
       '<li><em>설정 → 명렬표 수정</em>에서 <strong>학번 이름 성별</strong>을 한 줄에 한 명씩 적습니다. (예: <code>1 홍길동 남</code>)</li>' +
       '<li>성별을 넣으면 좌석표에서 남학생(파랑) · 여학생(분홍)으로 구분되어 보입니다.</li>' +
-      '<li>학급은 <strong>최대 10개</strong>까지 만들 수 있고, 상단 탭으로 학급을 오갈 수 있습니다.</li>' +
+      '<li>명렬표는 <strong>이름 오름차순</strong>으로 정리됩니다. 자리의 학번순 배치와는 별개입니다.</li>' +
+      '<li>담당 학급을 추가한 뒤 상단 탭으로 학급을 오갈 수 있습니다.</li>' +
       '</ul>'
   },
   {
@@ -3753,8 +3874,58 @@ var GUIDE_SLIDES = [
     desc: '<ul>' +
       '<li>카드마다 <strong>번호 · 이름 · 몇 분단 몇 행</strong>인지 표시됩니다.</li>' +
       '<li>카드를 <strong>끌어다 놓으면 두 학생의 자리가 서로 바뀝니다.</strong></li>' +
-      '<li>카드를 클릭하면 그 학생의 종합 정보 · 메모 · <strong>관찰·세특</strong> · 관계설정 · 이력 창이 열립니다.</li>' +
+      '<li>학생 이름을 클릭하면 <strong>오늘 출결·칭찬·관찰·세특</strong>을 바로 기록하고 종합 정보·메모·관계·이력을 확인합니다.</li>' +
       '</ul>'
+  },
+  {
+    section: 'seat',
+    img: 'guide/v67-number-order.png',
+    title: '학번순 배치 — 가로순과 세로순을 고릅니다',
+    desc: '<ul>' +
+      '<li>좌석 설정 패널의 <strong>① 🔢 배치 순서</strong>에서 <strong>↔ 가로순</strong> 또는 <strong>↕ 세로순</strong>을 선택합니다.</li>' +
+      '<li><strong>가로순</strong> — 앞줄 왼쪽부터 오른쪽으로 채운 뒤 다음 줄로 이동합니다.</li>' +
+      '<li><strong>세로순</strong> — 왼쪽 열을 앞에서 뒤로 채운 뒤 다음 열로 이동합니다.</li>' +
+      '<li>해당 방향의 <strong>② 학번 가로순 배치 / 학번 세로순 배치</strong> 버튼을 누릅니다. 시험대형뿐 아니라 짝꿍·트리플·모둠에도 적용됩니다.</li>' +
+      '<li>고정 좌석은 유지하고 남은 학생을 학번·번호 오름차순으로 배치합니다. 학번순에서는 관계·성별 조건보다 번호 순서가 우선입니다.</li>' +
+      '</ul>',
+    callout: { type: '', text: '무작위 추첨으로 돌아가려면 🎱 무작위를 고르세요. 가로·세로 방향은 학생 시점 기준이며 교탁 시점으로 바꾸어도 실제 배치는 바뀌지 않습니다.' }
+  },
+  {
+    section: 'seat',
+    img: 'guide/v67-same-gender.png',
+    title: '같은 성별끼리 우선 배치합니다',
+    desc: '<ul>' +
+      '<li>명렬표에 <strong>남·여 성별</strong>을 입력합니다. 성별이 없으면 같은 성별 판단을 할 수 없습니다.</li>' +
+      '<li><strong>① 배치 순서 → 🎱 무작위</strong>를 고르고 <strong>② 👫 같은 성별끼리 배치</strong>를 체크한 뒤 추첨합니다.</li>' +
+      '<li>짝·분단·모둠 안에서 같은 성별을 우선합니다. 인원 비율·빈자리·고정 좌석에 따라 완전한 분리는 보장되지 않습니다.</li>' +
+      '<li>성별 우선 배치에서는 관계 조건이 모두 보장되지 않으며 <strong>멀리 배치 조건은 별도로 적용하지 않습니다.</strong></li>' +
+      '</ul>',
+    callout: { type: '', text: '학번 가로순·세로순에서는 성별 옵션이 비활성화됩니다. 조건이 중요한 학생의 자리는 결과를 확인하고 직접 이동·고정해 주세요.' }
+  },
+  {
+    section: 'attend',
+    img: 'guide/v67-seat-attendance.png',
+    title: '자리에서 학생 이름 클릭 — 오늘 출결 바로 등록',
+    desc: '<ul>' +
+      '<li>자리배치 화면에서 <strong>학생 이름</strong>을 누르면 학생 기록 팝업이 열립니다.</li>' +
+      '<li><strong>① ✅ 오늘 출결 바로 등록</strong>에서 출석·결석·지각·조퇴·결과를 선택합니다.</li>' +
+      '<li>필요하면 <strong>사유</strong>(질병·인정·미인정·기타)와 짧은 <strong>메모</strong>를 입력합니다.</li>' +
+      '<li>선택·입력은 <strong>즉시 저장</strong>됩니다. 팝업을 닫고 출결관리에서 같은 학급·오늘 날짜의 상태를 확인합니다.</li>' +
+      '<li>잘못 선택했다면 출석 등 올바른 상태로 다시 누릅니다. 다른 날짜 기록은 출결관리에서 날짜를 바꿔 수정합니다.</li>' +
+      '</ul>',
+    callout: { type: 'good', text: '자리에서 입력한 출결과 출결관리 화면은 같은 학생·학급 기록을 사용합니다. 공식 학교 출결 시스템으로 자동 전송되는 기능은 아닙니다.' }
+  },
+  {
+    section: 'seat',
+    img: 'guide/v67-teacher-view.png',
+    title: '교탁 시점 — 출력하지 않고 화면을 뒤집습니다',
+    desc: '<ul>' +
+      '<li>좌석 설정 패널의 <strong>👩‍🏫 교탁 시점</strong>을 누르면 교탁에서 학생들을 마주 보는 방향으로 화면을 뒤집습니다.</li>' +
+      '<li>앞뒤·좌우 표시 방향을 바꾸는 기능이며 실제 자리·학생 기록을 옮기지 않습니다.</li>' +
+      '<li>뒤집힌 화면에서도 학생 이름을 눌러 출결·칭찬·관찰 기록을 등록할 수 있습니다.</li>' +
+      '<li><strong>🧑‍🎓 학생 시점으로</strong>를 누르면 원래 화면으로 돌아옵니다.</li>' +
+      '</ul>',
+    callout: { type: 'good', text: '수업 중 확인은 교탁 시점, 종이 배부는 출력의 학생용·교탁용을 이용하세요.' }
   },
   {
     img: 'guide/05a-splash.png',
@@ -3794,7 +3965,7 @@ var GUIDE_SLIDES = [
     desc: '<ul>' +
       '<li><strong>💚 가까이 배치</strong> — 되도록 옆·앞뒤로 붙여 앉힙니다.</li>' +
       '<li><strong>💔 멀리 배치</strong> — 서로 인접하지 않도록 떨어뜨립니다.</li>' +
-      '<li>추첨할 때마다 이 관계를 먼저 맞추고 나머지를 무작위로 채웁니다.</li>' +
+      '<li><strong>무작위 배치에서 성별 우선 옵션을 끈 경우</strong> 관계를 반영하고 나머지를 무작위로 채웁니다.</li>' +
       '</ul>',
     callout: { type: '', text: '관계 설정이 너무 많으면 조건을 모두 만족할 수 없어 일부는 무작위로 배치됩니다.' }
   },
@@ -3808,11 +3979,12 @@ var GUIDE_SLIDES = [
       '</ul>'
   },
   {
-    img: 'guide/09-history.png',
+    img: 'guide/v67-history-load.png',
     title: '배치를 저장하고 언제든 되돌립니다',
     desc: '<ul>' +
       '<li><strong>💾 저장</strong>으로 지금 배치를 메모와 함께 기록해 둡니다. (예: “2학기 1차 배치”)</li>' +
-      '<li><strong>📋 기록</strong>에서 지난 배치를 불러와 <strong>그대로 복원</strong>할 수 있습니다.</li>' +
+      '<li><strong>📂 배치 불러오기</strong>에서 기록을 골라 <strong>① 불러오기</strong>를 누르면 좌석·배치 설정·고정 좌석을 복원합니다.</li>' +
+      '<li>복원 전에 현재 배치도 저장해 두세요. 학생을 삭제·변경했다면 복원 결과를 다시 확인합니다.</li>' +
       '</ul>',
     callout: { type: 'danger', text: '저장 버튼을 눌러야 기록에 남습니다. 추첨만 하고 넘어가면 이력이 쌓이지 않습니다.' }
   },
@@ -3833,7 +4005,8 @@ var GUIDE_SLIDES = [
     title: '좌석표를 인쇄합니다',
     desc: '<ul>' +
       '<li><strong>🖨️ 학생용</strong> — 학생이 보는 방향 그대로. 교실 게시용입니다.</li>' +
-      '<li><strong>🖨️ 교탁용</strong> — <strong>좌우가 뒤집힌</strong> 좌석표. 교탁에서 학생들을 마주 볼 때 위치가 맞습니다.</li>' +
+      '<li><strong>🖨️ 교탁용</strong> — 교탁에서 학생들을 마주 보는 방향의 좌석표입니다.</li>' +
+      '<li>종이 출력 없이 확인할 때는 좌석 설정 패널의 <strong>👩‍🏫 교탁 시점</strong>을 사용합니다.</li>' +
       '<li>인쇄 창에서 <em>배경 그래픽</em>을 켜면 남녀 구분 색이 그대로 인쇄됩니다.</li>' +
       '</ul>'
   },
@@ -3848,17 +4021,21 @@ var GUIDE_SLIDES = [
       '</ul>',
     callout: { type: 'good', text: '기존에 쓰던 1인 1역 엑셀이 있다면 양식의 열 이름만 맞춰 그대로 활용할 수 있습니다.' }
   },  {
-    img: 'guide/12-backup.png',
-    title: '꼭 알아두세요 — 데이터는 이 컴퓨터에만 있습니다',
+    section: 'settings',
+    img: 'guide/v67-data-backup.png',
+    title: '홈에서 데이터 백업 — 기기를 바꾸기 전에 꼭 보관하세요',
     desc: '<p><strong>오늘 방문자 수와 총 접속 횟수만 익명 통계로 집계</strong>합니다. 명렬표 · 출결 · 좌석 · 메모 · 상담 기록은 T-ong 서버에 저장하지 않고 <strong>지금 쓰고 있는 브라우저 안에만</strong> 저장됩니다. Google 동기화를 직접 켠 경우 선택한 일정만 본인 Google 계정에 저장됩니다.</p>' +
       '<ul>' +
-      '<li>학교 컴퓨터에서 만든 자료는 <strong>집 컴퓨터에서 보이지 않습니다.</strong></li>' +
+      '<li><strong>홈 ▾ → 📦 데이터 백업 → ① 코드 생성 → ② 복사</strong>를 눌러 백업 코드를 안전한 곳에 보관합니다. 기존 설정 메뉴에서도 열 수 있습니다.</li>' +
+      '<li>학교 컴퓨터에서 만든 학생 자료는 <strong>집 컴퓨터·태블릿에서 자동으로 보이지 않습니다.</strong></li>' +
       '<li>같은 PC라도 <strong>Chrome과 Edge는 서로 다른 저장소</strong>를 씁니다.</li>' +
+      '<li><strong>운영 주소와 로컬 확인 주소</strong>도 각각 다른 저장소입니다. 같은 4321 주소로 접속해도 기기별 학생 자료는 별개입니다.</li>' +
+      '<li>새 기기에서는 같은 운영 주소를 열고 코드를 붙여넣은 뒤 <strong>③ 가져오기</strong>를 누릅니다. 현재 자료를 대체하므로 <strong>대상 기기의 자료도 먼저 백업</strong>합니다.</li>' +
       '<li>브라우저에서 <em>쿠키 및 사이트 데이터 삭제</em>를 하면 <strong>모두 지워집니다.</strong></li>' +
       '<li>시크릿(비공개) 창에서 쓴 내용은 창을 닫으면 사라집니다.</li>' +
       '</ul>' +
-      '<p>학생 개인정보는 방문 통계에 포함되지 않습니다. Google 동기화의 상담·메모 전송은 기본 해제이며, 동기화하지 않은 교무 자료는 인터넷이 끊겨도 <strong>오프라인에서 그대로 동작</strong>합니다.</p>',
-    callout: { type: 'danger', text: '<em>설정 → 데이터 백업 → 코드 생성</em>으로 백업 코드를 만들어 두세요. 다른 컴퓨터에서 <em>가져오기</em>에 붙여넣으면 그대로 옮겨집니다.' }
+      '<p>처음 접속해 필요한 파일이 캐시된 뒤에는 핵심 로컬 기능을 오프라인으로 사용할 수 있습니다. Google 동기화·외부 사이트·학교 정보 조회는 인터넷이 필요합니다.</p>',
+    callout: { type: 'danger', text: '백업 코드는 암호화된 보관함이 아니며 학생 기록을 포함합니다. 공개 블로그·메신저 단체방에 올리지 말고 학교의 자료 보관·개인정보 처리 기준에 따라 안전하게 관리하세요.' }
   }
 ];
 
@@ -4030,6 +4207,15 @@ function closeGuide() {
 // 호출 지점은 그대로 두고, 이전 버전에서 남은 transform만 정리합니다.
 // ===================================================================
 function fitSeatingToViewport() {
+  var stage = document.getElementById('stage');
+  var header = document.querySelector('.app-header');
+  if (stage && header) {
+    // Header controls can wrap to two rows. Use their real height, not a fixed offset.
+    stage.style.setProperty('--seat-header-height', Math.ceil(header.getBoundingClientRect().height) + 'px');
+    var viewport = window.visualViewport;
+    var availableHeight = viewport && Math.abs(viewport.scale - 1) < 0.01 ? viewport.height : window.innerHeight;
+    stage.style.setProperty('--seat-viewport-height', Math.floor(availableHeight) + 'px');
+  }
   var area = document.getElementById('seatingArea');
   if (!area) return;
   area.style.transform = 'none';
@@ -4288,11 +4474,15 @@ var HelpMenu = (function () {
         '<ul><li>방문 횟수 통계만 익명으로 집계되며, 명렬표·출결·좌석·상담 기록은 이 브라우저에만 저장됩니다.</li><li>Google 동기화를 직접 켠 경우 선택한 일정 항목만 본인 Google 계정에 직접 저장되며 T-ong 서버는 해당 일정을 수집하지 않습니다.</li><li>Google 동기화를 쓰지 않는 자료는 다른 기기에서 자동으로 보이지 않으므로 데이터 백업을 이용해 주세요.</li></ul>';
     } else if (kind === 'updates') {
       title.textContent = '✨ 업데이트 사항';
-      body.innerHTML = '<ul class="help-update-list"><li><b>v' + escapeHtml(APP_VERSION) + '</b><span>자리배치 학생 팝업에서 오늘 출결 즉시 등록·출결관리 연동 · Google 일정 전체 다시 가져오기 버튼 추가 · Google 기본 캘린더 양방향 동기화 및 직접 생성 일정 가져오기 수정 · 월간 일정 카드에서 수정·삭제 접근 개선 · 월간·주간 일정 드래그 이동과 모바일 길게 누르기·실행 취소 추가 · 같은 성별끼리 우선 배치하는 추첨 옵션 추가 · 모바일 데이터 백업 화면 개선 · 저장한 자리배치 불러오기 버튼 추가 · 수업 중 교탁 시점 전환 추가 · 명렬표 이름 오름차순 정렬 · 게임 메뉴에 핸드 카트라이더 추가 · 즐겨찾기의 EBSi 링크를 EBSi 교사지원센터로 변경 · 컴시간알리미(교사용)를 교실운영 메뉴 최상단으로 이동 · 게임 메뉴에 SET(셋)·랜덤게임 룰렛·윷놀이 추가 · Google OAuth 클라이언트 ID 발급·연결 4단계 스크린샷 도움말 추가 · Google 캘린더 사용자별 양방향 동기화(앱 사용 중 변경 즉시·약 1분 간격)와 개인정보 보호 옵션 추가 · 자리배치에서 현재 학급 명렬표를 학번·이름·성별 엑셀 파일로 다시 다운로드하는 기능 추가 · 즐겨찾기 교무업무에 국가교육과정정보센터(NCIC) 추가 · 모바일에서 도움말 메뉴가 뒤쪽 레이아웃에 가려지지 않도록 전면 고정 표시 · 모둠형 학생용·교탁용 출력을 화면과 같은 격자·모둠 번호로 수정 · 초록 식물도감을 신규 기본 테마로 지정 · 이미지 테마 3종 추가 · 별빛 야간 하위 메뉴 가독성 개선 · 월간 달력 5주 높이 적용 · 데이터·기록 드롭다운 표시 수정 · 9가지 화면 테마와 브라우저별 선택 저장 · 사용 설명서 36장 최신 화면 개편 · 교실 게임 메뉴 추가 · 도움말의 오늘의 학교(NEIS 실험) 복원 · 일정관리 시트 복사 예시 · 속성 수정/삭제·학부모 상담 대상 · Qwen 즐겨찾기 · 출결 학생 종합 기록 연결·칭찬 +1/−1 · 자리배치/출결관리 독립 탭 전환 · 개발자 응원 설문 연결</span></li><li><b>컴시간알리미(교사용)</b><span>교실운영 맨 위에서 새 창으로 열고 학교 코드를 설정합니다.</span></li><li><b>학급 도구 정리</b><span>상단에서 학급과 명렬표를 바로 관리하고, 출결관리에서도 학급 선택과 명렬표 업로드 가능</span></li><li><b>로컬 저장 안내 강화</b><span>익명 방문 횟수 통계 외 모든 교무 자료는 현재 브라우저에만 저장</span></li>' +
+      body.innerHTML = '<ul class="help-update-list"><li><b>v' + escapeHtml(APP_VERSION) + '</b><span>모든 자리 형태에서 무작위·학번 가로순·학번 세로순 배치 방식 선택 기능 추가 · 홈 하위메뉴에 데이터 백업 바로가기 추가 · 칭찬 포인트를 알·부화 중·병아리·닭 성장 단계로 표시 · 자리배치 학생 팝업에서 오늘 출결 즉시 등록·출결관리 연동 · Google 일정 전체 다시 가져오기 버튼 추가 · Google 기본 캘린더 양방향 동기화 및 직접 생성 일정 가져오기 수정 · 월간 일정 카드에서 수정·삭제 접근 개선 · 월간·주간 일정 드래그 이동과 모바일 길게 누르기·실행 취소 추가 · 같은 성별끼리 우선 배치하는 추첨 옵션 추가 · 모바일 데이터 백업 화면 개선 · 저장한 자리배치 불러오기 버튼 추가 · 수업 중 교탁 시점 전환 추가 · 명렬표 이름 오름차순 정렬 · 게임 메뉴에 핸드 카트라이더 추가 · 즐겨찾기의 EBSi 링크를 EBSi 교사지원센터로 변경 · 컴시간알리미(교사용)를 교실운영 메뉴 최상단으로 이동 · 게임 메뉴에 SET(셋)·랜덤게임 룰렛·윷놀이 추가 · Google OAuth 클라이언트 ID 발급·연결 4단계 스크린샷 도움말 추가 · Google 캘린더 사용자별 양방향 동기화(앱 사용 중 변경 즉시·약 1분 간격)와 개인정보 보호 옵션 추가 · 자리배치에서 현재 학급 명렬표를 학번·이름·성별 엑셀 파일로 다시 다운로드하는 기능 추가 · 즐겨찾기 교무업무에 국가교육과정정보센터(NCIC) 추가 · 모바일에서 도움말 메뉴가 뒤쪽 레이아웃에 가려지지 않도록 전면 고정 표시 · 모둠형 학생용·교탁용 출력을 화면과 같은 격자·모둠 번호로 수정 · 초록 식물도감을 신규 기본 테마로 지정 · 이미지 테마 3종 추가 · 별빛 야간 하위 메뉴 가독성 개선 · 월간 달력 5주 높이 적용 · 데이터·기록 드롭다운 표시 수정 · 9가지 화면 테마와 브라우저별 선택 저장 · 사용 설명서 36장 최신 화면 개편 · 교실 게임 메뉴 추가 · 도움말의 오늘의 학교(NEIS 실험) 복원 · 일정관리 시트 복사 예시 · 속성 수정/삭제·학부모 상담 대상 · Qwen 즐겨찾기 · 출결 학생 종합 기록 연결·칭찬 +1/−1 · 자리배치/출결관리 독립 탭 전환 · 개발자 응원 설문 연결</span></li><li><b>컴시간알리미(교사용)</b><span>교실운영 맨 위에서 새 창으로 열고 학교 코드를 설정합니다.</span></li><li><b>학급 도구 정리</b><span>상단에서 학급과 명렬표를 바로 관리하고, 출결관리에서도 학급 선택과 명렬표 업로드 가능</span></li><li><b>로컬 저장 안내 강화</b><span>익명 방문 횟수 통계 외 모든 교무 자료는 현재 브라우저에만 저장</span></li>' +
         '<li><b>즐겨찾기 묶음</b><span>수학관련 사이트·수업 및 클래스·교과서 사이트·생성형 AI·교무업무·진로진학·교사 도구함 순서로 정리하고 나만의 즐겨찾기는 맨 아래 고정</span></li>' +
         '<li><b>익명 방문 통계</b><span>오늘 방문자 수와 총 접속 횟수만 집계하며 명렬표·출결·상담 자료는 전송하지 않음</span></li>' +
         '<li><b>새 독립 주소</b><span>t-ong.vercel.app에서 T-ong 업그레이드판 운영</span></li></ul>';
       var latestUpdate = body.querySelector('.help-update-list li span');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.70: 게임 메뉴에 온몸으로 찰칵! 포즈 챌린지 추가 · 웹사이트와 Android 앱에서 새 창으로 열기 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '좌석 설정을 기본 접힘으로 변경하고 성별·배치 순서·설정 변경을 한 묶음으로 접기 · 무작위·학번 가로순·세로순 선택지를 세로 3줄로 정리 · 앱의 실제 표시 높이 변화에 맞춰 옵션 패널 스크롤 영역 갱신 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '낮은 가로 화면의 자리배치 우측 옵션 패널 스크롤·잘림 수정 · 태블릿 중간 폭 레이아웃 충돌 수정 · 배치 순서 접기와 현재 선택 방식 표시 · 좌석 설정 접기 버튼 접근성 개선 · 출력·명렬표·배치기간 하위 메뉴 잘림 방지 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '사용 설명서 ' + GUIDE_SLIDES.length + '장 기능 대조 및 최신 화면 보완 · 학번 가로·세로순과 성별 우선 조건 안내 · 자리에서 오늘 출결 등록·교탁 시점·배치 복원 안내 · 성장형 칭찬 및 홈 백업·기기별 저장 안내 · Google 전체 가져오기 양방향 주의사항 보완 · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\ud2b9\uc815 \uc790\ub9ac \uace0\uc815 \uce90\ub7ec\uc140 \uc0ac\uc9c4\uc744 \uc2e4\uc81c \uace0\uc815 \uc88c\uc11d \ud654\uba74\uc73c\ub85c \uad50\uccb4 \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\uce90\ub7ec\uc140 4\u00b75\u00b76\ub2e8\uacc4 \uc0ac\uc9c4\uc744 \uc6b0\uce21 \uc88c\uc11d \uc124\uc815 \ud328\ub110\u00b7\ubaa8\ub460 \uc88c\uc11d\ud45c\u00b7\uc77c\ubc18 \uc88c\uc11d\ud45c\ub85c \uad50\uccb4 \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\ud558\ub2e8 \uc800\uc791\uad8c math-tong \ub9c1\ud06c\ub97c \uc0c8 T-ong \uc0ac\uc6a9\ubc95 \ube14\ub85c\uadf8 \uae00\ub85c \ubcc0\uacbd \u00b7 ');
@@ -5466,16 +5656,24 @@ var Praise = (function () {
     return d.praise;
   }
 
+  function stage(score) {
+    score = Math.max(0, Number(score) || 0);
+    if (score >= 10) return { key: 'chicken', icon: '🐔', label: '닭', score: score };
+    if (score >= 5) return { key: 'chick', icon: '🐥', label: '병아리', score: score };
+    if (score >= 1) return { key: 'hatching', icon: '🐣', label: '부화 중', score: score };
+    return { key: 'egg', icon: '🥚', label: '알', score: 0 };
+  }
+
   function add(studentId, delta) {
     var p = points();
-    p[studentId] = Math.max(0, (p[studentId] || 0) + delta);
+    p[studentId] = Math.max(0, get(studentId) + delta);
     saveCurrentClassData();
     render();
     renderSeating();
     if (delta > 0) Sound.playPick(0, 5, false);
   }
 
-  function get(studentId) { return points()[studentId] || 0; }
+  function get(studentId) { return Math.max(0, Number(points()[studentId]) || 0); }
 
   function render() {
     var list = document.getElementById('praiseList');
@@ -5491,18 +5689,22 @@ var Praise = (function () {
     });
     sorted.forEach(function (s) {
       var n = get(s.id);
+      var growth = stage(n);
       var row = document.createElement('div');
-      row.className = 'praise-row' + (n > 0 ? ' has' : '');
+      row.className = 'praise-row stage-' + growth.key + (n > 0 ? ' has' : '');
       var plus = document.createElement('button');
       plus.type = 'button';
       plus.className = 'praise-name';
-      plus.innerHTML = '<span class="pr-no">' + s.id + '</span>' + escapeHtml(s.name) +
-        '<span class="pr-score">' + (n ? '⭐ ' + n : '') + '</span>';
+      plus.innerHTML = '<span class="pr-no">' + s.id + '</span><span class="pr-name">' + escapeHtml(s.name) + '</span>' +
+        '<span class="pr-score"><span class="pr-stage-icon">' + growth.icon + '</span><span class="pr-stage-text">' + growth.label + '<small>' + n + '점</small></span></span>';
+      plus.title = s.name + ' 학생 칭찬 +1 · 현재 ' + growth.label + ' ' + n + '점';
       plus.addEventListener('click', function () { add(s.id, 1); });
       var minus = document.createElement('button');
       minus.type = 'button';
       minus.className = 'praise-minus';
       minus.textContent = '−';
+      minus.disabled = n <= 0;
+      minus.setAttribute('aria-label', s.name + ' 학생 칭찬 1점 차감');
       minus.addEventListener('click', function () { add(s.id, -1); });
       row.appendChild(plus);
       row.appendChild(minus);
@@ -5526,7 +5728,7 @@ var Praise = (function () {
     var r = document.getElementById('praiseResetBtn'); if (r) r.addEventListener('click', reset);
   }
 
-  return { init: init, get: get, add: add, render: render };
+  return { init: init, get: get, add: add, stage: stage, render: render };
 })();
 
 // ===================================================================
@@ -6702,19 +6904,21 @@ function initSideRail() {
 }
 
 // 좌석 설정 패널 아래 버튼 + 드롭다운
-var SP_KEY = 'seatPanel_collapsed';
+var SP_KEY = 'seatPanel_settingsCollapsed_v2';
 
 function initSeatActions() {
-  // 좌석 설정 요약 접기 — 접으면 버튼만 남아 좌석표가 넓어집니다
+  // 요약·성별·배치 순서·설정 변경을 함께 접고, 주요 동작은 남겨 둡니다.
   var panel = document.getElementById('seatPanel');
   var head = panel && panel.querySelector('.sp-head');
   if (panel && head) {
-    var saved = '0';
-    try { saved = localStorage.getItem(SP_KEY) || '0'; } catch (e) { /* 무시 */ }
+    var saved = '1';
+    try { saved = localStorage.getItem(SP_KEY) || '1'; } catch (e) { /* 무시 */ }
     panel.classList.toggle('sp-collapsed', saved === '1');
+    head.setAttribute('aria-expanded', saved === '1' ? 'false' : 'true');
     head.addEventListener('click', function () {
       var on = !panel.classList.contains('sp-collapsed');
       panel.classList.toggle('sp-collapsed', on);
+      head.setAttribute('aria-expanded', on ? 'false' : 'true');
       try { localStorage.setItem(SP_KEY, on ? '1' : '0'); } catch (e) { /* 무시 */ }
       scheduleFit();
     });
@@ -6819,6 +7023,7 @@ function renderStudentSummary(student) {
   var actualToday = formatDate(new Date());
   var duty = (typeof Duty !== 'undefined') ? Duty.get(student.id) : '';
   var pts = (typeof Praise !== 'undefined') ? Praise.get(student.id) : 0;
+  var praiseStage = (typeof Praise !== 'undefined') ? Praise.stage(pts) : null;
   var att = (typeof Attend !== 'undefined') ? Attend.get(student.id, actualToday) : '출석';
   var reason = (typeof Attend !== 'undefined') ? Attend.getReason(student.id, actualToday) : '';
   var memo = studentMemos[student.id] || '';
@@ -6857,7 +7062,7 @@ function renderStudentSummary(student) {
       '<span class="ss-no">' + student.id + '번</span>' +
       '<span class="ss-name">' + escapeHtml(student.name) + '</span>' +
       (student.gender ? '<span class="ss-gender ' + (student.gender === '남' ? 'm' : 'f') + '">' + student.gender + '</span>' : '') +
-      (pts ? '<span class="ss-pts">⭐ ' + pts + '</span>' : '') +
+      (praiseStage ? '<span class="ss-pts" title="칭찬 성장 단계: ' + praiseStage.label + '">' + praiseStage.icon + ' ' + pts + '점</span>' : '') +
     '</div>' +
     row('🪑', '현재 좌석', escapeHtml(seatText)) +
     row('🧹', '1인 1역', duty ? escapeHtml(duty) : '<em>배정 없음</em>') +
@@ -6921,6 +7126,7 @@ function renderSeatPanel() {
   function row(k, v) { return '<div class="sp-row"><span>' + k + '</span><b>' + v + '</b></div>'; }
   box.innerHTML =
     row('자리 형태', typeName) +
+    row('배치 방식', getNumberOrderMode() === 'row' ? '학번 가로순' : (getNumberOrderMode() === 'column' ? '학번 세로순' : '무작위')) +
     row(unit + ' 수', config.columns + (config.seatType === 'group' ? '모둠' : '열')) +
     row('배열', extra) +
     row('행 수', config.rows + '행') +
@@ -6948,6 +7154,7 @@ function initModeTabs() {
       item.addEventListener('click', function () {
         homeMenu.classList.remove('open');
         if (this.dataset.home === 'guide') openGuide();
+        else if (this.dataset.home === 'backup') openBackupModal();
         else showHomeScreen();
       });
     });
@@ -7054,5 +7261,3 @@ function maybeAutoOpenGuide() {
 
 
 })();
-
-

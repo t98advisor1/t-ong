@@ -111,6 +111,19 @@ write('sw.js', sw);
 });
 const nGuide = copyDir('guide');
 const nAssets = copyDir('assets');
+// TWA verification is copied only after real signing certificates have been supplied.
+const assetLinksPath = path.join(SRC, '.well-known', 'assetlinks.json');
+if (fs.existsSync(assetLinksPath)) {
+  const assetLinks = JSON.parse(fs.readFileSync(assetLinksPath, 'utf8'));
+  if (!Array.isArray(assetLinks) || !assetLinks.length || assetLinks.some(link =>
+    !Array.isArray(link.relation) || !link.relation.includes('delegate_permission/common.handle_all_urls') ||
+    !link.target || link.target.namespace !== 'android_app' ||
+    !/^[a-zA-Z][\w]*(?:\.[a-zA-Z][\w]*)+$/.test(link.target.package_name || '') ||
+    !Array.isArray(link.target.sha256_cert_fingerprints) || !link.target.sha256_cert_fingerprints.length ||
+    link.target.sha256_cert_fingerprints.some(value => !/^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(value) || new Set(value.split(':')).size === 1)
+  )) throw new Error('Invalid Android assetlinks.json; refusing to deploy placeholders');
+  write('.well-known/assetlinks.json', JSON.stringify(assetLinks, null, 2));
+}
 
 const kb = (s) => Math.round(Buffer.byteLength(s, 'utf8') / 1024);
 console.log('  app.js    ' + kb(appSrc) + 'KB → ' + kb(obfuscated) + 'KB (난독화)');

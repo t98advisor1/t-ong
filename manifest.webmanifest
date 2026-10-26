@@ -3,6 +3,7 @@
   "short_name": "T-ong",
   "description": "자리배치·출결·일정·상담·교실운영을 한곳에서 관리하는 교사용 디지털 교무수첩",
   "lang": "ko",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,6 +11,24 @@
   "background_color": "#f0f2f5",
   "theme_color": "#4a6cf7",
   "icons": [
+    {
+      "src": "/assets/icons/tong-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/tong-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/tong-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",

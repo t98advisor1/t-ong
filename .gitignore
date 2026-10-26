@@ -5,3 +5,30 @@ node_modules/
 
 .vercel
 .env*
+
+# Android build output and private signing credentials are never committed.
+mobile/**/node_modules/
+mobile/**/.gradle/
+mobile/**/build/
+mobile/**/local.properties
+mobile/private/
+mobile/toolchain/
+**/*.keystore
+**/*.jks
+**/*.apk
+**/*.aab
+
+# Generated output, local work documents, and temporary review assets.
+dist/
+tmp/
+*.orig
+*.zip
+.agents/
+skills-lock.json
+_시안/
+Google_Antigravity_교원연수/
+교과서자료_2027중1_2026고1/
+submission/
+tools/preview*.png
+tools/preview*.jpg
+tools/__pycache__/

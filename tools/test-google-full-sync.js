@@ -93,7 +93,11 @@ function assert(condition, message) {
   });
 
   const page = await context.newPage();
-  page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+  page.on('console', msg => {
+    if (msg.type() === 'error' && !msg.text().includes('Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED')) {
+      consoleErrors.push(msg.text());
+    }
+  });
   page.on('pageerror', error => consoleErrors.push(error.message));
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
   await page.locator('#calendarBtn').click();
@@ -135,7 +139,7 @@ function assert(condition, message) {
     version: document.querySelector('[data-help="version"] small').textContent,
     fullButtonText: document.querySelector('#googleCalFullSyncBtn').textContent
   }));
-  assert(result.version === '5.17.0-preview.63', `버전 오류: ${result.version}`);
+  assert(result.version === '5.17.0-preview.66', `버전 오류: ${result.version}`);
   assert(result.fullButtonText.trim() === 'Google 일정 전체 다시 가져오기', '버튼 문구 오류');
   assert(result.events.filter(event => event.id === 'local-linked').length === 1, '기존 연결 일정이 중복되거나 사라짐');
   assert(result.events.filter(event => event.id === 'gcal-google-new').length === 1, 'Google 신규 일정 가져오기 실패 또는 중복');
@@ -144,12 +148,12 @@ function assert(condition, message) {
   assert(result.states['acct-1'].links['gcal-google-new'].googleId === 'google-new', '신규 Google 링크 저장 실패');
   assert(result.toast.includes('Google에서 1개') && result.toast.includes('Google로 0개'), `완료 문구 오류: ${result.toast}`);
 
-  await page.screenshot({ path: 'tools/preview63-google-full-sync-tablet.png', fullPage: true });
-  await page.locator('#calGooglePanel').screenshot({ path: 'tools/preview63-google-full-sync-panel-tablet.jpg', type: 'jpeg', quality: 55 });
+  await page.screenshot({ path: 'tools/preview66-google-full-sync-tablet.png', fullPage: true });
+  await page.locator('#calGooglePanel').screenshot({ path: 'tools/preview66-google-full-sync-panel-tablet.jpg', type: 'jpeg', quality: 55 });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('#googleCalFullSyncBtn').scrollIntoViewIfNeeded();
-  await page.screenshot({ path: 'tools/preview63-google-full-sync-mobile.png', fullPage: true });
-  await page.locator('#calGooglePanel').screenshot({ path: 'tools/preview63-google-full-sync-panel-mobile.jpg', type: 'jpeg', quality: 55 });
+  await page.screenshot({ path: 'tools/preview66-google-full-sync-mobile.png', fullPage: true });
+  await page.locator('#calGooglePanel').screenshot({ path: 'tools/preview66-google-full-sync-panel-mobile.jpg', type: 'jpeg', quality: 55 });
 
   assert(consoleErrors.length === 0, `브라우저 오류: ${consoleErrors.join(' | ')}`);
   console.log(JSON.stringify({
@@ -159,7 +163,7 @@ function assert(condition, message) {
     eventIds: result.events.map(event => event.id),
     syncToken: result.states['acct-1'].syncToken,
     toast: result.toast,
-    screenshots: ['tools/preview63-google-full-sync-tablet.png', 'tools/preview63-google-full-sync-mobile.png']
+    screenshots: ['tools/preview66-google-full-sync-tablet.png', 'tools/preview66-google-full-sync-mobile.png']
   }, null, 2));
   await browser.close();
 })().catch(error => {

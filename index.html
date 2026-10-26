@@ -39,14 +39,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.63">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.70">
 </head>
 <body>
 
   <!-- 헤더 -->
   <header class="app-header">
     <div class="header-left">
-      <div class="home-wrap"><button type="button" class="brand-home" id="homeBtn" aria-label="홈 메뉴" title="홈 메뉴">🏠</button><div id="homeMenu" class="home-menu"><button type="button" data-home="first">🏠 첫 화면</button><button type="button" data-home="guide">📖 사용 설명서</button></div></div>
+      <div class="home-wrap"><button type="button" class="brand-home" id="homeBtn" aria-label="홈 메뉴" title="홈 메뉴">🏠</button><div id="homeMenu" class="home-menu"><button type="button" data-home="first">🏠 첫 화면</button><button type="button" data-home="backup">📦 데이터 백업</button><button type="button" data-home="guide">📖 사용 설명서</button></div></div>
       <h1 class="sr-only">T-ong 교무수첩</h1>
       <nav class="mode-tabs" id="modeTabs" aria-label="주요 메뉴">
         <button type="button" class="mode-tab active" data-mode="seat">자리배치</button>
@@ -168,6 +168,7 @@
           <div class="more-menu game-menu" id="gameMenu">
             <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">🖐️ 핸드러시</a>
             <a href="https://handcar26.netlify.app/" target="_blank" rel="noopener noreferrer">🏎️ 핸드 카트라이더</a>
+            <a href="https://t98advisor1.github.io/pose-mission-training/" target="_blank" rel="noopener noreferrer">📸 온몸으로 찰칵! 포즈 챌린지</a>
             <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">⚾ 야구게임</a>
             <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">🔷 SET(셋)</a>
             <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">🎲 랜덤게임</a>
@@ -203,7 +204,7 @@
       <div class="header-help-wrap">
         <button type="button" id="helpBtn" class="header-help">❓ 도움말 ▾</button>
         <div id="helpMenu" class="help-menu">
-          <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.63</small></button>
+          <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.70</small></button>
           <button type="button" data-help="updates">✨ 업데이트 사항</button>
           <button type="button" data-help="support">💜 개발자 응원하기 <small>응원 한마디</small></button>
           <button type="button" data-help="school">🏫 오늘의 학교 <small>실험</small></button>
@@ -444,8 +445,8 @@
       </section>
     </aside>
 
-    <!-- 좌석 설정 요약 — 지금 어떻게 설정돼 있는지 항상 보이게 -->
-    <aside class="seat-panel" id="seatPanel">
+    <!-- 설정은 접고 주요 동작은 항상 접근할 수 있게 -->
+    <aside class="seat-panel sp-collapsed" id="seatPanel">
       <div class="sp-drop sp-period">
         <button type="button" id="spPeriodBtn" class="sp-btn drop-t period-cta"><span class="sp-period-title">📅 배치기간</span><span class="sp-period-date"><span id="spPeriodSummary"></span><span class="sp-period-arrow" aria-hidden="true">▾</span></span></button>
         <div class="sp-menu sp-period-menu">
@@ -466,13 +467,24 @@
         </div>
       </div>
 
-      <div class="sp-head">📐 좌석 설정</div>
-      <div id="spBody" class="sp-body"></div>
-      <label class="sp-gender-option" for="sameGenderSeating">
-        <input type="checkbox" id="sameGenderSeating">
-        <span><b>👫 같은 성별끼리 배치</b><small>짝·분단·모둠 안에서 같은 성별을 우선합니다</small></span>
-      </label>
-      <button type="button" id="spEditBtn" class="btn primary sp-edit">설정 바꾸기</button>
+      <button type="button" class="sp-head" aria-expanded="false" aria-controls="spSettings">📐 좌석 설정</button>
+      <div class="sp-settings" id="spSettings">
+        <fieldset class="sp-order-options" id="numberOrderOption">
+          <legend>🔢 배치 순서 <span id="numberOrderSummary">무작위</span></legend>
+          <div class="sp-order-choices">
+            <label><input type="radio" name="numberOrderMode" value="random" checked><span>🎱 무작위</span></label>
+            <label><input type="radio" name="numberOrderMode" value="row"><span>↔ 학번 가로순</span></label>
+            <label><input type="radio" name="numberOrderMode" value="column"><span>↕ 학번 세로순</span></label>
+          </div>
+          <small id="numberOrderHint">무작위 추첨은 관계·성별 조건을 반영할 수 있습니다.</small>
+        </fieldset>
+        <label class="sp-gender-option" for="sameGenderSeating">
+          <input type="checkbox" id="sameGenderSeating">
+          <span><b>👫 같은 성별끼리 배치</b><small>짝·분단·모둠 안에서 같은 성별을 우선합니다</small></span>
+        </label>
+        <div id="spBody" class="sp-body"></div>
+        <button type="button" id="spEditBtn" class="btn primary sp-edit">설정 바꾸기</button>
+      </div>
 
       <div class="sp-actions">
         <button type="button" class="sp-btn go" data-proxy="shuffleBtn">🎱 추첨 시작</button>
@@ -629,7 +641,13 @@
         <button class="close-btn" data-modal="praiseModal">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="hint">이름을 누르면 +1, 오른쪽 −를 누르면 차감됩니다. 좌석표에도 표시됩니다.</p>
+        <p class="hint">이름을 누르면 +1, 오른쪽 −를 누르면 차감됩니다. 점수는 그대로 보관하면서 성장 단계로 표시합니다.</p>
+        <div class="praise-growth-legend" aria-label="칭찬 성장 단계">
+          <span><b>🥚</b> 알 <small>0점</small></span>
+          <span><b>🐣</b> 부화 중 <small>1~4점</small></span>
+          <span><b>🐥</b> 병아리 <small>5~9점</small></span>
+          <span><b>🐔</b> 닭 <small>10점 이상</small></span>
+        </div>
         <div id="praiseList" class="praise-list"></div>
       </div>
       <div class="modal-footer">
@@ -1505,7 +1523,7 @@
       </div>
       <div class="guide-foot">
         <div class="guide-progress-wrap">
-          <span id="guideStatus" class="guide-status" aria-live="polite">1 / 36</span>
+          <span id="guideStatus" class="guide-status" aria-live="polite">설명서 준비 중</span>
           <div id="guideDots" class="guide-dots"></div>
         </div>
         <div class="guide-foot-right">
@@ -1529,7 +1547,7 @@
   <div id="printArea" class="print-only"></div>
   <div id="toast" class="toast"></div>
 
-  <script src="/app.js?v=5.17.0-preview.63"></script>
+  <script src="/app.js?v=5.17.0-preview.70"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

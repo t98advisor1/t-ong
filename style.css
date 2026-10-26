@@ -1223,7 +1223,9 @@ html, body { height: var(--app-h); }
 /* 좌석 설정 패널 (자리배치 화면 우측) */
 .seat-panel { width: 214px; flex-shrink: 0; display: flex; flex-direction: column; gap: 9px;
   background: #fff; border: 1px solid #e8eaf2; border-radius: 16px; padding: 13px;
-  box-shadow: 0 3px 14px rgba(20,26,60,0.06); overflow: hidden; }
+  box-shadow: 0 3px 14px rgba(20,26,60,0.06); min-height: 0;
+  overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.seat-panel > * { flex-shrink: 0; }
 .sp-head { font-size: 0.84rem; font-weight: 800; color: #6b7189; }
 .sp-body { display: flex; flex-direction: column; gap: 3px; }
 .sp-row { display: flex; justify-content: space-between; align-items: baseline;
@@ -1605,10 +1607,12 @@ body { display: block !important; }
   .seat-panel .sp-actions > .sp-drop { width: 100% !important; min-width: 0; }
 }
 
-/* 낮은 태블릿 가로 화면은 페이지가 아닌 좌석표 안에서 스크롤합니다. */
-@media (min-width: 901px) and (max-height: 700px) {
+/* 우측 패널이 있는 낮은 가로 화면은 좌석표와 옵션 패널을 각각 스크롤합니다.
+   1080px 이하의 세로 배치와 충돌하지 않도록 같은 폭 경계를 사용합니다. */
+@media (min-width: 1081px) and (max-height: 700px) {
   .app-footer { display: none; }
-  .stage { display: flex !important; flex-direction: row !important; height: calc(100dvh - 92px); min-height: 360px; overflow: hidden !important; }
+  .stage { display: flex !important; flex-direction: row !important; height: calc(var(--seat-viewport-height,100dvh) - var(--seat-header-height,92px)); min-height: 160px; overflow: hidden !important; }
+  .seat-panel { overscroll-behavior-y:contain; touch-action:pan-y pinch-zoom; }
   .stage main, main#mainArea { display: flex !important; flex-direction: column !important; height: 100%; max-height: 100%; min-height: 0 !important; overflow: hidden !important; }
   .classroom { display: flex !important; height: 100%; max-height: 100%; min-height: 0 !important; overflow-y: auto !important; }
 }
@@ -2986,3 +2990,64 @@ html[data-theme] .saq-state-btn { background:var(--tong-surface); color:var(--to
   .saq-details { grid-template-columns:1fr; }
   .saq-note { text-align:left; }
 }
+
+/* v5.17.0-preview.64 — home backup shortcut and praise growth stages */
+.praise-growth-legend { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:9px 0 12px; }
+.praise-growth-legend span { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:1px 6px; min-width:0; padding:7px 8px; border:1px solid #e5dfcf; border-radius:10px; background:#fffdf7; color:#555b66; font-size:.69rem; font-weight:800; }
+.praise-growth-legend b { grid-row:1 / span 2; font-size:1.25rem; line-height:1; }
+.praise-growth-legend small { color:#8b8f98; font-size:.58rem; font-weight:700; }
+.praise-badge { display:inline-flex; align-items:center; gap:3px; min-width:34px; justify-content:center; border:1px solid rgba(116,88,22,.13); background:#fff5c6; color:#705311; font-size:.75rem; line-height:1; }
+.praise-badge span { font-size:.92rem; }
+.praise-badge b { min-width:12px; font-size:.58rem; font-variant-numeric:tabular-nums; text-align:center; }
+.praise-badge.stage-egg { background:#f4efe5; color:#725f43; }
+.praise-badge.stage-hatching { background:#fff0c9; color:#8a620b; }
+.praise-badge.stage-chick { background:#fff7ad; color:#7c5a00; }
+.praise-badge.stage-chicken { background:#ffe0cf; color:#9b4328; }
+.pr-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pr-score { display:flex; align-items:center; gap:6px; min-width:96px; justify-content:flex-end; }
+.pr-stage-icon { flex:0 0 auto; font-size:1.3rem; line-height:1; }
+.pr-stage-text { display:flex; min-width:54px; flex-direction:column; color:#6e5b2a; font-size:.72rem; line-height:1.2; }
+.pr-stage-text small { color:#9b885d; font-size:.6rem; font-weight:750; font-variant-numeric:tabular-nums; }
+.praise-row.stage-egg .praise-name { background:#f8f6f1; border-color:#e5dfd3; }
+.praise-row.stage-hatching .praise-name { background:#fffaf0; border-color:#ffe0a3; }
+.praise-row.stage-chick .praise-name { background:#fffde4; border-color:#efe08b; }
+.praise-row.stage-chicken .praise-name { background:#fff2ea; border-color:#f4c5ad; }
+.praise-minus:disabled { cursor:not-allowed; opacity:.38; }
+html[data-theme] .praise-growth-legend span,html[data-theme] .praise-name { color:var(--tong-text); border-color:var(--tong-border); }
+html[data-theme] .praise-growth-legend span { background:var(--tong-soft); }
+html[data-theme] .praise-growth-legend small,html[data-theme] .pr-stage-text small { color:var(--tong-muted); }
+@media(max-width:560px){
+  .praise-growth-legend { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .pr-score { min-width:88px; }
+}
+@media(prefers-reduced-motion:no-preference){
+  .praise-badge,.pr-stage-icon { animation:praise-growth-pop .28s ease-out both; }
+}
+@keyframes praise-growth-pop { from { transform:scale(.82); opacity:.5; } to { transform:scale(1); opacity:1; } }
+
+/* v5.17.0-preview.66 — random, horizontal and vertical seat ordering */
+.sp-order-options { min-width:0; margin:0; padding:9px 10px 10px; border:1px solid #cfd8f6; border-radius:10px; background:#f4f7ff; color:#30344f; }
+.sp-order-options legend { padding:0 5px; font-size:.78rem; font-weight:850; }
+.sp-order-choices { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; }
+.sp-order-choices label { display:flex; min-width:0; min-height:44px; align-items:center; justify-content:flex-start; gap:8px; padding:9px 10px; border:1px solid #d8dff2; border-radius:8px; background:#fff; cursor:pointer; font-size:.78rem; font-weight:800; white-space:normal; }
+.sp-order-choices label:has(input:checked) { border-color:#536bd0; background:#e5eaff; color:#344ba7; box-shadow:0 0 0 1px rgba(83,107,208,.1); }
+.sp-order-choices input { width:18px; height:18px; margin:0; flex:0 0 auto; accent-color:#4f67c8; }
+.sp-order-options > small { display:block; margin-top:7px; color:#6f748b; font-size:.65rem; line-height:1.35; word-break:keep-all; }
+.sp-seat-option-inactive { opacity:.55; cursor:not-allowed; }
+.sp-seat-option-inactive:hover { background:#f8f9ff; border-color:#dfe3f2; }
+html[data-theme] .sp-order-options { background:var(--tong-soft); border-color:var(--tong-border); color:var(--tong-text); }
+html[data-theme] .sp-order-choices label { background:var(--tong-surface); border-color:var(--tong-border); color:var(--tong-text); }
+html[data-theme] .sp-order-choices label:has(input:checked) { border-color:var(--tong-accent); color:var(--tong-accent); }
+html[data-theme] .sp-order-options > small { color:var(--tong-muted); }
+
+/* v5.17.0-preview.69 — one settings disclosure, vertical order choices */
+.sp-settings { display:flex; flex-direction:column; gap:9px; min-width:0; }
+.sp-settings > * { flex-shrink:0; }
+.seat-panel.sp-collapsed .sp-settings { display:none !important; }
+#numberOrderSummary { font-size:.65rem; font-weight:750; color:var(--tong-muted,#6f748b); }
+.seat-panel .sp-head:focus-visible {
+  outline:3px solid var(--tong-accent,#536bd0); outline-offset:2px; }
+.seat-panel.sp-collapsed .sp-edit { display:none !important; }
+/* Open menus take part in panel scrolling instead of being cropped below it. */
+.seat-panel .sp-menu.open { position:static; width:100%; margin-top:6px; }
+.seat-panel .sp-menu button { white-space:normal; overflow-wrap:anywhere; }
