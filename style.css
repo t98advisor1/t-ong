@@ -3080,3 +3080,38 @@ html[data-theme] .sp-order-options > small { color:var(--tong-muted); }
 .ai-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
 .ai-row .btn { justify-content: center; }
 @media print { .ai-drawer, .ai-backdrop { display: none !important; } }
+
+/* 상단 AI 메뉴 */
+.mode-tabs .ai-menu { min-width: 200px; }
+.mode-tabs .ai-menu small { color: var(--tong-muted, #8a90a6); font-size: 0.72rem; margin-left: 4px; }
+
+/* AI 활용 안내 */
+.ai-guide-content { max-width: 720px; }
+.ai-guide-tabs { display: flex; gap: 4px; padding: 0 20px; border-bottom: 1px solid var(--tong-border, #e0e3ec); overflow-x: auto; }
+.ai-guide-tabs button { border: none; background: none; padding: 10px 12px; font: inherit; font-size: 0.88rem; font-weight: 700;
+  color: var(--tong-muted, #747b90); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+.ai-guide-tabs button.active { color: var(--tong-primary, #667eea); border-bottom-color: var(--tong-primary, #667eea); }
+.ai-guide-body { max-height: min(62vh, 560px); overflow-y: auto; line-height: 1.65; font-size: 0.9rem; }
+.ai-guide-body h4 { margin: 16px 0 6px; font-size: 0.95rem; }
+.ai-guide-body h4:first-child { margin-top: 0; }
+.ai-guide-body ul, .ai-guide-body ol { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.ai-guide-prompt { background: var(--tong-soft, #f6f7fb); border-left: 3px solid var(--tong-primary, #667eea); border-radius: 8px; padding: 8px 12px; }
+.ai-guide-note { margin-top: 14px; background: var(--tong-primary-soft, #eef0ff); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; }
+.ai-guide-links a { color: var(--tong-primary, #667eea); font-weight: 700; }
+
+/* 자리배치 우측 패널 접기 — 넓은 화면에서만, 좌측 메뉴처럼 좁은 띠로 */
+.sp-fold, .sp-mini { display: none; }
+@media (min-width: 1081px) {
+  .seat-panel { transition: width 0.22s cubic-bezier(.4,0,.2,1); }
+  .sp-fold { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--tong-border, #eef0f6); padding: 4px 6px 10px; font: inherit; font-size: 0.82rem; font-weight: 600;
+    color: var(--tong-muted, #9aa0b4); cursor: pointer; white-space: nowrap; }
+  .sp-fold:hover { color: var(--tong-primary, #4a4fd0); }
+  .sp-fold-ic { flex: 0 0 22px; text-align: center; }
+  .seat-panel.sp-folded { width: 52px; padding: 8px 7px; overflow: hidden; }
+  .seat-panel.sp-folded > :not(.sp-fold):not(.sp-mini) { display: none !important; }
+  .seat-panel.sp-folded .sp-fold { justify-content: center; padding: 6px 0 10px; }
+  .seat-panel.sp-folded .sp-mini { display: flex; flex-direction: column; gap: 6px; }
+  .sp-mini button { background: none; border: none; border-radius: 10px; padding: 9px 0; font-size: 1.1rem; cursor: pointer; }
+  .sp-mini button:hover { background: var(--tong-soft, #f2f4fb); }
+}
