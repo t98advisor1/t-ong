@@ -39,7 +39,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.71">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.72">
 </head>
 <body>
 
@@ -55,7 +55,6 @@
           <button type="button" class="mode-tab" id="extraBtn">➕ 교실운영 ▾</button>
           <div class="more-menu" id="extraMenu">
             <a href="http://컴시간교사.kr" target="_blank" rel="noopener noreferrer">🕒 컴시간알리미(교사용)</a>
-            <a href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">💬 담임 5분 멘트</a>
             <button type="button" data-open="timer">⏱️ 간편 타이머</button>
             <button type="button" data-open="praise">🏆 칭찬 포인트</button>
             <button type="button" data-open="ladder">🪜 사다리타기</button>
@@ -65,6 +64,14 @@
           </div>
         </div>
         <button type="button" class="mode-tab" id="calendarBtn">📅 일정관리</button>
+        <div class="more-wrap ai-wrap">
+          <button type="button" class="mode-tab" id="aiMenuBtn" aria-haspopup="true" aria-expanded="false">🤖 AI ▾</button>
+          <div class="more-menu ai-menu" id="aiMenu">
+            <button type="button" data-ai-open>🤖 AI 도우미 열기</button>
+            <button type="button" id="aiGuideOpenBtn">📘 AI 활용 안내</button>
+            <a href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">💬 담임 5분 멘트 <small>Gemini</small></a>
+          </div>
+        </div>
         <div class="more-wrap">
           <button type="button" class="mode-tab" id="favBtn">🔖 즐겨찾기 ▾</button>
           <div class="more-menu fav-menu" id="favMenu">
@@ -204,7 +211,7 @@
       <div class="header-help-wrap">
         <button type="button" id="helpBtn" class="header-help">❓ 도움말 ▾</button>
         <div id="helpMenu" class="help-menu">
-          <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.71</small></button>
+          <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.72</small></button>
           <button type="button" data-help="updates">✨ 업데이트 사항</button>
           <button type="button" data-help="support">💜 개발자 응원하기 <small>응원 한마디</small></button>
           <button type="button" data-help="school">🏫 오늘의 학교 <small>실험</small></button>
@@ -453,6 +460,15 @@
 
     <!-- 설정은 접고 주요 동작은 항상 접근할 수 있게 -->
     <aside class="seat-panel sp-collapsed" id="seatPanel">
+      <button type="button" class="sp-fold" id="spFoldBtn" aria-expanded="true" title="오른쪽 메뉴 접기">
+        <span class="sp-fold-ic">▶</span><span class="sp-fold-tx">메뉴 접기</span>
+      </button>
+      <div class="sp-mini" aria-label="자리배치 빠른 동작">
+        <button type="button" data-proxy="shuffleBtn" title="추첨 시작" aria-label="추첨 시작">🎱</button>
+        <button type="button" data-proxy="saveBtn" title="저장" aria-label="저장">💾</button>
+        <button type="button" data-proxy="historyBtn" title="배치 불러오기" aria-label="배치 불러오기">📂</button>
+        <button type="button" data-proxy="screenTeacherViewBtn" title="교탁 시점" aria-label="교탁 시점">👩‍🏫</button>
+      </div>
       <div class="sp-drop sp-period">
         <button type="button" id="spPeriodBtn" class="sp-btn drop-t period-cta"><span class="sp-period-title">📅 배치기간</span><span class="sp-period-date"><span id="spPeriodSummary"></span><span class="sp-period-arrow" aria-hidden="true">▾</span></span></button>
         <div class="sp-menu sp-period-menu">
@@ -611,6 +627,80 @@
   </div>
 
   <!-- 오늘의 알림장 -->
+  <div id="aiGuideModal" class="modal">
+    <div class="modal-content wide ai-guide-content">
+      <div class="modal-header">
+        <h3>📘 AI 활용 안내</h3>
+        <button class="close-btn" data-modal="aiGuideModal">&times;</button>
+      </div>
+      <div class="ai-guide-tabs" role="tablist">
+        <button type="button" role="tab" class="active" data-ai-guide="start">시작하기</button>
+        <button type="button" role="tab" data-ai-guide="examples">활용 예시</button>
+        <button type="button" role="tab" data-ai-guide="privacy">개인정보 · 주의</button>
+        <button type="button" role="tab" data-ai-guide="tools">AI 도구 모음</button>
+      </div>
+      <div class="modal-body ai-guide-body">
+        <section data-ai-guide-panel="start">
+          <h4>AI 도우미로 할 수 있는 일</h4>
+          <p>알림장, 조회 멘트, 가정통신문 초안을 쓰거나 상담 메모를 기록 양식으로 정리할 때 AI의 도움을 받을 수 있습니다.</p>
+          <h4>여는 방법</h4>
+          <ul>
+            <li>상단 <b>🤖 AI ▾ → AI 도우미 열기</b></li>
+            <li>자리배치 화면 왼쪽 메뉴의 <b>🤖</b> 아이콘</li>
+          </ul>
+          <h4>사용 순서</h4>
+          <ol>
+            <li>사용할 AI(Claude · ChatGPT · Gemini)와 할 일을 고르고 요청을 적습니다.</li>
+            <li><b>구독 계정으로 열기</b>를 누르면 내 계정의 AI 창이 열리고 요청문이 전달됩니다. 요청문은 클립보드에도 복사됩니다.</li>
+            <li>AI 답변을 복사해 도우미의 <b>AI 답변 가져오기</b> 칸에 붙여넣고 <b>알림장에 넣기</b>를 누릅니다.</li>
+          </ol>
+          <p class="ai-guide-note">🛠️ T-ong 화면 안에서 바로 대화하고, 일정 추가·알림장 작성 같은 작업을 AI가 직접 실행하는 <b>AI 비서</b>를 준비하고 있습니다.</p>
+        </section>
+        <section data-ai-guide-panel="examples" hidden>
+          <h4>📢 알림장</h4>
+          <p class="ai-guide-prompt">내일 현장체험학습 알림장. 8시 30분까지 등교, 준비물은 도시락·물·편한 운동화, 우천 시 교실 수업</p>
+          <h4>💬 조회 멘트</h4>
+          <p class="ai-guide-prompt">중간고사 일주일 전, 긴장한 아이들에게 힘이 되는 1분 이야기</p>
+          <h4>✉️ 가정통신문</h4>
+          <p class="ai-guide-prompt">다음 주 학부모 상담주간 안내. 기간 11월 3일~7일, 신청은 하이클래스 설문으로</p>
+          <h4>📝 상담 기록 정리</h4>
+          <p class="ai-guide-prompt">(상담 메모를 그대로 붙여넣기) → 일시·주요 내용·학생 상황·후속 조치 양식으로 정리</p>
+          <h4>잘 쓰는 요령</h4>
+          <ul>
+            <li>날짜, 시간, 준비물처럼 <b>사실 정보는 구체적으로</b> 적어 주세요.</li>
+            <li>"더 다정하게", "3줄로 줄여 줘"처럼 <b>이어서 고쳐 달라고</b> 하면 결과가 좋아집니다.</li>
+            <li>원하는 말투나 예시 문장을 함께 주면 학급 분위기에 맞게 써 줍니다.</li>
+          </ul>
+        </section>
+        <section data-ai-guide-panel="privacy" hidden>
+          <h4>학생 이름 가리기</h4>
+          <p>AI 도우미는 보내기 전에 명렬표의 학생 이름을 <b>[학생A]</b>처럼 바꾸고, 알림장에 넣을 때 원래 이름으로 되돌립니다. 기본으로 켜져 있습니다.</p>
+          <h4>AI에 넣지 말아야 할 정보</h4>
+          <ul>
+            <li>주민등록번호, 연락처, 주소 같은 개인 식별 정보</li>
+            <li>건강·가정환경·상담 세부 내용처럼 민감한 정보</li>
+            <li>성적 등 외부로 나가면 안 되는 학교 자료</li>
+          </ul>
+          <h4>결과는 꼭 확인하세요</h4>
+          <p>AI는 날짜나 사실을 틀리게 쓸 수 있습니다. 학생·학부모에게 보내기 전에 내용을 직접 확인하고, 학교와 교육청의 생성형 AI 활용 지침을 따라 주세요.</p>
+          <p class="ai-guide-note">🔒 T-ong은 요청문과 AI 답변을 서버에 저장하지 않습니다.</p>
+        </section>
+        <section data-ai-guide-panel="tools" hidden>
+          <h4>생성형 AI 바로가기</h4>
+          <ul class="ai-guide-links">
+            <li><a href="https://claude.ai" target="_blank" rel="noopener noreferrer">Claude</a> — 긴 글쓰기·문서 정리에 강점</li>
+            <li><a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer">ChatGPT</a> — 범용 대화·아이디어</li>
+            <li><a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer">Gemini</a> — Google 문서·드라이브와 함께 쓰기</li>
+            <li><a href="https://notebooklm.google.com" target="_blank" rel="noopener noreferrer">NotebookLM</a> — 교과서·자료를 올려 요약·질문</li>
+            <li><a href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">담임 5분 멘트</a> — 조회 시간용 Gemini 맞춤 Gem</li>
+          </ul>
+          <h4>PC에서 브라우저 AI 사이드바 쓰기</h4>
+          <p>PC 크롬에서는 Claude in Chrome, Gemini in Chrome 같은 브라우저 AI 사이드바를 켜고 T-ong 화면을 함께 보면서 도움을 받을 수 있습니다. 태블릿·모바일 크롬과 Android 앱에서는 확장 프로그램을 쓸 수 없습니다.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <div id="noticeModal" class="modal">
     <div class="modal-content notice-modal-content">
       <div class="modal-header">
@@ -1592,7 +1682,7 @@
   <div id="printArea" class="print-only"></div>
   <div id="toast" class="toast"></div>
 
-  <script src="/app.js?v=5.17.0-preview.71"></script>
+  <script src="/app.js?v=5.17.0-preview.72"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

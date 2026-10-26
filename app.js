@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.71';
+var APP_VERSION = '5.17.0-preview.72';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -4489,6 +4489,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\ud558\ub2e8 \uc800\uc791\uad8c math-tong \ub9c1\ud06c\ub97c \uc0c8 T-ong \uc0ac\uc6a9\ubc95 \ube14\ub85c\uadf8 \uae00\ub85c \ubcc0\uacbd \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\uc990\uaca8\ucc3e\uae30\uc5d0 \uc218\ud559\uad00\ub828 \uc0ac\uc774\ud2b8\uc640 \uc0ac\uc6a9\uc790 \ucd94\uac00 \uae30\ub2a5\uc744 \ub123\uace0 \ud558\uc774\ub7ec\ub2dd\uc744 AI \uad50\uc218\ud559\uc2b5 \ud50c\ub7ab\ud3fc\uc73c\ub85c \ubcc0\uacbd \u00b7 \ubaa8\ubc14\uc77c \uad50\uc2e4\uc6b4\uc601 \uba54\ub274\ub97c \uc804\uba74 \uace0\uc815\ud574 \ubaa8\ub4e0 \ubc84\ud2bc \ud074\ub9ad \uac00\ub2a5 \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.71: 🤖 AI 도우미 추가(내 Claude·ChatGPT·Gemini 구독 계정으로 알림장·조회 멘트·가정통신문·상담 기록 요청, 학생 이름 자동 가림, 답변을 알림장에 바로 넣기) · Google 캘린더 연결 간소화(클라이언트 ID 입력 없이 버튼으로 연결, 이전 계정 한 번에 다시 연결, 만료 시 다시 연결 안내) · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.72: 상단에 🤖 AI 메뉴 추가(AI 도우미 열기·AI 활용 안내·담임 5분 멘트) · AI 활용 안내 창(시작하기·활용 예시·개인정보 주의·AI 도구 모음) · 자리배치 우측 메뉴를 좌측처럼 접어 좌석 화면 넓히기 · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +
@@ -4512,8 +4513,9 @@ var HelpMenu = (function () {
     if (!button || !menu) return;
     button.addEventListener('click', function (e) {
       e.stopPropagation();
-      var extra = el('extraMenu'), fav = el('favMenu'), game = el('gameMenu');
+      var extra = el('extraMenu'), fav = el('favMenu'), game = el('gameMenu'), ai = el('aiMenu');
       if (extra) extra.classList.remove('open');
+      if (ai) ai.classList.remove('open');
       if (fav) fav.classList.remove('open');
       menu.classList.toggle('open');
       if (menu.classList.contains('open')) positionMobileMenu();
@@ -7024,6 +7026,7 @@ function initSideRail() {
 
 // 좌석 설정 패널 아래 버튼 + 드롭다운
 var SP_KEY = 'seatPanel_settingsCollapsed_v2';
+var SP_FOLD_KEY = 'seatPanel_folded_v1';
 
 function initSeatActions() {
   // 요약·성별·배치 순서·설정 변경을 함께 접고, 주요 동작은 남겨 둡니다.
@@ -7041,6 +7044,24 @@ function initSeatActions() {
       try { localStorage.setItem(SP_KEY, on ? '1' : '0'); } catch (e) { /* 무시 */ }
       scheduleFit();
     });
+  }
+
+  // 우측 패널 전체 접기 — 좌측 메뉴처럼 좁은 띠로 줄이고 자주 쓰는 동작만 아이콘으로 남깁니다
+  var fold = document.getElementById('spFoldBtn');
+  if (panel && fold) {
+    var setFolded = function (on) {
+      panel.classList.toggle('sp-folded', on);
+      fold.setAttribute('aria-expanded', on ? 'false' : 'true');
+      fold.title = on ? '오른쪽 메뉴 펼치기' : '오른쪽 메뉴 접기';
+      fold.querySelector('.sp-fold-ic').textContent = on ? '◀' : '▶';
+      fold.querySelector('.sp-fold-tx').textContent = on ? '' : '메뉴 접기';
+      try { localStorage.setItem(SP_FOLD_KEY, on ? '1' : '0'); } catch (e) { /* 무시 */ }
+      scheduleFit();
+    };
+    var folded = '0';
+    try { folded = localStorage.getItem(SP_FOLD_KEY) || '0'; } catch (e) { /* 무시 */ }
+    setFolded(folded === '1');
+    fold.addEventListener('click', function () { setFolded(!panel.classList.contains('sp-folded')); });
   }
 
   document.querySelectorAll('.seat-panel [data-proxy]').forEach(function (b) {
@@ -7264,7 +7285,7 @@ function initModeTabs() {
   if (home && homeMenu) {
     home.addEventListener('click', function (e) {
       e.stopPropagation();
-      ['extraMenu','favMenu','gameMenu','helpMenu'].forEach(function (id) { var menu=document.getElementById(id); if(menu)menu.classList.remove('open'); });
+      ['extraMenu','favMenu','gameMenu','helpMenu','aiMenu'].forEach(function (id) { var menu=document.getElementById(id); if(menu)menu.classList.remove('open'); });
       homeMenu.classList.toggle('open');
     });
     homeMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -7292,6 +7313,7 @@ function initModeTabs() {
       var hm = document.getElementById('helpMenu');
       if (em) em.classList.remove('open');
       if (hm) hm.classList.remove('open');
+      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
       favMenu.classList.toggle('open');
     });
     favMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -7309,11 +7331,39 @@ function initModeTabs() {
       if (em) em.classList.remove('open');
       if (favMenu) favMenu.classList.remove('open');
       if (hm) hm.classList.remove('open');
+      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
       gameMenu.classList.toggle('open');
     });
     gameMenu.addEventListener('click', function (e) { e.stopPropagation(); });
     document.addEventListener('click', function () { gameMenu.classList.remove('open'); });
   }
+  // AI 드롭다운 — 도우미 열기·활용 안내·담임 5분 멘트
+  var aiBtn = document.getElementById('aiMenuBtn');
+  var aiMenu = document.getElementById('aiMenu');
+  if (aiBtn && aiMenu) {
+    aiBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      ['extraMenu','favMenu','gameMenu','helpMenu','homeMenu'].forEach(function (id) { var m = document.getElementById(id); if (m) m.classList.remove('open'); });
+      var open = !aiMenu.classList.contains('open');
+      aiMenu.classList.toggle('open', open);
+      aiBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    aiMenu.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target.closest('button, a')) { aiMenu.classList.remove('open'); aiBtn.setAttribute('aria-expanded', 'false'); }
+    });
+    document.addEventListener('click', function () { aiMenu.classList.remove('open'); aiBtn.setAttribute('aria-expanded', 'false'); });
+  }
+  var aiGuideBtn = document.getElementById('aiGuideOpenBtn');
+  if (aiGuideBtn) aiGuideBtn.addEventListener('click', function () { openModal('aiGuideModal'); });
+  document.querySelectorAll('[data-ai-guide]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var key = this.dataset.aiGuide;
+      document.querySelectorAll('[data-ai-guide]').forEach(function (t) { t.classList.toggle('active', t === tab); t.setAttribute('aria-selected', t === tab ? 'true' : 'false'); });
+      document.querySelectorAll('[data-ai-guide-panel]').forEach(function (p) { p.hidden = p.dataset.aiGuidePanel !== key; });
+    });
+  });
+
   // 교실운영 드롭다운
   var btn = document.getElementById('extraBtn');
   var menu = document.getElementById('extraMenu');
@@ -7331,6 +7381,7 @@ function initModeTabs() {
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (favMenu) favMenu.classList.remove('open');
+      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
       if (!menu.classList.contains('open')) positionMobileExtraMenu();
       menu.classList.toggle('open');
     });
