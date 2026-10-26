@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
   UsageStats.init();
   ScheduleCalendar.init();
   GoogleCalendarSync.init();
+  AiAssistant.init();
 
   initSettingsTabs();
   initModeTabs();
@@ -5188,6 +5189,7 @@ var GoogleCalendarSync = (function () {
   var CALENDAR_ID='primary',SYNC_MODE='primary-v1';
   var API='https://www.googleapis.com/calendar/v3',USERINFO='https://openidconnect.googleapis.com/v1/userinfo';
   var token='',expiresAt=0,tokenClient=null,loadingPromise=null,syncing=false,timer=null,debounceTimer=null;
+  var chooseAccount=false,expiryNotified=false; // 연결 해제 후에는 계정 선택 창부터, 만료 안내는 한 번만
   var config={clientId:'',activeAccountId:'',autoSync:true,includeConsult:false,includeMemo:false};
   var accountStates={};
   function el(id){return document.getElementById(id);}
@@ -5208,7 +5210,8 @@ var GoogleCalendarSync = (function () {
   function render(){
     var state=activeState(),connected=validToken();if(el('googleClientIdInput'))el('googleClientIdInput').value=config.clientId||'';
     if(el('googleCalAutoInput'))el('googleCalAutoInput').checked=config.autoSync;if(el('googleCalConsultInput'))el('googleCalConsultInput').checked=config.includeConsult;if(el('googleCalMemoInput'))el('googleCalMemoInput').checked=config.includeMemo;
-    if(el('googleCalConnectBtn'))el('googleCalConnectBtn').textContent=connected?'다른 Google 계정 연결':'Google 계정 연결';if(el('googleCalSyncBtn'))el('googleCalSyncBtn').disabled=!connected||syncing;if(el('googleCalFullSyncBtn'))el('googleCalFullSyncBtn').disabled=!connected||syncing;if(el('googleCalDisconnectBtn'))el('googleCalDisconnectBtn').disabled=!connected;
+    if(el('googleCalConnectBtn'))el('googleCalConnectBtn').textContent=connected?'다른 Google 계정 연결':(quickHint()?'다시 연결 · '+quickHint():'Google 계정 연결');
+    var dev=el('googleCalDeveloperSettings');if(dev)dev.hidden=!!metaClientId()&&!/[?&]admin\b/.test(location.search);if(el('googleCalSyncBtn'))el('googleCalSyncBtn').disabled=!connected||syncing;if(el('googleCalFullSyncBtn'))el('googleCalFullSyncBtn').disabled=!connected||syncing;if(el('googleCalDisconnectBtn'))el('googleCalDisconnectBtn').disabled=!connected;
     if(connected&&state)setStatus('Google 캘린더와 연결되었습니다.','ok',(state.email||'Google 계정')+' · '+(state.calendarName||'Google 기본 캘린더'));
     else if(!config.clientId)setStatus('앱 관리자 설정이 필요합니다.','error','OAuth 클라이언트 ID를 입력한 뒤 계정을 연결해 주세요.');
     else setStatus('Google 계정을 연결해 주세요.','idle',state&&state.email?'최근 계정 · '+state.email:'로그인 계정의 Google 기본 캘린더와 양방향 동기화합니다.');
@@ -5218,8 +5221,10 @@ var GoogleCalendarSync = (function () {
     if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();if(loadingPromise)return loadingPromise;
     loadingPromise=new Promise(function(resolve,reject){var old=document.querySelector('script[data-tong-google-identity]');if(old){old.addEventListener('load',resolve,{once:true});old.addEventListener('error',function(){reject(new Error('Google 로그인 모듈을 불러오지 못했습니다.'));},{once:true});return;}var script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;script.dataset.tongGoogleIdentity='1';script.onload=resolve;script.onerror=function(){reject(new Error('Google 로그인 모듈을 불러오지 못했습니다.'));};document.head.appendChild(script);});return loadingPromise;
   }
-  function initTokenClient(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:SCOPES,callback:function(response){if(response&&response.error){setStatus('Google 연결을 완료하지 못했습니다.','error',response.error_description||response.error);setBusy(false);return;}token=response.access_token||'';expiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;finishConnection().catch(handleError);}});}
-  function connect(){if(!config.clientId){var detail=el('googleCalDeveloperSettings');if(detail)detail.open=true;render();showToast('Google OAuth 클라이언트 ID를 먼저 설정해 주세요','error');return;}setBusy(true);setStatus('Google 로그인 창을 준비하고 있습니다.','busy','연결할 계정을 선택해 주세요.');loadIdentity().then(function(){initTokenClient();tokenClient.requestAccessToken({prompt:'select_account'});}).catch(handleError);}
+  function initTokenClient(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:SCOPES,callback:function(response){if(response&&response.error){setStatus('Google 연결을 완료하지 못했습니다.','error',response.error_description||response.error);setBusy(false);return;}token=response.access_token||'';expiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;chooseAccount=false;expiryNotified=false;finishConnection().catch(handleError);}});}
+  // 예전에 연결한 계정이 있으면 계정 선택·동의 화면 없이 한 번에 다시 연결합니다.
+  function quickHint(){var state=activeState();return !chooseAccount&&state&&state.email&&state.email.indexOf('@')>0?state.email:'';}
+  function connect(){if(!config.clientId){var detail=el('googleCalDeveloperSettings');if(detail)detail.open=true;render();showToast('Google OAuth 클라이언트 ID를 먼저 설정해 주세요','error');return;}setBusy(true);setStatus('Google 로그인 창을 준비하고 있습니다.','busy','연결할 계정을 선택해 주세요.');var hint=validToken()?'':quickHint();loadIdentity().then(function(){initTokenClient();tokenClient.requestAccessToken(hint?{prompt:'',login_hint:hint}:{prompt:'select_account'});}).catch(handleError);}
   async function api(pathname,options){
     options=options||{};var headers=Object.assign({'Authorization':'Bearer '+token},options.headers||{});if(options.body)headers['Content-Type']='application/json';var response=await fetch(pathname.indexOf('http')===0?pathname:API+pathname,Object.assign({},options,{headers:headers}));
     if(response.status===204)return null;var body=null;try{body=await response.json();}catch(e){}if(!response.ok){var err=new Error(body&&body.error&&body.error.message||('Google API 오류 '+response.status));err.status=response.status;throw err;}return body;
@@ -5242,7 +5247,7 @@ var GoogleCalendarSync = (function () {
   async function deleteRemote(state,link){try{await api('/calendars/'+encodeURIComponent(state.calendarId)+'/events/'+encodeURIComponent(link.googleId),{method:'DELETE'});}catch(e){if(e.status!==404&&e.status!==410)throw e;}}
   async function syncNow(silent,options){
     var forceFull=!!(options&&options.forceFull);
-    if(syncing)return;if(!validToken()){render();if(!silent)showToast('Google 계정을 다시 연결해 주세요','error');return;}var state=activeState();if(!state)return;
+    if(syncing)return;if(!validToken()){render();if(!silent)showToast('Google 계정을 다시 연결해 주세요','error');else promptReconnect();return;}var state=activeState();if(!state)return;
     if(state.calendarId!==CALENDAR_ID||state.syncMode!==SYNC_MODE)await ensureCalendar(state);
     setBusy(true);setStatus(forceFull?'Google 기본 캘린더 전체를 확인하고 있습니다.':'양방향 일정을 확인하고 있습니다.','busy',(state.email||'Google 계정')+' · '+(state.calendarName||'Google 기본 캘린더'));
     try{
@@ -5278,18 +5283,131 @@ var GoogleCalendarSync = (function () {
     if(!confirm('Google 기본 캘린더의 모든 일정을 다시 확인할까요?\n\nT-ong의 기존 일정을 일괄 삭제하지는 않습니다. 다만 양방향 동기화이므로 T-ong에서 수정·삭제한 내용도 Google에 반영되며, 일정이 많으면 시간이 걸릴 수 있습니다.'))return;
     syncNow(false,{forceFull:true});
   }
-  function handleError(error){setBusy(false);if(error&&error.status===401){token='';expiresAt=0;stopTimer();setStatus('Google 계정을 다시 연결해 주세요.','error','접근 권한 시간이 만료되었습니다.');}else if(error&&error.status===403){setStatus('Google Calendar API 설정을 확인해 주세요.','error','API 사용 설정과 OAuth 권한을 확인해 주세요.');}else setStatus('동기화하지 못했습니다.','error',error&&error.message||'네트워크 상태를 확인해 주세요.');renderButtonsOnly();showToast(error&&error.message||'Google 캘린더 동기화 오류','error');}
+  function handleError(error){setBusy(false);if(error&&error.status===401){token='';expiresAt=0;stopTimer();setStatus('Google 계정을 다시 연결해 주세요.','error','접근 권한 시간이 만료되었습니다.');render();if(quickHint()){expiryNotified=true;setBusy(false);showToast('Google 캘린더 연결 시간이 끝났습니다','error','다시 연결',connect);return;}}else if(error&&error.status===403){setStatus('Google Calendar API 설정을 확인해 주세요.','error','API 사용 설정과 OAuth 권한을 확인해 주세요.');}else setStatus('동기화하지 못했습니다.','error',error&&error.message||'네트워크 상태를 확인해 주세요.');renderButtonsOnly();showToast(error&&error.message||'Google 캘린더 동기화 오류','error');}
   function renderButtonsOnly(){if(el('googleCalSyncBtn'))el('googleCalSyncBtn').disabled=!validToken()||syncing;if(el('googleCalFullSyncBtn'))el('googleCalFullSyncBtn').disabled=!validToken()||syncing;if(el('googleCalDisconnectBtn'))el('googleCalDisconnectBtn').disabled=!validToken();}
   function startTimer(){stopTimer();if(config.autoSync&&validToken())timer=setInterval(function(){if(document.visibilityState==='visible')syncNow(true);},60000);}
   function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
-  function onLocalChanged(){clearTimeout(debounceTimer);if(!config.autoSync||!validToken())return;debounceTimer=setTimeout(function(){syncNow(true);},1400);}
+  // 토큰(약 1시간)이 끝나면 탭 한 번으로 다시 연결하도록 안내합니다. 팝업은 사용자 탭에서만 열 수 있습니다.
+  function promptReconnect(){if(expiryNotified||!config.clientId||!quickHint())return;expiryNotified=true;stopTimer();showToast('Google 캘린더 연결 시간이 끝났습니다','error','다시 연결',connect);}
+  function onLocalChanged(){clearTimeout(debounceTimer);if(config.autoSync&&token&&!validToken()){promptReconnect();return;}if(!config.autoSync||!validToken())return;debounceTimer=setTimeout(function(){syncNow(true);},1400);}
   function noteLocalDelete(item){var state=activeState(),link=state&&state.links&&state.links[item.id];if(!state||!link)return;state.pendingDeletes=state.pendingDeletes.filter(function(x){return x.localId!==item.id;});state.pendingDeletes.push({localId:item.id,googleId:link.googleId,deletedAt:Date.now()});saveStates();}
-  function disconnect(){var old=token;token='';expiresAt=0;stopTimer();if(old&&window.google&&google.accounts&&google.accounts.oauth2&&google.accounts.oauth2.revoke)google.accounts.oauth2.revoke(old,function(){});render();showToast('Google 계정 연결을 해제했습니다');}
+  function disconnect(){var old=token;token='';expiresAt=0;stopTimer();chooseAccount=true;if(old&&window.google&&google.accounts&&google.accounts.oauth2&&google.accounts.oauth2.revoke)google.accounts.oauth2.revoke(old,function(){});render();showToast('Google 계정 연결을 해제했습니다');}
   function saveClientId(){var input=el('googleClientIdInput'),value=String(input&&input.value||'').trim();if(value&&!/^[0-9A-Za-z._-]+\.apps\.googleusercontent\.com$/.test(value)){showToast('OAuth 클라이언트 ID 형식을 확인해 주세요','error');return;}config.clientId=value;tokenClient=null;saveConfig();render();showToast(value?'Google OAuth 클라이언트 ID를 저장했습니다':'클라이언트 ID를 비웠습니다');}
   function optionChanged(){config.autoSync=!!el('googleCalAutoInput').checked;config.includeConsult=!!el('googleCalConsultInput').checked;config.includeMemo=!!el('googleCalMemoInput').checked;saveConfig();startTimer();if(validToken())onLocalChanged();}
   function openPanel(){var panel=el('calGooglePanel');if(!panel)return;panel.open=!panel.open;render();if(panel.open)setTimeout(function(){panel.scrollIntoView({behavior:'smooth',block:'start'});},20);}
   function init(){load();render();var connectButton=el('googleCalConnectBtn'),syncButton=el('googleCalSyncBtn'),fullSyncButton=el('googleCalFullSyncBtn'),disconnectButton=el('googleCalDisconnectBtn'),saveButton=el('googleClientIdSaveBtn');if(connectButton)connectButton.addEventListener('click',connect);if(syncButton)syncButton.addEventListener('click',function(){syncNow(false);});if(fullSyncButton)fullSyncButton.addEventListener('click',fullSync);if(disconnectButton)disconnectButton.addEventListener('click',disconnect);if(saveButton)saveButton.addEventListener('click',saveClientId);var helpButton=el('googleOAuthHelpBtn');if(helpButton)helpButton.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openModal('googleOAuthHelpModal');});['googleCalAutoInput','googleCalConsultInput','googleCalMemoInput'].forEach(function(id){var node=el(id);if(node)node.addEventListener('change',optionChanged);});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&validToken()&&config.autoSync)syncNow(true);});}
   return{init:init,openPanel:openPanel,onLocalChanged:onLocalChanged,noteLocalDelete:noteLocalDelete,syncNow:syncNow};
+})();
+// ===================================================================
+// AI 도우미 — 선생님 본인의 구독 계정(Claude·ChatGPT·Gemini)으로 요청을 넘깁니다.
+// API 키를 쓰지 않으며, 요청문·답변은 T-ong 서버로 보내지 않습니다.
+// ===================================================================
+var AiAssistant = (function () {
+  var PREF_KEY = 'tongAiAssistant_v1';
+  var MAX_URL_PROMPT = 1800;
+  var PROVIDERS = {
+    claude: { name: 'Claude', url: function (q) { return 'https://claude.ai/new' + (q ? '?q=' + encodeURIComponent(q) : ''); } },
+    chatgpt: { name: 'ChatGPT', url: function (q) { return 'https://chatgpt.com/' + (q ? '?q=' + encodeURIComponent(q) : ''); } },
+    gemini: { name: 'Gemini', url: function () { return 'https://gemini.google.com/app'; } }
+  };
+  var TASKS = {
+    notice: { placeholder: '예) 내일 현장체험학습 알림장. 준비물은 도시락, 물, 편한 운동화', prefix: '초등·중등 담임교사가 학생과 학부모에게 보내는 짧은 알림장을 써 주세요. 번호 목록으로 3~6줄, 다정하고 간결한 말투로, 설명 없이 알림장 본문만 출력하세요.\n\n요청: ' },
+    morning: { placeholder: '예) 시험 앞두고 긴장한 아이들에게 힘이 되는 이야기', prefix: '담임교사가 아침 조회 시간에 학생들에게 1~2분 동안 들려줄 멘트를 써 주세요. 따뜻하고 구체적인 예시 하나를 넣어 주세요.\n\n주제: ' },
+    letter: { placeholder: '예) 다음 주 학부모 상담주간 안내 (기간, 신청 방법)', prefix: '학교에서 학부모에게 보내는 가정통신문을 써 주세요. 제목, 인사, 본문, 맺음말 순서로 공손한 공문 말투를 사용하세요.\n\n내용: ' },
+    consult: { placeholder: '상담 메모를 붙여넣으세요 (학생 이름은 자동으로 가려집니다)', prefix: '아래 학생 상담 메모를 교사용 상담 기록 양식으로 정리해 주세요. 항목: 상담 일시·방법 / 주요 내용 / 학생 상황 판단 / 후속 조치. 사실만 간결하게 쓰고 추측은 표시해 주세요.\n\n메모:\n' },
+    free: { placeholder: '무엇이든 물어보세요', prefix: '' }
+  };
+  var pref = { provider: 'claude', task: 'notice', mask: true };
+  var nameMap = {};   // '[학생A]' → 실제 이름
+
+  function el(id) { return document.getElementById(id); }
+  function loadPref() { try { var v = JSON.parse(localStorage.getItem(PREF_KEY) || '{}'); if (PROVIDERS[v.provider]) pref.provider = v.provider; if (TASKS[v.task]) pref.task = v.task; if (v.mask === false) pref.mask = false; } catch (e) {} }
+  function savePref() { try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) {} }
+
+  function render() {
+    Array.prototype.forEach.call(document.querySelectorAll('#aiProviderSeg [data-provider]'), function (b) { b.classList.toggle('active', b.dataset.provider === pref.provider); });
+    Array.prototype.forEach.call(document.querySelectorAll('#aiTaskChips [data-task]'), function (b) { b.classList.toggle('active', b.dataset.task === pref.task); });
+    var input = el('aiRequestInput'); if (input) input.placeholder = TASKS[pref.task].placeholder;
+    var mask = el('aiMaskInput'); if (mask) mask.checked = pref.mask;
+    var send = el('aiSendBtn'); if (send) send.textContent = PROVIDERS[pref.provider].name + ' 구독 계정으로 열기 ↗';
+  }
+
+  function open() { render(); el('aiDrawer').classList.add('show'); el('aiDrawer').setAttribute('aria-hidden', 'false'); el('aiDrawerBackdrop').classList.add('show'); setTimeout(function () { var i = el('aiRequestInput'); if (i) i.focus(); }, 60); }
+  function close() { el('aiDrawer').classList.remove('show'); el('aiDrawer').setAttribute('aria-hidden', 'true'); el('aiDrawerBackdrop').classList.remove('show'); }
+
+  // 명렬표 이름을 [학생A], [학생B] … 로 바꿉니다. 긴 이름부터 바꿔 '김민'이 '김민준'을 먼저 먹지 않게 합니다.
+  function maskNames(text) {
+    nameMap = {};
+    var names = (typeof students !== 'undefined' && Array.isArray(students) ? students : [])
+      .map(function (s) { return String(s && s.name || '').trim(); })
+      .filter(function (n, i, arr) { return n.length >= 2 && !/^학생\d+$/.test(n) && arr.indexOf(n) === i; })
+      .sort(function (a, b) { return b.length - a.length; });
+    var count = 0;
+    names.forEach(function (name) {
+      if (text.indexOf(name) === -1) return;
+      var label = '[학생' + (count < 26 ? String.fromCharCode(65 + count) : (count + 1)) + ']';
+      count++; nameMap[label] = name; text = text.split(name).join(label);
+    });
+    return text;
+  }
+  function unmaskNames(text) { Object.keys(nameMap).forEach(function (label) { text = text.split(label).join(nameMap[label]); }); return text; }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; });
+    return Promise.resolve(false);
+  }
+
+  function send() {
+    var request = String(el('aiRequestInput').value || '').trim();
+    if (!request) { showToast('요청 내용을 적어 주세요', 'error'); el('aiRequestInput').focus(); return; }
+    var prompt = TASKS[pref.task].prefix + request;
+    if (pref.mask) prompt = maskNames(prompt); else nameMap = {};
+    var provider = PROVIDERS[pref.provider];
+    var inUrl = pref.provider !== 'gemini' && prompt.length <= MAX_URL_PROMPT;
+    // 팝업 차단을 피하려고 클릭 직후 바로 창을 엽니다. 클립보드 복사는 그다음에 진행합니다.
+    var win = window.open(provider.url(inUrl ? prompt : ''), '_blank');
+    if (win) { try { win.opener = null; } catch (e) {} }
+    copyText(prompt).then(function (copied) {
+      var masked = Object.keys(nameMap).length;
+      var msg = provider.name + '을(를) 열었습니다' + (inUrl ? '' : copied ? ' · 입력칸에 붙여넣기 하세요' : '') + (masked ? ' · 이름 ' + masked + '개 가림' : '');
+      showToast(msg);
+      if (!inUrl && !copied) showToast('클립보드 복사에 실패했습니다. 요청 내용을 직접 복사해 주세요', 'error');
+    });
+    if (!win) showToast('새 창이 차단되었습니다. 팝업 허용 후 다시 눌러 주세요', 'error');
+  }
+
+  function paste() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) { showToast('입력칸을 길게 눌러 붙여넣기 해 주세요'); el('aiAnswerInput').focus(); return; }
+    navigator.clipboard.readText().then(function (text) { el('aiAnswerInput').value = text || ''; if (!text) showToast('클립보드가 비어 있습니다', 'error'); },
+      function () { showToast('입력칸을 길게 눌러 붙여넣기 해 주세요'); el('aiAnswerInput').focus(); });
+  }
+
+  function toNotice() {
+    var text = unmaskNames(String(el('aiAnswerInput').value || '').trim());
+    if (!text) { showToast('먼저 AI 답변을 붙여넣어 주세요', 'error'); return; }
+    var cls = allClassData[currentClassIndex]; if (!cls) return;
+    if ((cls.notice || '').trim() && !confirm('이미 작성한 알림장이 있습니다. AI 답변으로 바꿀까요?')) return;
+    cls.notice = text; cls.noticeAt = formatDateTime(new Date());
+    saveToLocalStorage(); Notice.renderPreview(); close();
+    showToast('알림장에 넣었습니다', '', '열기', function () { var b = el('noticeBtn'); if (b) b.click(); });
+  }
+
+  function init() {
+    if (!el('aiDrawer')) return;
+    loadPref(); render();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ai-open]'), function (b) { b.addEventListener('click', open); });
+    el('aiDrawerClose').addEventListener('click', close);
+    el('aiDrawerBackdrop').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && el('aiDrawer').classList.contains('show')) close(); });
+    el('aiProviderSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-provider]'); if (!b) return; pref.provider = b.dataset.provider; savePref(); render(); });
+    el('aiTaskChips').addEventListener('click', function (e) { var b = e.target.closest('[data-task]'); if (!b) return; pref.task = b.dataset.task; savePref(); render(); });
+    el('aiMaskInput').addEventListener('change', function () { pref.mask = this.checked; savePref(); });
+    el('aiSendBtn').addEventListener('click', send);
+    el('aiPasteBtn').addEventListener('click', paste);
+    el('aiToNoticeBtn').addEventListener('click', toNotice);
+  }
+
+  return { init: init, open: open };
 })();
 // ===================================================================
 // 조회·종례 타이머 — 시작하면 전체화면 모래시계로

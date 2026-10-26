@@ -375,6 +375,9 @@
           <button type="button" data-proxy="confirmResetBtn" class="danger-text">🗑️ 전체 초기화</button>
         </div>
       </div>
+      <button type="button" class="rail-item" data-ai-open>
+        <span class="rail-ic">🤖</span><span class="rail-tx">AI 도우미</span>
+      </button>
     </aside>
 
     <main id="mainArea">
@@ -412,6 +415,9 @@
 
       <!-- 담임 도구 -->
       <section class="dock-card tools-card">
+        <button type="button" class="tool-tile ai-tile" data-ai-open>
+          <span class="tt-icon">🤖</span><span class="tt-label">AI 도우미</span>
+        </button>
         <button type="button" class="tool-tile" id="pickStudentBtn">
           <span class="tt-icon">🎯</span><span class="tt-label">룰렛 뽑기</span>
         </button>
@@ -1543,6 +1549,45 @@
     <p class="footer-copy">copyright ⓒ <a href="https://blog.naver.com/math-tong/224377907745" target="_blank" rel="noopener noreferrer">math-tong</a>&nbsp;&nbsp;All right reserved</p>
     <p class="footer-note">🔒 <strong>익명 방문 횟수 통계만 집계</strong>하며, 교무 자료는 T-ong 서버에 저장하지 않습니다. Google 동기화를 직접 켠 일정만 본인 Google 계정에도 저장됩니다. 정기적으로 <em>설정 → 데이터 백업</em>을 이용해 주세요.</p>
   </footer>
+
+  <!-- AI 도우미 — 선생님 본인의 Claude·ChatGPT·Gemini 구독 계정으로 이어 줍니다 (API 키·서버 저장 없음) -->
+  <div id="aiDrawerBackdrop" class="ai-backdrop"></div>
+  <aside id="aiDrawer" class="ai-drawer" aria-hidden="true" aria-labelledby="aiDrawerTitle">
+    <div class="ai-head">
+      <strong id="aiDrawerTitle">🤖 AI 도우미</strong>
+      <button type="button" id="aiDrawerClose" class="ai-close" aria-label="닫기">✕</button>
+    </div>
+    <div class="ai-body">
+      <p class="ai-intro">내 구독 계정(Claude·ChatGPT·Gemini)으로 요청을 보냅니다. 처음 한 번만 해당 서비스에 로그인하면 됩니다.</p>
+      <div class="ai-label">사용할 AI</div>
+      <div class="ai-seg" id="aiProviderSeg">
+        <button type="button" data-provider="claude">Claude</button>
+        <button type="button" data-provider="chatgpt">ChatGPT</button>
+        <button type="button" data-provider="gemini">Gemini</button>
+      </div>
+      <div class="ai-label">무엇을 도와드릴까요?</div>
+      <div class="ai-tasks" id="aiTaskChips">
+        <button type="button" data-task="notice">📢 알림장 초안</button>
+        <button type="button" data-task="morning">💬 조회 멘트</button>
+        <button type="button" data-task="letter">✉️ 가정통신문</button>
+        <button type="button" data-task="consult">📝 상담 기록 정리</button>
+        <button type="button" data-task="free">💡 자유 질문</button>
+      </div>
+      <textarea id="aiRequestInput" rows="5" placeholder="예) 내일 현장체험학습 알림장. 준비물은 도시락, 물, 편한 운동화"></textarea>
+      <label class="ai-check"><input type="checkbox" id="aiMaskInput" checked> 학생 이름 가리기 <small>보내기 전 이름을 [학생A]처럼 바꿉니다</small></label>
+      <button type="button" id="aiSendBtn" class="btn primary full-width">구독 계정으로 열기 ↗</button>
+      <p class="ai-hint" id="aiSendHint">요청문은 클립보드에도 복사됩니다. 입력칸이 비어 있으면 붙여넣기 하세요.</p>
+
+      <div class="ai-divider"></div>
+      <div class="ai-label">AI 답변 가져오기</div>
+      <textarea id="aiAnswerInput" rows="6" placeholder="AI 답변을 복사한 뒤 여기에 붙여넣으세요"></textarea>
+      <div class="ai-row">
+        <button type="button" id="aiPasteBtn" class="btn">📋 붙여넣기</button>
+        <button type="button" id="aiToNoticeBtn" class="btn primary">📢 알림장에 넣기</button>
+      </div>
+      <p class="ai-hint">가린 이름([학생A] 등)은 이 화면에서 원래 이름으로 되돌려 넣습니다. 학생 정보는 T-ong 서버로 전송되지 않습니다.</p>
+    </div>
+  </aside>
 
   <div id="printArea" class="print-only"></div>
   <div id="toast" class="toast"></div>
