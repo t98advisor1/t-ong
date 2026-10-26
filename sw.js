@@ -8,8 +8,8 @@ var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 var PRECACHE = [
   '/',
   '/index.html',
-  '/style.css?v=5.17.0-preview.70',
-  '/app.js?v=5.17.0-preview.70',
+  '/style.css?v=5.17.0-preview.71',
+  '/app.js?v=5.17.0-preview.71',
   '/icon.svg',
   '/manifest.webmanifest'
 ];
