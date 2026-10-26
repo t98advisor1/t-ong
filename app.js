@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.70';
+var APP_VERSION = '5.17.0-preview.71';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -4488,6 +4488,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\uce90\ub7ec\uc140 4\u00b75\u00b76\ub2e8\uacc4 \uc0ac\uc9c4\uc744 \uc6b0\uce21 \uc88c\uc11d \uc124\uc815 \ud328\ub110\u00b7\ubaa8\ub460 \uc88c\uc11d\ud45c\u00b7\uc77c\ubc18 \uc88c\uc11d\ud45c\ub85c \uad50\uccb4 \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\ud558\ub2e8 \uc800\uc791\uad8c math-tong \ub9c1\ud06c\ub97c \uc0c8 T-ong \uc0ac\uc6a9\ubc95 \ube14\ub85c\uadf8 \uae00\ub85c \ubcc0\uacbd \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\uc990\uaca8\ucc3e\uae30\uc5d0 \uc218\ud559\uad00\ub828 \uc0ac\uc774\ud2b8\uc640 \uc0ac\uc6a9\uc790 \ucd94\uac00 \uae30\ub2a5\uc744 \ub123\uace0 \ud558\uc774\ub7ec\ub2dd\uc744 AI \uad50\uc218\ud559\uc2b5 \ud50c\ub7ab\ud3fc\uc73c\ub85c \ubcc0\uacbd \u00b7 \ubaa8\ubc14\uc77c \uad50\uc2e4\uc6b4\uc601 \uba54\ub274\ub97c \uc804\uba74 \uace0\uc815\ud574 \ubaa8\ub4e0 \ubc84\ud2bc \ud074\ub9ad \uac00\ub2a5 \u00b7 ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.71: 🤖 AI 도우미 추가(내 Claude·ChatGPT·Gemini 구독 계정으로 알림장·조회 멘트·가정통신문·상담 기록 요청, 학생 이름 자동 가림, 답변을 알림장에 바로 넣기) · Google 캘린더 연결 간소화(클라이언트 ID 입력 없이 버튼으로 연결, 이전 계정 한 번에 다시 연결, 만료 시 다시 연결 안내) · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +
