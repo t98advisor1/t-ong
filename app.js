@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.72';
+var APP_VERSION = '5.17.0-preview.73';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -4490,6 +4490,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', '\uc990\uaca8\ucc3e\uae30\uc5d0 \uc218\ud559\uad00\ub828 \uc0ac\uc774\ud2b8\uc640 \uc0ac\uc6a9\uc790 \ucd94\uac00 \uae30\ub2a5\uc744 \ub123\uace0 \ud558\uc774\ub7ec\ub2dd\uc744 AI \uad50\uc218\ud559\uc2b5 \ud50c\ub7ab\ud3fc\uc73c\ub85c \ubcc0\uacbd \u00b7 \ubaa8\ubc14\uc77c \uad50\uc2e4\uc6b4\uc601 \uba54\ub274\ub97c \uc804\uba74 \uace0\uc815\ud574 \ubaa8\ub4e0 \ubc84\ud2bc \ud074\ub9ad \uac00\ub2a5 \u00b7 ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.71: 🤖 AI 도우미 추가(내 Claude·ChatGPT·Gemini 구독 계정으로 알림장·조회 멘트·가정통신문·상담 기록 요청, 학생 이름 자동 가림, 답변을 알림장에 바로 넣기) · Google 캘린더 연결 간소화(클라이언트 ID 입력 없이 버튼으로 연결, 이전 계정 한 번에 다시 연결, 만료 시 다시 연결 안내) · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.72: 상단에 🤖 AI 메뉴 추가(AI 도우미 열기·AI 활용 안내·담임 5분 멘트) · AI 활용 안내 창(시작하기·활용 예시·개인정보 주의·AI 도구 모음) · 자리배치 우측 메뉴를 좌측처럼 접어 좌석 화면 넓히기 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.73: 🤖 AI 비서 채팅 추가(내 Claude API 키로 사이드바에서 대화 · 알림장 저장과 일정 조회·추가를 확인 후 실행 · 학생 이름 자동 가림) · AI 활용 안내에 API 키 발급 방법 탭 추가 · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +
@@ -5302,112 +5303,354 @@ var GoogleCalendarSync = (function () {
   return{init:init,openPanel:openPanel,onLocalChanged:onLocalChanged,noteLocalDelete:noteLocalDelete,syncNow:syncNow};
 })();
 // ===================================================================
-// AI 도우미 — 선생님 본인의 구독 계정(Claude·ChatGPT·Gemini)으로 요청을 넘깁니다.
-// API 키를 쓰지 않으며, 요청문·답변은 T-ong 서버로 보내지 않습니다.
+// AI 비서 — 선생님 본인의 Claude API 키로 사이드바에서 대화하고 T-ong 기능을 실행합니다.
+// 키와 대화는 이 브라우저에서 Anthropic으로 바로 가며, T-ong 서버로는 보내지 않습니다.
 // ===================================================================
 var AiAssistant = (function () {
-  var PREF_KEY = 'tongAiAssistant_v1';
-  var MAX_URL_PROMPT = 1800;
-  var PROVIDERS = {
-    claude: { name: 'Claude', url: function (q) { return 'https://claude.ai/new' + (q ? '?q=' + encodeURIComponent(q) : ''); } },
-    chatgpt: { name: 'ChatGPT', url: function (q) { return 'https://chatgpt.com/' + (q ? '?q=' + encodeURIComponent(q) : ''); } },
-    gemini: { name: 'Gemini', url: function () { return 'https://gemini.google.com/app'; } }
-  };
-  var TASKS = {
-    notice: { placeholder: '예) 내일 현장체험학습 알림장. 준비물은 도시락, 물, 편한 운동화', prefix: '초등·중등 담임교사가 학생과 학부모에게 보내는 짧은 알림장을 써 주세요. 번호 목록으로 3~6줄, 다정하고 간결한 말투로, 설명 없이 알림장 본문만 출력하세요.\n\n요청: ' },
-    morning: { placeholder: '예) 시험 앞두고 긴장한 아이들에게 힘이 되는 이야기', prefix: '담임교사가 아침 조회 시간에 학생들에게 1~2분 동안 들려줄 멘트를 써 주세요. 따뜻하고 구체적인 예시 하나를 넣어 주세요.\n\n주제: ' },
-    letter: { placeholder: '예) 다음 주 학부모 상담주간 안내 (기간, 신청 방법)', prefix: '학교에서 학부모에게 보내는 가정통신문을 써 주세요. 제목, 인사, 본문, 맺음말 순서로 공손한 공문 말투를 사용하세요.\n\n내용: ' },
-    consult: { placeholder: '상담 메모를 붙여넣으세요 (학생 이름은 자동으로 가려집니다)', prefix: '아래 학생 상담 메모를 교사용 상담 기록 양식으로 정리해 주세요. 항목: 상담 일시·방법 / 주요 내용 / 학생 상황 판단 / 후속 조치. 사실만 간결하게 쓰고 추측은 표시해 주세요.\n\n메모:\n' },
-    free: { placeholder: '무엇이든 물어보세요', prefix: '' }
-  };
-  var pref = { provider: 'claude', task: 'notice', mask: true };
-  var nameMap = {};   // '[학생A]' → 실제 이름
+  var PREF_KEY = 'tongAiAssistant_v2', KEY_KEY = 'tongAiApiKey_v1';
+  var SDK_SRC = '/vendor/anthropic-sdk-0.132.1.js';
+  var MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
+  var FALLBACK_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'];   // 서버 측 대체 모델(fallbacks: "default")을 쓰는 모델
+  var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+  var pref = { model: 'claude-opus-5-5', mask: true, remember: true };
+  var apiKey = '', client = null, clientKey = '', sdkPromise = null;
+  var history = [];            // API에 보내는 대화 — 응답 content를 그대로 덧붙이는 방식(append-only)
+  var nameMap = {}, maskCount = 0;   // '[학생A]' → 실제 이름, 대화 하나 안에서는 같은 가명 유지
+  var busy = false, currentStream = null;
+
+  var TOOLS = [
+    { name: 'get_class_info', description: '현재 학급 이름, 학생 수, 오늘 날짜, 지금 저장된 알림장 내용을 확인합니다.',
+      input_schema: { type: 'object', properties: {} } },
+    { name: 'list_events', description: 'T-ong 일정관리에서 기간 안의 일정을 조회합니다. 날짜는 YYYY-MM-DD.',
+      input_schema: { type: 'object', properties: { from: { type: 'string', description: '시작일 YYYY-MM-DD' }, to: { type: 'string', description: '종료일 YYYY-MM-DD' } }, required: ['from', 'to'] } },
+    { name: 'add_event', description: 'T-ong 일정관리에 일정을 추가합니다. 실행 전에 교사가 화면에서 확인 버튼을 누릅니다. 상담 일정은 추가할 수 없습니다.',
+      input_schema: { type: 'object', properties: {
+        title: { type: 'string', description: '일정명 (80자 이내)' },
+        start: { type: 'string', description: '시작일 YYYY-MM-DD' },
+        end: { type: 'string', description: '종료일 YYYY-MM-DD, 하루 일정이면 생략' },
+        property: { type: 'string', description: '일정 속성. get_class_info의 eventProperties 중 하나, 모르면 생략' },
+        memo: { type: 'string', description: '짧은 메모 (선택)' } }, required: ['title', 'start'] } },
+    { name: 'set_notice', description: '오늘의 알림장 내용을 저장합니다. 실행 전에 교사가 화면에서 확인 버튼을 누릅니다.',
+      input_schema: { type: 'object', properties: {
+        text: { type: 'string', description: '알림장 본문. 줄마다 한 항목' },
+        mode: { type: 'string', enum: ['replace', 'append'], description: 'replace는 기존 내용을 바꾸고 append는 뒤에 덧붙입니다' } }, required: ['text', 'mode'] } }
+  ].map(function (tool) { tool.eager_input_streaming = true; return tool; });
 
   function el(id) { return document.getElementById(id); }
-  function loadPref() { try { var v = JSON.parse(localStorage.getItem(PREF_KEY) || '{}'); if (PROVIDERS[v.provider]) pref.provider = v.provider; if (TASKS[v.task]) pref.task = v.task; if (v.mask === false) pref.mask = false; } catch (e) {} }
-  function savePref() { try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) {} }
+  function todayKey() { return formatDate(new Date()); }
 
-  function render() {
-    Array.prototype.forEach.call(document.querySelectorAll('#aiProviderSeg [data-provider]'), function (b) { b.classList.toggle('active', b.dataset.provider === pref.provider); });
-    Array.prototype.forEach.call(document.querySelectorAll('#aiTaskChips [data-task]'), function (b) { b.classList.toggle('active', b.dataset.task === pref.task); });
-    var input = el('aiRequestInput'); if (input) input.placeholder = TASKS[pref.task].placeholder;
-    var mask = el('aiMaskInput'); if (mask) mask.checked = pref.mask;
-    var send = el('aiSendBtn'); if (send) send.textContent = PROVIDERS[pref.provider].name + ' 구독 계정으로 열기 ↗';
+  // ---- 설정·키 저장 -------------------------------------------------
+  function loadPref() {
+    try {
+      var v = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+      if (MODELS.indexOf(v.model) >= 0) pref.model = v.model;
+      if (v.mask === false) pref.mask = false;
+      if (v.remember === false) pref.remember = false;
+    } catch (e) {}
+    try { apiKey = localStorage.getItem(KEY_KEY) || sessionStorage.getItem(KEY_KEY) || ''; } catch (e) { apiKey = ''; }
+  }
+  function savePref() { try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) {} }
+  function storeKey(value) {
+    apiKey = value;
+    try {
+      localStorage.removeItem(KEY_KEY); sessionStorage.removeItem(KEY_KEY);
+      if (value) (pref.remember ? localStorage : sessionStorage).setItem(KEY_KEY, value);
+    } catch (e) {}
+  }
+  function maskedKey(value) { return value ? value.slice(0, 7) + '…' + value.slice(-4) : ''; }
+
+  function renderSettings() {
+    el('aiModelInput').value = pref.model;
+    el('aiMaskInput').checked = pref.mask;
+    el('aiRememberInput').checked = pref.remember;
+    el('aiKeyInput').value = '';
+    el('aiKeyStatus').textContent = apiKey ? '저장된 키: ' + maskedKey(apiKey) + (pref.remember ? ' · 이 기기에 저장됨' : ' · 이 창을 닫으면 지워짐') : '아직 키가 없습니다.';
+    el('aiSetupCard').hidden = !!apiKey || !el('aiSettings').hidden;
+  }
+  function toggleSettings(show) {
+    var box = el('aiSettings');
+    box.hidden = typeof show === 'boolean' ? !show : !box.hidden;
+    el('aiSettingsBtn').setAttribute('aria-expanded', box.hidden ? 'false' : 'true');
+    renderSettings();
+    if (!box.hidden) el('aiKeyInput').focus();
+  }
+  function saveKey() {
+    var value = String(el('aiKeyInput').value || '').trim();
+    if (!value) { showToast('API 키를 붙여넣어 주세요', 'error'); return; }
+    if (!/^sk-ant-[A-Za-z0-9_\-]{20,}$/.test(value)) { showToast('sk-ant-로 시작하는 Claude API 키인지 확인해 주세요', 'error'); return; }
+    storeKey(value); client = null; toggleSettings(false);
+    showToast('API 키를 저장했습니다. 이제 질문해 보세요');
+    el('aiPromptInput').focus();
+  }
+  function deleteKey() {
+    if (!apiKey) { showToast('저장된 키가 없습니다'); return; }
+    if (!confirm('이 기기에 저장된 API 키를 지울까요?')) return;
+    storeKey(''); client = null; renderSettings(); showToast('API 키를 지웠습니다');
+  }
+  function openKeyGuide() {
+    openModal('aiGuideModal');
+    var tab = document.querySelector('[data-ai-guide="apikey"]'); if (tab) tab.click();
   }
 
-  function open() { render(); el('aiDrawer').classList.add('show'); el('aiDrawer').setAttribute('aria-hidden', 'false'); el('aiDrawerBackdrop').classList.add('show'); setTimeout(function () { var i = el('aiRequestInput'); if (i) i.focus(); }, 60); }
-  function close() { el('aiDrawer').classList.remove('show'); el('aiDrawer').setAttribute('aria-hidden', 'true'); el('aiDrawerBackdrop').classList.remove('show'); }
-
-  // 명렬표 이름을 [학생A], [학생B] … 로 바꿉니다. 긴 이름부터 바꿔 '김민'이 '김민준'을 먼저 먹지 않게 합니다.
-  function maskNames(text) {
-    nameMap = {};
-    var names = (typeof students !== 'undefined' && Array.isArray(students) ? students : [])
+  // ---- 학생 이름 가리기 ----------------------------------------------
+  function rosterNames() {
+    return (Array.isArray(students) ? students : [])
       .map(function (s) { return String(s && s.name || '').trim(); })
       .filter(function (n, i, arr) { return n.length >= 2 && !/^학생\d+$/.test(n) && arr.indexOf(n) === i; })
-      .sort(function (a, b) { return b.length - a.length; });
-    var count = 0;
-    names.forEach(function (name) {
+      .sort(function (a, b) { return b.length - a.length; });   // 긴 이름부터 — '김민'이 '김민준'을 먼저 먹지 않게
+  }
+  function mask(text) {
+    text = String(text == null ? '' : text);
+    if (!pref.mask) return text;
+    rosterNames().forEach(function (name) {
       if (text.indexOf(name) === -1) return;
-      var label = '[학생' + (count < 26 ? String.fromCharCode(65 + count) : (count + 1)) + ']';
-      count++; nameMap[label] = name; text = text.split(name).join(label);
+      var label = Object.keys(nameMap).find(function (k) { return nameMap[k] === name; });
+      if (!label) { label = '[학생' + (maskCount < 26 ? String.fromCharCode(65 + maskCount) : (maskCount + 1)) + ']'; maskCount++; nameMap[label] = name; }
+      text = text.split(name).join(label);
     });
     return text;
   }
-  function unmaskNames(text) { Object.keys(nameMap).forEach(function (label) { text = text.split(label).join(nameMap[label]); }); return text; }
-
-  function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; });
-    return Promise.resolve(false);
+  function unmask(text) {
+    text = String(text == null ? '' : text);
+    Object.keys(nameMap).forEach(function (label) { text = text.split(label).join(nameMap[label]); });
+    return text;
   }
 
-  function send() {
-    var request = String(el('aiRequestInput').value || '').trim();
-    if (!request) { showToast('요청 내용을 적어 주세요', 'error'); el('aiRequestInput').focus(); return; }
-    var prompt = TASKS[pref.task].prefix + request;
-    if (pref.mask) prompt = maskNames(prompt); else nameMap = {};
-    var provider = PROVIDERS[pref.provider];
-    var inUrl = pref.provider !== 'gemini' && prompt.length <= MAX_URL_PROMPT;
-    // 팝업 차단을 피하려고 클릭 직후 바로 창을 엽니다. 클립보드 복사는 그다음에 진행합니다.
-    var win = window.open(provider.url(inUrl ? prompt : ''), '_blank');
-    if (win) { try { win.opener = null; } catch (e) {} }
-    copyText(prompt).then(function (copied) {
-      var masked = Object.keys(nameMap).length;
-      var msg = provider.name + '을(를) 열었습니다' + (inUrl ? '' : copied ? ' · 입력칸에 붙여넣기 하세요' : '') + (masked ? ' · 이름 ' + masked + '개 가림' : '');
-      showToast(msg);
-      if (!inUrl && !copied) showToast('클립보드 복사에 실패했습니다. 요청 내용을 직접 복사해 주세요', 'error');
+  // ---- 화면 ------------------------------------------------------------
+  function open() {
+    loadPref(); renderSettings();
+    el('aiDrawer').classList.add('show'); el('aiDrawer').setAttribute('aria-hidden', 'false'); el('aiDrawerBackdrop').classList.add('show');
+    if (!history.length && !el('aiChat').children.length) addBubble('ai', '안녕하세요! 알림장 작성, 일정 조회·추가, 조회 멘트나 가정통신문 쓰기를 도와드릴게요. 무엇을 할까요?');
+    setTimeout(function () { (apiKey ? el('aiPromptInput') : el('aiSetupOpenBtn')).focus(); }, 60);
+  }
+  function close() { el('aiDrawer').classList.remove('show'); el('aiDrawer').setAttribute('aria-hidden', 'true'); el('aiDrawerBackdrop').classList.remove('show'); }
+  function scrollChat() { var c = el('aiChat'); c.scrollTop = c.scrollHeight; }
+  function addBubble(kind, text) {
+    var div = document.createElement('div');
+    div.className = 'ai-msg ai-msg-' + kind;
+    div.textContent = text || '';
+    el('aiChat').appendChild(div); scrollChat();
+    return div;
+  }
+  function setBusy(value) {
+    busy = value;
+    var send = el('aiSendBtn');
+    send.textContent = value ? '중단' : '보내기';
+    send.classList.toggle('stop', value);
+    el('aiPromptInput').disabled = value;
+  }
+  function newChat() {
+    if (busy) return;
+    history = []; nameMap = {}; maskCount = 0;
+    el('aiChat').innerHTML = '';
+    addBubble('ai', '새 대화를 시작했습니다. 무엇을 도와드릴까요?');
+  }
+
+  // 알림장 저장·일정 추가는 선생님이 확인 버튼을 눌러야 실행됩니다.
+  function confirmAction(title, previewText) {
+    var card = document.createElement('div');
+    card.className = 'ai-confirm';
+    var head = document.createElement('b'); head.textContent = title;
+    var body = document.createElement('pre'); body.textContent = previewText;
+    var row = document.createElement('div'); row.className = 'ai-confirm-row';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'btn primary'; ok.textContent = '실행';
+    var no = document.createElement('button'); no.type = 'button'; no.className = 'btn'; no.textContent = '취소';
+    row.appendChild(no); row.appendChild(ok);
+    card.appendChild(head); card.appendChild(body); card.appendChild(row);
+    el('aiChat').appendChild(card); scrollChat();
+    return new Promise(function (resolve) {
+      function done(answer) { ok.disabled = no.disabled = true; card.classList.add(answer ? 'done' : 'cancelled'); row.textContent = answer ? '✅ 실행했습니다' : '취소했습니다'; resolve(answer); }
+      ok.addEventListener('click', function () { done(true); });
+      no.addEventListener('click', function () { done(false); });
     });
-    if (!win) showToast('새 창이 차단되었습니다. 팝업 허용 후 다시 눌러 주세요', 'error');
   }
 
-  function paste() {
-    if (!navigator.clipboard || !navigator.clipboard.readText) { showToast('입력칸을 길게 눌러 붙여넣기 해 주세요'); el('aiAnswerInput').focus(); return; }
-    navigator.clipboard.readText().then(function (text) { el('aiAnswerInput').value = text || ''; if (!text) showToast('클립보드가 비어 있습니다', 'error'); },
-      function () { showToast('입력칸을 길게 눌러 붙여넣기 해 주세요'); el('aiAnswerInput').focus(); });
+  // ---- 도구 ------------------------------------------------------------
+  function isDateKey(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v)); }
+  function eventProperties() { return ScheduleCalendar.getProperties().filter(function (p) { return p !== '상담'; }); }
+  function validate(name, input) {
+    input = input && typeof input === 'object' ? input : null;
+    if (!input) return '입력이 비어 있습니다';
+    if (name === 'list_events') return isDateKey(input.from) && isDateKey(input.to) ? '' : 'from과 to는 YYYY-MM-DD 형식이어야 합니다';
+    if (name === 'add_event') {
+      if (typeof input.title !== 'string' || !input.title.trim()) return 'title이 필요합니다';
+      if (!isDateKey(input.start)) return 'start는 YYYY-MM-DD 형식이어야 합니다';
+      if (input.end != null && !isDateKey(input.end)) return 'end는 YYYY-MM-DD 형식이어야 합니다';
+      if (input.end && input.end < input.start) return 'end가 start보다 빠릅니다';
+      return '';
+    }
+    if (name === 'set_notice') return typeof input.text === 'string' && input.text.trim() && (input.mode === 'replace' || input.mode === 'append') ? '' : 'text와 mode(replace 또는 append)가 필요합니다';
+    return '';
+  }
+  async function runTool(name, input) {
+    var cls = allClassData[currentClassIndex] || {};
+    if (name === 'get_class_info') {
+      return JSON.stringify({ className: cls.className || ((currentClassIndex + 1) + '반'), studentCount: (Array.isArray(students) ? students : []).length,
+        today: todayKey(), weekday: WEEKDAYS[new Date().getDay()], notice: mask(cls.notice || ''), eventProperties: eventProperties() });
+    }
+    if (name === 'list_events') {
+      var list = ScheduleCalendar.getData().filter(function (e) { return (e.end || e.start) >= input.from && e.start <= input.to; })
+        .sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; })
+        .slice(0, 60)
+        .map(function (e) { return { title: mask(e.title), start: e.start, end: e.end || e.start, property: e.property || '없음', memo: mask(e.memo || '') }; });
+      return JSON.stringify({ count: list.length, events: list });
+    }
+    if (name === 'add_event') {
+      var props = eventProperties(), property = props.indexOf(input.property) >= 0 ? input.property : '없음';
+      var item = { id: generateId(), title: unmask(input.title).trim().slice(0, 80), start: input.start, end: input.end || input.start, property: property, target: '전체',
+        memo: unmask(input.memo || '').trim().slice(0, 160), studentId: '', studentName: '', consultMethod: '', status: '', followUp: '', createdAt: Date.now(), updatedAt: Date.now() };
+      var range = item.start + (item.end !== item.start ? ' ~ ' + item.end : '');
+      var ok = await confirmAction('📅 일정을 추가할까요?', item.title + '\n' + range + (property !== '없음' ? '\n속성: ' + property : '') + (item.memo ? '\n메모: ' + item.memo : ''));
+      if (!ok) return '교사가 일정 추가를 취소했습니다.';
+      ScheduleCalendar.setData(ScheduleCalendar.getData().concat([item]));
+      if (typeof GoogleCalendarSync !== 'undefined') GoogleCalendarSync.onLocalChanged();
+      showToast('일정을 추가했습니다');
+      return '일정을 추가했습니다: ' + mask(item.title) + ' (' + range + ')';
+    }
+    if (name === 'set_notice') {
+      var text = unmask(input.text).trim(), before = (cls.notice || '').trim();
+      var next = input.mode === 'append' && before ? before + '\n' + text : text;
+      var ok2 = await confirmAction(input.mode === 'append' && before ? '📢 알림장에 덧붙일까요?' : '📢 알림장을 이렇게 저장할까요?', next);
+      if (!ok2) return '교사가 알림장 저장을 취소했습니다.';
+      if (!allClassData[currentClassIndex]) return '현재 학급 정보를 찾지 못했습니다.';
+      allClassData[currentClassIndex].notice = next;
+      allClassData[currentClassIndex].noticeAt = formatDateTime(new Date());
+      saveToLocalStorage(); Notice.renderPreview();
+      showToast('알림장을 저장했습니다', '', '열기', function () { var b = el('noticeBtn'); if (b) b.click(); });
+      return '알림장을 저장했습니다.';
+    }
+    throw new Error('알 수 없는 도구: ' + name);
+  }
+  var TOOL_LABELS = { get_class_info: '🏫 학급 정보 확인', list_events: '📅 일정 확인', add_event: '📅 일정 추가 준비', set_notice: '📢 알림장 준비' };
+
+  // ---- Claude API -------------------------------------------------------
+  function loadSdk() {
+    if (window.TongAnthropic) return Promise.resolve(window.TongAnthropic);
+    if (sdkPromise) return sdkPromise;
+    sdkPromise = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = SDK_SRC; script.async = true;
+      script.onload = function () { window.TongAnthropic ? resolve(window.TongAnthropic) : reject(new Error('AI 모듈을 불러오지 못했습니다')); };
+      script.onerror = function () { sdkPromise = null; reject(new Error('AI 모듈을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요')); };
+      document.head.appendChild(script);
+    });
+    return sdkPromise;
+  }
+  async function getClient() {
+    var Anthropic = await loadSdk();
+    if (!client || clientKey !== apiKey) {
+      // 각 선생님이 자기 키를 자기 브라우저에서만 쓰는 구조라 브라우저 직접 호출을 허용합니다.
+      client = new Anthropic({ apiKey: apiKey, dangerouslyAllowBrowser: true, maxRetries: 2 });
+      clientKey = apiKey;
+    }
+    return { client: client, Anthropic: Anthropic };
+  }
+  function systemPrompt() {
+    var d = new Date();
+    return '당신은 한국 학교 교사가 쓰는 학급 관리 앱 "T-ong 교무수첩"의 AI 비서입니다. 오늘은 ' + todayKey() + ' (' + WEEKDAYS[d.getDay()] + '요일)입니다.\n' +
+      '- 한국어로, 교사가 바로 쓸 수 있게 간결하고 실용적으로 답합니다.\n' +
+      '- 학생 이름은 개인정보 보호를 위해 [학생A] 같은 가명으로 바뀌어 있을 수 있습니다. 가명은 그대로 쓰고 실제 이름을 추측하지 않습니다.\n' +
+      '- 알림장 저장이나 일정 추가를 부탁받으면 도구를 사용합니다. 도구는 실행 전에 교사의 확인을 받으므로 따로 허락을 구하지 않아도 됩니다. 취소되면 다시 시도하지 말고 어떻게 고칠지 묻습니다.\n' +
+      '- "다음 주 수요일"처럼 상대적인 날짜는 오늘 날짜를 기준으로 YYYY-MM-DD로 계산합니다.\n' +
+      '- 준비물, 시간, 장소처럼 교사가 알려 주지 않은 사실은 지어내지 말고 물어보거나 빈칸으로 남깁니다.\n' +
+      '- 알림장은 번호나 기호를 붙인 짧은 줄 3~6개로, 학생과 학부모가 읽기 쉽게 씁니다.';
+  }
+  function friendlyError(err, Anthropic) {
+    if (Anthropic && err instanceof Anthropic.APIUserAbortError) return '중단했습니다.';
+    if (Anthropic && err instanceof Anthropic.AuthenticationError) return 'API 키가 올바르지 않습니다. ⚙️ 설정에서 키를 다시 확인해 주세요.';
+    if (Anthropic && err instanceof Anthropic.PermissionDeniedError) return '이 키로는 선택한 모델을 쓸 수 없습니다. 다른 모델을 고르거나 Console의 권한을 확인해 주세요.';
+    if (Anthropic && err instanceof Anthropic.RateLimitError) return '요청이 많아 잠시 제한되었습니다. 조금 뒤에 다시 시도해 주세요.';
+    if (Anthropic && err instanceof Anthropic.BadRequestError) return '요청을 처리하지 못했습니다. 크레딧 잔액이 부족한지 Console의 Billing에서 확인해 주세요.\n(' + (err.message || '') + ')';
+    if (Anthropic && err instanceof Anthropic.APIConnectionError) return '인터넷 연결을 확인해 주세요.';
+    if (Anthropic && err instanceof Anthropic.APIError) return 'AI 서버 오류가 발생했습니다 (' + (err.status || '') + '). 잠시 뒤 다시 시도해 주세요.';
+    return (err && err.message) || '알 수 없는 오류가 발생했습니다.';
   }
 
-  function toNotice() {
-    var text = unmaskNames(String(el('aiAnswerInput').value || '').trim());
-    if (!text) { showToast('먼저 AI 답변을 붙여넣어 주세요', 'error'); return; }
-    var cls = allClassData[currentClassIndex]; if (!cls) return;
-    if ((cls.notice || '').trim() && !confirm('이미 작성한 알림장이 있습니다. AI 답변으로 바꿀까요?')) return;
-    cls.notice = text; cls.noticeAt = formatDateTime(new Date());
-    saveToLocalStorage(); Notice.renderPreview(); close();
-    showToast('알림장에 넣었습니다', '', '열기', function () { var b = el('noticeBtn'); if (b) b.click(); });
+  async function send(promptText) {
+    if (busy) { if (currentStream) currentStream.abort(); return; }
+    var text = String(promptText != null ? promptText : el('aiPromptInput').value || '').trim();
+    if (!text) { el('aiPromptInput').focus(); return; }
+    if (!apiKey) { toggleSettings(true); showToast('먼저 Claude API 키를 넣어 주세요', 'error'); return; }
+    el('aiPromptInput').value = '';
+    addBubble('me', text);
+    history.push({ role: 'user', content: mask(text) });
+    setBusy(true);
+    var Anthropic = null, jsonRetries = 0;
+    try {
+      var api = await getClient(); Anthropic = api.Anthropic;
+      for (var turn = 0; turn < 8; turn++) {
+        var bubble = addBubble('ai pending', '생각 중…'), acc = '';
+        var params = { model: pref.model, max_tokens: 64000, system: systemPrompt(), tools: TOOLS, messages: history,
+          output_config: { effort: 'low' }, cache_control: { type: 'ephemeral' } };
+        // 안전 분류기가 요청을 거절하면 서버가 같은 요청을 다른 모델로 이어서 처리합니다.
+        if (FALLBACK_MODELS.indexOf(pref.model) >= 0) { params.betas = ['server-side-fallback-2026-07-01']; params.fallbacks = 'default'; }
+        currentStream = api.client.beta.messages.stream(params);
+        currentStream.on('text', function (delta) {
+          acc += delta;
+          bubble.classList.remove('pending');
+          bubble.textContent = unmask(acc);
+          scrollChat();
+        });
+        var message;
+        try {
+          message = await currentStream.finalMessage();
+          jsonRetries = 0;
+        } catch (err) {
+          bubble.remove();
+          // 도구 입력이 JSON으로 읽히지 않은 경우만 같은 턴을 다시 요청합니다. API 오류는 그대로 처리합니다.
+          if (err instanceof Anthropic.APIError || err instanceof Anthropic.APIUserAbortError || jsonRetries++ >= 2) throw err;
+          turn--; continue;
+        }
+        if (!acc) bubble.remove();
+        if (message.stop_reason === 'refusal') { addBubble('ai error', 'AI가 이 요청에는 답하지 않았습니다. 표현을 바꿔 다시 부탁해 주세요.'); break; }
+        var toolUses = message.content.filter(function (b) { return b.type === 'tool_use'; });
+        if (message.stop_reason === 'max_tokens' && toolUses.length) { addBubble('ai error', '답변이 너무 길어 중간에 끊겼습니다. 요청을 나눠서 다시 부탁해 주세요.'); break; }
+        history.push({ role: 'assistant', content: message.content });
+        if (message.stop_reason === 'pause_turn') continue;
+        if (!toolUses.length) break;
+        var results = [];
+        for (var i = 0; i < toolUses.length; i++) {
+          var use = toolUses[i], problem = validate(use.name, use.input);
+          addBubble('tool', TOOL_LABELS[use.name] || use.name);
+          if (problem) { results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: problem }); continue; }
+          try { results.push({ type: 'tool_result', tool_use_id: use.id, content: await runTool(use.name, use.input) }); }
+          catch (toolErr) { results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: String(toolErr && toolErr.message || toolErr) }); }
+        }
+        history.push({ role: 'user', content: results });   // 도구 결과는 한 메시지에 모아서 보냅니다
+      }
+    } catch (err) {
+      addBubble('ai error', friendlyError(err, Anthropic));
+      if (Anthropic && err instanceof Anthropic.AuthenticationError) toggleSettings(true);
+    } finally {
+      currentStream = null; setBusy(false); el('aiPromptInput').focus();
+    }
   }
 
   function init() {
     if (!el('aiDrawer')) return;
-    loadPref(); render();
+    loadPref(); renderSettings();
     Array.prototype.forEach.call(document.querySelectorAll('[data-ai-open]'), function (b) { b.addEventListener('click', open); });
     el('aiDrawerClose').addEventListener('click', close);
     el('aiDrawerBackdrop').addEventListener('click', close);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && el('aiDrawer').classList.contains('show')) close(); });
-    el('aiProviderSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-provider]'); if (!b) return; pref.provider = b.dataset.provider; savePref(); render(); });
-    el('aiTaskChips').addEventListener('click', function (e) { var b = e.target.closest('[data-task]'); if (!b) return; pref.task = b.dataset.task; savePref(); render(); });
+    el('aiSettingsBtn').addEventListener('click', function () { toggleSettings(); });
+    el('aiNewChatBtn').addEventListener('click', newChat);
+    el('aiKeySaveBtn').addEventListener('click', saveKey);
+    el('aiKeyInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveKey(); });
+    el('aiKeyDeleteBtn').addEventListener('click', deleteKey);
+    el('aiKeyGuideBtn').addEventListener('click', openKeyGuide);
+    el('aiSetupGuideBtn').addEventListener('click', openKeyGuide);
+    el('aiSetupOpenBtn').addEventListener('click', function () { toggleSettings(true); });
+    el('aiModelInput').addEventListener('change', function () { pref.model = this.value; savePref(); });
     el('aiMaskInput').addEventListener('change', function () { pref.mask = this.checked; savePref(); });
-    el('aiSendBtn').addEventListener('click', send);
-    el('aiPasteBtn').addEventListener('click', paste);
-    el('aiToNoticeBtn').addEventListener('click', toNotice);
+    el('aiRememberInput').addEventListener('change', function () { pref.remember = this.checked; savePref(); if (apiKey) storeKey(apiKey); renderSettings(); });
+    el('aiSendBtn').addEventListener('click', function () { send(); });
+    el('aiPromptInput').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+    el('aiQuick').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ai-prompt]'); if (!b || busy) return;
+      var input = el('aiPromptInput'); input.value = b.dataset.aiPrompt; input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
   }
 
   return { init: init, open: open };
