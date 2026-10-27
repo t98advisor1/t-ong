@@ -674,7 +674,7 @@
           <h4>5. T-ong에 붙여넣기</h4>
           <p>🤖 AI 비서 → <b>⚙️ 설정</b> → API 키 칸에 붙여넣고 <b>저장</b>을 누릅니다. 키는 이 기기의 브라우저에만 저장되고 T-ong 서버로는 보내지 않습니다. PC와 태블릿처럼 기기가 다르면 기기마다 한 번씩 넣어 주세요.</p>
           <h4>요금은 얼마나 나오나요?</h4>
-          <p>질문과 답변 길이에 따라 다르지만, 알림장 한 건 기준 대략 <b>Opus 5.5는 수십 원, Sonnet 5.5는 그 절반, Haiku 5.5는 1원 안팎</b>입니다. 실제 사용량과 요금은 Console의 <b>Usage</b>에서 확인할 수 있습니다.</p>
+          <p>AI 비서는 기본으로 가장 저렴한 <b>Haiku 5.5</b>를 씁니다. 질문과 답변 길이에 따라 다르지만, 알림장 한 건 기준 대략 <b>Haiku 5.5는 1원 안팎, Sonnet 5.5는 십여 원, Opus 5.5는 수십 원</b>입니다. ⚙️ 설정에서 모델을 바꿀 수 있습니다. 실제 사용량과 요금은 Console의 <b>Usage</b>에서 확인할 수 있습니다.</p>
           <h4>키 관리 주의</h4>
           <ul>
             <li>키는 비밀번호와 같습니다. 메신저나 문서에 붙여넣어 공유하지 마세요.</li>
@@ -1693,9 +1693,9 @@
       </div>
       <div class="ai-label">모델</div>
       <select id="aiModelInput">
-        <option value="claude-opus-5-5">Claude Opus 5.5 · 가장 똑똑함</option>
-        <option value="claude-sonnet-5-5">Claude Sonnet 5.5 · 빠르고 균형 잡힘</option>
-        <option value="claude-haiku-5-5">Claude Haiku 5.5 · 가장 저렴함</option>
+        <option value="claude-haiku-5-5">Claude Haiku 5.5 · 기본, 빠르고 가장 저렴함</option>
+        <option value="claude-sonnet-5-5">Claude Sonnet 5.5 · 글 품질과 속도의 균형</option>
+        <option value="claude-opus-5-5">Claude Opus 5.5 · 가장 똑똑함, 요금 높음</option>
       </select>
       <label class="ai-check"><input type="checkbox" id="aiMaskInput" checked> 학생 이름 가리기 <small>보내기 전 명렬표 이름을 [학생A]처럼 바꿉니다</small></label>
       <p class="ai-hint">키와 대화 내용은 T-ong 서버로 보내지 않고, 이 브라우저에서 Anthropic으로 바로 전송됩니다. 요금은 키 주인 계정에 사용한 만큼 청구됩니다.</p>

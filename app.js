@@ -5309,10 +5309,10 @@ var GoogleCalendarSync = (function () {
 var AiAssistant = (function () {
   var PREF_KEY = 'tongAiAssistant_v2', KEY_KEY = 'tongAiApiKey_v1';
   var SDK_SRC = '/vendor/anthropic-sdk-0.132.1.js';
-  var MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
+  var MODELS = ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'];
   var FALLBACK_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'];   // 서버 측 대체 모델(fallbacks: "default")을 쓰는 모델
   var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-  var pref = { model: 'claude-opus-5-5', mask: true, remember: true };
+  var pref = { model: 'claude-haiku-5-5', mask: true, remember: true };
   var apiKey = '', client = null, clientKey = '', sdkPromise = null;
   var history = [];            // API에 보내는 대화 — 응답 content를 그대로 덧붙이는 방식(append-only)
   var nameMap = {}, maskCount = 0;   // '[학생A]' → 실제 이름, 대화 하나 안에서는 같은 가명 유지
