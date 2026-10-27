@@ -111,6 +111,7 @@ write('sw.js', sw);
 });
 const nGuide = copyDir('guide');
 const nAssets = copyDir('assets');
+const nVendor = copyDir('vendor');
 // TWA verification is copied only after real signing certificates have been supplied.
 const assetLinksPath = path.join(SRC, '.well-known', 'assetlinks.json');
 if (fs.existsSync(assetLinksPath)) {
