@@ -3148,3 +3148,22 @@ html[data-theme] .sp-order-options > small { color:var(--tong-muted); }
 .ai-input .btn { flex: 0 0 auto; }
 .ai-input .btn.stop { background: #e8590c; }
 .ai-guide-body code { background: var(--tong-soft, #f3f4f8); border-radius: 4px; padding: 1px 5px; font-size: 0.85em; }
+
+/* AI 비서 — Gemini 안내, 키 발급 하위 탭, 프롬프트 상자 */
+.ai-notice { font-size: 0.78rem; line-height: 1.5; background: #fff8e6; color: #7a5300; border-radius: 10px; padding: 8px 10px; }
+.ai-notice[hidden] { display: none; }
+.ai-guide-subtabs { display: flex; gap: 6px; margin: 4px 0 8px; flex-wrap: wrap; }
+.ai-guide-subtabs button { border: 1px solid var(--tong-border, #e0e3ec); background: var(--tong-surface, #fff); color: var(--tong-text, #33384a);
+  border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 0.84rem; font-weight: 700; cursor: pointer; }
+.ai-guide-subtabs button.active { border-color: var(--tong-primary, #667eea); background: var(--tong-primary-soft, #eef0ff); color: var(--tong-primary, #667eea); }
+.prompt-box { border: 1px solid var(--tong-border, #e0e3ec); border-radius: 12px; margin: 8px 0 14px; overflow: hidden; background: var(--tong-surface, #fff); }
+.prompt-box-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 8px 10px;
+  background: var(--tong-soft, #f6f7fb); border-bottom: 1px solid var(--tong-border, #e0e3ec); font-size: 0.86rem; }
+.prompt-box-head span { display: flex; gap: 6px; }
+.prompt-box-head button { border: 1px solid var(--tong-border, #e0e3ec); background: var(--tong-surface, #fff); color: var(--tong-text, #33384a);
+  border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.prompt-box-head .prompt-use { border-color: var(--tong-primary, #667eea); color: var(--tong-primary, #667eea); }
+.prompt-box pre { margin: 0; padding: 10px 12px; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, 'D2Coding', Consolas, monospace;
+  font-size: 0.8rem; line-height: 1.6; background: #1f2433; color: #e8ebf5; }
+.prompt-box .ai-hint { padding: 6px 12px 8px; margin: 0; }
+.prompt-box pre code { background: none; color: inherit; padding: 0; border-radius: 0; font: inherit; }
