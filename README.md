@@ -2,10 +2,11 @@
 
 담임·교과교사를 위한 디지털 교무수첩입니다. 기존 GAS 자리배치 앱을 바탕으로 UI와 기능을 확장했으며, 순수 HTML/CSS/바닐라 JavaScript로 구성합니다.
 
-- 소스 버전: **5.17.0-preview.73**
+- 소스 버전: **5.17.0-preview.74**
 - 운영 주소: https://t-ong.vercel.app/
 - GitHub: https://github.com/t98advisor1/t-ong
 - 주요 기능: 자리배치·출결·학생 기록·칭찬·교실운영·일정·즐겨찾기·외부 게임
+- preview.74: AI 비서 **Gemini API 키** 지원, **프롬프트 만들기** 안내(복사 버튼), 사용 설명서 AI 비서 슬라이드
 - preview.73: 사이드바 **AI 비서 채팅**(사용자 본인 Claude API 키) 추가, API 키 발급 안내
 - preview.72: 상단 **🤖 AI 메뉴**와 **AI 활용 안내** 추가, 자리배치 우측 메뉴 접기
 - preview.71: 사이드 **AI 도우미**(구독 계정 연결) 추가, Google 캘린더 연결을 버튼 한 번으로 간소화
@@ -40,7 +41,7 @@ tools/                검사·공개 파일 미리보기·배포 준비 도구
 - 브라우저 "쿠키 및 사이트 데이터 삭제" 시 **전부 사라집니다**
 - 시크릿 모드에서 쓴 데이터는 창을 닫으면 사라집니다
 
-AI 비서는 사용자 본인의 Claude API 키(`tongAiApiKey_v1`)를 이 브라우저에만 저장하고, 대화는 브라우저에서 Anthropic API로 바로 보냅니다. 키와 대화 내용은 T-ong 서버와 데이터 백업 코드에 포함되지 않습니다.
+AI 비서는 사용자 본인의 Claude API 키(`tongAiApiKey_v1`) 또는 Gemini API 키(`tongAiGeminiKey_v1`)를 이 브라우저에만 저장하고, 대화는 브라우저에서 Anthropic 또는 Google API로 바로 보냅니다. 키와 대화 내용은 T-ong 서버와 데이터 백업 코드에 포함되지 않습니다.
 
 > **정기적으로 `홈 → 데이터 백업`에서 자료를 백업해 따로 보관하세요.** 학생 원본 기록·백업, 개인 일정, 환경변수, OAuth 토큰, Android 서명키는 GitHub에 올리지 않습니다.
 

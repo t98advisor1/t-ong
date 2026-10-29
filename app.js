@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.73';
+var APP_VERSION = '5.17.0-preview.74';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -3541,8 +3541,9 @@ var GUIDE_SLIDES = [
     desc: '<ul>' +
       '<li><strong>🏠 홈</strong> — 하위메뉴에서 첫 화면·사용 설명서·<strong>① 📦 데이터 백업</strong>을 엽니다.</li>' +
       '<li><strong>자리배치 · ✅ 출결관리</strong> — 좌석표와 날짜별 출결 화면을 오갑니다.</li>' +
-      '<li><strong>➕ 교실운영</strong> — 컴시간알리미(교사용)·담임 5분 멘트·타이머·칭찬·사다리·1인 1역·룰렛·알림장을 엽니다.</li>' +
+      '<li><strong>➕ 교실운영</strong> — 컴시간알리미(교사용)·타이머·칭찬·사다리·1인 1역·룰렛·알림장을 엽니다.</li>' +
       '<li><strong>📅 일정관리</strong> — 전체화면 달력과 상담 일정을 엽니다.</li>' +
+      '<li><strong>🤖 AI</strong> — AI 비서·AI 활용 안내·담임 5분 멘트를 엽니다.</li>' +
       '<li><strong>🔖 즐겨찾기</strong> — 업무별 기본 사이트와 직접 추가한 내 사이트를 엽니다.</li><li><strong>🎮 게임</strong> — 수업 전환과 참여에 활용할 교실 게임을 모았습니다.</li>' +
       '<li><strong>❓ 도움말</strong> — 버전·업데이트·오늘의 학교(실험)·오류 문의를 확인합니다.</li>' +
       '</ul>',
@@ -3554,7 +3555,6 @@ var GUIDE_SLIDES = [
     title: '➕ 교실운영 — 수업과 학급 운영 도구를 한곳에',
     desc: '<ul>' +
       '<li><strong>🕒 컴시간알리미(교사용)</strong> — 학교 코드를 설정해 교사용 개인 시간표를 확인합니다.</li>' +
-      '<li><strong>💬 담임 5분 멘트</strong> — 조회 시간에 사용할 뉴스·명언·감동 이야기를 빠르게 준비합니다.</li>' +
       '<li><strong>⏱️ 간편 타이머</strong> — 3분·5분·10분 또는 직접 입력한 시간을 전체화면으로 보여줍니다.</li>' +
       '<li><strong>🏆 칭찬 포인트</strong> — +1·−1로 점수를 조절하고 알·부화 중·병아리·닭 성장 단계를 확인합니다.</li>' +
       '<li><strong>🪜 사다리타기</strong> — 발표 뽑기는 사다리타기로! 이름과 결과를 재미있게 연결합니다.</li>' +
@@ -3794,9 +3794,57 @@ var GUIDE_SLIDES = [
     callout: { type: '', text: '<strong>다운로드 후 초기화</strong>는 엑셀 저장을 먼저 시도한 뒤 브라우저 기록을 비웁니다. 학기말에는 백업 파일도 함께 보관하세요.' }
   },
   {
+    section: 'ai',
+    img: 'guide/ai-01-menu.png',
+    title: '🤖 AI 메뉴 — AI 비서와 활용 안내를 한곳에',
+    desc: '<ul>' +
+      '<li><strong>🤖 AI 비서 열기</strong> — 오른쪽에 채팅창이 열립니다. 자리배치 화면 왼쪽 메뉴의 🤖로도 열 수 있습니다.</li>' +
+      '<li><strong>📘 AI 활용 안내</strong> — API 키 발급, 프롬프트 만들기, 활용 예시, 개인정보 주의를 정리했습니다.</li>' +
+      '<li><strong>📖 AI 비서 사용법</strong> — 지금 보고 있는 슬라이드입니다.</li>' +
+      '<li><strong>💬 담임 5분 멘트</strong> — 조회 시간용 Gemini 맞춤 Gem을 엽니다.</li>' +
+      '</ul>',
+    callout: { type: 'good', text: 'AI 비서는 PC·태블릿·Android 앱 어디서나 같은 방법으로 씁니다.' }
+  },
+  {
+    section: 'ai',
+    img: 'guide/ai-02-settings.png',
+    title: '🔑 처음 한 번 — API 키 넣기',
+    desc: '<ol>' +
+      '<li>AI 비서의 <strong>⚙️ 설정</strong>을 엽니다.</li>' +
+      '<li><strong>사용할 AI</strong>에서 Gemini 또는 Claude를 고릅니다. 처음이면 무료로 시작할 수 있는 <strong>Gemini</strong>를 추천합니다.</li>' +
+      '<li>발급받은 키를 붙여넣고 <strong>저장</strong>을 누릅니다. 발급 방법은 <strong>📘 API 키 발급 방법</strong> 버튼에 단계별로 있습니다.</li>' +
+      '</ol>',
+    callout: { type: '', text: '키는 이 기기의 브라우저에만 저장되고 T-ong 서버로 보내지 않습니다. 공용 PC에서는 <strong>이 기기에 키 저장</strong>을 끄세요. Gemini 무료 구간에서는 입력 내용이 Google의 서비스 개선에 쓰일 수 있으니 민감한 정보는 넣지 마세요.' }
+  },
+  {
+    section: 'ai',
+    img: 'guide/ai-03-chat.png',
+    title: '💬 말로 부탁하면 AI가 대신 처리합니다',
+    desc: '<ul>' +
+      '<li>"내일 체육복 챙기라고 알림장 넣어 줘", "다음 주 수요일 학부모 총회 일정 넣어 줘"처럼 평소 말투로 부탁하세요.</li>' +
+      '<li>알림장 저장·일정 추가는 <strong>확인 카드</strong>가 먼저 나옵니다. 내용을 보고 <strong>실행</strong>을 눌러야 반영됩니다.</li>' +
+      '<li>학생 이름은 보내기 전에 <strong>[학생A]</strong>처럼 가려지고, 화면과 알림장에는 원래 이름으로 표시됩니다.</li>' +
+      '<li>아래 빠른 버튼(알림장·이번 주 일정·조회 멘트·가정통신문·프롬프트 만들기)으로 바로 시작할 수 있습니다.</li>' +
+      '</ul>',
+    callout: { type: 'good', text: '답변이 길어지면 <strong>중단</strong>, 주제를 바꾸려면 상단 🗒️ <strong>새 대화</strong>를 누르세요.' }
+  },
+  {
+    section: 'ai',
+    img: 'guide/ai-04-prompts.png',
+    title: '🪄 프롬프트를 몰라도 괜찮아요',
+    desc: '<p><strong>🤖 AI ▾ → AI 활용 안내 → 프롬프트 만들기</strong> 탭에 바로 쓰는 프롬프트를 모았습니다.</p>' +
+      '<ul>' +
+      '<li><strong>만능 프롬프트 생성기</strong> — "프롬프트를 만들어 달라"고 부탁하면 AI가 질문을 하나씩 하며 프롬프트를 대신 만들어 줍니다.</li>' +
+      '<li><strong>질문부터 받기 · 고쳐 달라고 하기 · 템플릿으로 저장</strong> — 결과를 원하는 대로 다듬고 반복 업무를 줄입니다.</li>' +
+      '<li><strong>📋 복사</strong>로 다른 AI에 붙여넣거나, <strong>🤖 AI 비서에 넣기</strong>로 바로 보냅니다.</li>' +
+      '</ul>',
+    callout: { type: 'good', text: '공문 정리·수업 활동 아이디어·회의록 정리처럼 자주 하는 업무용 프롬프트도 함께 들어 있습니다.' }
+  },
+  {
+    section: 'ai',
     img: 'guide/0E-five-minute-message.png',
-    title: '💬 교실운영 — 담임 5분 멘트',
-    desc: '<p>상단 <strong>교실운영 ▾ → 담임 5분 멘트</strong>를 누르면 조회 시간에 바로 활용할 수 있는 Gemini 도구가 열립니다.</p>' +
+    title: '💬 AI — 담임 5분 멘트',
+    desc: '<p>상단 <strong>🤖 AI ▾ → 담임 5분 멘트</strong>를 누르면 조회 시간에 바로 활용할 수 있는 Gemini 도구가 열립니다.</p>' +
       '<ul>' +
       '<li>간단한 숫자만 입력해도 <strong>실시간 뉴스 · 마음 명언 · 감동 에피소드</strong>를 한 번에 구성합니다.</li>' +
       '<li>화면의 QR 코드를 학생용 기기나 휴대전화로 스캔해 열 수도 있습니다.</li>' +
@@ -4046,6 +4094,7 @@ var GUIDE_SECTIONS = [
   { key: 'attend', label: '출결관리' },
   { key: 'classroom', label: '교실운영' },
   { key: 'calendar', label: '일정관리' },
+  { key: 'ai', label: 'AI 비서' },
   { key: 'favorites', label: '즐겨찾기' },
   { key: 'games', label: '게임' },
   { key: 'help', label: '도움말' },
@@ -4491,6 +4540,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.71: 🤖 AI 도우미 추가(내 Claude·ChatGPT·Gemini 구독 계정으로 알림장·조회 멘트·가정통신문·상담 기록 요청, 학생 이름 자동 가림, 답변을 알림장에 바로 넣기) · Google 캘린더 연결 간소화(클라이언트 ID 입력 없이 버튼으로 연결, 이전 계정 한 번에 다시 연결, 만료 시 다시 연결 안내) · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.72: 상단에 🤖 AI 메뉴 추가(AI 도우미 열기·AI 활용 안내·담임 5분 멘트) · AI 활용 안내 창(시작하기·활용 예시·개인정보 주의·AI 도구 모음) · 자리배치 우측 메뉴를 좌측처럼 접어 좌석 화면 넓히기 · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.73: 🤖 AI 비서 채팅 추가(내 Claude API 키로 사이드바에서 대화 · 알림장 저장과 일정 조회·추가를 확인 후 실행 · 학생 이름 자동 가림) · AI 활용 안내에 API 키 발급 방법 탭 추가 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.74: AI 비서에 Gemini API 키 지원 추가(무료로 시작 가능) · AI 활용 안내에 프롬프트 만들기 탭 추가(복사·AI 비서에 넣기 버튼) · 사용 설명서에 AI 비서 슬라이드 추가 · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +
@@ -5303,23 +5353,32 @@ var GoogleCalendarSync = (function () {
   return{init:init,openPanel:openPanel,onLocalChanged:onLocalChanged,noteLocalDelete:noteLocalDelete,syncNow:syncNow};
 })();
 // ===================================================================
-// AI 비서 — 선생님 본인의 Claude API 키로 사이드바에서 대화하고 T-ong 기능을 실행합니다.
-// 키와 대화는 이 브라우저에서 Anthropic으로 바로 가며, T-ong 서버로는 보내지 않습니다.
+// AI 비서 — 선생님 본인의 Claude 또는 Gemini API 키로 사이드바에서 대화하고 T-ong 기능을 실행합니다.
+// 키와 대화는 이 브라우저에서 AI 회사로 바로 가며, T-ong 서버로는 보내지 않습니다.
 // ===================================================================
 var AiAssistant = (function () {
-  var PREF_KEY = 'tongAiAssistant_v2', KEY_KEY = 'tongAiApiKey_v1';
+  var PREF_KEY = 'tongAiAssistant_v2';
+  var KEY_STORE = { claude: 'tongAiApiKey_v1', gemini: 'tongAiGeminiKey_v1' };
   var SDK_SRC = '/vendor/anthropic-sdk-0.132.1.js';
-  var MODELS = ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'];
-  var FALLBACK_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'];   // 서버 측 대체 모델(fallbacks: "default")을 쓰는 모델
+  var GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/';
+  var PROVIDERS = {
+    claude: { name: 'Claude', keyLabel: 'Claude API 키', placeholder: 'sk-ant-로 시작하는 키를 붙여넣으세요',
+      models: [['claude-haiku-5-5', 'Claude Haiku 5.5 · 기본, 빠르고 가장 저렴함'], ['claude-sonnet-5-5', 'Claude Sonnet 5.5 · 글 품질과 속도의 균형'], ['claude-opus-5-5', 'Claude Opus 5.5 · 가장 똑똑함, 요금 높음']] },
+    gemini: { name: 'Gemini', keyLabel: 'Gemini API 키', placeholder: 'AIza로 시작하는 키를 붙여넣으세요',
+      // Google이 최신 모델로 계속 옮겨 주는 별칭(-latest)을 기본으로 씁니다. 키를 저장하면 실제 사용 가능한 모델 목록으로 다시 맞춥니다.
+      models: [['gemini-flash-latest', 'Gemini Flash · 기본, 빠름'], ['gemini-flash-lite-latest', 'Gemini Flash-Lite · 가장 가벼움'], ['gemini-pro-latest', 'Gemini Pro · 가장 똑똑함']] }
+  };
+  var FALLBACK_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'];   // 서버 측 대체 모델(fallbacks: "default")을 쓰는 Claude 모델
   var WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-  var pref = { model: 'claude-haiku-5-5', mask: true, remember: true };
-  var apiKey = '', client = null, clientKey = '', sdkPromise = null;
-  var history = [];            // API에 보내는 대화 — 응답 content를 그대로 덧붙이는 방식(append-only)
+  var pref = { provider: 'claude', models: { claude: 'claude-haiku-5-5', gemini: 'gemini-flash-latest' }, geminiModels: null, mask: true, remember: true };
+  var keys = { claude: '', gemini: '' };
+  var client = null, clientKey = '', sdkPromise = null;
+  var history = [];            // 현재 AI 형식의 대화 — 응답을 그대로 덧붙이는 방식(append-only)
   var nameMap = {}, maskCount = 0;   // '[학생A]' → 실제 이름, 대화 하나 안에서는 같은 가명 유지
-  var busy = false, currentStream = null;
+  var busy = false, abortCurrent = null;
 
   var TOOLS = [
-    { name: 'get_class_info', description: '현재 학급 이름, 학생 수, 오늘 날짜, 지금 저장된 알림장 내용을 확인합니다.',
+    { name: 'get_class_info', description: '현재 학급 이름, 학생 수, 오늘 날짜, 지금 저장된 알림장 내용, 일정 속성 목록을 확인합니다.',
       input_schema: { type: 'object', properties: {} } },
     { name: 'list_events', description: 'T-ong 일정관리에서 기간 안의 일정을 조회합니다. 날짜는 YYYY-MM-DD.',
       input_schema: { type: 'object', properties: { from: { type: 'string', description: '시작일 YYYY-MM-DD' }, to: { type: 'string', description: '종료일 YYYY-MM-DD' } }, required: ['from', 'to'] } },
@@ -5334,38 +5393,77 @@ var AiAssistant = (function () {
       input_schema: { type: 'object', properties: {
         text: { type: 'string', description: '알림장 본문. 줄마다 한 항목' },
         mode: { type: 'string', enum: ['replace', 'append'], description: 'replace는 기존 내용을 바꾸고 append는 뒤에 덧붙입니다' } }, required: ['text', 'mode'] } }
-  ].map(function (tool) { tool.eager_input_streaming = true; return tool; });
+  ];
+  var CLAUDE_TOOLS = TOOLS.map(function (t) { return { name: t.name, description: t.description, input_schema: t.input_schema, eager_input_streaming: true }; });
+  // Gemini 함수 선언은 OpenAPI 형식(대문자 type)을 씁니다. 인자가 없는 함수는 parameters를 생략합니다.
+  function toGeminiSchema(schema) {
+    var out = { type: String(schema.type).toUpperCase() };
+    if (schema.description) out.description = schema.description;
+    if (schema.enum) out.enum = schema.enum;
+    if (schema.properties) { out.properties = {}; Object.keys(schema.properties).forEach(function (k) { out.properties[k] = toGeminiSchema(schema.properties[k]); }); }
+    if (schema.required) out.required = schema.required;
+    return out;
+  }
+  var GEMINI_TOOLS = [{ functionDeclarations: TOOLS.map(function (t) {
+    var decl = { name: t.name, description: t.description };
+    if (Object.keys(t.input_schema.properties).length) decl.parameters = toGeminiSchema(t.input_schema);
+    return decl;
+  }) }];
 
   function el(id) { return document.getElementById(id); }
   function todayKey() { return formatDate(new Date()); }
+  function apiKey() { return keys[pref.provider] || ''; }
 
   // ---- 설정·키 저장 -------------------------------------------------
   function loadPref() {
     try {
       var v = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
-      if (MODELS.indexOf(v.model) >= 0) pref.model = v.model;
+      if (PROVIDERS[v.provider]) pref.provider = v.provider;
+      if (v.models && typeof v.models === 'object') {
+        if (PROVIDERS.claude.models.some(function (m) { return m[0] === v.models.claude; })) pref.models.claude = v.models.claude;
+        if (typeof v.models.gemini === 'string' && /^gemini-/.test(v.models.gemini)) pref.models.gemini = v.models.gemini;
+      } else if (typeof v.model === 'string' && /^claude-/.test(v.model)) pref.models.claude = v.model;   // 이전 설정(단일 모델) 이어받기
+      if (Array.isArray(v.geminiModels)) pref.geminiModels = v.geminiModels;
       if (v.mask === false) pref.mask = false;
       if (v.remember === false) pref.remember = false;
     } catch (e) {}
-    try { apiKey = localStorage.getItem(KEY_KEY) || sessionStorage.getItem(KEY_KEY) || ''; } catch (e) { apiKey = ''; }
+    Object.keys(KEY_STORE).forEach(function (p) {
+      try { keys[p] = localStorage.getItem(KEY_STORE[p]) || sessionStorage.getItem(KEY_STORE[p]) || ''; } catch (e) { keys[p] = ''; }
+    });
   }
   function savePref() { try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) {} }
-  function storeKey(value) {
-    apiKey = value;
+  function storeKey(provider, value) {
+    keys[provider] = value;
     try {
-      localStorage.removeItem(KEY_KEY); sessionStorage.removeItem(KEY_KEY);
-      if (value) (pref.remember ? localStorage : sessionStorage).setItem(KEY_KEY, value);
+      localStorage.removeItem(KEY_STORE[provider]); sessionStorage.removeItem(KEY_STORE[provider]);
+      if (value) (pref.remember ? localStorage : sessionStorage).setItem(KEY_STORE[provider], value);
     } catch (e) {}
   }
-  function maskedKey(value) { return value ? value.slice(0, 7) + '…' + value.slice(-4) : ''; }
+  function maskedKey(value) { return value ? value.slice(0, 6) + '…' + value.slice(-4) : ''; }
+  function modelOptions() {
+    if (pref.provider === 'gemini' && pref.geminiModels && pref.geminiModels.length) return pref.geminiModels;
+    return PROVIDERS[pref.provider].models;
+  }
 
   function renderSettings() {
-    el('aiModelInput').value = pref.model;
+    var info = PROVIDERS[pref.provider], key = apiKey();
+    Array.prototype.forEach.call(document.querySelectorAll('#aiProviderSeg [data-provider]'), function (b) {
+      var on = b.dataset.provider === pref.provider; b.classList.toggle('active', on); b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    el('aiKeyLabel').textContent = info.keyLabel;
+    el('aiKeyInput').placeholder = info.placeholder;
+    el('aiKeyInput').value = '';
+    el('aiKeyStatus').textContent = key ? '저장된 키: ' + maskedKey(key) + (pref.remember ? ' · 이 기기에 저장됨' : ' · 이 창을 닫으면 지워짐') : '아직 ' + info.name + ' 키가 없습니다.';
+    el('aiGeminiNotice').hidden = pref.provider !== 'gemini';
+    var select = el('aiModelInput'), options = modelOptions(), current = pref.models[pref.provider];
+    if (!options.some(function (m) { return m[0] === current; })) options = options.concat([[current, current]]);
+    select.innerHTML = '';
+    options.forEach(function (m) { var o = document.createElement('option'); o.value = m[0]; o.textContent = m[1]; select.appendChild(o); });
+    select.value = current;
     el('aiMaskInput').checked = pref.mask;
     el('aiRememberInput').checked = pref.remember;
-    el('aiKeyInput').value = '';
-    el('aiKeyStatus').textContent = apiKey ? '저장된 키: ' + maskedKey(apiKey) + (pref.remember ? ' · 이 기기에 저장됨' : ' · 이 창을 닫으면 지워짐') : '아직 키가 없습니다.';
-    el('aiSetupCard').hidden = !!apiKey || !el('aiSettings').hidden;
+    el('aiSetupCard').hidden = !!key || !el('aiSettings').hidden;
+    el('aiDrawerTitle').textContent = '🤖 AI 비서 · ' + info.name;
   }
   function toggleSettings(show) {
     var box = el('aiSettings');
@@ -5374,22 +5472,55 @@ var AiAssistant = (function () {
     renderSettings();
     if (!box.hidden) el('aiKeyInput').focus();
   }
+  function switchProvider(provider) {
+    if (!PROVIDERS[provider] || provider === pref.provider || busy) return;
+    pref.provider = provider; savePref(); renderSettings();
+    resetChat(PROVIDERS[provider].name + '(으)로 바꿨습니다. 새 대화를 시작합니다.');
+  }
   function saveKey() {
-    var value = String(el('aiKeyInput').value || '').trim();
+    var value = String(el('aiKeyInput').value || '').trim().replace(/\s+/g, '');
     if (!value) { showToast('API 키를 붙여넣어 주세요', 'error'); return; }
-    if (!/^sk-ant-[A-Za-z0-9_\-]{20,}$/.test(value)) { showToast('sk-ant-로 시작하는 Claude API 키인지 확인해 주세요', 'error'); return; }
-    storeKey(value); client = null; toggleSettings(false);
-    showToast('API 키를 저장했습니다. 이제 질문해 보세요');
+    if (pref.provider === 'claude' && !/^sk-ant-[A-Za-z0-9_\-]{20,}$/.test(value)) {
+      showToast(/^AIza/.test(value) ? 'Gemini 키 같습니다. 사용할 AI를 Gemini로 바꿔 주세요' : 'sk-ant-로 시작하는 Claude API 키인지 확인해 주세요', 'error'); return;
+    }
+    if (pref.provider === 'gemini' && (/^sk-ant-/.test(value) || !/^[A-Za-z0-9_\-.]{30,}$/.test(value))) {
+      showToast(/^sk-ant-/.test(value) ? 'Claude 키 같습니다. 사용할 AI를 Claude로 바꿔 주세요' : 'AIza로 시작하는 Gemini API 키인지 확인해 주세요', 'error'); return;
+    }
+    storeKey(pref.provider, value); client = null; toggleSettings(false);
+    showToast(PROVIDERS[pref.provider].name + ' API 키를 저장했습니다. 이제 질문해 보세요');
+    if (pref.provider === 'gemini') refreshGeminiModels(value);
     el('aiPromptInput').focus();
   }
   function deleteKey() {
-    if (!apiKey) { showToast('저장된 키가 없습니다'); return; }
-    if (!confirm('이 기기에 저장된 API 키를 지울까요?')) return;
-    storeKey(''); client = null; renderSettings(); showToast('API 키를 지웠습니다');
+    if (!apiKey()) { showToast('저장된 키가 없습니다'); return; }
+    if (!confirm('이 기기에 저장된 ' + PROVIDERS[pref.provider].name + ' API 키를 지울까요?')) return;
+    storeKey(pref.provider, ''); client = null; renderSettings(); showToast('API 키를 지웠습니다');
   }
   function openKeyGuide() {
     openModal('aiGuideModal');
     var tab = document.querySelector('[data-ai-guide="apikey"]'); if (tab) tab.click();
+    var sub = document.querySelector('[data-key-guide="' + pref.provider + '"]'); if (sub) sub.click();
+  }
+
+  // 키로 실제 사용할 수 있는 Gemini 모델을 확인해 목록을 맞춥니다. 실패해도 기본 별칭으로 계속 씁니다.
+  async function refreshGeminiModels(key) {
+    try {
+      var res = await fetch(GEMINI_API + 'models?pageSize=200', { headers: { 'x-goog-api-key': key } });
+      if (!res.ok) return;
+      var data = await res.json(), ids = (data.models || [])
+        .filter(function (m) { return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0; })
+        .map(function (m) { return String(m.name || '').replace(/^models\//, ''); })
+        .filter(function (id) { return /^gemini-/.test(id) && !/(embed|tts|image|live|audio|vision|robotics|computer)/i.test(id); });
+      if (!ids.length) return;
+      var known = PROVIDERS.gemini.models.filter(function (m) { return ids.indexOf(m[0]) >= 0; });
+      var others = ids.filter(function (id) { return !known.some(function (m) { return m[0] === id; }); }).sort().reverse().slice(0, 12).map(function (id) { return [id, id]; });
+      pref.geminiModels = known.concat(others);
+      if (!pref.geminiModels.some(function (m) { return m[0] === pref.models.gemini; })) {
+        var flash = pref.geminiModels.find(function (m) { return /flash/.test(m[0]) && !/lite/.test(m[0]); });
+        pref.models.gemini = (flash || pref.geminiModels[0])[0];
+      }
+      savePref(); renderSettings();
+    } catch (e) { /* 목록 확인은 선택 사항 */ }
   }
 
   // ---- 학생 이름 가리기 ----------------------------------------------
@@ -5420,10 +5551,16 @@ var AiAssistant = (function () {
   function open() {
     loadPref(); renderSettings();
     el('aiDrawer').classList.add('show'); el('aiDrawer').setAttribute('aria-hidden', 'false'); el('aiDrawerBackdrop').classList.add('show');
-    if (!history.length && !el('aiChat').children.length) addBubble('ai', '안녕하세요! 알림장 작성, 일정 조회·추가, 조회 멘트나 가정통신문 쓰기를 도와드릴게요. 무엇을 할까요?');
-    setTimeout(function () { (apiKey ? el('aiPromptInput') : el('aiSetupOpenBtn')).focus(); }, 60);
+    if (!history.length && !el('aiChat').children.length) addBubble('ai', '안녕하세요! 알림장 작성, 일정 조회·추가, 조회 멘트나 가정통신문 쓰기를 도와드릴게요. 무엇을 부탁할지 막막하면 아래 🪄 프롬프트 만들기를 눌러 보세요.');
+    setTimeout(function () { (apiKey() ? el('aiPromptInput') : el('aiSetupOpenBtn')).focus(); }, 60);
   }
   function close() { el('aiDrawer').classList.remove('show'); el('aiDrawer').setAttribute('aria-hidden', 'true'); el('aiDrawerBackdrop').classList.remove('show'); }
+  // 안내 창 등에서 프롬프트를 넘겨받아 입력칸에 채웁니다. 보내기 전에 선생님이 고칠 수 있게 바로 전송하지 않습니다.
+  function usePrompt(text) {
+    open();
+    var input = el('aiPromptInput'); input.value = String(text || ''); input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
   function scrollChat() { var c = el('aiChat'); c.scrollTop = c.scrollHeight; }
   function addBubble(kind, text) {
     var div = document.createElement('div');
@@ -5439,12 +5576,12 @@ var AiAssistant = (function () {
     send.classList.toggle('stop', value);
     el('aiPromptInput').disabled = value;
   }
-  function newChat() {
-    if (busy) return;
+  function resetChat(message) {
     history = []; nameMap = {}; maskCount = 0;
     el('aiChat').innerHTML = '';
-    addBubble('ai', '새 대화를 시작했습니다. 무엇을 도와드릴까요?');
+    addBubble('ai', message);
   }
+  function newChat() { if (!busy) resetChat('새 대화를 시작했습니다. 무엇을 도와드릴까요?'); }
 
   // 알림장 저장·일정 추가는 선생님이 확인 버튼을 눌러야 실행됩니다.
   function confirmAction(title, previewText) {
@@ -5475,7 +5612,7 @@ var AiAssistant = (function () {
     if (name === 'add_event') {
       if (typeof input.title !== 'string' || !input.title.trim()) return 'title이 필요합니다';
       if (!isDateKey(input.start)) return 'start는 YYYY-MM-DD 형식이어야 합니다';
-      if (input.end != null && !isDateKey(input.end)) return 'end는 YYYY-MM-DD 형식이어야 합니다';
+      if (input.end != null && input.end !== '' && !isDateKey(input.end)) return 'end는 YYYY-MM-DD 형식이어야 합니다';
       if (input.end && input.end < input.start) return 'end가 start보다 빠릅니다';
       return '';
     }
@@ -5522,8 +5659,28 @@ var AiAssistant = (function () {
     throw new Error('알 수 없는 도구: ' + name);
   }
   var TOOL_LABELS = { get_class_info: '🏫 학급 정보 확인', list_events: '📅 일정 확인', add_event: '📅 일정 추가 준비', set_notice: '📢 알림장 준비' };
+  // 도구 하나를 검사·실행하고 결과 문자열과 오류 여부를 돌려줍니다. Claude와 Gemini가 함께 씁니다.
+  async function executeTool(name, input) {
+    addBubble('tool', TOOL_LABELS[name] || name);
+    var problem = validate(name, input);
+    if (problem) return { error: true, content: problem };
+    try { return { error: false, content: await runTool(name, input) }; }
+    catch (err) { return { error: true, content: String(err && err.message || err) }; }
+  }
 
-  // ---- Claude API -------------------------------------------------------
+  function systemPrompt() {
+    var d = new Date();
+    return '당신은 한국 학교 교사가 쓰는 학급 관리 앱 "T-ong 교무수첩"의 AI 비서입니다. 오늘은 ' + todayKey() + ' (' + WEEKDAYS[d.getDay()] + '요일)입니다.\n' +
+      '- 한국어로, 교사가 바로 쓸 수 있게 간결하고 실용적으로 답합니다.\n' +
+      '- 학생 이름은 개인정보 보호를 위해 [학생A] 같은 가명으로 바뀌어 있을 수 있습니다. 가명은 그대로 쓰고 실제 이름을 추측하지 않습니다.\n' +
+      '- 알림장 저장이나 일정 추가를 부탁받으면 도구를 사용합니다. 도구는 실행 전에 교사의 확인을 받으므로 따로 허락을 구하지 않아도 됩니다. 취소되면 다시 시도하지 말고 어떻게 고칠지 묻습니다.\n' +
+      '- "다음 주 수요일"처럼 상대적인 날짜는 오늘 날짜를 기준으로 YYYY-MM-DD로 계산합니다.\n' +
+      '- 준비물, 시간, 장소처럼 교사가 알려 주지 않은 사실은 지어내지 말고 물어보거나 빈칸으로 남깁니다.\n' +
+      '- 알림장은 번호나 기호를 붙인 짧은 줄 3~6개로, 학생과 학부모가 읽기 쉽게 씁니다.\n' +
+      '- 교사가 프롬프트를 만들어 달라고 하면, 필요한 정보를 한 번에 하나씩 물은 뒤 [역할][상황][할 일][조건][출력 형식]을 갖춘 프롬프트를 완성해 줍니다.';
+  }
+
+  // ---- Claude (Anthropic SDK) --------------------------------------------
   function loadSdk() {
     if (window.TongAnthropic) return Promise.resolve(window.TongAnthropic);
     if (sdkPromise) return sdkPromise;
@@ -5538,24 +5695,14 @@ var AiAssistant = (function () {
   }
   async function getClient() {
     var Anthropic = await loadSdk();
-    if (!client || clientKey !== apiKey) {
+    if (!client || clientKey !== keys.claude) {
       // 각 선생님이 자기 키를 자기 브라우저에서만 쓰는 구조라 브라우저 직접 호출을 허용합니다.
-      client = new Anthropic({ apiKey: apiKey, dangerouslyAllowBrowser: true, maxRetries: 2 });
-      clientKey = apiKey;
+      client = new Anthropic({ apiKey: keys.claude, dangerouslyAllowBrowser: true, maxRetries: 2 });
+      clientKey = keys.claude;
     }
     return { client: client, Anthropic: Anthropic };
   }
-  function systemPrompt() {
-    var d = new Date();
-    return '당신은 한국 학교 교사가 쓰는 학급 관리 앱 "T-ong 교무수첩"의 AI 비서입니다. 오늘은 ' + todayKey() + ' (' + WEEKDAYS[d.getDay()] + '요일)입니다.\n' +
-      '- 한국어로, 교사가 바로 쓸 수 있게 간결하고 실용적으로 답합니다.\n' +
-      '- 학생 이름은 개인정보 보호를 위해 [학생A] 같은 가명으로 바뀌어 있을 수 있습니다. 가명은 그대로 쓰고 실제 이름을 추측하지 않습니다.\n' +
-      '- 알림장 저장이나 일정 추가를 부탁받으면 도구를 사용합니다. 도구는 실행 전에 교사의 확인을 받으므로 따로 허락을 구하지 않아도 됩니다. 취소되면 다시 시도하지 말고 어떻게 고칠지 묻습니다.\n' +
-      '- "다음 주 수요일"처럼 상대적인 날짜는 오늘 날짜를 기준으로 YYYY-MM-DD로 계산합니다.\n' +
-      '- 준비물, 시간, 장소처럼 교사가 알려 주지 않은 사실은 지어내지 말고 물어보거나 빈칸으로 남깁니다.\n' +
-      '- 알림장은 번호나 기호를 붙인 짧은 줄 3~6개로, 학생과 학부모가 읽기 쉽게 씁니다.';
-  }
-  function friendlyError(err, Anthropic) {
+  function claudeError(err, Anthropic) {
     if (Anthropic && err instanceof Anthropic.APIUserAbortError) return '중단했습니다.';
     if (Anthropic && err instanceof Anthropic.AuthenticationError) return 'API 키가 올바르지 않습니다. ⚙️ 설정에서 키를 다시 확인해 주세요.';
     if (Anthropic && err instanceof Anthropic.PermissionDeniedError) return '이 키로는 선택한 모델을 쓸 수 없습니다. 다른 모델을 고르거나 Console의 권한을 확인해 주세요.';
@@ -5565,27 +5712,20 @@ var AiAssistant = (function () {
     if (Anthropic && err instanceof Anthropic.APIError) return 'AI 서버 오류가 발생했습니다 (' + (err.status || '') + '). 잠시 뒤 다시 시도해 주세요.';
     return (err && err.message) || '알 수 없는 오류가 발생했습니다.';
   }
-
-  async function send(promptText) {
-    if (busy) { if (currentStream) currentStream.abort(); return; }
-    var text = String(promptText != null ? promptText : el('aiPromptInput').value || '').trim();
-    if (!text) { el('aiPromptInput').focus(); return; }
-    if (!apiKey) { toggleSettings(true); showToast('먼저 Claude API 키를 넣어 주세요', 'error'); return; }
-    el('aiPromptInput').value = '';
-    addBubble('me', text);
-    history.push({ role: 'user', content: mask(text) });
-    setBusy(true);
+  async function runClaude() {
     var Anthropic = null, jsonRetries = 0;
     try {
       var api = await getClient(); Anthropic = api.Anthropic;
+      var model = pref.models.claude;
       for (var turn = 0; turn < 8; turn++) {
         var bubble = addBubble('ai pending', '생각 중…'), acc = '';
-        var params = { model: pref.model, max_tokens: 64000, system: systemPrompt(), tools: TOOLS, messages: history,
+        var params = { model: model, max_tokens: 64000, system: systemPrompt(), tools: CLAUDE_TOOLS, messages: history,
           output_config: { effort: 'low' }, cache_control: { type: 'ephemeral' } };
         // 안전 분류기가 요청을 거절하면 서버가 같은 요청을 다른 모델로 이어서 처리합니다.
-        if (FALLBACK_MODELS.indexOf(pref.model) >= 0) { params.betas = ['server-side-fallback-2026-07-01']; params.fallbacks = 'default'; }
-        currentStream = api.client.beta.messages.stream(params);
-        currentStream.on('text', function (delta) {
+        if (FALLBACK_MODELS.indexOf(model) >= 0) { params.betas = ['server-side-fallback-2026-07-01']; params.fallbacks = 'default'; }
+        var stream = api.client.beta.messages.stream(params);
+        abortCurrent = function () { stream.abort(); };
+        stream.on('text', function (delta) {
           acc += delta;
           bubble.classList.remove('pending');
           bubble.textContent = unmask(acc);
@@ -5593,7 +5733,7 @@ var AiAssistant = (function () {
         });
         var message;
         try {
-          message = await currentStream.finalMessage();
+          message = await stream.finalMessage();
           jsonRetries = 0;
         } catch (err) {
           bubble.remove();
@@ -5610,20 +5750,111 @@ var AiAssistant = (function () {
         if (!toolUses.length) break;
         var results = [];
         for (var i = 0; i < toolUses.length; i++) {
-          var use = toolUses[i], problem = validate(use.name, use.input);
-          addBubble('tool', TOOL_LABELS[use.name] || use.name);
-          if (problem) { results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: problem }); continue; }
-          try { results.push({ type: 'tool_result', tool_use_id: use.id, content: await runTool(use.name, use.input) }); }
-          catch (toolErr) { results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: String(toolErr && toolErr.message || toolErr) }); }
+          var r = await executeTool(toolUses[i].name, toolUses[i].input);
+          results.push(r.error ? { type: 'tool_result', tool_use_id: toolUses[i].id, is_error: true, content: r.content } : { type: 'tool_result', tool_use_id: toolUses[i].id, content: r.content });
         }
         history.push({ role: 'user', content: results });   // 도구 결과는 한 메시지에 모아서 보냅니다
       }
     } catch (err) {
-      addBubble('ai error', friendlyError(err, Anthropic));
+      addBubble('ai error', claudeError(err, Anthropic));
       if (Anthropic && err instanceof Anthropic.AuthenticationError) toggleSettings(true);
-    } finally {
-      currentStream = null; setBusy(false); el('aiPromptInput').focus();
     }
+  }
+
+  // ---- Gemini (REST, 스트리밍) ------------------------------------------
+  function GeminiError(status, message) { this.status = status; this.message = message; }
+  async function geminiTurn(onText) {
+    var controller = new AbortController();
+    abortCurrent = function () { controller.abort(); };
+    var res = await fetch(GEMINI_API + 'models/' + encodeURIComponent(pref.models.gemini) + ':streamGenerateContent?alt=sse', {
+      method: 'POST', signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': keys.gemini },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt() }] }, contents: history, tools: GEMINI_TOOLS })
+    });
+    if (!res.ok) {
+      var detail = ''; try { var e = await res.json(); detail = e && e.error && e.error.message || ''; } catch (x) {}
+      throw new GeminiError(res.status, detail);
+    }
+    // 응답 조각(parts)은 받은 그대로 모아 둡니다. 함수 호출에 붙는 thoughtSignature를 다음 요청에 그대로 돌려줘야 합니다.
+    var reader = res.body.getReader(), decoder = new TextDecoder(), buffer = '', parts = [], finishReason = '', blocked = '';
+    function handle(chunk) {
+      var data = chunk.split(/\r?\n/).filter(function (l) { return l.indexOf('data:') === 0; }).map(function (l) { return l.slice(5).trim(); }).join('');
+      if (!data) return;
+      var json = JSON.parse(data);
+      if (json.promptFeedback && json.promptFeedback.blockReason) blocked = json.promptFeedback.blockReason;
+      var cand = json.candidates && json.candidates[0];
+      if (!cand) return;
+      if (cand.finishReason) finishReason = cand.finishReason;
+      (cand.content && cand.content.parts || []).forEach(function (part) {
+        parts.push(part);
+        if (typeof part.text === 'string' && !part.thought && part.text) onText(part.text);
+      });
+    }
+    for (;;) {
+      var step = await reader.read();
+      if (step.done) break;
+      buffer += decoder.decode(step.value, { stream: true });
+      var events = buffer.split(/\r?\n\r?\n/); buffer = events.pop();
+      events.forEach(handle);
+    }
+    if (buffer.trim()) handle(buffer);
+    return { parts: parts, finishReason: finishReason, blocked: blocked };
+  }
+  function geminiError(err) {
+    if (err && err.name === 'AbortError') return '중단했습니다.';
+    if (err instanceof GeminiError) {
+      var m = err.message || '';
+      if (err.status === 400 && /api key/i.test(m)) return 'Gemini API 키가 올바르지 않습니다. ⚙️ 설정에서 키를 다시 확인해 주세요.';
+      if (err.status === 403) return '이 키로 Gemini API를 쓸 수 없습니다. 학교 계정이라면 개인 Gmail로 키를 다시 만들어 보세요.\n(' + m + ')';
+      if (err.status === 404) return '선택한 Gemini 모델을 찾지 못했습니다. ⚙️ 설정에서 다른 모델을 골라 주세요.';
+      if (err.status === 429) return '무료 사용 한도에 도달했거나 요청이 많습니다. 잠시 뒤 다시 시도해 주세요.';
+      return 'Gemini 오류가 발생했습니다 (' + err.status + '). ' + m;
+    }
+    if (err instanceof TypeError) return '인터넷 연결을 확인해 주세요.';
+    return (err && err.message) || '알 수 없는 오류가 발생했습니다.';
+  }
+  var GEMINI_STOPPED = ['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION'];
+  async function runGemini() {
+    try {
+      for (var turn = 0; turn < 8; turn++) {
+        var bubble = addBubble('ai pending', '생각 중…'), acc = '';
+        var result = await geminiTurn(function (delta) {
+          acc += delta; bubble.classList.remove('pending'); bubble.textContent = unmask(acc); scrollChat();
+        });
+        if (!acc) bubble.remove();
+        if (result.blocked || GEMINI_STOPPED.indexOf(result.finishReason) >= 0) { addBubble('ai error', 'AI가 이 요청에는 답하지 않았습니다. 표현을 바꿔 다시 부탁해 주세요.'); break; }
+        if (!result.parts.length) { addBubble('ai error', '답변을 받지 못했습니다. 다시 시도해 주세요.'); break; }
+        var calls = result.parts.filter(function (p) { return p.functionCall; });
+        if (result.finishReason === 'MAX_TOKENS' && calls.length) { addBubble('ai error', '답변이 너무 길어 중간에 끊겼습니다. 요청을 나눠서 다시 부탁해 주세요.'); break; }
+        history.push({ role: 'model', parts: result.parts });
+        if (!calls.length) break;
+        var responses = [];
+        for (var i = 0; i < calls.length; i++) {
+          var call = calls[i].functionCall, r = await executeTool(call.name, call.args || {});
+          var fr = { name: call.name, response: r.error ? { error: r.content } : { result: r.content } };
+          if (call.id) fr.id = call.id;
+          responses.push({ functionResponse: fr });
+        }
+        history.push({ role: 'user', parts: responses });   // 함수 결과는 한 메시지에 모아서 보냅니다
+      }
+    } catch (err) {
+      addBubble('ai error', geminiError(err));
+      if (err instanceof GeminiError && err.status === 400 && /api key/i.test(err.message || '')) toggleSettings(true);
+    }
+  }
+
+  async function send(promptText) {
+    if (busy) { if (abortCurrent) abortCurrent(); return; }
+    var text = String(promptText != null ? promptText : el('aiPromptInput').value || '').trim();
+    if (!text) { el('aiPromptInput').focus(); return; }
+    if (!apiKey()) { toggleSettings(true); showToast('먼저 ' + PROVIDERS[pref.provider].name + ' API 키를 넣어 주세요', 'error'); return; }
+    el('aiPromptInput').value = '';
+    addBubble('me', text);
+    var masked = mask(text);
+    history.push(pref.provider === 'gemini' ? { role: 'user', parts: [{ text: masked }] } : { role: 'user', content: masked });
+    setBusy(true);
+    try { await (pref.provider === 'gemini' ? runGemini() : runClaude()); }
+    finally { abortCurrent = null; setBusy(false); el('aiPromptInput').focus(); }
   }
 
   function init() {
@@ -5635,15 +5866,16 @@ var AiAssistant = (function () {
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && el('aiDrawer').classList.contains('show')) close(); });
     el('aiSettingsBtn').addEventListener('click', function () { toggleSettings(); });
     el('aiNewChatBtn').addEventListener('click', newChat);
+    el('aiProviderSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-provider]'); if (b) switchProvider(b.dataset.provider); });
     el('aiKeySaveBtn').addEventListener('click', saveKey);
     el('aiKeyInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveKey(); });
     el('aiKeyDeleteBtn').addEventListener('click', deleteKey);
     el('aiKeyGuideBtn').addEventListener('click', openKeyGuide);
     el('aiSetupGuideBtn').addEventListener('click', openKeyGuide);
     el('aiSetupOpenBtn').addEventListener('click', function () { toggleSettings(true); });
-    el('aiModelInput').addEventListener('change', function () { pref.model = this.value; savePref(); });
+    el('aiModelInput').addEventListener('change', function () { pref.models[pref.provider] = this.value; savePref(); });
     el('aiMaskInput').addEventListener('change', function () { pref.mask = this.checked; savePref(); });
-    el('aiRememberInput').addEventListener('change', function () { pref.remember = this.checked; savePref(); if (apiKey) storeKey(apiKey); renderSettings(); });
+    el('aiRememberInput').addEventListener('change', function () { pref.remember = this.checked; savePref(); Object.keys(keys).forEach(function (p) { if (keys[p]) storeKey(p, keys[p]); }); renderSettings(); });
     el('aiSendBtn').addEventListener('click', function () { send(); });
     el('aiPromptInput').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
     el('aiQuick').addEventListener('click', function (e) {
@@ -5653,7 +5885,7 @@ var AiAssistant = (function () {
     });
   }
 
-  return { init: init, open: open };
+  return { init: init, open: open, usePrompt: usePrompt };
 })();
 // ===================================================================
 // 조회·종례 타이머 — 시작하면 전체화면 모래시계로
@@ -7599,6 +7831,28 @@ function initModeTabs() {
   }
   var aiGuideBtn = document.getElementById('aiGuideOpenBtn');
   if (aiGuideBtn) aiGuideBtn.addEventListener('click', function () { openModal('aiGuideModal'); });
+  var aiSlidesBtn = document.getElementById('aiSlidesOpenBtn');
+  if (aiSlidesBtn) aiSlidesBtn.addEventListener('click', function () { openGuideSection('ai'); });
+  // API 키 발급 안내의 Gemini / Claude 하위 탭
+  document.querySelectorAll('[data-key-guide]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var key = this.dataset.keyGuide;
+      document.querySelectorAll('[data-key-guide]').forEach(function (t) { t.classList.toggle('active', t === tab); });
+      document.querySelectorAll('[data-key-guide-panel]').forEach(function (p) { p.hidden = p.dataset.keyGuidePanel !== key; });
+    });
+  });
+  // 프롬프트 상자 — 복사하거나 AI 비서 입력칸으로 보냅니다
+  document.querySelectorAll('.prompt-box').forEach(function (box) {
+    var code = box.querySelector('code'), copy = box.querySelector('[data-prompt-copy]'), use = box.querySelector('[data-prompt-use]');
+    if (copy) copy.addEventListener('click', function () {
+      var text = code.textContent, button = this;
+      var done = function () { button.textContent = '✅ 복사됨'; setTimeout(function () { button.textContent = '📋 복사'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { selectText(code); showToast('Ctrl+C로 복사해 주세요'); });
+      else { selectText(code); showToast('Ctrl+C로 복사해 주세요'); }
+    });
+    if (use) use.addEventListener('click', function () { closeModal('aiGuideModal'); AiAssistant.usePrompt(code.textContent); });
+  });
+  function selectText(node) { var range = document.createRange(); range.selectNodeContents(node); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range); }
   document.querySelectorAll('[data-ai-guide]').forEach(function (tab) {
     tab.addEventListener('click', function () {
       var key = this.dataset.aiGuide;
