@@ -3148,3 +3148,228 @@ html[data-theme] .sp-order-options > small { color:var(--tong-muted); }
 .ai-input .btn { flex: 0 0 auto; }
 .ai-input .btn.stop { background: #e8590c; }
 .ai-guide-body code { background: var(--tong-soft, #f3f4f8); border-radius: 4px; padding: 1px 5px; font-size: 0.85em; }
+
+
+/* ===================================================================
+   Header Google Sign-In & Relational Sheet Sync Widget
+   =================================================================== */
+.header-sync-wrap { position: relative; display: inline-block; }
+.header-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.header-sync-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+.header-sync-btn .sync-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+/* Sync States */
+.header-sync-btn.sync-offline .sync-dot {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+}
+.header-sync-btn.sync-online {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #10b981;
+}
+.header-sync-btn.sync-online .sync-dot {
+  background-color: #10b981;
+  box-shadow: 0 0 7px rgba(16, 185, 129, 0.9);
+}
+.header-sync-btn.sync-busy {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: #3b82f6;
+}
+.header-sync-btn.sync-busy .sync-dot {
+  background-color: #3b82f6;
+  animation: tong-sync-pulse 1s infinite alternate;
+}
+@keyframes tong-sync-pulse {
+  from { opacity: 0.4; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+/* Sync Popover */
+.header-sync-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 370px;
+  max-width: 92vw;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  overflow: hidden;
+  animation: tongFadeSlide 0.18s ease-out;
+}
+@keyframes tongFadeSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+html[data-theme] .header-sync-menu {
+  background: var(--tong-surface, #ffffff);
+  color: var(--tong-text, #1e293b);
+  border-color: var(--tong-border, #cbd5e1);
+  box-shadow: 0 16px 36px var(--tong-shadow, rgba(0,0,0,0.22));
+}
+.sync-card-header {
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+.sync-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sync-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.sync-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sync-meta {
+  flex: 1;
+  min-width: 0;
+}
+.sync-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sync-name-row strong {
+  font-size: 0.96rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sync-badge-perm {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sync-meta small {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.sync-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sync-login-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 0;
+  min-height: 44px;
+}
+.sync-section-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.07);
+}
+.sync-sheet-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sync-field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+.sync-sheet-copy-btn {
+  font-size: 0.76rem;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sync-input-group {
+  display: flex;
+  gap: 6px;
+}
+.sync-input-group input {
+  flex: 1;
+  padding: 7px 11px;
+  font-size: 0.82rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  outline: none;
+  background: var(--tong-soft, #f8fafc);
+  color: inherit;
+}
+.sync-input-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+.sync-help-text {
+  font-size: 0.74rem;
+  opacity: 0.75;
+  line-height: 1.45;
+  margin: 0;
+}
+.sync-status-box {
+  background: rgba(0, 0, 0, 0.03);
+  padding: 10px 12px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.81rem;
+}
+.sync-status-row {
+  display: flex;
+  justify-content: space-between;
+}
+.sync-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}

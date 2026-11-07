@@ -39,6 +39,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="stylesheet" href="/style.css?v=5.17.0-preview.73">
 </head>
 <body>
@@ -192,8 +193,69 @@
       <div class="header-class-tools">
         <select id="currentClass" aria-label="현재 학급"></select>
         <button type="button" id="headerRosterBtn" class="header-roster-btn">👥 학급 명렬표 등록</button>
-
       </div>
+
+      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 위젯 -->
+      <div class="header-sync-wrap" id="headerSyncWrap">
+        <button type="button" id="headerSyncBtn" class="header-sync-btn sync-offline" aria-expanded="false" title="Google 연동 및 클라우드 동기화">
+          <span class="sync-dot"></span>
+          <span id="headerSyncText">Google 연동</span>
+        </button>
+        <div id="headerSyncMenu" class="header-sync-menu" hidden>
+          <div class="sync-card-header">
+            <div class="sync-user-profile">
+              <div class="sync-avatar" id="syncUserAvatar">G</div>
+              <div class="sync-meta">
+                <div class="sync-name-row">
+                  <strong id="syncUserName">로컬 저장 모드</strong>
+                  <span class="sync-badge-perm" id="syncPermBadge" hidden>영구 유지</span>
+                </div>
+                <small id="syncUserEmail">Google 계정 로그인 시 안전하게 동기화</small>
+              </div>
+            </div>
+          </div>
+          <div class="sync-card-body">
+            <div id="syncLoginSection" class="sync-login-section">
+              <div id="googleBtnContainer" class="google-btn-container"></div>
+            </div>
+
+            <div class="sync-section-divider"></div>
+
+            <div class="sync-sheet-section">
+              <div class="sync-field-label-row">
+                <label for="tongSheetUrlInput"><b>내 구글 시트 웹앱 URL (Apps Script)</b></label>
+                <a href="https://docs.google.com/spreadsheets/d/1Tzo4r78gaFLMyGJOOBM7hTrmIZtEBopFOFlWWs1VQp4/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn">시트 양식 사본 복사 ↗</a>
+              </div>
+              <div class="sync-input-group">
+                <input type="url" id="tongSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
+                <button type="button" id="tongSheetUrlSaveBtn" class="btn primary">저장</button>
+              </div>
+              <p class="sync-help-text">선생님 본인의 구글 드라이브에 시트를 복사한 후 배포된 웹앱 URL을 입력하시면, 관찰 메모와 출결이 개인 구글 시트(4_교무수첩_통합기록 탭)로 실시간 동기화됩니다.</p>
+            </div>
+
+            <div class="sync-status-box">
+              <div class="sync-status-row">
+                <span>동기화 상태:</span>
+                <strong id="syncStateText">로컬 단독 모드</strong>
+              </div>
+              <div class="sync-status-row">
+                <span>마지막 동기화:</span>
+                <span id="syncLastTimeText">기록 없음</span>
+              </div>
+              <div class="sync-status-row">
+                <span>동기화 대기 기록:</span>
+                <span id="syncPendingCountText">0건</span>
+              </div>
+            </div>
+
+            <div class="sync-card-actions">
+              <button type="button" id="syncManualNowBtn" class="btn primary">지금 즉시 동기화</button>
+              <button type="button" id="syncLogoutBtn" class="btn" hidden>로그아웃</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="header-theme-wrap">
         <button type="button" id="themeBtn" class="header-theme" aria-expanded="false">🎨 테마 ▾</button>
         <div id="themeMenu" class="theme-menu" role="group" aria-label="화면 테마 선택">

@@ -88,6 +88,480 @@ var GUIDE_SEEN_KEY = 'seatGuide_v2_seen';
 var SOUND_PREF_KEY = 'seatSound_v1';
 var guideIndex = 0;
 
+// ===================================================================
+// CloudSheetSync — 구글 계정 영구 로그인 및 교사용 단일 통합 시트 양방향 동기화
+// - 개인 기기 특성을 고려하여 한 번 로그인 시 수동 로그아웃 전까지 영구 유지
+// - 교사 각자의 구글 시트 웹앱(Apps Script) URL로 데이터를 안전하게 분리 저장
+// - 오프라인/미로그인 시 로컬 대기열에 안전하게 쌓고, 재로그인 시 일괄 자동 전송
+// ===================================================================
+var CloudSheetSync = (function () {
+  var AUTH_KEY = 'tong_google_auth';
+  var SHEET_URL_KEY = 'tong_gsheet_url';
+  var PENDING_KEY = 'tong_pending_sync_v1';
+  var LAST_SYNC_KEY = 'tong_last_sync_time';
+  var autoSyncTimer = null;
+  var isSyncing = false;
+
+  function el(id) { return document.getElementById(id); }
+
+  function getAuth() {
+    try {
+      var item = localStorage.getItem(AUTH_KEY);
+      return item ? JSON.parse(item) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setAuth(data) {
+    try {
+      if (data) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(data));
+      } else {
+        localStorage.removeItem(AUTH_KEY);
+      }
+    } catch (e) {}
+  }
+
+  function getSheetUrl() {
+    try {
+      return localStorage.getItem(SHEET_URL_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setSheetUrl(url) {
+    try {
+      if (url) localStorage.setItem(SHEET_URL_KEY, url);
+      else localStorage.removeItem(SHEET_URL_KEY);
+    } catch (e) {}
+  }
+
+  function getPending() {
+    try {
+      var p = localStorage.getItem(PENDING_KEY);
+      return p ? JSON.parse(p) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function savePending(list) {
+    try {
+      localStorage.setItem(PENDING_KEY, JSON.stringify(list || []));
+    } catch (e) {}
+  }
+
+  function parseJwt(token) {
+    try {
+      var base64Url = token.split('.')[1];
+      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function metaClientId() {
+    var node = document.querySelector('meta[name="google-oauth-client-id"]');
+    return node ? String(node.content || '').trim() : '';
+  }
+
+  function updateUI() {
+    var auth = getAuth();
+    var sheetUrl = getSheetUrl();
+    var pending = getPending();
+    var lastSync = localStorage.getItem(LAST_SYNC_KEY);
+
+    var badge = el('headerSyncBtn');
+    var badgeText = el('headerSyncText');
+    var avatar = el('syncUserAvatar');
+    var nameEl = el('syncUserName');
+    var emailEl = el('syncUserEmail');
+    var permBadge = el('syncPermBadge');
+    var loginSec = el('syncLoginSection');
+    var logoutBtn = el('syncLogoutBtn');
+    var stateText = el('syncStateText');
+    var lastTimeText = el('syncLastTimeText');
+    var pendingText = el('syncPendingCountText');
+    var urlInput = el('tongSheetUrlInput');
+
+    if (urlInput && !urlInput.value && sheetUrl) {
+      urlInput.value = sheetUrl;
+    }
+
+    if (pendingText) {
+      pendingText.textContent = pending.length + '건';
+    }
+
+    if (lastTimeText) {
+      lastTimeText.textContent = lastSync ? new Date(parseInt(lastSync, 10)).toLocaleTimeString('ko-KR') : '기록 없음';
+    }
+
+    if (isSyncing) {
+      if (badge) {
+        badge.className = 'header-sync-btn sync-busy';
+      }
+      if (badgeText) badgeText.textContent = '동기화 중...';
+      if (stateText) stateText.textContent = '클라우드 동기화 진행 중...';
+      return;
+    }
+
+    if (auth && auth.email) {
+      // 영구 로그인 활성 상태
+      if (permBadge) permBadge.hidden = false;
+      if (loginSec) loginSec.hidden = true;
+      if (logoutBtn) logoutBtn.hidden = false;
+
+      if (avatar) {
+        if (auth.picture) {
+          avatar.innerHTML = '<img src="' + auth.picture + '" alt="프로필" referrerpolicy="no-referrer">';
+        } else {
+          avatar.textContent = (auth.name || 'G').charAt(0);
+        }
+      }
+      if (nameEl) nameEl.textContent = auth.name || '선생님';
+      if (emailEl) emailEl.textContent = auth.email;
+
+      if (sheetUrl) {
+        if (badge) badge.className = 'header-sync-btn sync-online';
+        if (badgeText) badgeText.textContent = (auth.name ? auth.name + 'T' : 'Google') + ' | 동기화 켜짐';
+        if (stateText) stateText.textContent = '정상 동기화 (영구 유지)';
+      } else {
+        if (badge) badge.className = 'header-sync-btn sync-offline';
+        if (badgeText) badgeText.textContent = (auth.name ? auth.name + 'T' : 'Google') + ' | 시트 등록 필요';
+        if (stateText) stateText.textContent = '시트 웹앱 URL 입력 필요';
+      }
+    } else {
+      // 로컬 단독 / 미로그인 상태
+      if (permBadge) permBadge.hidden = true;
+      if (loginSec) loginSec.hidden = false;
+      if (logoutBtn) logoutBtn.hidden = true;
+
+      if (avatar) {
+        avatar.innerHTML = 'G';
+      }
+      if (nameEl) nameEl.textContent = '로컬 저장 모드';
+      if (emailEl) emailEl.textContent = 'Google 로그인 시 자동 동기화';
+
+      if (badge) badge.className = 'header-sync-btn sync-offline';
+      if (badgeText) {
+        badgeText.textContent = pending.length > 0 ? ('로컬 모드 (' + pending.length + '건)') : 'Google 연동';
+      }
+      if (stateText) {
+        stateText.textContent = '로컬 단독 모드 (미로그인)';
+      }
+      renderGoogleButton();
+    }
+  }
+
+  function renderGoogleButton() {
+    var container = el('googleBtnContainer');
+    if (!container) return;
+    if (window.google && google.accounts && google.accounts.id) {
+      try {
+        container.innerHTML = '';
+        google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'pill',
+          locale: 'ko',
+          width: 260
+        });
+      } catch (e) {
+        console.warn('GIS renderButton error:', e);
+      }
+    }
+  }
+
+  function handleCredential(res) {
+    if (!res || !res.credential) return;
+    var payload = parseJwt(res.credential);
+    if (!payload || !payload.email) {
+      showToast('구글 로그인 토큰을 분석하지 못했습니다.', 'error');
+      return;
+    }
+    var auth = {
+      email: payload.email,
+      name: payload.name || payload.email.split('@')[0],
+      picture: payload.picture || '',
+      sub: payload.sub || '',
+      loggedInAt: Date.now()
+    };
+    setAuth(auth);
+    updateUI();
+    showToast(auth.name + ' 선생님 계정으로 로그인되었습니다 (영구 유지).', 'success');
+
+    if (getSheetUrl()) {
+      syncNow(false);
+    }
+  }
+
+  function initGIS() {
+    var clientId = metaClientId() || '777531321307-609ro9rson4sqjqakvjjogib885u26n3.apps.googleusercontent.com';
+    function setup() {
+      if (!window.google || !google.accounts || !google.accounts.id) return;
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        if (!getAuth()) {
+          renderGoogleButton();
+        }
+      } catch (e) {
+        console.warn('Google Identity initialize error:', e);
+      }
+    }
+
+    if (window.google && google.accounts && google.accounts.id) {
+      setup();
+    } else {
+      var checkCount = 0;
+      var interval = setInterval(function () {
+        checkCount++;
+        if (window.google && google.accounts && google.accounts.id) {
+          clearInterval(interval);
+          setup();
+        } else if (checkCount > 30) {
+          clearInterval(interval);
+        }
+      }, 300);
+    }
+  }
+
+  function queueRecord(item) {
+    if (!item) return;
+    var list = getPending();
+    list.push(item);
+    savePending(list);
+    updateUI();
+
+    if (getAuth() && getSheetUrl()) {
+      if (autoSyncTimer) clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(function () {
+        syncNow(false);
+      }, 4000);
+    }
+  }
+
+  function collectCurrentClassRecords() {
+    var records = [];
+    var nowStr = formatDate(new Date());
+
+    for (var i = 0; i < MAX_CLASSES; i++) {
+      var d = allClassData[i];
+      if (!d) continue;
+      var cName = d.className || ((i + 1) + '반');
+      if (Array.isArray(d.specialNotes)) {
+        d.specialNotes.forEach(function (sn) {
+          records.push({
+            timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
+            studentId: sn.studentId || '',
+            studentName: sn.studentName || '',
+            category: '관찰/' + (sn.category || '수업'),
+            detail: '[' + cName + (sn.subject ? ' ' + sn.subject : '') + '] ' + (sn.content || ''),
+            memo: ''
+          });
+        });
+      }
+
+      if (d.attendance) {
+        var dates = Object.keys(d.attendance);
+        dates.forEach(function (dk) {
+          var attObj = d.attendance[dk] || {};
+          var rzObj = (d.attendReasons && d.attendReasons[dk]) || {};
+          var memObj = (d.attendMemos && d.attendMemos[dk]) || {};
+          (d.students || []).forEach(function (s) {
+            var state = attObj[s.id];
+            if (state && state !== '출석') {
+              var rz = rzObj[s.id] || '';
+              var mm = memObj[s.id] || '';
+              records.push({
+                timestamp: dk + ' 09:00:00',
+                studentId: s.id || '',
+                studentName: s.name || '',
+                category: '출결',
+                detail: '[' + cName + '] ' + state + (rz ? ' (' + rz + ')' : ''),
+                memo: mm
+              });
+            }
+          });
+        });
+      }
+    }
+
+    return records;
+  }
+
+  async function syncNow(manual) {
+    var sheetUrl = getSheetUrl();
+    if (!sheetUrl) {
+      if (manual) {
+        showToast('동기화할 구글 시트 웹앱 URL을 먼저 입력하고 저장해 주세요.', 'error');
+        toggleMenu(true);
+      }
+      return;
+    }
+
+    var auth = getAuth();
+    isSyncing = true;
+    updateUI();
+
+    try {
+      var pending = getPending();
+      var classRecords = collectCurrentClassRecords();
+      var allItems = pending.concat(classRecords);
+
+      var seen = {};
+      var uniqueItems = [];
+      for (var k = 0; k < allItems.length; k++) {
+        var it = allItems[k];
+        var key = (it.timestamp || '') + '_' + (it.studentId || '') + '_' + (it.category || '') + '_' + (it.detail || '');
+        if (!seen[key]) {
+          seen[key] = true;
+          uniqueItems.push(it);
+        }
+      }
+
+      var payload = {
+        action: 'sync_tong_notebook',
+        userEmail: auth ? auth.email : '',
+        userName: auth ? auth.name : '',
+        items: uniqueItems
+      };
+
+      var res = await fetch(sheetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      var data = null;
+      try { data = await res.json(); } catch (e) {}
+
+      if (res.ok || (data && data.success)) {
+        savePending([]);
+        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+        isSyncing = false;
+        updateUI();
+        if (manual) {
+          showToast('구글 시트와 동기화가 성공적으로 완료되었습니다 (' + uniqueItems.length + '건).', 'success');
+        }
+      } else {
+        throw new Error(data && data.message ? data.message : '동기화 응답 실패');
+      }
+    } catch (err) {
+      console.warn('Sync error:', err);
+      isSyncing = false;
+      updateUI();
+      if (manual) {
+        showToast('구글 시트 연결 실패: URL 및 Apps Script 권한을 확인해 주세요.', 'error');
+      }
+    }
+  }
+
+  function toggleMenu(forceOpen) {
+    var menu = el('headerSyncMenu');
+    var btn = el('headerSyncBtn');
+    if (!menu) return;
+    var isOpen = !menu.hidden;
+    var target = (typeof forceOpen === 'boolean') ? forceOpen : !isOpen;
+    menu.hidden = !target;
+    if (btn) btn.setAttribute('aria-expanded', String(target));
+    if (target) {
+      updateUI();
+    }
+  }
+
+  function logout() {
+    if (confirm('Google 계정 연동을 해제하시겠습니까?\n(로컬에 저장된 자리배치와 명렬표는 안전하게 보존됩니다.)')) {
+      setAuth(null);
+      updateUI();
+      showToast('로그아웃되었습니다. 로컬 저장 모드로 전환됩니다.', 'info');
+    }
+  }
+
+  function init() {
+    var btn = el('headerSyncBtn');
+    if (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMenu();
+      });
+    }
+
+    var menu = el('headerSyncMenu');
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+    }
+
+    document.addEventListener('click', function () {
+      var m = el('headerSyncMenu');
+      if (m && !m.hidden) toggleMenu(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var m = el('headerSyncMenu');
+        if (m && !m.hidden) toggleMenu(false);
+      }
+    });
+
+    var saveUrlBtn = el('tongSheetUrlSaveBtn');
+    if (saveUrlBtn) {
+      saveUrlBtn.addEventListener('click', function () {
+        var input = el('tongSheetUrlInput');
+        var url = input ? input.value.trim() : '';
+        if (url && !/^https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_\-]+\/exec/.test(url)) {
+          alert('구글 Apps Script 웹앱 배포 URL 형식이 아닙니다.\nhttps://script.google.com/macros/s/.../exec 주소를 입력해 주세요.');
+          return;
+        }
+        setSheetUrl(url);
+        showToast('구글 시트 웹앱 URL이 저장되었습니다.', 'success');
+        updateUI();
+        if (url) {
+          syncNow(true);
+        }
+      });
+    }
+
+    var manualBtn = el('syncManualNowBtn');
+    if (manualBtn) {
+      manualBtn.addEventListener('click', function () {
+        syncNow(true);
+      });
+    }
+
+    var logoutBtn = el('syncLogoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', logout);
+    }
+
+    updateUI();
+    initGIS();
+  }
+
+  return {
+    init: init,
+    getAuth: getAuth,
+    getSheetUrl: getSheetUrl,
+    setSheetUrl: setSheetUrl,
+    queueRecord: queueRecord,
+    syncNow: syncNow,
+    updateUI: updateUI
+  };
+})();
+
 // ===== 초기화 =====
 document.addEventListener('DOMContentLoaded', function() {
   initAllClassData();
@@ -112,6 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
   UsageStats.init();
   ScheduleCalendar.init();
   GoogleCalendarSync.init();
+  CloudSheetSync.init();
   AiAssistant.init();
 
   initSettingsTabs();
@@ -3129,6 +3604,12 @@ function saveToLocalStorage() {
     allClassData: allClassData,
     currentClassIndex: currentClassIndex
   }));
+  if (typeof CloudSheetSync !== 'undefined' && CloudSheetSync.getAuth() && CloudSheetSync.getSheetUrl()) {
+    if (saveToLocalStorage._timer) clearTimeout(saveToLocalStorage._timer);
+    saveToLocalStorage._timer = setTimeout(function () {
+      CloudSheetSync.syncNow(false);
+    }, 4000);
+  }
 }
 
 function loadFromLocalStorage() {
