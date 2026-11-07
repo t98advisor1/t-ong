@@ -2,11 +2,21 @@
 body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f0f2f5; min-height: 100vh; }
 
 /* 헤더 */
-.app-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.app-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-height: 52px;
+}
 .header-left { display: flex; align-items: center; gap: 12px; }
 .header-left h1 { font-size: 1.4rem; }
 .version { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; }
-.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; flex-shrink: 0; }
 .header-right select, .header-right input { padding: 8px 12px; border: none; border-radius: 8px; font-size: 0.9rem; }
 
 /* 버튼 */
@@ -3372,4 +3382,106 @@ html[data-theme] .header-sync-menu {
   align-items: center;
   gap: 8px;
   margin-top: 2px;
+}
+
+
+/* ===================================================================
+   Galaxy Tab S7 / Tablet 1-Line Header & Theme Menu in Help Box
+   =================================================================== */
+.mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mode-tabs::-webkit-scrollbar { display: none; }
+
+.header-class-tools select {
+  max-width: 120px;
+  padding: 5px 8px;
+  font-size: 0.82rem;
+}
+.header-roster-btn {
+  padding: 5px 9px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.header-sync-btn {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.header-help {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.help-menu {
+  min-width: 330px;
+  max-width: 92vw;
+}
+.help-theme-box {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.help-theme-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.help-theme-title small {
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.theme-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.theme-menu-grid .theme-choice {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 7px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--tong-surface, #ffffff);
+  color: var(--tong-text, #1e293b);
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.theme-menu-grid .theme-choice .theme-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.theme-menu-grid .theme-choice[aria-pressed="true"] {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+  font-weight: 800;
+  color: #1d4ed8;
+}
+.help-menu-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 8px 0;
 }

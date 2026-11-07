@@ -65,14 +65,7 @@
           </div>
         </div>
         <button type="button" class="mode-tab" id="calendarBtn">📅 일정관리</button>
-        <div class="more-wrap ai-wrap">
-          <button type="button" class="mode-tab" id="aiMenuBtn" aria-haspopup="true" aria-expanded="false">🤖 AI ▾</button>
-          <div class="more-menu ai-menu" id="aiMenu">
-            <button type="button" data-ai-open>🤖 AI 비서 열기</button>
-            <button type="button" id="aiGuideOpenBtn">📘 AI 활용 안내</button>
-            <a href="https://gemini.google.com/gem/6aafa9cba56f" target="_blank" rel="noopener noreferrer">💬 담임 5분 멘트 <small>Gemini</small></a>
-          </div>
-        </div>
+
         <div class="more-wrap">
           <button type="button" class="mode-tab" id="favBtn">🔖 즐겨찾기 ▾</button>
           <div class="more-menu fav-menu" id="favMenu">
@@ -259,23 +252,27 @@
         </div>
       </div>
 
-      <div class="header-theme-wrap">
-        <button type="button" id="themeBtn" class="header-theme" aria-expanded="false">🎨 테마 ▾</button>
-        <div id="themeMenu" class="theme-menu" role="group" aria-label="화면 테마 선택">
-          <button type="button" class="theme-choice" data-theme="botanical" aria-pressed="false"><span class="theme-swatch botanical"></span><span><b>초록 식물도감</b><small>기본 · 차분한 보태니컬 종이</small></span></button>
-          <button type="button" class="theme-choice" data-theme="classic" aria-pressed="false"><span class="theme-swatch classic"></span><span><b>T-ong 클래식</b><small>깔끔한 기본 보라</small></span></button>
-          <button type="button" class="theme-choice" data-theme="romance" aria-pressed="false"><span class="theme-swatch romance"></span><span><b>순정만화</b><small>핑크와 하늘빛 감성</small></span></button>
-          <button type="button" class="theme-choice" data-theme="cute" aria-pressed="false"><span class="theme-swatch cute"></span><span><b>몽글 스티커</b><small>발랄한 문구점 컬러</small></span></button>
-          <button type="button" class="theme-choice" data-theme="waterblue" aria-pressed="false"><span class="theme-swatch waterblue"></span><span><b>물빛 산책</b><small>맑은 수채화 블루</small></span></button>
-          <button type="button" class="theme-choice" data-theme="forestletter" aria-pressed="false"><span class="theme-swatch forestletter"></span><span><b>초록 숲편지</b><small>연초록 종이와 식물</small></span></button>
-          <button type="button" class="theme-choice" data-theme="night" aria-pressed="false"><span class="theme-swatch night"></span><span><b>별빛 야간</b><small>눈이 편한 네이비</small></span></button>
-          <button type="button" class="theme-choice" data-theme="campus" aria-pressed="false"><span class="theme-swatch campus"></span><span><b>맑은 교정</b><small>하늘빛 수채화 학교</small></span></button>
-          <button type="button" class="theme-choice" data-theme="teacherdesk" aria-pressed="false"><span class="theme-swatch teacherdesk"></span><span><b>포근한 교사 책상</b><small>커피와 문구의 온기</small></span></button>
-        </div>
-      </div>
       <div class="header-help-wrap">
-        <button type="button" id="helpBtn" class="header-help">❓ 도움말 ▾</button>
+        <button type="button" id="helpBtn" class="header-help">❓ 설정·도움말 ▾</button>
         <div id="helpMenu" class="help-menu">
+          <div class="help-theme-box">
+            <div class="help-theme-title">
+              <span>🎨 화면 테마</span>
+              <small id="currentThemeName">초록 식물도감</small>
+            </div>
+            <div id="themeMenu" class="theme-menu-grid" role="group" aria-label="화면 테마 선택">
+              <button type="button" class="theme-choice" data-theme="botanical" aria-pressed="false"><span class="theme-swatch botanical"></span><span><b>초록 식물도감</b></span></button>
+              <button type="button" class="theme-choice" data-theme="classic" aria-pressed="false"><span class="theme-swatch classic"></span><span><b>T-ong 클래식</b></span></button>
+              <button type="button" class="theme-choice" data-theme="romance" aria-pressed="false"><span class="theme-swatch romance"></span><span><b>순정만화</b></span></button>
+              <button type="button" class="theme-choice" data-theme="cute" aria-pressed="false"><span class="theme-swatch cute"></span><span><b>몽글 스티커</b></span></button>
+              <button type="button" class="theme-choice" data-theme="waterblue" aria-pressed="false"><span class="theme-swatch waterblue"></span><span><b>물빛 산책</b></span></button>
+              <button type="button" class="theme-choice" data-theme="forestletter" aria-pressed="false"><span class="theme-swatch forestletter"></span><span><b>초록 숲편지</b></span></button>
+              <button type="button" class="theme-choice" data-theme="night" aria-pressed="false"><span class="theme-swatch night"></span><span><b>별빛 야간</b></span></button>
+              <button type="button" class="theme-choice" data-theme="campus" aria-pressed="false"><span class="theme-swatch campus"></span><span><b>맑은 교정</b></span></button>
+              <button type="button" class="theme-choice" data-theme="teacherdesk" aria-pressed="false"><span class="theme-swatch teacherdesk"></span><span><b>포근한 교사 책상</b></span></button>
+            </div>
+          </div>
+          <div class="help-menu-divider"></div>
           <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.73</small></button>
           <button type="button" data-help="updates">✨ 업데이트 사항</button>
           <button type="button" data-help="support">💜 개발자 응원하기 <small>응원 한마디</small></button>
