@@ -360,19 +360,47 @@ var CloudSheetSync = (function () {
       var d = allClassData[i];
       if (!d) continue;
       var cName = d.className || ((i + 1) + '반');
+      var studentMap = {};
+      (d.students || []).forEach(function (s) {
+        studentMap[String(s.id)] = s.name || '';
+      });
+
+      // 1) 특별 관찰 기록 (학생 세특용 관찰 메모)
       if (Array.isArray(d.specialNotes)) {
         d.specialNotes.forEach(function (sn) {
-          records.push({
-            timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
-            studentId: sn.studentId || '',
-            studentName: sn.studentName || '',
-            category: '관찰/' + (sn.category || '수업'),
-            detail: '[' + cName + (sn.subject ? ' ' + sn.subject : '') + '] ' + (sn.content || ''),
-            memo: ''
-          });
+          var sName = sn.studentName || studentMap[String(sn.studentId)] || '';
+          if (sn.content) {
+            records.push({
+              timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
+              studentId: sn.studentId || '',
+              studentName: sName,
+              subject: sn.subject || '',
+              category: sn.category || '수업관찰',
+              detail: sn.content,
+              memo: sn.subject ? ('과목: ' + sn.subject + ' (' + cName + ')') : cName
+            });
+          }
         });
       }
 
+      // 2) 학생별 일반 관찰 메모 (studentMemos)
+      if (d.studentMemos) {
+        Object.keys(d.studentMemos).forEach(function (sid) {
+          var memoText = String(d.studentMemos[sid] || '').trim();
+          if (memoText) {
+            records.push({
+              timestamp: nowStr + ' 12:00:00',
+              studentId: sid,
+              studentName: studentMap[String(sid)] || '',
+              category: '학생관찰',
+              detail: memoText,
+              memo: cName
+            });
+          }
+        });
+      }
+
+      // 3) 출결 기록
       if (d.attendance) {
         var dates = Object.keys(d.attendance);
         dates.forEach(function (dk) {
