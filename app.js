@@ -257,25 +257,106 @@ var CloudSheetSync = (function () {
       }
       renderGoogleButton();
     }
+
+    updateCalendarSyncSubUI(auth);
+  }
+
+  function updateCalendarSyncSubUI(auth) {
+    var calAccText = el('syncCalAccountText');
+    var calBadge = el('syncCalModeBadge');
+    var useMainBtn = el('syncUseMainCalAccountBtn');
+    var connectNowBtn = el('syncCalConnectNowBtn');
+    if (!calAccText) return;
+
+    if (typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.getAccountSummary) {
+      var info = GoogleCalendarSync.getAccountSummary();
+      if (info.customCalAccount) {
+        if (calBadge) {
+          calBadge.textContent = '캘린더 별도 계정';
+          calBadge.style.background = '#fef3c7';
+          calBadge.style.color = '#92400e';
+        }
+        if (useMainBtn) useMainBtn.hidden = !(auth && auth.email && info.email !== auth.email);
+      } else {
+        if (calBadge) {
+          calBadge.textContent = '통합 연동';
+          calBadge.style.background = '#e0e7ff';
+          calBadge.style.color = '#3730a3';
+        }
+        if (useMainBtn) useMainBtn.hidden = true;
+      }
+
+      if (info.connected && info.email) {
+        calAccText.innerHTML = '연결된 캘린더: <b>' + info.email + '</b> (' + (info.customCalAccount ? '별도 지정 계정' : '기본 계정 통합') + ')';
+        if (connectNowBtn) connectNowBtn.textContent = '캘린더 지금 동기화';
+      } else if (info.email) {
+        calAccText.innerHTML = '캘린더 대상 계정: <b>' + info.email + '</b> · <span style="color:#b45309;">권한 연결 대기</span>';
+        if (connectNowBtn) connectNowBtn.textContent = '캘린더 권한 연결';
+      } else if (auth && auth.email) {
+        calAccText.innerHTML = '기본 계정(<b>' + auth.email + '</b>)으로 캘린더 통합 연동 가능';
+        if (connectNowBtn) connectNowBtn.textContent = '캘린더 연결 · 동기화';
+      } else {
+        calAccText.textContent = 'Google 로그인 한 번으로 교무수첩과 캘린더가 함께 동기화됩니다.';
+        if (connectNowBtn) connectNowBtn.textContent = '캘린더 연결';
+      }
+    }
   }
 
   function renderGoogleButton() {
     var container = el('googleBtnContainer');
     if (!container) return;
+    container.innerHTML = '';
+
+    // 1순위: 한 번의 클릭으로 교무수첩 영구 로그인 + Google 캘린더 OAuth 토큰을 동시에 획득하는 통합 로그인 버튼
+    var unifiedBtn = document.createElement('button');
+    unifiedBtn.type = 'button';
+    unifiedBtn.className = 'btn';
+    unifiedBtn.style.cssText = 'width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; font-weight:700; font-size:0.86rem; border-radius:999px; background:#ffffff; color:#1f2937; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.08); cursor:pointer; margin-bottom:6px;';
+    unifiedBtn.innerHTML = '<span style="font-weight:900; color:#4285F4; font-size:1rem;">G</span><span>Google 통합 로그인 (교무수첩·캘린더 동시 연동)</span>';
+    unifiedBtn.addEventListener('click', function () {
+      if (typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.loginUnified) {
+        GoogleCalendarSync.loginUnified();
+      }
+    });
+    container.appendChild(unifiedBtn);
+
+    var gisWrap = document.createElement('div');
+    gisWrap.style.cssText = 'display:flex; justify-content:center;';
+    container.appendChild(gisWrap);
+
     if (window.google && google.accounts && google.accounts.id) {
       try {
-        container.innerHTML = '';
-        google.accounts.id.renderButton(container, {
+        google.accounts.id.renderButton(gisWrap, {
           theme: 'outline',
-          size: 'large',
+          size: 'medium',
           text: 'signin_with',
           shape: 'pill',
           locale: 'ko',
-          width: 260
+          width: 240
         });
       } catch (e) {
         console.warn('GIS renderButton error:', e);
       }
+    }
+  }
+
+  function setUnifiedAuthFromUser(user, triggerCalendarSync) {
+    if (!user || !user.email) return;
+    var existing = getAuth();
+    var auth = {
+      email: user.email,
+      name: user.name || (existing && existing.name) || user.email.split('@')[0],
+      picture: user.picture || (existing && existing.picture) || '',
+      sub: user.sub || (existing && existing.sub) || '',
+      loggedInAt: Date.now()
+    };
+    setAuth(auth);
+    updateUI();
+    if (getSheetUrl()) {
+      syncNow(false);
+    }
+    if (triggerCalendarSync && typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.syncWithAccount) {
+      GoogleCalendarSync.syncWithAccount(auth.email, auth.sub);
     }
   }
 
@@ -295,7 +376,7 @@ var CloudSheetSync = (function () {
     };
     setAuth(auth);
     updateUI();
-    showToast(auth.name + ' 선생님 계정으로 로그인되었습니다 (영구 유지).', 'success');
+    showToast(auth.name + ' 선생님 계정으로 로그인되었습니다 (캘린더 자동 연동 진행).', 'success');
 
     // 기본 Google 계정으로 일정관리 캘린더 자동 동기화 연동
     if (typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.syncWithAccount) {
@@ -379,6 +460,7 @@ var CloudSheetSync = (function () {
               timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
               studentId: sn.studentId || '',
               studentName: sName,
+              className: cName,
               subject: sn.subject || '',
               category: sn.category || '수업관찰',
               detail: sn.content,
@@ -397,6 +479,7 @@ var CloudSheetSync = (function () {
               timestamp: nowStr + ' 12:00:00',
               studentId: sid,
               studentName: studentMap[String(sid)] || '',
+              className: cName,
               category: '학생관찰',
               detail: memoText,
               memo: cName
@@ -405,7 +488,7 @@ var CloudSheetSync = (function () {
         });
       }
 
-      // 3) 출결 기록
+      // 3) 출결 기록 (8_출결_칭찬_기록 연동)
       if (d.attendance) {
         var dates = Object.keys(d.attendance);
         dates.forEach(function (dk) {
@@ -421,12 +504,50 @@ var CloudSheetSync = (function () {
                 timestamp: dk + ' 09:00:00',
                 studentId: s.id || '',
                 studentName: s.name || '',
+                className: cName,
                 category: '출결',
-                detail: '[' + cName + '] ' + state + (rz ? ' (' + rz + ')' : ''),
-                memo: mm
+                detail: state + (rz ? ' (' + rz + ')' : ''),
+                memo: mm || (cName + ' 출결 기록')
               });
             }
           });
+        });
+      }
+
+      // 4) 칭찬 포인트 기록 (8_출결_칭찬_기록 & 3_창체_행특 연동)
+      if (d.praise) {
+        Object.keys(d.praise).forEach(function (sid) {
+          var score = Number(d.praise[sid]) || 0;
+          if (score > 0) {
+            var stgLabel = score >= 10 ? '닭 단계' : (score >= 5 ? '병아리 단계' : '부화 중 단계');
+            records.push({
+              timestamp: nowStr + ' 15:00:00',
+              studentId: sid,
+              studentName: studentMap[String(sid)] || '',
+              className: cName,
+              category: '칭찬',
+              detail: '+' + score + '점 (' + stgLabel + ')',
+              memo: cName + ' 칭찬 포인트 누적 ' + score + '점'
+            });
+          }
+        });
+      }
+
+      // 5) 1인 1역 학급역할 기록 (8_출결_칭찬_기록 & 3_창체_행특 자율활동 연동)
+      if (d.duties) {
+        Object.keys(d.duties).forEach(function (sid) {
+          var roleName = String(d.duties[sid] || '').trim();
+          if (roleName) {
+            records.push({
+              timestamp: nowStr + ' 09:00:00',
+              studentId: sid,
+              studentName: studentMap[String(sid)] || '',
+              className: cName,
+              category: '학급역할',
+              detail: '1인1역: ' + roleName,
+              memo: cName + ' 학급 1인1역 역할 수행 (' + roleName + ')'
+            });
+          }
         });
       }
     }
@@ -572,6 +693,44 @@ var CloudSheetSync = (function () {
     if (manualBtn) {
       manualBtn.addEventListener('click', function () {
         syncNow(true);
+        if (typeof GoogleCalendarSync !== 'undefined') {
+          if (GoogleCalendarSync.validToken && GoogleCalendarSync.validToken()) {
+            GoogleCalendarSync.syncNow(false);
+          } else if (GoogleCalendarSync.connect) {
+            GoogleCalendarSync.connect(true);
+          }
+        }
+      });
+    }
+
+    var calConnectNowBtn = el('syncCalConnectNowBtn');
+    if (calConnectNowBtn) {
+      calConnectNowBtn.addEventListener('click', function () {
+        if (typeof GoogleCalendarSync !== 'undefined') {
+          if (GoogleCalendarSync.validToken && GoogleCalendarSync.validToken()) {
+            GoogleCalendarSync.syncNow(false);
+          } else {
+            GoogleCalendarSync.connect(false);
+          }
+        }
+      });
+    }
+
+    var switchCalBtn = el('syncSwitchCalAccountBtn');
+    if (switchCalBtn) {
+      switchCalBtn.addEventListener('click', function () {
+        if (typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.switchCalendarAccountOnly) {
+          GoogleCalendarSync.switchCalendarAccountOnly();
+        }
+      });
+    }
+
+    var useMainCalBtn = el('syncUseMainCalAccountBtn');
+    if (useMainCalBtn) {
+      useMainCalBtn.addEventListener('click', function () {
+        if (typeof GoogleCalendarSync !== 'undefined' && GoogleCalendarSync.useMainAccountForCalendar) {
+          GoogleCalendarSync.useMainAccountForCalendar();
+        }
       });
     }
 
@@ -587,15 +746,16 @@ var CloudSheetSync = (function () {
     if (existingAuth && existingAuth.email && typeof GoogleCalendarSync !== 'undefined') {
       setTimeout(function () {
         if (GoogleCalendarSync.syncWithAccount) {
-          GoogleCalendarSync.syncWithAccount(existingAuth.email, existingAuth.sub);
+          GoogleCalendarSync.syncWithAccount(existingAuth.email, existingAuth.sub, true);
         }
-      }, 1200);
+      }, 900);
     }
   }
 
   return {
     init: init,
     getAuth: getAuth,
+    setUnifiedAuthFromUser: setUnifiedAuthFromUser,
     getSheetUrl: getSheetUrl,
     setSheetUrl: setSheetUrl,
     queueRecord: queueRecord,
@@ -5714,12 +5874,12 @@ var ScheduleCalendar = (function () {
 // ===================================================================
 var GoogleCalendarSync = (function () {
   var CONFIG_KEY='tongGoogleCalendarConfig_v1',STATE_KEY='tongGoogleCalendarSync_v1';
-  var SCOPES='openid email https://www.googleapis.com/auth/calendar.events.owned';
+  var SCOPES='openid email profile https://www.googleapis.com/auth/calendar.events.owned';
   var CALENDAR_ID='primary',SYNC_MODE='primary-v1';
   var API='https://www.googleapis.com/calendar/v3',USERINFO='https://openidconnect.googleapis.com/v1/userinfo';
   var token='',expiresAt=0,tokenClient=null,loadingPromise=null,syncing=false,timer=null,debounceTimer=null;
-  var chooseAccount=false,expiryNotified=false; // 연결 해제 후에는 계정 선택 창부터, 만료 안내는 한 번만
-  var config={clientId:'',activeAccountId:'',autoSync:true,includeConsult:false,includeMemo:false};
+  var chooseAccount=false,expiryNotified=false,calendarOnlyAuthMode=false; // calendarOnlyAuthMode=true 이면 캘린더만 다른 계정으로 변경
+  var config={clientId:'',activeAccountId:'',autoSync:true,includeConsult:false,includeMemo:false,customCalAccount:false};
   var accountStates={};
   function el(id){return document.getElementById(id);}
   function parse(value,fallback){try{var data=JSON.parse(value);return data&&typeof data==='object'?data:fallback;}catch(e){return fallback;}}
@@ -5728,40 +5888,55 @@ var GoogleCalendarSync = (function () {
     var stored={};try{stored=parse(localStorage.getItem(CONFIG_KEY)||'{}',{});accountStates=parse(localStorage.getItem(STATE_KEY)||'{}',{});}catch(e){}
     config.clientId=String(metaClientId()||stored.clientId||'').trim();config.activeAccountId=String(stored.activeAccountId||'');
     config.autoSync=stored.autoSync!==false;config.includeConsult=stored.includeConsult===true;config.includeMemo=stored.includeMemo===true;
+    config.customCalAccount=stored.customCalAccount===true;
   }
   function saveConfig(){try{localStorage.setItem(CONFIG_KEY,JSON.stringify(config));}catch(e){}}
   function saveStates(){try{localStorage.setItem(STATE_KEY,JSON.stringify(accountStates));}catch(e){}}
   function activeState(){return config.activeAccountId&&accountStates[config.activeAccountId]||null;}
   function ensureState(user){var id=String(user.sub||user.email||'');var state=accountStates[id]||{};state.accountId=id;state.email=user.email||state.email||'Google 계정';state.links=state.links||{};state.pendingDeletes=Array.isArray(state.pendingDeletes)?state.pendingDeletes:[];accountStates[id]=state;config.activeAccountId=id;saveConfig();saveStates();return state;}
   function validToken(){return !!token&&Date.now()<expiresAt-30000;}
-  function setBusy(value){syncing=value;var button=el('googleCalSyncBtn');if(button){button.disabled=!validToken()||value;button.textContent=value?'동기화 중…':'지금 양방향 동기화';}var full=el('googleCalFullSyncBtn');if(full)full.disabled=!validToken()||value;var connect=el('googleCalConnectBtn');if(connect)connect.disabled=value;}
+  function getAccountSummary(){
+    var st=activeState();
+    return {
+      connected: validToken(),
+      email: st && st.email ? st.email : '',
+      customCalAccount: !!config.customCalAccount
+    };
+  }
+  function setBusy(value){syncing=value;var button=el('googleCalSyncBtn');if(button){button.disabled=!validToken()||value;button.textContent=value?'동기화 중…':'지금 양방향 동기화';}var full=el('googleCalFullSyncBtn');if(full)full.disabled=!validToken()||value;var connect=el('googleCalConnectBtn');if(connect)connect.disabled=value;var sw=el('googleCalSwitchOnlyBtn');if(sw)sw.disabled=value;}
   function setStatus(text,kind,detail){var status=el('googleCalStatus'),badge=el('googleCalStateBadge'),summary=el('googleCalSummaryStatus');if(status)status.textContent=text;if(badge){badge.textContent=kind==='ok'?'연결됨':kind==='busy'?'동기화 중':kind==='error'?'확인 필요':'대기';badge.dataset.state=kind||'idle';}if(summary)summary.textContent=kind==='ok'?'연결됨':kind==='busy'?'동기화 중':kind==='error'?'확인 필요':'연결 안 됨';if(detail&&el('googleCalAccount'))el('googleCalAccount').textContent=detail;}
   function render(){
     var state=activeState(),connected=validToken();if(el('googleClientIdInput'))el('googleClientIdInput').value=config.clientId||'';
     if(el('googleCalAutoInput'))el('googleCalAutoInput').checked=config.autoSync;if(el('googleCalConsultInput'))el('googleCalConsultInput').checked=config.includeConsult;if(el('googleCalMemoInput'))el('googleCalMemoInput').checked=config.includeMemo;
-    if(el('googleCalConnectBtn'))el('googleCalConnectBtn').textContent=connected?'다른 Google 계정 연결':(quickHint()?'다시 연결 · '+quickHint():'Google 계정 연결');
+    var mainAuth=(typeof CloudSheetSync!=='undefined'&&CloudSheetSync.getAuth)?CloudSheetSync.getAuth():null;
+    var isDiffFromMain=!!(config.customCalAccount||(mainAuth&&mainAuth.email&&state&&state.email&&mainAuth.email!==state.email));
+    if(el('googleCalConnectBtn'))el('googleCalConnectBtn').textContent=connected?'통합 계정 다시 연결':(quickHint()?'통합 로그인 · '+quickHint():'Google 통합 로그인 · 연결');
+    var useMainBtn=el('googleCalUseMainBtn');
+    if(useMainBtn)useMainBtn.hidden=!isDiffFromMain||!(mainAuth&&mainAuth.email);
     var dev=el('googleCalDeveloperSettings');if(dev)dev.hidden=!!metaClientId()&&!/[?&]admin\b/.test(location.search);if(el('googleCalSyncBtn'))el('googleCalSyncBtn').disabled=!connected||syncing;if(el('googleCalFullSyncBtn'))el('googleCalFullSyncBtn').disabled=!connected||syncing;if(el('googleCalDisconnectBtn'))el('googleCalDisconnectBtn').disabled=!connected;
-    if(connected&&state)setStatus('Google 캘린더와 연결되었습니다.','ok',(state.email||'Google 계정')+' · '+(state.calendarName||'Google 기본 캘린더'));
+    var modeLabel=config.customCalAccount?'캘린더 별도 계정':'교무수첩 기본 계정 통합';
+    if(connected&&state)setStatus('Google 캘린더와 연결되었습니다.','ok',(state.email||'Google 계정')+' ('+modeLabel+') · '+(state.calendarName||'Google 기본 캘린더'));
     else if(!config.clientId)setStatus('앱 관리자 설정이 필요합니다.','error','OAuth 클라이언트 ID를 입력한 뒤 계정을 연결해 주세요.');
-    else setStatus('Google 계정을 연결해 주세요.','idle',state&&state.email?'최근 계정 · '+state.email:'로그인 계정의 Google 기본 캘린더와 양방향 동기화합니다.');
+    else setStatus('Google 계정을 연결해 주세요.','idle',state&&state.email?'대상 계정 · '+state.email+' ('+modeLabel+')':'Google 로그인 한 번으로 교무수첩과 캘린더가 함께 동기화됩니다.');
     var last=el('googleCalLastSync');if(last)last.textContent='마지막 동기화: '+(state&&state.lastSyncAt?new Date(state.lastSyncAt).toLocaleString('ko-KR'):'없음');
+    if(typeof CloudSheetSync!=='undefined'&&CloudSheetSync.updateUI)CloudSheetSync.updateUI();
   }
   function loadIdentity(){
     if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();if(loadingPromise)return loadingPromise;
     loadingPromise=new Promise(function(resolve,reject){var old=document.querySelector('script[data-tong-google-identity]');if(old){old.addEventListener('load',resolve,{once:true});old.addEventListener('error',function(){reject(new Error('Google 로그인 모듈을 불러오지 못했습니다.'));},{once:true});return;}var script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.defer=true;script.dataset.tongGoogleIdentity='1';script.onload=resolve;script.onerror=function(){reject(new Error('Google 로그인 모듈을 불러오지 못했습니다.'));};document.head.appendChild(script);});return loadingPromise;
   }
-  function initTokenClient(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:SCOPES,callback:function(response){if(response&&response.error){setStatus('Google 연결을 완료하지 못했습니다.','error',response.error_description||response.error);setBusy(false);return;}token=response.access_token||'';expiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;chooseAccount=false;expiryNotified=false;finishConnection().catch(handleError);}});}
+  function initTokenClient(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:config.clientId,scope:SCOPES,callback:function(response){if(response&&response.error){calendarOnlyAuthMode=false;setStatus('Google 연결을 완료하지 못했습니다.','error',response.error_description||response.error);setBusy(false);return;}token=response.access_token||'';expiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;chooseAccount=false;expiryNotified=false;finishConnection().catch(handleError);}});}
   // 예전에 연결한 계정이 있으면 계정 선택·동의 화면 없이 한 번에 다시 연결합니다.
   function quickHint(){
     var state=activeState();
     if (!chooseAccount&&state&&state.email&&state.email.indexOf('@')>0) return state.email;
-    if (typeof CloudSheetSync !== 'undefined') {
+    if (!config.customCalAccount && typeof CloudSheetSync !== 'undefined') {
       var ca = CloudSheetSync.getAuth();
       if (ca && ca.email && ca.email.indexOf('@') > 0) return ca.email;
     }
     return '';
   }
-  function connect(silent){
+  function connect(silent, forceSelectAccount){
     if(!config.clientId){
       var detail=el('googleCalDeveloperSettings');
       if(detail)detail.open=true;
@@ -5769,20 +5944,72 @@ var GoogleCalendarSync = (function () {
       if(!silent) showToast('Google OAuth 클라이언트 ID를 먼저 설정해 주세요','error');
       return;
     }
-    var hint=validToken()?'':quickHint();
+    var hint=(forceSelectAccount||validToken())?'':quickHint();
     if(silent && !hint) return;
     setBusy(true);
     setStatus('Google 로그인 창을 준비하고 있습니다.','busy','연결할 계정을 선택해 주세요.');
     loadIdentity().then(function(){
       initTokenClient();
-      tokenClient.requestAccessToken(hint?{prompt:'',login_hint:hint}:{prompt:'select_account'});
+      if (forceSelectAccount) {
+        tokenClient.requestAccessToken({prompt:'select_account'});
+      } else {
+        tokenClient.requestAccessToken(hint?{prompt:'',login_hint:hint}:{prompt:'select_account'});
+      }
     }).catch(function(err){
+      calendarOnlyAuthMode=false;
       if(!silent) handleError(err);
       else setBusy(false);
     });
   }
-  function syncWithAccount(email, sub){
+  // 교무수첩 + Google 캘린더 통합 1클릭 로그인
+  function loginUnified(){
+    calendarOnlyAuthMode = false;
+    config.customCalAccount = false;
+    saveConfig();
+    connect(false, false);
+  }
+  // 교무수첩 기본 계정은 유지하고 캘린더만 다른 Google 계정으로 변경
+  function switchCalendarAccountOnly(){
+    calendarOnlyAuthMode = true;
+    chooseAccount = true;
+    config.customCalAccount = true;
+    saveConfig();
+    showToast('캘린더에 연결할 별도 Google 계정을 선택해 주세요 (교무수첩 기본 계정은 유지됩니다).', 'info');
+    connect(false, true);
+  }
+  // 캘린더 계정을 다시 교무수첩 기본 계정으로 통일
+  function useMainAccountForCalendar(){
+    if (typeof CloudSheetSync === 'undefined' || !CloudSheetSync.getAuth) return;
+    var mainAuth = CloudSheetSync.getAuth();
+    if (!mainAuth || !mainAuth.email) {
+      showToast('먼저 교무수첩 기본 Google 계정으로 로그인해 주세요.', 'error');
+      return;
+    }
+    calendarOnlyAuthMode = false;
+    chooseAccount = false;
+    config.customCalAccount = false;
+    var id = String(mainAuth.sub || mainAuth.email);
+    config.activeAccountId = id;
+    if (!accountStates[id]) {
+      accountStates[id] = { accountId: id, email: mainAuth.email, links: {}, pendingDeletes: [] };
+    } else {
+      accountStates[id].email = mainAuth.email;
+    }
+    saveConfig();
+    saveStates();
+    token = '';
+    expiresAt = 0;
+    render();
+    showToast('캘린더 계정을 교무수첩 기본 계정(' + mainAuth.email + ')으로 통일합니다.', 'info');
+    connect(false, false);
+  }
+  function syncWithAccount(email, sub, passiveOnly){
     if (!email) return;
+    // 사용자가 캘린더 전용 별도 계정을 설정해 둔 경우 기본 계정 로그인으로 덮어쓰지 않음
+    if (config.customCalAccount && activeState() && activeState().email && activeState().email !== email) {
+      render();
+      return;
+    }
     var id = String(sub || email);
     config.activeAccountId = id;
     if (!accountStates[id]) {
@@ -5795,15 +6022,32 @@ var GoogleCalendarSync = (function () {
     render();
     if (validToken()) {
       syncNow(true);
-    } else {
-      connect(true);
+    } else if (!passiveOnly) {
+      connect(true, false);
     }
   }
   async function api(pathname,options){
     options=options||{};var headers=Object.assign({'Authorization':'Bearer '+token},options.headers||{});if(options.body)headers['Content-Type']='application/json';var response=await fetch(pathname.indexOf('http')===0?pathname:API+pathname,Object.assign({},options,{headers:headers}));
     if(response.status===204)return null;var body=null;try{body=await response.json();}catch(e){}if(!response.ok){var err=new Error(body&&body.error&&body.error.message||('Google API 오류 '+response.status));err.status=response.status;throw err;}return body;
   }
-  async function finishConnection(){var user=await api(USERINFO),state=ensureState(user);await ensureCalendar(state);setBusy(false);render();await syncNow(true);startTimer();}
+  async function finishConnection(){
+    var user=await api(USERINFO);
+    var isCalOnly = calendarOnlyAuthMode;
+    calendarOnlyAuthMode = false;
+    // 통합 로그인 모드이거나 아직 교무수첩 기본 계정이 없는 경우 교무수첩 로그인도 한 번에 완료
+    if (!isCalOnly && !config.customCalAccount && typeof CloudSheetSync !== 'undefined' && CloudSheetSync.setUnifiedAuthFromUser) {
+      CloudSheetSync.setUnifiedAuthFromUser(user, false);
+      showToast((user.name || user.email) + ' 계정으로 교무수첩 및 Google 캘린더가 동시 연결되었습니다.', 'success');
+    } else if (isCalOnly) {
+      showToast('Google 캘린더만 [' + (user.email || '별도 계정') + '] 계정으로 변경되었습니다.', 'success');
+    }
+    var state=ensureState(user);
+    await ensureCalendar(state);
+    setBusy(false);
+    render();
+    await syncNow(true);
+    startTimer();
+  }
   async function ensureCalendar(state){
     var migrated=state.calendarId!==CALENDAR_ID||state.syncMode!==SYNC_MODE;
     state.calendarId=CALENDAR_ID;state.calendarName='Google 기본 캘린더';state.syncMode=SYNC_MODE;
@@ -5869,8 +6113,8 @@ var GoogleCalendarSync = (function () {
   function saveClientId(){var input=el('googleClientIdInput'),value=String(input&&input.value||'').trim();if(value&&!/^[0-9A-Za-z._-]+\.apps\.googleusercontent\.com$/.test(value)){showToast('OAuth 클라이언트 ID 형식을 확인해 주세요','error');return;}config.clientId=value;tokenClient=null;saveConfig();render();showToast(value?'Google OAuth 클라이언트 ID를 저장했습니다':'클라이언트 ID를 비웠습니다');}
   function optionChanged(){config.autoSync=!!el('googleCalAutoInput').checked;config.includeConsult=!!el('googleCalConsultInput').checked;config.includeMemo=!!el('googleCalMemoInput').checked;saveConfig();startTimer();if(validToken())onLocalChanged();}
   function openPanel(){var panel=el('calGooglePanel');if(!panel)return;panel.open=!panel.open;render();if(panel.open)setTimeout(function(){panel.scrollIntoView({behavior:'smooth',block:'start'});},20);}
-  function init(){load();render();var connectButton=el('googleCalConnectBtn'),syncButton=el('googleCalSyncBtn'),fullSyncButton=el('googleCalFullSyncBtn'),disconnectButton=el('googleCalDisconnectBtn'),saveButton=el('googleClientIdSaveBtn');if(connectButton)connectButton.addEventListener('click',connect);if(syncButton)syncButton.addEventListener('click',function(){syncNow(false);});if(fullSyncButton)fullSyncButton.addEventListener('click',fullSync);if(disconnectButton)disconnectButton.addEventListener('click',disconnect);if(saveButton)saveButton.addEventListener('click',saveClientId);var helpButton=el('googleOAuthHelpBtn');if(helpButton)helpButton.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openModal('googleOAuthHelpModal');});['googleCalAutoInput','googleCalConsultInput','googleCalMemoInput'].forEach(function(id){var node=el(id);if(node)node.addEventListener('change',optionChanged);});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&validToken()&&config.autoSync)syncNow(true);});}
-  return{init:init,openPanel:openPanel,onLocalChanged:onLocalChanged,noteLocalDelete:noteLocalDelete,syncNow:syncNow,syncWithAccount:syncWithAccount,validToken:validToken,connect:connect};
+  function init(){load();render();var connectButton=el('googleCalConnectBtn'),switchOnlyButton=el('googleCalSwitchOnlyBtn'),useMainButton=el('googleCalUseMainBtn'),syncButton=el('googleCalSyncBtn'),fullSyncButton=el('googleCalFullSyncBtn'),disconnectButton=el('googleCalDisconnectBtn'),saveButton=el('googleClientIdSaveBtn');if(connectButton)connectButton.addEventListener('click',loginUnified);if(switchOnlyButton)switchOnlyButton.addEventListener('click',switchCalendarAccountOnly);if(useMainButton)useMainButton.addEventListener('click',useMainAccountForCalendar);if(syncButton)syncButton.addEventListener('click',function(){syncNow(false);});if(fullSyncButton)fullSyncButton.addEventListener('click',fullSync);if(disconnectButton)disconnectButton.addEventListener('click',disconnect);if(saveButton)saveButton.addEventListener('click',saveClientId);var helpButton=el('googleOAuthHelpBtn');if(helpButton)helpButton.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openModal('googleOAuthHelpModal');});['googleCalAutoInput','googleCalConsultInput','googleCalMemoInput'].forEach(function(id){var node=el(id);if(node)node.addEventListener('change',optionChanged);});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&validToken()&&config.autoSync)syncNow(true);});}
+  return{init:init,openPanel:openPanel,onLocalChanged:onLocalChanged,noteLocalDelete:noteLocalDelete,syncNow:syncNow,syncWithAccount:syncWithAccount,validToken:validToken,connect:connect,loginUnified:loginUnified,switchCalendarAccountOnly:switchCalendarAccountOnly,useMainAccountForCalendar:useMainAccountForCalendar,getAccountSummary:getAccountSummary};
 })();
 // ===================================================================
 // AI 비서 — 선생님 본인의 Claude API 키로 사이드바에서 대화하고 T-ong 기능을 실행합니다.

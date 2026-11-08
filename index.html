@@ -216,25 +216,28 @@
 
             <div class="sync-sheet-section">
               <div class="sync-field-label-row">
-                <label for="tongSheetUrlInput"><b>선생님 학생 세특 자료 시트 웹앱 URL (Apps Script)</b></label>
+                <label for="tongSheetUrlInput"><b>교사용 올인원 마스터 통합 시트 웹앱 URL (10개 탭 연동)</b></label>
+              </div>
+              <div style="font-size:0.75rem; color:#92400e; background:#fffbeb; border:1px solid #f59e0b; border-radius:6px; padding:6px 8px; margin:4px 0 6px; font-weight:700; line-height:1.45;">
+                [필수 권장] 마스터 시트 사본을 저장한 직후, 학생 정보를 입력하기 전에 먼저 Apps Script 연결부터 완료하세요!
               </div>
               <div class="sync-sheet-link-group" style="display:flex; gap:8px; margin:4px 0 8px; flex-wrap:wrap;">
-                <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; text-decoration:none;">교사용 올인원 마스터 통합 시트 사본 만들기 ↗</a>
+                <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; text-decoration:none;">1단계: 교사용 올인원 마스터 통합 시트 사본 만들기 ↗</a>
               </div>
               <div class="sync-input-group">
                 <input type="url" id="tongSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
                 <button type="button" id="tongSheetUrlSaveBtn" class="btn primary">저장</button>
               </div>
-              <p class="sync-help-text">선생님께서 복사하신 교사용 올인원 마스터 시트의 Apps Script 배포 웹앱 URL을 입력하시면 모바일 교무수첩의 관찰 기록이 세특 작성 탭(6_수업관찰_기록 및 7_AI세특_작성)으로 실시간 동기화됩니다.</p>
+              <p class="sync-help-text">선생님께서 복사하신 교사용 올인원 마스터 시트의 Apps Script 배포 웹앱 URL을 등록하시면, 수업 관찰은 <b>[6_수업관찰_기록 · 7_AI세특_작성]</b>으로, 출결·칭찬 포인트·1인1역·생활관찰은 <b>[8_출결_칭찬_기록 · 3_창체_행특]</b>으로 실시간 동기화됩니다.</p>
             </div>
 
             <div class="sync-status-box">
               <div class="sync-status-row">
-                <span>동기화 상태:</span>
+                <span>시트 동기화 상태:</span>
                 <strong id="syncStateText">로컬 단독 모드</strong>
               </div>
               <div class="sync-status-row">
-                <span>마지막 동기화:</span>
+                <span>마지막 시트 동기화:</span>
                 <span id="syncLastTimeText">기록 없음</span>
               </div>
               <div class="sync-status-row">
@@ -243,8 +246,25 @@
               </div>
             </div>
 
-            <div class="sync-card-actions">
-              <button type="button" id="syncManualNowBtn" class="btn primary">지금 즉시 동기화</button>
+            <div class="sync-section-divider" style="margin:10px 0;"></div>
+
+            <div class="sync-cal-section" style="background:rgba(15,23,42,0.03); border:1px solid rgba(148,163,184,0.28); border-radius:8px; padding:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                <strong style="font-size:0.8rem;">Google 캘린더 연동 (일정관리)</strong>
+                <span id="syncCalModeBadge" style="font-size:0.7rem; padding:2px 6px; border-radius:999px; background:#e0e7ff; color:#3730a3; font-weight:700;">통합 연동</span>
+              </div>
+              <div style="font-size:0.76rem; color:#475569; margin-bottom:8px; line-height:1.4;" id="syncCalAccountText">
+                Google 로그인 한 번으로 교무수첩과 캘린더가 함께 동기화됩니다.
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button type="button" id="syncCalConnectNowBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더 즉시 동기화</button>
+                <button type="button" id="syncSwitchCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더만 다른 계정 변경</button>
+                <button type="button" id="syncUseMainCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;" hidden>기본 계정으로 통일</button>
+              </div>
+            </div>
+
+            <div class="sync-card-actions" style="margin-top:10px;">
+              <button type="button" id="syncManualNowBtn" class="btn primary">시트·캘린더 지금 동기화</button>
               <button type="button" id="syncLogoutBtn" class="btn" hidden>로그아웃</button>
             </div>
           </div>
@@ -1204,7 +1224,9 @@
               <span id="googleCalStateBadge" class="google-sync-badge">대기</span>
             </div>
             <div class="google-sync-actions">
-              <button type="button" id="googleCalConnectBtn" class="btn google-connect-btn">Google 계정 연결</button>
+              <button type="button" id="googleCalConnectBtn" class="btn google-connect-btn">Google 통합 로그인 · 연결</button>
+              <button type="button" id="googleCalSwitchOnlyBtn" class="btn" title="디지털 교무수첩(시트) 계정은 그대로 유지하고 캘린더만 다른 Google 계정으로 변경합니다.">캘린더만 다른 계정으로 변경</button>
+              <button type="button" id="googleCalUseMainBtn" class="btn" hidden title="캘린더 계정을 디지털 교무수첩 기본 로그인 계정과 다시 통일합니다.">교무수첩 기본 계정으로 통일</button>
               <button type="button" id="googleCalSyncBtn" class="btn primary" disabled>지금 양방향 동기화</button>
               <button type="button" id="googleCalDisconnectBtn" class="btn" disabled>연결 해제</button>
               <button type="button" id="googleCalFullSyncBtn" class="btn google-full-sync-btn" disabled title="Google에서 만든 일정이 보이지 않을 때 기본 캘린더 전체를 다시 확인합니다.">Google 일정 전체 다시 가져오기</button>
