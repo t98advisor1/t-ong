@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교사용 올인원 클라우드 동기화 통합 매뉴얼 (T-ong · 구글 시트 · 캘린더 · NEIS)</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.variable.min.css">
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #eff6ff;
+      --primary-border: #93c5fd;
+      --success: #15803d;
+      --success-light: #f0fdf4;
+      --success-border: #86efac;
+      --warning: #b45309;
+      --warning-light: #fffbeb;
+      --warning-border: #fde68a;
+      --danger: #b91c1c;
+      --danger-light: #fef2f2;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --surface: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-900);
+      line-height: 1.65;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* 상단 고정 액션 바 */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .top-bar-title {
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .top-bar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease-in-out;
+      border: none;
+    }
+    .btn-download {
+      background: #22c55e;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    }
+    .btn-download:hover { background: #16a34a; transform: translateY(-1px); }
+    .btn-print {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    .btn-print:hover { background: #2563eb; }
+    .btn-link {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-link:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* 메인 컨테이너 */
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    /* 히어로 헤더 */
+    .hero-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+      border: 1px solid #334155;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 800;
+      background: #38bdf8;
+      color: #0f172a;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 900;
+      margin: 0 0 10px;
+      line-height: 1.35;
+    }
+    .hero-desc {
+      font-size: 14.5px;
+      color: #cbd5e1;
+      margin: 0 0 20px;
+      line-height: 1.6;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #94a3b8;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 16px;
+    }
+
+    /* 챕터 카드 */
+    .chapter-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 28px 26px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--slate-200);
+    }
+    .chapter-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--slate-100);
+      padding-bottom: 12px;
+    }
+    .chapter-num {
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+    .chapter-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin: 0;
+    }
+
+    /* 다이어그램 / 인포그래픽 박스 */
+    .infographic-box {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1.5px solid var(--slate-200);
+      border-radius: 14px;
+      padding: 24px;
+      margin: 18px 0;
+      text-align: center;
+    }
+    .diagram-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    .flow-node {
+      background: #ffffff;
+      border: 1.5px solid var(--primary-border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(30, 64, 175, 0.06);
+    }
+    .flow-node.highlight {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .flow-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .flow-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-bottom: 6px;
+    }
+    .flow-desc {
+      font-size: 12px;
+      color: var(--slate-600);
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    /* 단계별 가이드 박스 */
+    .step-box {
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      background: #ffffff;
+    }
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .step-badge {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+    .step-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--slate-900);
+    }
+    .step-content {
+      font-size: 13.5px;
+      color: var(--slate-700);
+      line-height: 1.6;
+    }
+
+    /* 경고 / 팁 알림 박스 */
+    .alert-box {
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .alert-important {
+      background: var(--warning-light);
+      border: 1px solid var(--warning-border);
+      color: #92400e;
+    }
+    .alert-tip {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      color: #1e40af;
+    }
+    .alert-success {
+      background: var(--success-light);
+      border: 1px solid var(--success-border);
+      color: #166534;
+    }
+
+    /* 코드 및 프롬프트 복사 박스 */
+    .prompt-card {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.5;
+      position: relative;
+    }
+    .prompt-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .prompt-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .btn-copy-code {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-copy-code:hover { background: #475569; }
+
+    /* 표 서식 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 14px 0;
+      border-radius: 10px;
+      border: 1px solid var(--slate-200);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: var(--slate-100);
+      color: var(--slate-800);
+      font-weight: 800;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--slate-200);
+      color: var(--slate-700);
+    }
+    tr:last-child td { border-bottom: none; }
+
+    /* 색상 범례 표시 */
+    .legend-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      margin: 2px 0;
+    }
+    .legend-yellow {
+      background: #fefce8;
+      color: #854d0e;
+      border: 2px solid #ca8a04;
+    }
+    .legend-blue {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+    .legend-gray {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* FAQ 접기 아코디언 */
+    details {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      padding: 12px 16px;
+      transition: background 0.15s ease;
+    }
+    details[open] { background: #ffffff; }
+    summary {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--slate-900);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: '+';
+      font-size: 18px;
+      color: var(--slate-500);
+      font-weight: 700;
+    }
+    details[open] summary::after {
+      content: '−';
+    }
+    .faq-body {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--slate-600);
+      line-height: 1.6;
+      border-top: 1px solid var(--slate-200);
+      padding-top: 10px;
+    }
+
+    /* 인쇄 최적화 스타일 */
+    @media print {
+      .top-bar { display: none !important; }
+      body { background: #ffffff; color: #000000; }
+      .container { max-width: 100%; padding: 0; }
+      .hero-card { border: 1px solid #000; color: #000; background: #fff !important; }
+      .hero-desc { color: #333 !important; }
+      .chapter-card { border: 1px solid #ddd; box-shadow: none; break-inside: avoid; }
+      .prompt-card { background: #f8fafc; color: #000; border: 1px solid #ccc; }
+      .btn-copy-code { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 네비게이션 및 오프라인 HTML 다운로드 바 -->
+  <header class="top-bar">
+    <div class="top-bar-title">
+      <span>교사용 올인원 클라우드 동기화 통합 매뉴얼</span>
+      <span style="font-size:11px; background:rgba(255,255,255,0.18); padding:2px 8px; border-radius:999px;">2026-2027 최신 규격</span>
+    </div>
+    <div class="top-bar-actions">
+      <button type="button" id="btnDownloadHtml" class="action-btn btn-download" title="인터넷 연결 없이 언제든 볼 수 있는 단일 HTML 파일로 즉시 저장합니다.">
+        <span>오프라인 HTML 파일 다운로드</span>
+      </button>
+      <button type="button" onclick="window.print()" class="action-btn btn-print" title="문서 전체를 인쇄하거나 PDF로 저장합니다.">
+        <span>인쇄 / PDF 저장</span>
+      </button>
+      <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="action-btn btn-link">
+        <span>마스터 시트 사본 ↗</span>
+      </a>
+      <a href="https://t-ong.vercel.app/" target="_blank" rel="noopener noreferrer" class="action-btn btn-link">
+        <span>교무수첩 T-ong ↗</span>
+      </a>
+      <a href="https://neis-help-one.vercel.app/" target="_blank" rel="noopener noreferrer" class="action-btn btn-link">
+        <span>NEIS Help ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- 히어로 안내 -->
+    <section class="hero-card">
+      <span class="hero-badge">[선생님 필독 가이드] 실시간 양방향 클라우드 에코시스템</span>
+      <h1 class="hero-title">선생님의 1년 학급·교과 기록이 하나로 이어지는<br>올인원 클라우드 동기화 완전 정복 가이드</h1>
+      <p class="hero-desc">
+        교실에서 모바일/태블릿 교무수첩(T-ong)에 기록한 <b>출결·칭찬·1인1역·수업관찰</b>이<br>
+        선생님만의 <b>마스터 구글 시트(10개 탭)</b>와 <b>Google 캘린더</b>, 그리고 <b>NEIS 1500B AI 세특 워크벤치</b>로 실시간 자동 연동되는 전 과정을 친절하게 안내합니다.
+      </p>
+      <div class="hero-meta">
+        <span>• 적용 대상: 고등학교 1·2·3학년 담임 및 교과 교사 (2028 대입 개편안 5등급제 호환)</span>
+        <span>• 개인정보 보호: 학생 정보는 외부 서버에 일체 저장되지 않으며 선생님 본인의 구글 시트에만 안전 저장</span>
+      </div>
+    </section>
+
+    <!-- 1장: 전체 에코시스템 구조도 -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 01</span>
+        <h2 class="chapter-title">전체 시스템 유기적 연동 흐름도 (인포그래픽)</h2>
+      </div>
+      <p style="font-size:13.5px; color:#475569; margin:0 0 14px;">
+        기존에는 교무수첩 앱 따로, 출결 엑셀 따로, 세특 한글파일 따로 분리되어 학기 말마다 수작업으로 옮겨 적어야 했습니다. 본 시스템은 단 1회의 설정으로 아래와 같이 유기적으로 연계됩니다.
+      </p>
+
+      <div class="infographic-box">
+        <div style="font-weight:800; font-size:14.5px; color:#1e3a8a; margin-bottom:12px;">[실시간 양방향 데이터 파이프라인]</div>
+        <div class="diagram-flow">
+          <div class="flow-node">
+            <span class="flow-tag">입력 1: 교실 현장</span>
+            <div class="flow-title">디지털 교무수첩 (T-ong)</div>
+            <p class="flow-desc">• 수업 중 관찰 메모<br>• 실시간 출결 체크 및 사유<br>• 칭찬 포인트 (병아리/닭 성장)<br>• 학급 1인 1역할 수행 기록</p>
+          </div>
+          <div class="flow-node highlight">
+            <span class="flow-tag" style="background:#dcfce7; color:#15803d;">중계 &amp; 보관 허브</span>
+            <div class="flow-title">마스터 구글 시트 (10개 탭)</div>
+            <p class="flow-desc">• [6_수업관찰] &amp; [7_AI세특]<br>• [8_출결_칭찬_기록] 자동 누적<br>• [3_창체_행특] 자율·행특 연동<br>• 1행 1열 중앙 대시보드 연결</p>
+          </div>
+          <div class="flow-node">
+            <span class="flow-tag">일정 통합</span>
+            <div class="flow-title">Google 캘린더</div>
+            <p class="flow-desc">• 1클릭 통합 로그인 연동<br>• 학사일정 양방향 실시간 동기화<br>• 개인/학교 캘린더 별도 분리 가능</p>
+          </div>
+          <div class="flow-node">
+            <span class="flow-tag">최종 나이스 반영</span>
+            <div class="flow-title">NEIS Help AI 워크벤치</div>
+            <p class="flow-desc">• 나이스 1500B 바이트 실시간 검증<br>• 2026-2027 기재요령 자동 점검<br>• AI 맞춤형 세특/행특 초안 생성<br>• 1초 만에 나이스 복사·붙여넣기</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2장: 가장 중요한 첫 단계 (마스터 시트 사본 & Apps Script 배포) -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 02</span>
+        <h2 class="chapter-title">[가장 중요한 첫 단계] 마스터 시트 사본 저장 &amp; Apps Script 3분 배포</h2>
+      </div>
+
+      <div class="alert-box alert-important">
+        <b>[필수 권장 원칙]</b> 마스터 구글 시트 사본을 저장하신 직후, <b>학생 개인정보를 입력하기 전에 먼저 Apps Script 웹앱 연결부터 완료</b>하세요! 연결이 완료된 후 학생 정보를 입력해야 모바일 교무수첩과의 데이터 누락이 방지됩니다.
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">STEP 1</span>
+          <span class="step-name">교사용 올인원 마스터 시트 사본 만들기</span>
+        </div>
+        <div class="step-content">
+          아래 링크를 클릭하여 선생님 본인의 Google 드라이브로 마스터 통합 시트를 복사합니다.<br>
+          <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:8px; background:#1e40af; color:#fff; font-weight:700; text-decoration:none; padding:8px 14px; border-radius:6px; font-size:13px;">교사용 올인원 마스터 통합 시트 사본 만들기 (구글 드라이브 복사) ↗</a>
+        </div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">STEP 2</span>
+          <span class="step-name">기본 직접 연결 4단계 (가장 확실한 방법)</span>
+        </div>
+        <div class="step-content">
+          <ol style="margin:4px 0 0 20px; padding:0; line-height:1.7;">
+            <li>복사된 구글 시트 상단 메뉴에서 <b>[확장 프로그램] &gt; [Apps Script]</b>를 클릭합니다.</li>
+            <li>기존 <code>Code.gs</code>에 적힌 내용을 모두 지우고, 시스템이 제공하는 <b>통합 연동 코드</b>를 전체 붙여넣습니다.</li>
+            <li>우측 상단 파란색 <b>[배포] &gt; [새 배포]</b>를 클릭합니다.</li>
+            <li>유형: <b>웹 앱</b> 선택 &gt; <b>액세스 권한: 모든 사용자(Anyone)</b>로 설정(필수!) &gt; <b>[배포]</b> 클릭 후 계정 권한을 승인합니다.</li>
+            <li>발급된 <b>웹 앱 URL(<code>https://script.google.com/macros/s/.../exec</code>)</b>을 복사합니다.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">STEP 3</span>
+          <span class="step-name">AI 에이전트에게 대신 시키기 (복사해서 붙여넣기만 하면 끝!)</span>
+        </div>
+        <div class="step-content">
+          <p style="margin:0 0 8px;">선생님께서 Apps Script 조작이 낯설다면, 사용 중이신 AI 에이전트(Google Gemini Pro, Antigravity, 피클 비서 등)에 아래 프롬프트를 복사해 요청하세요.</p>
+          
+          <div class="prompt-card">
+            <div class="prompt-head">
+              <span class="prompt-label">Google Gemini Pro / Antigravity / AI 비서 요청용 프롬프트</span>
+              <button type="button" class="btn-copy-code" onclick="copyPrompt('agentPrompt1')">프롬프트 복사</button>
+            </div>
+            <div id="agentPrompt1" style="white-space:pre-wrap;">선생님을 위한 올인원 교무수첩과 구글 시트를 연동하려고 해.
+내가 복사한 마스터 구글 시트 링크는 [여기에 시트 링크 입력]이고,
+내가 사용할 Apps Script 연동 코드는 [여기에 코드 입력]이야.
+내 구글 계정 권한으로 이 시트의 Apps Script에 코드를 등록하고 웹앱(모든 사용자 접근 권한)으로 배포한 뒤 최종 발급된 웹앱 배포 URL(https://script.google.com/macros/s/.../exec)을 나에게 알려줘.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3장: 모바일 교무수첩 T-ong 연동 -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 03</span>
+        <h2 class="chapter-title">모바일 교무수첩(T-ong)과 1초 만에 연동하기</h2>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">1</span>
+          <span class="step-name">상단 [Google 연동] 메뉴 클릭</span>
+        </div>
+        <div class="step-content">
+          T-ong 모바일 교무수첩 우측 상단의 <b>[Google 연동]</b> 버튼을 누릅니다.
+        </div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">2</span>
+          <span class="step-name">마스터 시트 웹앱 배포 URL 입력 및 저장</span>
+        </div>
+        <div class="step-content">
+          <b>[교사용 올인원 마스터 통합 시트 웹앱 URL]</b> 입력칸에 발급받으신 <code>https://script.google.com/macros/s/.../exec</code> 주소를 붙여넣고 <b>[저장]</b>을 누릅니다.<br>
+          상단 배지가 <b>초록색 불빛(선생님T | 동기화 켜짐)</b>으로 바뀌면 모든 연동이 완료됩니다!
+        </div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">3</span>
+          <span class="step-name">어떤 항목이 시트의 어느 탭으로 들어갈까요?</span>
+        </div>
+        <div class="step-content">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:28%;">교무수첩(T-ong) 입력 활동</th>
+                  <th style="width:34%;">연동되는 마스터 구글 시트 탭</th>
+                  <th>생기부 및 교육적 활용</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><b>수업 관찰 메모</b></td>
+                  <td><b>[6_수업관찰_기록]</b> &amp; <b>[7_AI세특_작성]</b></td>
+                  <td>학기 말 교과세특 AI 초안 자동 생성</td>
+                </tr>
+                <tr>
+                  <td><b>출결 사유 및 상태</b></td>
+                  <td><b>[8_출결_칭찬_기록]</b></td>
+                  <td>나이스 출결 마감 및 생활지도 누가기록 증빙</td>
+                </tr>
+                <tr>
+                  <td><b>칭찬 포인트 (병아리/닭 성장)</b></td>
+                  <td><b>[8_출결_칭찬_기록]</b> &amp; <b>[3_창체_행특]</b></td>
+                  <td>학기 말 행동특성 및 종합의견(행특) 추천 문장 생성</td>
+                </tr>
+                <tr>
+                  <td><b>학급 1인 1역할 수행</b></td>
+                  <td><b>[8_출결_칭찬_기록]</b> &amp; <b>[3_창체_행특]</b></td>
+                  <td>자율활동(학급 자치·봉사) 누가기록 자동 반영</td>
+                </tr>
+                <tr>
+                  <td><b>학생 개인별 생활관찰 메모</b></td>
+                  <td><b>[8_출결_칭찬_기록]</b> &amp; <b>[5_상담기록]</b></td>
+                  <td>학부모 상담 일지 및 진학·생활상담 연계</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4장: Google 캘린더 동기화 및 별도 계정 분리 운영 -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 04</span>
+        <h2 class="chapter-title">Google 캘린더 동기화 &amp; 계정 분리 운영 꿀팁</h2>
+      </div>
+
+      <div class="alert-box alert-tip">
+        <b>[1클릭 통합 로그인]</b> 상단 Google 연동 메뉴에서 <b>[Google 통합 로그인 (교무수첩·캘린더 동시 연동)]</b> 버튼을 누르면 단 한 번의 로그인 창으로 교무수첩 영구 유지와 구글 캘린더 양방향 동기화가 동시에 완료됩니다!
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">실전 팁</span>
+          <span class="step-name">학교 업무 계정과 개인 구글 캘린더 계정이 다를 때는?</span>
+        </div>
+        <div class="step-content">
+          많은 선생님들께서 <b>"교무수첩과 시트는 학교 업무 계정(@sch.hs.kr)으로 쓰고 싶은데, 스마트폰 캘린더는 개인 지메일(@gmail.com)을 쓰고 있어요!"</b>라고 말씀하십니다.<br><br>
+          이 경우를 위해 <b>[캘린더만 다른 계정으로 변경]</b> 기능을 제공합니다:
+          <ol style="margin:6px 0 0 20px; padding:0; line-height:1.7;">
+            <li>교무수첩 기본 계정은 학교 업무 계정으로 로그인해 둡니다 (시트 동기화 안전 유지).</li>
+            <li>상단 <code>Google 연동</code> 메뉴 또는 <code>일정관리 &gt; Google 캘린더 연동</code> 창에서 <b>[캘린더만 다른 계정 변경]</b>을 클릭합니다.</li>
+            <li>개인 스마트폰에 연결된 Google 계정을 선택하시면, <b>교무수첩 데이터는 학교 계정으로 유지되면서 일정만 개인 캘린더와 실시간 양방향 동기화</b>됩니다.</li>
+            <li>언제든 <b>[교무수첩 기본 계정으로 통일]</b> 버튼을 누르면 다시 원래 계정으로 되돌릴 수 있습니다.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5장: 마스터 시트 10개 탭 색상 범례 & 바로가기 -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 05</span>
+        <h2 class="chapter-title">마스터 시트 10개 탭 한눈에 보기 &amp; 셀 색상 구분</h2>
+      </div>
+      <p style="font-size:13.5px; color:#475569; margin:0 0 14px;">
+        마스터 구글 시트는 10개의 탭으로 구성되어 있으며, <b>어느 셀에 입력해야 하고 어느 셀은 수정하면 안 되는지</b>를 시각적으로 명확하게 구분해 두었습니다.
+      </p>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">범례</span>
+          <span class="step-name">3가지 셀 색상 및 테두리 규칙</span>
+        </div>
+        <div class="step-content">
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin:8px 0;">
+            <div class="legend-tag legend-yellow">
+              [교사입력 / 앱동기화] 굵은 테두리 + 연노랑 음영
+            </div>
+            <div class="legend-tag legend-blue">
+              [AI자동 생성] 연파랑 음영
+            </div>
+            <div class="legend-tag legend-gray">
+              [자동연동 · 수정금지] 연회색 음영
+            </div>
+          </div>
+          <p style="font-size:12.5px; color:#64748b; margin:6px 0 0;">
+            • <b>연노랑(굵은 테두리)</b> 칸만 선생님께서 직접 입력하시거나 T-ong 앱에서 자동으로 기록됩니다.<br>
+            • <b>연파랑</b> 칸은 AI 프롬프트가 초안을 생성해 채워 넣는 칸입니다.<br>
+            • <b>연회색</b> 칸은 2행 바로가기 수식 및 학생 학적 등이 자동 연결되는 칸이므로 직접 수정하지 마세요.
+          </p>
+        </div>
+      </div>
+
+      <div class="step-box">
+        <div class="step-head">
+          <span class="step-badge">네비게이션</span>
+          <span class="step-name">중앙 대시보드 양방향 바로가기 &amp; 긴 표 접기([+]/[-])</span>
+        </div>
+        <div class="step-content">
+          • 모든 시트의 <b>2행 상단</b>에 <code>[중앙 대시보드 바로가기]</code> 및 각 탭 이동 링크가 배치되어 있어 마우스 클릭 한 번으로 이동합니다.<br>
+          • 표 우측 끝 열마다 <code>[대시보드로 이동]</code> 버튼이 제공됩니다.<br>
+          • 열이 너무 길어 보기 불편할 때는 시트 좌측 상단의 <b>[-]</b> 버튼을 누르면 긴 관찰 열들이 접혀 학생 명렬과 최종 세특만 깔끔하게 보실 수 있습니다.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6장: 한 학기(6개월) 라이선스 & 시트 만료일자 직접 연장 -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 06</span>
+        <h2 class="chapter-title">한 학기(6개월) 라이선스 및 구글 시트 만료일자 직접 연장</h2>
+      </div>
+      <p style="font-size:13.5px; color:#475569; margin:0 0 14px;">
+        선생님들의 학교 학사 일정을 완벽히 지원하기 위해 기본 승인 기간을 <b>한 학기(6개월, 180일)</b>로 운영합니다.
+      </p>
+
+      <div class="alert-box alert-success">
+        <b>[구글 시트 만료일자 수정 시 실시간 자동 연장]</b><br>
+        구글 시트 <code>[2_교사승인명단]</code> 탭의 <b>G열(만료예정일)</b> 날짜를 관리자 선생님께서 <code>2026-12-31</code> 등 원하시는 날짜로 직접 수정하시면, <b>해당 지정 일자까지 교사의 이용 기한이 실시간으로 자동 연장</b>됩니다! 웹 관리자 대시보드에서도 달력 피커를 통해 손쉽게 날짜를 변경하실 수 있습니다.
+      </div>
+    </section>
+
+    <!-- 7장: 문제 해결 FAQ -->
+    <section class="chapter-card">
+      <div class="chapter-head">
+        <span class="chapter-num">CHAPTER 07</span>
+        <h2 class="chapter-title">동기화 문제 해결 FAQ (안 될 때 4가지 체크리스트)</h2>
+      </div>
+
+      <details open>
+        <summary>Q1. 모바일 교무수첩에서 '동기화 응답 실패' 또는 빨간 불이 들어옵니다.</summary>
+        <div class="faq-body">
+          <b>A. 99%는 Apps Script 웹앱 배포 설정 문제입니다.</b> 아래 2가지를 확인하세요.<br>
+          1) 배포 설정 시 <b>액세스 권한</b>이 <code>나만(Only myself)</code>으로 되어 있으면 스마트폰에서 접속이 차단됩니다. 반드시 <b><code>모든 사용자(Anyone)</code></b>로 변경하여 다시 배포하세요.<br>
+          2) 복사하신 웹앱 URL 끝이 <code>/dev</code>가 아닌 <b><code>/exec</code></b>로 끝나는지 확인하세요.
+        </div>
+      </details>
+
+      <details>
+        <summary>Q2. 학생 개인정보가 외부 서버나 개발자에게 유출될 위험은 없나요?</summary>
+        <div class="faq-body">
+          <b>A. 절대로 유출되지 않는 100% 로컬 &amp; 본인 구글 드라이브 구조입니다.</b><br>
+          모바일 교무수첩의 학생 명렬표, 좌석배치도, 관찰 기록은 선생님 브라우저의 localStorage와 선생님 본인 소유의 구글 시트로만 다이렉트 전송됩니다. T-ong 서버나 외부 서버에는 학생 개인정보를 저장하는 데이터베이스가 존재하지 않습니다.
+        </div>
+      </details>
+
+      <details>
+        <summary>Q3. 새 학년도가 시작되거나 학급이 바뀌었을 때는 어떻게 하나요?</summary>
+        <div class="faq-body">
+          <b>A. 기존 시트를 보관(사본 저장)하고 새 학년도용 시트를 1분 만에 새로 만드시면 됩니다.</b><br>
+          구글 드라이브에서 기존 시트의 이름을 `2026_1학년1반_기록`으로 변경하여 영구 보관하시고, 새 학년도에는 매뉴얼 2장의 마스터 시트 사본 링크를 눌러 새 시트를 복사한 뒤 Apps Script URL을 새로 등록하시면 깨끗하게 새 학년도를 시작할 수 있습니다.
+        </div>
+      </details>
+
+      <details>
+        <summary>Q4. 스마트폰 캘린더와 일정이 동기화되지 않거나 사라졌어요.</summary>
+        <div class="faq-body">
+          <b>A. Google 보안 토큰 만료(약 1시간 주기) 또는 브라우저 권한 문제입니다.</b><br>
+          상단 `Google 연동` 메뉴에서 `[캘린더 지금 동기화]` 또는 `[다시 연결]`을 한 번 눌러주시면 저장된 계정으로 즉시 재인증되어 다시 정상 작동합니다.
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <script>
+    // 오프라인용 단일 HTML 파일 다운로드 로직
+    document.getElementById('btnDownloadHtml')?.addEventListener('click', function () {
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '교사용_올인원_클라우드동기화_매뉴얼_' + new Date().toISOString().slice(0, 10) + '.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('오프라인용 단일 HTML 매뉴얼이 다운로드되었습니다.\n인터넷이 없거나 스마트폰, 태블릿에서도 언제든지 파일을 열어 확인하실 수 있습니다.');
+    });
+
+    // 프롬프트 클립보드 복사
+    function copyPrompt(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText || el.textContent).then(function () {
+        alert('[복사 완료] AI 에이전트 요청 프롬프트가 클립보드에 복사되었습니다.\nGemini Pro, Antigravity, 또는 피클 비서 대화창에 붙여넣으세요.');
+      }).catch(function (err) {
+        alert('복사 실패: ' + err.message);
+      });
+    }
+  </script>
+</body>
+</html>
