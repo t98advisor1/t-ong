@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%" style="font-family:'SUIT Variable', NanumSquareNeo, -apple-system, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2029" />
+      <stop offset="100%" stop-color="#14151c" />
+    </linearGradient>
+  </defs>
+
+  <!-- Browser Window Frame -->
+  <rect x="0" y="0" width="920" height="480" rx="14" fill="#0d0e12" />
+  
+  <!-- Window Header Bar -->
+  <rect x="0" y="0" width="920" height="40" rx="14" fill="#1b1c24" />
+  <rect x="0" y="28" width="920" height="12" fill="#1b1c24" />
+  <circle cx="24" cy="20" r="6" fill="#ef4444" />
+  <circle cx="44" cy="20" r="6" fill="#f59e0b" />
+  <circle cx="64" cy="20" r="6" fill="#10b981" />
+  <rect x="220" y="8" width="480" height="24" rx="6" fill="#0e0f14" />
+  <text x="360" y="24" fill="#94a3b8" font-size="12">gemini.google.com/gems (Gemini 2.5 Pro)</text>
+
+  <!-- Main Canvas Area -->
+  <rect x="0" y="40" width="920" height="440" fill="url(#cardGrad)" />
+
+  <!-- Step Content -->
+  
+  <rect x="40" y="140" width="840" height="310" rx="12" fill="#181822" stroke="#3b3b4f" />
+  <text x="70" y="175" fill="#ffffff" font-size="16" font-weight="800">구글 시트에 붙여넣기(Ctrl+V) &amp; 본 앱에서 자동 검증</text>
+  
+  <!-- Left: Google Sheet Paste -->
+  <g transform="translate(70, 200)">
+    <rect x="0" y="0" width="380" height="210" rx="8" fill="#ffffff" filter="url(#shadow)" />
+    <rect x="0" y="0" width="380" height="30" rx="8" fill="#0f9d58" />
+    <text x="15" y="20" fill="#ffffff" font-size="12" font-weight="700">📗 교사용 나이스 구글 시트 (붙여넣기 완료)</text>
+    <text x="15" y="60" fill="#1e293b" font-size="11">A열: 20101 | B열: 김태형 | C열: 삼투현상 탐구</text>
+    <text x="15" y="85" fill="#475569" font-size="11">D열: =LENB(C2) &amp; " / 1500 Byte" (표준 바이트 수식)</text>
+    <text x="15" y="110" fill="#2563eb" font-size="11.5">✓ 표가 셀별로 깔끔하게 1초 만에 배치됨</text>
+    <text x="15" y="140" fill="#059669" font-size="12" font-weight="700">✓ 나이스 학생부 일괄 업로드용 엑셀 준비 완료!</text>
+  </g>
+  
+  <!-- Right: NEIS Help Check App -->
+  <g transform="translate(490, 200)">
+    <rect x="0" y="0" width="380" height="210" rx="8" fill="#151722" stroke="#ff385c" stroke-width="2" />
+    <text x="20" y="32" fill="#ff7d95" font-size="13" font-weight="800">🎯 학교생활기록부 올인원 검사 연동</text>
+    <text x="20" y="65" fill="#f1f5f9" font-size="12">1. 시트 내용을 [생기부 점검하기]에 업로드</text>
+    <text x="20" y="95" fill="#f1f5f9" font-size="12">2. 나이스 1,500 Byte 초과 여부 실시간 확인</text>
+    <text x="20" y="125" fill="#f1f5f9" font-size="12">3. 교외상·논문 등 금지 표현 원클릭 교정</text>
+    <text x="20" y="155" fill="#f1f5f9" font-size="12">4. 2027 대입 상담 연계 및 나이스 최종 기재</text>
+    <rect x="20" y="170" width="340" height="26" rx="4" fill="rgba(255,56,92,0.2)" />
+    <text x="60" y="188" fill="#ff7d95" font-size="11.5" font-weight="700">모든 과정이 교사 브라우저 안에서 안전하게 완결</text>
+  </g>
+
+
+  <!-- Floating Callout Step Banner -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="56" width="360" height="64" rx="10" fill="#0284c7" />
+    <text x="44" y="82" fill="#ffffff" font-size="15" font-weight="800">STEP 5. 시트 붙여넣기 & 최종 검증</text>
+    <text x="44" y="105" fill="#f8fafc" font-size="12.5">시트에 붙여넣고 본 앱의 [생기부 점검하기]로 완결합니다.</text>
+  </g>
+</svg>

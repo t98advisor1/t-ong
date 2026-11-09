@@ -105,13 +105,22 @@ const sw = read('sw.js').replace(
 );
 write('sw.js', sw);
 
-// 4) 정적 파일
-['manifest.webmanifest', 'icon.svg', 'icon-maskable.svg'].forEach((f) => {
+// 4) 정적 파일 (매뉴얼, 매니페스트, 아이콘, 템플릿 등)
+const rootStaticFiles = [
+  'manifest.webmanifest',
+  'icon.svg',
+  'icon-maskable.svg',
+  'manual.html',
+  'sync-manual.html',
+  '교사용_올인원_클라우드동기화_매뉴얼.html'
+];
+rootStaticFiles.forEach((f) => {
   if (fs.existsSync(path.join(SRC, f))) write(f, read(f));
 });
 const nGuide = copyDir('guide');
 const nAssets = copyDir('assets');
 const nVendor = copyDir('vendor');
+const nScreenshots = copyDir('screenshots');
 // TWA verification is copied only after real signing certificates have been supplied.
 const assetLinksPath = path.join(SRC, '.well-known', 'assetlinks.json');
 if (fs.existsSync(assetLinksPath)) {

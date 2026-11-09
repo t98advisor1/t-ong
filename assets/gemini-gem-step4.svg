@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%" style="font-family:'SUIT Variable', NanumSquareNeo, -apple-system, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2029" />
+      <stop offset="100%" stop-color="#14151c" />
+    </linearGradient>
+  </defs>
+
+  <!-- Browser Window Frame -->
+  <rect x="0" y="0" width="920" height="480" rx="14" fill="#0d0e12" />
+  
+  <!-- Window Header Bar -->
+  <rect x="0" y="0" width="920" height="40" rx="14" fill="#1b1c24" />
+  <rect x="0" y="28" width="920" height="12" fill="#1b1c24" />
+  <circle cx="24" cy="20" r="6" fill="#ef4444" />
+  <circle cx="44" cy="20" r="6" fill="#f59e0b" />
+  <circle cx="64" cy="20" r="6" fill="#10b981" />
+  <rect x="220" y="8" width="480" height="24" rx="6" fill="#0e0f14" />
+  <text x="360" y="24" fill="#94a3b8" font-size="12">gemini.google.com/gems (Gemini 2.5 Pro)</text>
+
+  <!-- Main Canvas Area -->
+  <rect x="0" y="40" width="920" height="440" fill="url(#cardGrad)" />
+
+  <!-- Step Content -->
+  
+  <rect x="40" y="140" width="840" height="310" rx="12" fill="#181822" stroke="#3b3b4f" />
+  <div style="display:flex;">
+    <text x="70" y="175" fill="#ffffff" font-size="16" font-weight="800">구글 시트(표) 양식으로 일괄 출력 완료</text>
+    <rect x="690" y="155" width="170" height="32" rx="6" fill="#10b981" />
+    <text x="705" y="176" fill="#ffffff" font-size="12" font-weight="800">📊 Sheets로 내보내기</text>
+  </div>
+  
+  <!-- Rendered Table Mockup -->
+  <g transform="translate(70, 200)">
+    <!-- Header -->
+    <rect x="0" y="0" width="790" height="34" fill="#2d3043" />
+    <text x="15" y="22" fill="#ffffff" font-size="12" font-weight="700">학번</text>
+    <text x="80" y="22" fill="#ffffff" font-size="12" font-weight="700">성명</text>
+    <text x="150" y="22" fill="#ffffff" font-size="12" font-weight="700">탐구 활동 주제</text>
+    <text x="320" y="22" fill="#ffffff" font-size="12" font-weight="700">나이스 3단 논법 세특 초안 (동기-과정-성장)</text>
+    <text x="730" y="22" fill="#ffffff" font-size="12" font-weight="700">바이트</text>
+    
+    <!-- Row 1 -->
+    <rect x="0" y="34" width="790" height="56" fill="#1c1e2b" stroke="#2d3043" />
+    <text x="15" y="65" fill="#cbd5e1" font-size="12">20101</text>
+    <text x="80" y="65" fill="#cbd5e1" font-size="12">김태형</text>
+    <text x="150" y="58" fill="#38bdf8" font-size="12">삼투현상과 원형질 분리</text>
+    <text x="150" y="76" fill="#94a3b8" font-size="10.5">양파 표피세포 현미경 관찰</text>
+    <text x="320" y="58" fill="#e2e8f0" font-size="11.5">농도 차이에 따른 삼투압 원리를 탐구하고자 가설을 설정하고 현미경으로 관찰함.</text>
+    <text x="320" y="76" fill="#e2e8f0" font-size="11.5">선택적 투과성 개념을 정량적으로 입증하며 과학적 탐구 역량을 크게 발휘함.</text>
+    <text x="730" y="65" fill="#10b981" font-size="11">492 Byte</text>
+
+    <!-- Row 2 -->
+    <rect x="0" y="90" width="790" height="56" fill="#181a24" stroke="#2d3043" />
+    <text x="15" y="121" fill="#cbd5e1" font-size="12">20102</text>
+    <text x="80" y="121" fill="#cbd5e1" font-size="12">박서준</text>
+    <text x="150" y="114" fill="#38bdf8" font-size="12">효소의 온도별 활성도 분석</text>
+    <text x="150" y="132" fill="#94a3b8" font-size="10.5">카탈레이스 분해 반응 실험</text>
+    <text x="320" y="114" fill="#e2e8f0" font-size="11.5">효소의 변성 온도를 파악하기 위해 온도 조건을 통제하여 거품 발생량을 측정함.</text>
+    <text x="320" y="132" fill="#e2e8f0" font-size="11.5">오차 원인을 통계적으로 보정하고 생명과학 실험 설계 능력이 매우 우수함.</text>
+    <text x="730" y="121" fill="#10b981" font-size="11">510 Byte</text>
+    
+    <!-- Row 3 preview -->
+    <rect x="0" y="146" width="790" height="40" fill="#1c1e2b" stroke="#2d3043" />
+    <text x="15" y="171" fill="#64748b" font-size="11">20103 외 27명 결과 계속...</text>
+  </g>
+
+
+  <!-- Floating Callout Step Banner -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="56" width="360" height="64" rx="10" fill="#7c3aed" />
+    <text x="44" y="82" fill="#ffffff" font-size="15" font-weight="800">STEP 4. 구글 시트 표 양식 출력</text>
+    <text x="44" y="105" fill="#f8fafc" font-size="12.5">Gemini가 한 번에 표로 정리해 주며 Sheets로 즉시 내보낼 수 있습니다.</text>
+  </g>
+</svg>

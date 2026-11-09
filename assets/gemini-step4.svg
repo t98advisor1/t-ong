@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css');
+      text { font-family: 'SUIT', 'Pretendard', 'Malgun Gothic', -apple-system, sans-serif; letter-spacing: -0.02em; }
+      .title { font-size: 20px; font-weight: 800; fill: #0f172a; }
+      .desc { font-size: 13.5px; fill: #475569; }
+      .badge-step { font-size: 12px; font-weight: 700; fill: #ffffff; }
+      .url-bar { font-size: 12px; font-family: Consolas, monospace; fill: #1e293b; }
+      .callout-txt { font-size: 14px; font-weight: 800; fill: #ffffff; }
+    </style>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+    <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#dc2626" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="960" height="540" fill="#f1f5f9" rx="12"/>
+
+  <!-- Top Title Bar -->
+  <rect x="24" y="16" width="76" height="24" rx="12" fill="#2563eb"/>
+  <text x="62" y="32" text-anchor="middle" class="badge-step">STEP 4</text>
+  <text x="110" y="34" class="title">4단계: [Create API key in new project] 선택</text>
+
+  <!-- Chrome Browser Window Frame -->
+  <g transform="translate(24, 52)" filter="url(#shadow)">
+    <!-- Window Body -->
+    <rect width="912" height="464" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+
+    <!-- Title Bar -->
+    <path d="M 0 10 Q 0 0 10 0 L 902 0 Q 912 0 912 10 L 912 36 L 0 36 Z" fill="#e2e8f0"/>
+    <!-- Chrome Tab -->
+    <path d="M 12 36 L 22 10 Q 25 6 32 6 L 210 6 Q 217 6 220 10 L 230 36 Z" fill="#ffffff"/>
+    <circle cx="34" cy="21" r="5" fill="#3b82f6"/>
+    <text x="46" y="25" font-size="12" font-weight="600" fill="#334155">Google AI Studio</text>
+    <text x="206" y="24" font-size="11" fill="#94a3b8">✕</text>
+
+    <!-- Window Controls (Win11) -->
+    <g transform="translate(840, 12)">
+      <line x1="0" y1="6" x2="10" y2="6" stroke="#64748b" stroke-width="1.2"/>
+      <rect x="22" y="1" width="9" height="9" fill="none" stroke="#64748b" stroke-width="1.2"/>
+      <path d="M 44 1 L 53 10 M 53 1 L 44 10" stroke="#64748b" stroke-width="1.2"/>
+    </g>
+
+    <!-- Address Bar -->
+    <rect y="36" width="912" height="34" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <path d="M 16 53 L 23 47 M 16 53 L 23 59" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M 33 53 L 26 47 M 33 53 L 26 59" stroke="#cbd5e1" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="50" cy="53" r="5" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="68" y="41" width="828" height="24" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="82" y="57" class="url-bar">🔒 https://aistudio.google.com/apikey</text>
+
+    <!-- Inner Web Content -->
+    
+    <!-- Background Blur Simulation -->
+    <rect y="70" width="912" height="394" fill="#0f172a" opacity="0.35"/>
+
+    <!-- Modal Dialog: Create a new API key -->
+    <g transform="translate(206, 105)" filter="url(#shadow)">
+      <rect width="500" height="310" rx="14" fill="#ffffff"/>
+
+      <text x="32" y="44" font-size="19" font-weight="800" fill="#0f172a">Create a new API key</text>
+      <text x="32" y="68" font-size="13" fill="#64748b">API 키를 할당할 Google Cloud 프로젝트를 선택하세요.</text>
+
+      <!-- Option Box: Create in new project -->
+      <rect x="32" y="92" width="436" height="96" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+      <circle cx="58" cy="140" r="10" fill="#2563eb"/>
+      <circle cx="58" cy="140" r="4" fill="#ffffff"/>
+      <text x="82" y="132" font-size="15" font-weight="700" fill="#1e3a8a">Create API key in new project</text>
+      <text x="82" y="154" font-size="12" fill="#3b82f6">새 Google Cloud 프로젝트를 자동으로 생성하고 무료 키를 발급합니다.</text>
+
+      <!-- Secondary Option (Grayed out) -->
+      <rect x="32" y="200" width="436" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+      <circle cx="58" cy="222" r="8" fill="none" stroke="#94a3b8" stroke-width="2"/>
+      <text x="82" y="227" font-size="13" fill="#64748b">Choose an existing project (기존 프로젝트 선택)</text>
+
+      <!-- Action Button -->
+      <rect x="238" y="256" width="230" height="42" rx="8" fill="#2563eb"/>
+      <text x="353" y="282" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Create API key in new project</text>
+    </g>
+
+    <!-- RED BOX around the primary button/option -->
+    <rect x="230" y="190" width="452" height="110" rx="10" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="6 4"/>
+    <rect x="436" y="354" width="246" height="54" rx="10" fill="rgba(220, 38, 38, 0.08)" stroke="#dc2626" stroke-width="3.5" filter="url(#redGlow)"/>
+
+    <!-- Curved Arrow -->
+    <path d="M 780 340 Q 720 380 686 380" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" marker-end="url(#arrowRed)"/>
+
+    <!-- Callout Badge -->
+    <g transform="translate(670, 270)" filter="url(#badgeShadow)">
+      <rect width="216" height="52" rx="8" fill="#dc2626"/>
+      <text x="108" y="24" text-anchor="middle" class="callout-txt">[새 프로젝트에서 생성] 클릭</text>
+      <text x="108" y="42" text-anchor="middle" font-size="11.5" fill="#fecaca">무료 사용자는 이 버튼을 바로 클릭!</text>
+    </g>
+
+  </g>
+</svg>

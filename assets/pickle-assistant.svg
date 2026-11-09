@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.variable.min.css');
+      text { font-family: 'Pretendard Variable', -apple-system, sans-serif; }
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    </style>
+    <filter id="winShadow3" x="-2%" y="-2%" width="104%" height="106%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="560" fill="#f1f5f9" rx="14"/>
+
+  <!-- Phone/App Mockup Frame -->
+  <g transform="translate(240, 16)" filter="url(#winShadow3)">
+    <rect width="480" height="528" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+
+    <!-- App Header -->
+    <path d="M 0 20 Q 0 0 20 0 L 460 0 Q 480 0 480 20 L 480 56 L 0 56 Z" fill="#059669"/>
+    <circle cx="28" cy="28" r="14" fill="#10b981"/>
+    <text x="28" y="34" fill="#ffffff" font-size="13" font-weight="900" text-anchor="middle">P</text>
+    <text x="52" y="33" fill="#ffffff" font-size="15" font-weight="800">AI 비서 피클 (Pickle)</text>
+    <rect x="360" y="16" width="104" height="24" rx="12" fill="#047857"/>
+    <text x="412" y="32" fill="#d1fae5" font-size="11" font-weight="700" text-anchor="middle">Google 연동됨</text>
+
+    <!-- Chat Stream -->
+    <!-- Message 1: User -->
+    <g transform="translate(130, 76)">
+      <rect width="330" height="90" rx="14" fill="#10b981"/>
+      <text x="14" y="24" fill="#ffffff" font-size="12" font-weight="700">선생님</text>
+      <text x="14" y="46" fill="#ffffff" font-size="12">내 구글 시트 링크랑 Apps Script 코드</text>
+      <text x="14" y="66" fill="#ffffff" font-size="12">줄 테니 웹앱으로 배포해서 URL 줘!</text>
+    </g>
+
+    <!-- Message 2: Pickle Assistant -->
+    <g transform="translate(20, 180)">
+      <circle cx="16" cy="16" r="14" fill="#10b981"/>
+      <text x="16" y="22" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">P</text>
+      
+      <rect x="38" y="0" width="400" height="230" rx="14" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="52" y="24" fill="#0f172a" font-size="12.5" font-weight="800">피클 AI 비서</text>
+      <text x="52" y="46" fill="#334155" font-size="12">선생님 구글 계정 권한으로 마스터 시트에</text>
+      <text x="52" y="66" fill="#334155" font-size="12">Apps Script 웹앱 배포를 1초 만에 마쳤습니다!</text>
+
+      <!-- URL Copy Card inside App -->
+      <rect x="52" y="82" width="372" height="76" rx="8" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>
+      <text x="64" y="104" fill="#047857" font-size="11" font-weight="800">배포된 웹앱 URL:</text>
+      <text x="64" y="124" fill="#2563eb" font-size="11" class="mono">https://script.google.com/macros/s/.../exec</text>
+      <rect x="64" y="132" width="348" height="20" rx="4" fill="#ecfdf5"/>
+      <text x="238" y="146" fill="#047857" font-size="10.5" font-weight="700" text-anchor="middle">[URL 복사 완료] 교무수첩에 바로 붙여넣으세요</text>
+
+      <text x="52" y="180" fill="#64748b" font-size="11.5">이제 모바일 교무수첩에서 출결·칭찬을 누르면</text>
+      <text x="52" y="198" fill="#64748b" font-size="11.5">구글 시트로 실시간 안전하게 저장됩니다.</text>
+    </g>
+  </g>
+</svg>

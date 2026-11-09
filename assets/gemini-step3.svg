@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.variable.min.css');
+      text { font-family: 'Pretendard Variable', -apple-system, sans-serif; }
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    </style>
+    <filter id="winShadow" x="-2%" y="-2%" width="104%" height="106%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="560" fill="#f8fafc" rx="14"/>
+
+  <!-- Window Frame -->
+  <g transform="translate(18, 16)" filter="url(#winShadow)">
+    <rect width="924" height="528" rx="12" fill="#131314" stroke="#2d2f31" stroke-width="1.5"/>
+
+    <!-- Window Topbar -->
+    <path d="M 0 12 Q 0 0 12 0 L 912 0 Q 924 0 924 12 L 924 44 L 0 44 Z" fill="#1e1f20"/>
+    <circle cx="22" cy="22" r="5.5" fill="#ea4335"/>
+    <circle cx="38" cy="22" r="5.5" fill="#fbbc05"/>
+    <circle cx="54" cy="22" r="5.5" fill="#34a853"/>
+
+    <!-- App Header -->
+    <g transform="translate(80, 14)">
+      <!-- Gemini Sparkle Icon -->
+      <path d="M 12 0 L 14 8 L 22 10 L 14 12 L 12 20 L 10 12 L 2 10 L 10 8 Z" fill="#4285f4"/>
+      <path d="M 18 14 L 19 18 L 23 19 L 19 20 L 18 24 L 17 20 L 13 19 L 17 18 Z" fill="#a855f7"/>
+      <text x="32" y="16" fill="#e3e3e3" font-size="14" font-weight="800">Google Gemini Pro</text>
+      <rect x="165" y="2" width="75" height="18" rx="4" fill="#2d2f31"/>
+      <text x="202" y="15" fill="#c4c7c5" font-size="10.5" font-weight="700" text-anchor="middle">2.0 Pro Flash</text>
+    </g>
+    <rect x="760" y="11" width="144" height="24" rx="12" fill="#2d2f31"/>
+    <circle cx="774" cy="23" r="7" fill="#1a73e8"/>
+    <text x="774" y="27" fill="#fff" font-size="9" font-weight="700" text-anchor="middle">G</text>
+    <text x="836" y="27" fill="#e3e3e3" font-size="11" font-weight="700" text-anchor="middle">교사 계정 연결됨</text>
+
+    <!-- Main Workspace Layout -->
+    <!-- Left Sidebar -->
+    <rect x="0" y="44" width="200" height="484" fill="#1e1f20" stroke="#2d2f31" stroke-width="1"/>
+    <rect x="14" y="60" width="172" height="34" rx="8" fill="#2d2f31"/>
+    <text x="28" y="82" fill="#e3e3e3" font-size="12" font-weight="700">＋ 새 대화</text>
+    <text x="20" y="122" fill="#8e918f" font-size="11" font-weight="700">최근 대화</text>
+    <rect x="14" y="132" width="172" height="32" rx="6" fill="#2a2b2d"/>
+    <text x="24" y="152" fill="#a8c7fa" font-size="11" font-weight="700">교사용 마스터 시트 연동</text>
+    <text x="24" y="184" fill="#c4c7c5" font-size="11">2026 나이스 기재요령 점검</text>
+    <text x="24" y="214" fill="#c4c7c5" font-size="11">1학년 공통수학 세특 초안</text>
+
+    <!-- Chat Area -->
+    <g transform="translate(200, 44)">
+      <!-- Message 1: User Prompt -->
+      <g transform="translate(32, 24)">
+        <rect width="660" height="110" rx="12" fill="#282a2c" stroke="#37393b"/>
+        <text x="18" y="24" fill="#7cacf8" font-size="12" font-weight="800">선생님 (사용자 요청)</text>
+        <text x="18" y="48" fill="#e3e3e3" font-size="12.5" font-weight="500">선생님 올인원 교무수첩과 구글 시트를 연동하려고 해.</text>
+        <text x="18" y="68" fill="#e3e3e3" font-size="12" font-weight="500">내가 복사한 마스터 시트 링크: <tspan fill="#38bdf8" class="mono">https://docs.google.com/spreadsheets/d/12lGdMCy.../edit</tspan></text>
+        <text x="18" y="88" fill="#e3e3e3" font-size="12" font-weight="500">내 계정 권한으로 Apps Script에 연동 코드를 넣고 웹앱(모든 사용자 접근)으로 배포해 줘.</text>
+      </g>
+
+      <!-- Thinking / Tool Call Badge -->
+      <g transform="translate(32, 146)">
+        <rect width="660" height="34" rx="8" fill="#1b2733" stroke="#2563eb" stroke-dasharray="3,3"/>
+        <circle cx="20" cy="17" r="4" fill="#3b82f6"/>
+        <text x="32" y="21" fill="#93c5fd" font-size="11.5" font-weight="700">[Google Workspace 도구 실행] 시트 Apps Script 프로젝트 생성 &gt; Code.gs 등록 &gt; 웹앱 배포 v1</text>
+      </g>
+
+      <!-- Message 2: Gemini Pro Response -->
+      <g transform="translate(32, 192)">
+        <rect width="660" height="210" rx="12" fill="#1e1f20" stroke="#38bdf8" stroke-width="1.5"/>
+        <path d="M 18 16 L 20 22 L 26 23 L 20 25 L 18 31 L 16 25 L 10 23 L 16 22 Z" fill="#38bdf8"/>
+        <text x="32" y="26" fill="#38bdf8" font-size="13" font-weight="800">Gemini Pro</text>
+        
+        <text x="18" y="52" fill="#e3e3e3" font-size="12.5" font-weight="700">선생님, 마스터 구글 시트에 Apps Script 코드를 정상 배포하고 웹앱 URL을 발급했습니다!</text>
+
+        <!-- Highlighted Result Box -->
+        <rect x="18" y="66" width="624" height="74" rx="8" fill="#0f172a" stroke="#22c55e" stroke-width="1.5"/>
+        <text x="30" y="88" fill="#86efac" font-size="11" font-weight="800">[배포 완료] 발급된 마스터 시트 웹 앱 URL (복사하여 사용):</text>
+        <rect x="30" y="96" width="540" height="32" rx="6" fill="#1e293b"/>
+        <text x="42" y="117" fill="#38bdf8" font-size="11.5" class="mono">https://script.google.com/macros/s/AKfycbz_master_relational_sheet_deploy/exec</text>
+        <rect x="580" y="96" width="60" height="32" rx="6" fill="#22c55e"/>
+        <text x="610" y="116" fill="#ffffff" font-size="11" font-weight="800" text-anchor="middle">복사됨</text>
+
+        <text x="18" y="162" fill="#c4c7c5" font-size="11.5">위 URL을 <b>모바일 교무수첩(T-ong)</b> 상단 [Google 연동] 칸에 붙여넣으시면</text>
+        <text x="18" y="180" fill="#c4c7c5" font-size="11.5">출결, 칭찬 포인트, 수업 관찰 10개 탭이 실시간으로 안전하게 동기화됩니다.</text>
+      </g>
+    </g>
+  </g>
+</svg>

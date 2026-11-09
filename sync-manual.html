@@ -1,0 +1,2065 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>교사용 올인원 시스템 종합 사용 설명서 (나이스 생기부·진학 상담 & 디지털 교무수첩 T-ong)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap">
+<style>
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GmarketSansBold';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
+:root {
+  --bg: #fdf8ea;
+  --paper: #ffffff;
+  --tan: #f4ecd6;
+  --tan-dark: #e6dac1;
+  --line: #e9dfc4;
+  --red: #bf3b36;
+  --red-d: #9e2c28;
+  --ink: #2a2523;
+  --tx: #3b3532;
+  --mute: #6b625a;
+  --pbg: #efe9fd;
+  --pbar: #7c3aed;
+  --cbg: #e9f4ed;
+  --cbar: #0a6c3c;
+  --amber-bg: #fffbeb;
+  --amber-border: #fcd34d;
+  --blue-bg: #eff6ff;
+  --blue-border: #93c5fd;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'GmarketSansMedium', Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 15.5px;
+  line-height: 1.75;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, .brand, .sticker, .cta, .navhead {
+  font-family: 'GmarketSansBold', 'GmarketSansMedium', sans-serif;
+}
+.hand { font-family: "Nanum Pen Script", cursive; }
+
+/* Top Header Bar */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 32px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.brand {
+  font-weight: 900;
+  font-size: 21px;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+.brand i { color: var(--red); font-style: normal; }
+.brand small {
+  font-size: 12.5px;
+  font-weight: normal;
+  color: var(--mute);
+  margin-left: 8px;
+}
+.top nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.top nav a {
+  color: var(--mute);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.top nav a:hover {
+  color: var(--red);
+  background: var(--tan);
+}
+.cta {
+  background: var(--red);
+  color: #fff !important;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  box-shadow: 0 2px 4px rgba(191,59,54,0.25);
+}
+.cta:hover { background: var(--red-d); }
+
+/* Hero Banner */
+.hero {
+  background: var(--red);
+  color: #ffffff;
+  padding: 36px 32px 32px;
+  overflow: hidden;
+}
+.hero .in {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+.tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.sticker {
+  background: var(--bg);
+  color: var(--red);
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 6px 16px;
+  transform: rotate(-1.5deg);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.18);
+  font-size: 13.5px;
+  border-radius: 4px;
+}
+.pill {
+  background: var(--ink);
+  color: #ffffff;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.hero h1 {
+  margin: 18px 0 8px;
+  font-size: 36px;
+  line-height: 1.3;
+  letter-spacing: -1px;
+}
+.hero h1 mark {
+  background: var(--bg);
+  color: var(--ink);
+  padding: 0 10px;
+  border-radius: 6px;
+}
+.hero p {
+  margin: 0;
+  font-size: 16.5px;
+  color: #ffffff;
+  opacity: 0.95;
+}
+.hero .hand {
+  font-size: 25px;
+  margin-top: 8px;
+  display: block;
+  color: #ffffff;
+}
+
+/* Main Layout: Sticky Sidebar + Content */
+.wrap {
+  display: flex;
+  align-items: flex-start;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+aside {
+  width: 285px;
+  flex: none;
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 20px 0 30px;
+  border-right: 1px solid var(--line);
+}
+aside .lab {
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--mute);
+  letter-spacing: 0.8px;
+  padding: 14px 20px 4px;
+  text-transform: uppercase;
+}
+aside a {
+  display: block;
+  padding: 8px 18px;
+  color: var(--tx);
+  font-weight: 600;
+  border-left: 4px solid transparent;
+  font-size: 14px;
+  line-height: 1.45;
+  transition: all 0.15s ease;
+}
+aside a:hover {
+  background: var(--tan);
+  color: var(--ink);
+}
+aside a.on {
+  background: var(--paper);
+  border-left-color: var(--red);
+  color: var(--red-d);
+  font-weight: 800;
+}
+aside a .n {
+  display: inline-block;
+  min-width: 24px;
+  color: var(--red);
+  font-weight: 900;
+}
+.aside-card {
+  margin: 18px 14px 0;
+  padding: 14px;
+  background: var(--tan);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--tx);
+}
+.aside-card b {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 26px 38px 80px;
+  max-width: 1035px;
+}
+@media (max-width: 960px) {
+  .wrap { flex-direction: column; }
+  aside {
+    width: 100%;
+    position: static;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  main { padding: 20px 18px 60px; }
+}
+.page { display: none; }
+.page.on { display: block; }
+.kick {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--red);
+  letter-spacing: 0.5px;
+}
+h2 {
+  font-size: 27px;
+  font-weight: 900;
+  color: var(--ink);
+  margin: 4px 0 8px;
+  letter-spacing: -0.5px;
+}
+.lead {
+  color: var(--mute);
+  margin: 0 0 22px;
+  font-size: 15px;
+  max-width: 860px;
+}
+h3 {
+  font-size: 18.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 26px 0 10px;
+  letter-spacing: -0.3px;
+}
+
+/* Tool Buttons: Expand/Collapse */
+.tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  margin-bottom: 12px;
+}
+.tools button {
+  border: 2px solid var(--red);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--tx);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tools button:hover {
+  background: var(--red);
+  color: #ffffff;
+}
+.tools button.primary {
+  background: var(--red);
+  color: #ffffff;
+}
+.tools button.primary:hover {
+  background: var(--red-d);
+}
+
+/* Foldable Details Cards */
+details.fold {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 14px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+details.fold summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 15px 18px;
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+details.fold summary::-webkit-details-marker { display: none; }
+details.fold summary .num {
+  background: var(--red);
+  color: #ffffff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex: none;
+  font-weight: 900;
+}
+details.fold summary i {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--tan);
+  position: relative;
+  flex: none;
+}
+details.fold summary i::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--mute);
+  border-bottom: 2px solid var(--mute);
+  transform: rotate(45deg);
+  transition: 0.2s;
+}
+details.fold[open] summary i::after {
+  transform: rotate(225deg);
+  top: 12px;
+  border-color: var(--red);
+}
+.fbody {
+  padding: 6px 22px 24px;
+  border-top: 1px solid var(--tan);
+}
+.fbody ul {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+}
+.fbody li {
+  margin: 5px 0;
+  font-size: 14.5px;
+}
+
+/* Callouts & Info Boxes */
+.tip {
+  background: var(--cbg);
+  border: 1.5px solid #22c55e;
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.tip b { color: #166534; }
+
+.warn {
+  background: var(--amber-bg);
+  border: 1.5px solid var(--amber-border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.warn b { color: #92400e; }
+
+.danger {
+  background: #fef2f2;
+  border: 1.5px solid #f87171;
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.danger b { color: var(--red); }
+
+/* Prompts & Code Boxes */
+.prompt, .code-wrap {
+  position: relative;
+  border-radius: 10px;
+  margin: 14px 0;
+}
+.prompt {
+  background: var(--pbg);
+  border-left: 5px solid var(--pbar);
+  padding: 14px 18px;
+}
+.prompt .ph {
+  font-weight: 800;
+  color: #5b21b6;
+  font-size: 14px;
+}
+.code-wrap {
+  background: var(--cbg);
+  border-left: 5px solid var(--cbar);
+  padding: 14px 18px;
+}
+pre {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1f2328;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 0;
+  background: var(--ink);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.copy-btn:hover { background: var(--red); }
+.copy-btn.ok { background: #166534; }
+
+/* Grid Cards */
+.howgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+@media (max-width: 860px) {
+  .howgrid { grid-template-columns: 1fr; }
+}
+.how {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.how .st {
+  font-weight: 900;
+  color: var(--red);
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+}
+.how h4 {
+  margin: 4px 0 8px;
+  font-size: 16.5px;
+  color: var(--ink);
+}
+.how p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--tx);
+}
+
+/* Screenshots Card */
+.shot-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 14px 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+}
+.shot-badge {
+  display: inline-block;
+  background: var(--red);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 12px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.shot-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  display: block;
+}
+.shot-cap {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--mute);
+  line-height: 1.55;
+}
+.shot-cap b { color: var(--ink); }
+
+.shot-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+@media (max-width: 860px) {
+  .shot-grid-2 { grid-template-columns: 1fr; }
+}
+.shot-grid-2 .shot-card { margin: 0; }
+
+/* Table Styles */
+table.manual-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13.5px;
+  background: var(--paper);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+table.manual-table th {
+  background: var(--tan);
+  color: var(--ink);
+  font-weight: 800;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+table.manual-table td {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  line-height: 1.55;
+}
+table.manual-table tr:hover {
+  background: #fdfbee;
+}
+
+/* Pill Badges */
+.tag-input {
+  display: inline-block;
+  background: #fef08a;
+  color: #854d0e;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.tag-auto {
+  display: inline-block;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.tag-sync {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Flow diagram */
+.flow-box {
+  background: var(--paper);
+  border: 2px dashed var(--tan-dark);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 12px 0;
+}
+.flow-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  flex: none;
+}
+.flow-text { flex: 1; }
+.flow-text b { color: var(--ink); font-size: 15px; }
+.flow-text p { margin: 2px 0 0; font-size: 13.5px; color: var(--mute); }
+</style>
+</head>
+<body data-p="p0">
+
+<!-- Top Navigation -->
+<header class="top">
+  <a class="brand" href="index.html">
+    NEIS-HELP &amp; T-ONG <i>ALL-IN-ONE</i>
+    <small>2026 나이스 생기부·진학 상담 &amp; 디지털 교무수첩 통합 매뉴얼</small>
+  </a>
+  <nav>
+    <a href="https://neis-help-one.vercel.app" target="_blank" rel="noopener">나이스 생기부 웹앱</a>
+    <a href="https://t-ong.vercel.app" target="_blank" rel="noopener">디지털 교무수첩(T-ong)</a>
+    <a href="admin.html">관리자 콘솔</a>
+    <a class="cta" href="./assets/teacher_allinone_template_2026.xlsx" download>표준 10개 탭 엑셀 다운로드</a>
+  </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="in">
+    <div class="tags">
+      <span class="sticker">2026학년도 고교학점제 &amp; 디지털 교무수첩 통합본</span>
+      <span class="pill">0_사용안내 맨 앞 고정 &amp; 전 탭 홈 버튼</span>
+      <span class="pill">T-ong 실제 화면 35장 완벽 수록</span>
+      <span class="pill">이동수업 5W반 · 8V반 혼합 편성 지원</span>
+    </div>
+    <h1>교사용 올인원 시스템 <mark>종합 사용 설명서</mark></h1>
+    <p>디지털 교무수첩(t-ong.vercel.app)의 자리배치·출결·관찰·상담·일정관리부터 나이스 생기부 초안 생성 및 2027 대입 진학 상담까지 실제 화면으로 안내합니다.</p>
+    <span class="hand">교실에서 터치한 출결과 관찰 기록이 선생님의 개인 구글 시트 10개 탭으로 실시간 이어집니다</span>
+  </div>
+</section>
+
+<!-- Main Container -->
+<div class="wrap">
+  <!-- Sticky Sidebar -->
+  <aside>
+    <div class="lab">시작하기 &amp; 특화 가이드</div>
+    <a class="on" href="#p0_intro" data-p="p0_intro"><span class="n">0</span>시스템 개요 &amp; 0_사용안내 탭</a>
+    <a href="#p_elective" data-p="p_elective"><span class="n">!</span>이동수업 분반 (5W반 · 8V반) 명렬표</a>
+
+    <div class="lab">PART 1. 나이스 생기부 · 진학 상담</div>
+    <a href="#p1_workbench" data-p="p1_workbench"><span class="n">1</span>AI 생기부 초안 생성 워크벤치</a>
+    <a href="#p1_ocr" data-p="p1_ocr"><span class="n">2</span>학생 탐구보고서 AI 판독 가이드</a>
+    <a href="#p1_constraint" data-p="p1_constraint"><span class="n">3</span>바이트수 &amp; 금지어 사전 검증</a>
+    <a href="#p1_counsel" data-p="p1_counsel"><span class="n">4</span>2027 대입 진학 상담 &amp; 대학 DB</a>
+
+    <div class="lab">PART 2. 디지털 교무수첩 (T-ong)</div>
+    <a href="#p2_layout" data-p="p2_layout"><span class="n">5</span>화면 구성 · 테마 · Google 연동</a>
+    <a href="#p2_roster" data-p="p2_roster"><span class="n">6</span>학급 명렬표 &amp; 엑셀 3종 업로드</a>
+    <a href="#p2_seat" data-p="p2_seat"><span class="n">7</span>자리배치 · 모둠 · 추첨 · 누가기록</a>
+    <a href="#p2_att" data-p="p2_att"><span class="n">8</span>출결관리 · 학생팝업 &amp; 시트 동기화</a>
+    <a href="#p2_classroom" data-p="p2_classroom"><span class="n">9</span>교실운영 (타이머·칭찬·1인1역·알림장)</a>
+    <a href="#p2_calendar" data-p="p2_calendar"><span class="n">10</span>일정관리 · 상담 &amp; Google 캘린더</a>
+    <a href="#p2_extra" data-p="p2_extra"><span class="n">11</span>즐겨찾기 · 교실게임 · 오늘의 학교 · 백업</a>
+
+    <div class="lab">PART 3. 시트 명세 &amp; Apps Script</div>
+    <a href="#p3_sheet" data-p="p3_sheet"><span class="n">12</span>10개 탭 칼럼 명세 (회색 수식열 보호)</a>
+    <a href="#p3_gas" data-p="p3_gas"><span class="n">13</span>Apps Script 1분 웹 앱 배포</a>
+
+    <div class="aside-card">
+      <b>동기화 핵심 수칙</b>
+      디지털 교무수첩(T-ong)에서 기록한 출결·칭찬·1인1역은 <b>[8_출결_칭찬_기록]</b>에, 수업관찰·세특 메모는 <b>[6_수업관찰_기록]</b>에 실시간 저장됩니다.<br>
+      수식이 걸린 회색 음영 열은 절대 수동으로 덮어쓰지 마세요.
+    </div>
+  </aside>
+
+  <!-- Main Content Body -->
+  <main>
+    <div class="tools">
+      <button class="primary" onclick="foldAll(true)">[+] 이 페이지 모두 펼치기</button>
+      <button onclick="foldAll(false)">[-] 모두 접기</button>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 0: Intro & 0_사용안내 Tab -->
+    <!-- ================================================================= -->
+    <section id="p0_intro" class="page on">
+      <div class="kick">START HERE · 올인원 시스템 전체 구조</div>
+      <h2>구글 시트 1개로 연결되는 나이스 생기부 &amp; 디지털 교무수첩</h2>
+      <p class="lead">
+        본 시스템은 교실 수업·학급 운영을 담당하는 <b>디지털 교무수첩(t-ong.vercel.app)</b>과 
+        교무실 업무를 담당하는 <b>나이스 생기부·진학 상담 웹앱(neis-help-one.vercel.app)</b>이 
+        하나의 <b>표준 구글 시트(10개 탭)</b>로 실시간 동기화되는 통합 교무 환경입니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">전체 데이터 흐름 인포그래픽</span>
+        <img src="./assets/ai_sheet_guide_infographic.png" alt="구글 시트 10개 탭 및 모바일 교무수첩 실시간 연동 흐름">
+        <div class="shot-cap">
+          <b>핵심 파이프라인:</b> 0_사용안내 탭에서 전체 구조 확인 &rarr; 디지털 교무수첩(T-ong)에서 자리배치·출결·칭찬·관찰 기록 &rarr; 
+          구글 시트 6번(수업관찰)·8번(출결·칭찬) 탭에 실시간 적립 &rarr; 나이스 웹앱에서 1,500바이트 검증 및 AI 세특·행특 완성
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          맨 앞(0번)에 배치된 [0_사용안내] 탭과 전 탭 원클릭 홈 버튼
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>
+            표준 구글 시트와 엑셀 파일은 선생님께서 열자마자 전체 구조와 입력 규칙을 파악하실 수 있도록 
+            <b>[0_사용안내] 탭을 가장 맨 앞(0번 인덱스)</b>에 배치했습니다.
+          </p>
+          <div class="tip">
+            <b>양방향 바로가기 &amp; 홈 버튼:</b><br>
+            - <b>0_사용안내 탭</b>에서 1번~9번의 모든 시트 탭으로 1클릭 이동하는 바로가기 표가 제공됩니다.<br>
+            - <b>1번~9번 모든 탭의 2행(고정 행) A2 셀과 최우측 셀</b>에 <code>[홈 · 0_사용안내(설명서)]</code> 링크가 내장되어 있어 어느 탭에서든 즉시 첫 안내 화면으로 돌아올 수 있습니다.
+          </div>
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th style="width: 145px;">시트 탭 이름</th>
+                <th style="width: 135px;">연동 주체</th>
+                <th>주요 역할 및 동기화 흐름</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>0_사용안내</b></td>
+                <td><span class="tag-auto">맨 앞 고정 (홈)</span></td>
+                <td>전체 데이터 흐름 안내, 10개 탭 바로가기 링크, 색상별 셀 입력 규칙 안내</td>
+              </tr>
+              <tr>
+                <td><b>1_대시보드</b></td>
+                <td><span class="tag-auto">자동 브리핑</span></td>
+                <td>학급 전체 인원, 세특·행특 작성률, 상담 건수, 출결·칭찬 누적 현황 자동 집계</td>
+              </tr>
+              <tr>
+                <td><b>2_학생명렬표</b></td>
+                <td><span class="tag-input">공통 마스터 키</span></td>
+                <td>학번(ID), 성명, 성별, 연락처 및 이동수업 분반(5W반, 8V반 등) 기준 명부</td>
+              </tr>
+              <tr>
+                <td><b>3_창체_행특</b></td>
+                <td><span class="tag-sync">양방향 연동</span></td>
+                <td>자율·동아리·진로 메모 및 T-ong 누적 칭찬·1인1역·출결이 자동 참조되는 행특 시트</td>
+              </tr>
+              <tr>
+                <td><b>4_대입상담</b></td>
+                <td><span class="tag-input">진학 상담</span></td>
+                <td>희망 계열, 1~3지망 대학·학과, 내신 등급 및 2028 개편 5등급제 자동 환산</td>
+              </tr>
+              <tr>
+                <td><b>5_상담기록</b></td>
+                <td><span class="tag-sync">T-ong·웹앱 연동</span></td>
+                <td>학생·학부모 상담 일자, 상담 구분, 상담 요약 및 후속 조치 누적 기록</td>
+              </tr>
+              <tr>
+                <td><b>6_수업관찰_기록</b></td>
+                <td><span class="tag-sync">T-ong 실시간</span></td>
+                <td><b>디지털 교무수첩(T-ong) 학생 팝업에서 입력한 수업 관찰·세특 메모가 즉시 쌓이는 탭</b></td>
+              </tr>
+              <tr>
+                <td><b>7_AI세특_작성</b></td>
+                <td><span class="tag-auto">세특 완성·점검</span></td>
+                <td>6번 탭의 누적 관찰 기록을 불러와 완성한 교과세특 최종 문단 및 실시간 바이트(LENB) 계산</td>
+              </tr>
+              <tr>
+                <td><b>8_출결_칭찬_기록</b></td>
+                <td><span class="tag-sync">T-ong 실시간</span></td>
+                <td><b>디지털 교무수첩(T-ong)에서 체크한 출석·결석·지각·조퇴·칭찬 포인트·1인1역이 자동 기록되는 탭</b></td>
+              </tr>
+              <tr>
+                <td><b>_스킬지침</b></td>
+                <td><span class="tag-auto">규정 기준표</span></td>
+                <td>2026 학교생활기록부 기재요령 핵심 준수 수칙 및 바이트 상한 기준 보관</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          구글 시트 내 비공식 =AI 수식 완전 제거 (100% 표준 수식 보증)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>
+            시트 셀 안에 <code>=AI_HAENGTEUK()</code>이나 <code>=AI_SETUK()</code> 같은 비공식 함수를 넣으면 
+            할당량 초과나 시트 열람 시 <code>#ERROR!</code>가 발생하는 문제가 있습니다.
+          </p>
+          <div class="tip">
+            <b>표준 수식만 사용:</b> 본 시스템의 표준 서식은 모든 비공식 AI 수식을 완전히 제거하고, 
+            구글 시트와 엑셀 어디서나 100% 작동하는 <code>LENB</code>(바이트 계산), <code>VLOOKUP</code>(학생 매칭), 
+            <code>COUNTIF</code>(출결·칭찬 집계) 표준 수식만 사용합니다.
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE: Elective Class (5W, 8V) -->
+    <!-- ================================================================= -->
+    <section id="p_elective" class="page">
+      <div class="kick">HIGH SCHOOL ELECTIVES · 고교학점제 이동수업 특화</div>
+      <h2>이동수업 혼합 분반 (5W반 · 8V반 등 1~10반 혼합) 명렬표 운영 가이드</h2>
+      <p class="lead">
+        고등학교 선택과목 수업에서는 1반부터 10반까지 학생들이 섞여서 편성된 <b>5W반, 8V반</b> 등 다수 분반(예: 5개 학급)을 담당하게 됩니다. 
+        원적 학번이 섞여 있는 이동수업 분반을 디지털 교무수첩(T-ong)과 구글 시트에 등록하고 출결·관찰을 관리하는 방법입니다.
+      </p>
+
+      <div class="tip">
+        <b>선생님의 실제 명렬표 맞춤 안내:</b><br>
+        선생님께서 실제 사용하시는 명렬표 파일을 주시면 해당 엑셀의 열 구조(수강반, 수업번호, 원적학번, 성명 등)를 그대로 인식하도록 즉시 맞춰 드립니다.
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          1반~10반이 섞인 5W반 · 8V반 명렬표 구성 원리
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>
+            이동수업 분반은 <b>[분반명(학급)]</b>에 <code>5W반</code>, <code>8V반</code>을 적고, 
+            학생의 <b>[원적 학번]</b>(예: 20105, 20312, 20703, 21019) 또는 <b>[분반 출석번호 + 원적학번]</b>으로 등록합니다.
+          </p>
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th>분반명 (학급 탭)</th>
+                <th>분반 내 번호</th>
+                <th>원적 학번 (공통 키)</th>
+                <th>학생 성명</th>
+                <th>성별</th>
+                <th>원적 학급 (비고)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>5W반 (생명과학I)</b></td>
+                <td>1번</td>
+                <td>20105</td>
+                <td>김민준</td>
+                <td>남</td>
+                <td>2학년 1반 5번</td>
+              </tr>
+              <tr>
+                <td><b>5W반 (생명과학I)</b></td>
+                <td>2번</td>
+                <td>20312</td>
+                <td>이지은</td>
+                <td>여</td>
+                <td>2학년 3반 12번</td>
+              </tr>
+              <tr>
+                <td><b>5W반 (생명과학I)</b></td>
+                <td>3번</td>
+                <td>20703</td>
+                <td>박도현</td>
+                <td>남</td>
+                <td>2학년 7반 3번</td>
+              </tr>
+              <tr>
+                <td><b>8V반 (생명과학I)</b></td>
+                <td>1번</td>
+                <td>20208</td>
+                <td>최서아</td>
+                <td>여</td>
+                <td>2학년 2반 8번</td>
+              </tr>
+              <tr>
+                <td><b>8V반 (생명과학I)</b></td>
+                <td>2번</td>
+                <td>21019</td>
+                <td>정우진</td>
+                <td>남</td>
+                <td>2학년 10반 19번</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          디지털 교무수첩(T-ong)에서 5개 분반(5W반, 8V반 등) 전환 및 시트 동기화
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">T-ong 엑셀 3종 자동 인식</span>
+              <img src="./guide/03-excel.png" alt="엑셀 명렬표 자동 인식">
+              <div class="shot-cap">
+                <b>다중 분반 한 번에 등록:</b> 시트별 분반(5W반 시트, 8V반 시트) 또는 학급 열이 있는 한 장짜리 엑셀을 끌어다 놓으면 최대 10개 분반이 한 번에 생성됩니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">분반별 출결 체크 및 기록</span>
+              <img src="./guide/20-attend.png" alt="출결관리 화면">
+              <div class="shot-cap">
+                <b>상단 분반 드롭다운 전환:</b> 수업 들어가는 분반(예: 5W반)을 상단에서 고른 뒤 출결이나 관찰을 기록하면 해당 학생의 원적 학번 기준으로 시트 6번·8번 탭에 즉시 동기화됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PART 1: NEIS 생기부 · 진학 상담 -->
+    <!-- ================================================================= -->
+    <section id="p1_workbench" class="page">
+      <div class="kick">PART 1 · 나이스 생기부 &amp; 진학 상담</div>
+      <h2>AI 생기부 초안 생성 워크벤치</h2>
+      <p class="lead">
+        디지털 교무수첩(T-ong)과 구글 시트 6번 탭에 누적된 수업 관찰 메모를 불러와 
+        2026 학교생활기록부 기재요령에 부합하는 교과세특·창체·행특 초안을 작성합니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">나이스 생기부 초안 생성 워크벤치 실제 화면</span>
+        <img src="./screenshots/capture_3_ai_workbench.png" alt="생기부 AI 초안 워크벤치">
+        <div class="shot-cap">
+          <b>워크벤치 핵심 흐름:</b> ① 기재 항목(교과세특/자율/동아리/진로/행특) 및 2022 개정 교과군 선택 &rarr; 
+          ② 구글 시트 6번 탭의 누적 수업 관찰 메모 자동 불러오기 &rarr; ③ 분량(1,500B/900B) 및 핵심 역량 선택 &rarr; ④ 초안 생성 및 시트 반영
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          과목별 세특(과세특) 및 행동특성 생성 3단계
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="flow-box">
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <div class="flow-text">
+                <b>학생 선택 및 시트 관찰 기록 자동 연동</b>
+                <p>상단 [학생 선택 · 불러오기]를 누르면 모바일 교무수첩(T-ong)에서 기록해 둔 6_수업관찰_기록 탭의 메모와 4_대입상담의 진로 목표가 자동으로 채워집니다.</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div class="flow-text">
+                <b>교과 역량 키워드 및 성취기준 결합</b>
+                <p>2022 개정 교육과정 과목별 성취기준과 핵심 역량(비판적 사고력, 문제해결력, 자기주도성 등)을 클릭하여 반영합니다.</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div class="flow-text">
+                <b>초안 생성 또는 외부 AI 스킬(Claude·ChatGPT·Gemini) 활용</b>
+                <p>API 키로 즉시 생성하거나, [프롬프트 복사] 및 [스킬 .zip / SKILL.md 받기]를 통해 구독 중인 상용 AI에서 기재요령 100% 준수 문단을 도출합니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- PAGE: OCR & Inquiry Report Guide -->
+    <section id="p1_ocr" class="page">
+      <div class="kick">PART 1 · 학생 탐구보고서 AI 판독</div>
+      <h2>선생님별 맞춤형 활동지 · 탐구보고서 AI 판독 및 프롬프트 변형 가이드</h2>
+      <p class="lead">
+        선생님마다 수업에서 사용하는 활동지나 탐구보고서 PDF 양식이 다릅니다. 
+        선생님의 활동지 양식을 먼저 붙여 넣어 맞춤형 프롬프트로 변형한 뒤 학급 전체 보고서를 일괄 추출하는 방법입니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">학생 탐구보고서 AI 판독 &amp; 프롬프트 일괄 자동화 센터</span>
+        <img src="./screenshots/capture_5_ocr_modal.png" alt="학생 탐구보고서 AI 판독 모달">
+        <div class="shot-cap">
+          <b>일괄 자동화 센터:</b> 학급 30명의 보고서 사진·PDF를 Gemini/ChatGPT에 올리고 표준 마스터 프롬프트를 전송하면 
+          [학번 / 성명 / 과목 / 탐구주제 / 나이스 3단계 세특 초안]이 구글 시트 복사용 표로 1분 만에 추출됩니다.
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          내 수업 활동지(PDF) 양식에 맞게 프롬프트 변형하는 2단계 절차
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="warn">
+            <b>왜 프롬프트 변형이 필요한가요?</b><br>
+            선생님마다 활동지의 문항 구성(예: ① 실험 가설 &rarr; ② 데이터 분석 &rarr; ③ 오차 원인 성찰 vs ① 독서 선정 이유 &rarr; ② 사회 문제 연결 &rarr; ③ 제언)이 다르므로, 
+            아래 <b>[1단계: 양식 맞춤 변형 프롬프트]</b>로 내 빈 활동지 PDF를 먼저 AI에게 보여주면 선생님 양식에 딱 맞는 전용 프롬프트가 완성됩니다.
+          </div>
+
+          <div class="prompt">
+            <button class="copy-btn" onclick="copyCode(this)">1단계 프롬프트 복사</button>
+            <div class="ph">1단계: 내 활동지/보고서 빈 양식(PDF)에 맞춰 전용 프롬프트 만들기</div>
+            <pre>나는 고등학교 [과목명 입력, 예: 생명과학I] 교사야.
+지금 첨부한 PDF(또는 이미지)는 우리 반 학생들이 작성할 [수행평가 탐구보고서/활동지 빈 양식]이야.
+
+이 활동지의 항목 구조(문항 순서와 평가 요소)를 정확히 반영해서,
+나중에 학생들이 손글씨나 텍스트로 작성해 제출한 보고서 30장을 올렸을 때
+각 항목의 핵심 내용을 빠짐없이 읽고 2026 나이스 교과세특(한글 450~500자, 1,420~1,480바이트) 문단과
+구글 시트 붙여넣기용 마크다운 표([학번 | 성명 | 탐구주제 | 탐구과정 요약 | 나이스 세특 초안])로
+일괄 출력해 주는 '내 수업 전용 맞춤형 마스터 프롬프트'를 작성해 줘.</pre>
+          </div>
+
+          <div class="prompt">
+            <button class="copy-btn" onclick="copyCode(this)">2단계 표준 프롬프트 복사</button>
+            <div class="ph">2단계: 학생 보고서 &rarr; 구글 시트 일괄 추출 표준 마스터 프롬프트</div>
+            <pre>당신은 대한민국 고등학교 학교생활기록부 '교과세부능력 및 특기사항(교과세특)' 기재요령 전문가이자 문서 OCR 정밀 판독 AI입니다.
+첨부된 학생들의 탐구보고서(활동지) 이미지를 정밀 판독하여, 구글 스프레드시트 및 엑셀에 바로 붙여넣을 수 있는 [마크다운 표] 형식으로 일괄 추출하고 2026 나이스 훈령을 엄격히 준수한 교과세특 초안을 작성해 주세요.
+
+[출력 표 열 구성]
+| 학번 | 성명 | 과목 | 탐구주제 | 핵심 탐구과정 메모(6번 시트용) | 나이스 세특 완성본(7번 시트용, 450~500자) |
+
+[필수 기재 원칙]
+1. 3단 구조: [수업 단원 연계 탐구 동기] -> [구체적 실험·자료분석·문제해결 과정] -> [학업적 성장 및 심화 확장]
+2. 금지어 배제: 교외 수상, 공인어학시험, 대학명, 논문 투고, 부모 직업 등 나이스 기재 금지 표현 원천 차단
+3. 명사형 종결어미: '~을 분석함.', '~을 도출함.', '~한 역량을 보임.' 등 나이스 표준 종결어미 통일</pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- PAGE: Byte & Prohibited Words Constraint -->
+    <section id="p1_constraint" class="page">
+      <div class="kick">PART 1 · 나이스 기재 규정 준수</div>
+      <h2>2026 바이트수(1,500B) &amp; 금지어·종결어미·중복문장 정밀 점검</h2>
+      <p class="lead">
+        나이스 업로드 전 교외 수상·공인어학·소논문 등 금지어, 1,500바이트 초과, 종결어미 오류, 학생 간 복사(중복) 문장을 1초 만에 일괄 검출합니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">나이스 규격 · 금지어 · 바이트 정밀 점검 실제 화면</span>
+        <img src="./screenshots/capture_6_constraint.png" alt="바이트수 및 금지어 정밀 점검">
+        <div class="shot-cap">
+          <b>4대 제약 일괄 검출:</b> 엑셀 파일을 불러오거나 시트 데이터를 연동하면 학생별 바이트 계산(초과 시 적색 표시)과 금지어 위치가 즉시 표시됩니다.
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          2026학년도 영역별 나이스 글자수 · 바이트 상한 기준표
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th>생기부 영역</th>
+                <th>나이스 기준 글자수</th>
+                <th>나이스 허용 바이트</th>
+                <th>권장 안전 범위 (줄바꿈 포함)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>자율·자치활동</b></td>
+                <td>500자</td>
+                <td>1,500 Byte</td>
+                <td>1,400 ~ 1,480 Byte</td>
+              </tr>
+              <tr>
+                <td><b>동아리활동</b></td>
+                <td>500자</td>
+                <td>1,500 Byte</td>
+                <td>1,400 ~ 1,480 Byte</td>
+              </tr>
+              <tr>
+                <td><b>진로활동</b></td>
+                <td>700자</td>
+                <td>2,100 Byte</td>
+                <td>1,950 ~ 2,060 Byte</td>
+              </tr>
+              <tr>
+                <td><b>교과세특 (과목별)</b></td>
+                <td>500자</td>
+                <td>1,500 Byte</td>
+                <td>1,400 ~ 1,480 Byte</td>
+              </tr>
+              <tr>
+                <td><b>행동특성 및 종합의견</b></td>
+                <td>300자 ~ 500자</td>
+                <td>900 ~ 1,500 Byte</td>
+                <td>학년도별 상한 기준 자동 적용</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <!-- PAGE: College Counseling & University DB -->
+    <section id="p1_counsel" class="page">
+      <div class="kick">PART 1 · 2027 대입 진학 상담</div>
+      <h2>전국 133개 대학 DB &amp; 2028 개편 5등급제 환산 진학 상담</h2>
+      <p class="lead">
+        전국 133개 대학의 최신 수시 입결, 논술·면접·수능최저 조건 검색과 9등급제·5등급제 성적 환산을 한 화면에서 지원하며 상담 결과는 시트 4번·5번 탭에 연동됩니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">2027 대입 진학 상담 &amp; 전국 133개 대학 전형 DB 실제 화면</span>
+        <img src="./screenshots/capture_7_counsel.png" alt="2027 대입 진학상담 화면">
+        <div class="shot-cap">
+          <b>대학·전형 검색 및 성적 매칭:</b> 초성·학과·지역별 필터링(서울/수도권/거점국립/논술실시교/수능최저) + 입학처·어디가·선행학습영향평가보고서 원클릭 연결
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PART 2: 디지털 교무수첩 (T-ong: t-ong.vercel.app) 완전 정복 -->
+    <!-- ================================================================= -->
+    <section id="p2_layout" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 1</div>
+      <h2>T-ong 한 화면 전체 구성 · 9종 테마 · Google 원클릭 연동</h2>
+      <p class="lead">
+        디지털 교무수첩(<b>t-ong.vercel.app</b>)은 자리배치부터 출결관리, 교실운영 도구, 일정·상담관리까지 
+        교사의 하루 일과를 한 화면에서 처리하며, 상단 <b>[Google 연동]</b>을 통해 올인원 마스터 구글 시트(10개 탭) 및 Google 캘린더와 실시간 동기화됩니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">T-ong 디지털 교무수첩 전체 화면 레이아웃</span>
+        <img src="./guide/00-layout.png" alt="T-ong 전체 화면 구성">
+        <div class="shot-cap">
+          <b>4대 영역 한눈에 보기:</b> ① 상단 메뉴(홈·자리배치·출결관리·교실운영·일정관리·즐겨찾기·게임·학급선택·Google연동·도움말) / 
+          ② 좌측 메뉴(설정·사용법·데이터·기록) / ③ 중앙 좌석표(복도·창가 표시) / ④ 우측 패널(명렬표·좌석 설정·추첨·저장·출력)
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          상단 [Google 연동] 패널 — 구글 시트 10개 탭 &amp; Google 캘린더 1클릭 연결
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">T-ong 상단 [Google 연동] 실제 드롭다운 화면</span>
+            <img src="./screenshots/screen_1_tong_sync_menu.png" alt="T-ong Google 연동 드롭다운 메뉴">
+            <div class="shot-cap">
+              <b>Google 통합 연동 패널:</b> Google 로그인 한 번으로 교무수첩 시트와 캘린더가 동시에 연결되며, 
+              마스터 시트 사본 복사·표준 엑셀(.xlsx) 다운로드·Apps Script 웹앱 URL 등록을 이 패널에서 바로 수행합니다.
+            </div>
+          </div>
+          <ul>
+            <li><b>Google 통합 로그인:</b> 버튼 한 번으로 교무수첩과 Google 기본 캘린더 권한을 함께 연결합니다.</li>
+            <li><b>1단계 구글 드라이브 사본 복사 &amp; 표준 엑셀 다운로드:</b> 일반 <code>@gmail.com</code> 계정에서 사본 복사 권한 안내가 뜰 경우, 초록색 <b>[표준 엑셀(.xlsx) 즉시 다운로드]</b>를 받아 내 구글 드라이브에 올리면 100% 동일하게 연동됩니다.</li>
+            <li><b>마스터 시트 웹앱 URL 저장:</b> 복사한 시트의 Apps Script 배포 URL(<code>https://script.google.com/macros/s/.../exec</code>)을 입력하고 <b>[저장]</b>을 누르면 실시간 동기화가 시작됩니다.</li>
+            <li><b>캘린더 계정 분리 지원:</b> 학교 업무용 시트 계정과 개인 스마트폰 캘린더 계정이 다를 때 <b>[캘린더만 다른 계정 변경]</b>으로 분리 연결할 수 있습니다.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          상단 [설정·도움말] 9가지 감성 테마 &amp; [홈] 메뉴 구성
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">상단 [설정·도움말] 및 9가지 화면 테마</span>
+              <img src="./screenshots/screen_2_tong_calendar_modal.png" alt="T-ong 설정 도움말 및 화면 테마">
+              <div class="shot-cap">
+                <b>9종 화면 테마:</b> 초록 식물도감, T-ong 클래식, 순정만화, 몽글 스티커, 물빛 산책, 초록 숲편지, 별빛 야간, 맑은 교정, 포근한 교사 책상 중 교실 분위기에 맞는 테마를 즉시 적용합니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">상단 [홈] 메뉴 및 데이터 백업</span>
+              <img src="./guide/v67-home-backup.png" alt="T-ong 홈 메뉴 및 데이터 백업">
+              <div class="shot-cap">
+                <b>홈 하위메뉴:</b> 좌측 상단 집 모양 [홈] 버튼을 누르면 첫 화면 이동, 3분 사용 설명서 캐러셀 열기, 데이터 백업 창을 언제든 호출합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">3</span>
+          좌측 접이식 메뉴 &amp; 우측 좌석 설정 패널
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">좌측 접이식 메뉴 (설정·사용법·기록)</span>
+              <img src="./guide/0C-leftmenu.png" alt="좌측 메뉴">
+              <div class="shot-cap">
+                <b>좌측 메뉴:</b> 평소에는 아이콘만 보이도록 접어 두어 좌석표를 넓게 쓰고, 필요할 때 펼쳐 설정·명렬표·데이터 기록을 관리합니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">우측 좌석 설정 패널 (명렬표~출력 한 흐름)</span>
+              <img src="./guide/0D-seatpanel.png" alt="우측 좌석 설정 패널">
+              <div class="shot-cap">
+                <b>위에서 아래로 한 흐름:</b> ① 명렬표 업로드 &rarr; ② 현재 좌석 조건 확인 &rarr; ③ 설정 바꾸기 &rarr; ④ 추첨 시작·저장·출력을 순서대로 실행합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 6: T-ong 학급 명렬표 & 엑셀 업로드 -->
+    <!-- ================================================================= -->
+    <section id="p2_roster" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 2</div>
+      <h2>학급 명렬표 등록 &amp; 엑셀 3종 양식 자동 인식 (최대 10개 학급/분반)</h2>
+      <p class="lead">
+        담임 교사의 단일 학급 명렬표는 물론, 고등학교 교과 교사가 담당하는 <b>5개~10개 이동수업 분반(5W반, 8V반 등)</b>까지 
+        직접 입력하거나 기존 엑셀 파일을 끌어다 놓아 한 번에 등록합니다.
+      </p>
+
+      <div class="shot-grid-2">
+        <div class="shot-card">
+          <span class="shot-badge">설정 1단계: 학생 명단 준비</span>
+          <img src="./guide/18-settings-steps.png" alt="설정 메뉴 학생 명단 준비">
+          <div class="shot-cap">
+            <b>작업 순서대로 번호 안내:</b> 1-1 명렬표 직접 입력 또는 1-2 엑셀로 한 번에 올리기 중 편한 방법을 하나만 선택하면 됩니다.
+          </div>
+        </div>
+        <div class="shot-card">
+          <span class="shot-badge">명렬표 직접 입력 및 다중 학급 추가</span>
+          <img src="./guide/02-roster.png" alt="명렬표 직접 입력">
+          <div class="shot-cap">
+            <b>한 줄에 한 명씩 입력:</b> <code>학번 이름 성별</code>(예: <code>1 홍길동 남</code> 또는 <code>20312 이지은 여</code>) 형식으로 적으면 남학생(파랑)·여학생(분홍)이 자동 구분됩니다.
+          </div>
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          엑셀 명렬표 3가지 양식 자동 인식 (드래그 앤 드롭)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">엑셀 명렬표 드래그 앤 드롭 업로드 실제 화면</span>
+            <img src="./guide/03-excel.png" alt="엑셀 명렬표 업로드">
+            <div class="shot-cap">
+              <b>자동 양식 판별:</b> 엑셀 파일을 끌어다 놓으면 아래 3가지 양식을 자동으로 판별하여 학급(분반)과 학생 명단을 즉시 구성합니다.
+            </div>
+          </div>
+          <ul>
+            <li><b>지원 양식 ① 시트별 학급:</b> 엑셀 파일 안에 <code>1반</code>, <code>2반</code> 또는 <code>5W반</code>, <code>8V반</code> 시트가 각각 나뉘어 있는 양식</li>
+            <li><b>지원 양식 ② 학급 열이 있는 한 장짜리:</b> 한 시트 안에 <code>학급(분반) | 번호(학번) | 이름 | 성별</code> 열이 함께 들어 있는 양식</li>
+            <li><b>지원 양식 ③ 헤더가 학급명인 피벗형:</b> 1행 헤더에 <code>1반 | 2반 | 3반 ...</code> 학급명이 가로로 나열되고 아래로 학생 이름이 적힌 양식</li>
+            <li><b>올인원 구글 시트 연동:</b> 상단 <b>[Google 연동]</b>이 켜져 있으면, 마스터 구글 시트의 <b>[2_학생명렬표]</b> 탭과 학생 학번·성명이 자동으로 양방향 바인딩됩니다.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 7: T-ong 자리배치 · 모둠 · 추첨 · 조건 고정 · 누가기록 -->
+    <!-- ================================================================= -->
+    <section id="p2_seat" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 3</div>
+      <h2>스마트 자리배치 · 모둠배치 · 추첨 · 조건 고정 · 누가기록 엑셀</h2>
+      <p class="lead">
+        1인 시험대형, 2인 짝꿍, 3인 트리플, 4~6인 모둠 배치부터 학번 가로·세로순, 남녀 성별 우선, 
+        시력 보호 고정석, 교우 관계(가까이·멀리) 반영 추첨 및 한 학기 짝 이력 누가기록 다운로드까지 완벽하게 지원합니다.
+      </p>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          자리배치 3단계 시작 마법사 &amp; 4·5·6인 모둠 배치
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">자리배치 3단계 설정 화면</span>
+              <img src="./guide/01-wizard.png" alt="자리배치 3단계 위자드">
+              <div class="shot-cap">
+                <b>1 교실 크기 &rarr; 2 자리 형태 &rarr; 3 학생 수:</b> 총 책상 수와 분단 수를 고르고 시험대형(1인)·짝꿍(2인)·트리플(3인)·모둠 중 형태를 선택합니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">모둠 단위 묶음 배치</span>
+              <img src="./guide/14-group.png" alt="모둠 배치 화면">
+              <div class="shot-cap">
+                <b>모둠 인원(4·5·6명) &amp; 가로 모둠 수:</b> 1모둠·2모둠 번호가 자동 부여되며, 모둠 안에서도 가까이·멀리 교우 관계 조건이 그대로 반영됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          좌석표 읽는 법 · 학번 가로/세로순 배치 · 같은 성별 우선 배치
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">실제 좌석표 화면 (드래그 자리 교환 &amp; 학생 카드)</span>
+            <img src="./guide/04-seating.png" alt="좌석표 화면">
+            <div class="shot-cap">
+              <b>직관적인 좌석 카드:</b> 남학생(파랑)·여학생(분홍), 번호·이름·분단/행 위치, 칭찬 성장 배지가 표시되며 카드를 끌어다 놓으면 두 학생의 자리가 즉시 맞바뀝니다.
+            </div>
+          </div>
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">학번 가로순 · 세로순 배치</span>
+              <img src="./guide/v67-number-order.png" alt="학번 가로순 세로순 배치">
+              <div class="shot-cap">
+                <b>시험 기간 &amp; 학기 초 필수:</b> 고정 좌석은 유지한 채 남은 학생을 학번 가로순(앞줄 왼쪽부터) 또는 세로순(왼쪽 열 앞에서 뒤로)으로 1초 만에 정렬합니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">같은 성별끼리 우선 배치</span>
+              <img src="./guide/v67-same-gender.png" alt="같은 성별 우선 배치">
+              <div class="shot-cap">
+                <b>남녀 짝·분단·모둠 우선 구성:</b> 무작위 추첨 시 [같은 성별끼리 배치]를 켜면 짝꿍·분단·모둠 안에서 같은 성별을 우선 배정합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">3</span>
+          3·2·1 추첨 무대 연출 &amp; 학생 메모 · 교우 관계 · 고정석 · 교탁 시점
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">3·2·1 카운트다운 추첨 시작</span>
+              <img src="./guide/05a-splash.png" alt="추첨 카운트다운">
+              <div class="shot-cap">
+                <b>전체화면 추첨 무대:</b> 효과음과 색종이 연출로 교실 집중도를 높이며, 바쁠 때는 [건너뛰기(Esc/Enter)]로 즉시 결과를 봅니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">추첨 속도 조절 (천천히/보통/빠르게)</span>
+              <img src="./guide/05-lottery.png" alt="추첨 진행 화면">
+              <div class="shot-cap">
+                <b>속도 조절 &amp; 음소거:</b> 공이 하나씩 뽑혀 자리로 날아가며 마지막 3명은 긴장감 있게 연출됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">가까이 · 멀리 앉힐 교우 관계 설정</span>
+              <img src="./guide/07-relations.png" alt="교우 관계 설정">
+              <div class="shot-cap">
+                <b>비공개 배려 조건:</b> 가까이 앉힐 학생과 서로 인접하지 않게 떨어뜨릴 학생을 미리 지정해 추첨에 반영합니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">특정 자리 고정(자물쇠) &amp; 교탁 시점 뒤집기</span>
+              <img src="./guide/v67-teacher-view.png" alt="교탁 시점 화면">
+              <div class="shot-cap">
+                <b>자물쇠 고정 &amp; 교탁 시점:</b> 시력 보호 학생이나 빈자리를 고정하고, 수업 중에는 [교탁 시점] 버튼으로 교사가 바라보는 방향으로 화면을 즉시 뒤집습니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">4</span>
+          배치 이력 저장·복원 · 한 학기 짝 누가기록 엑셀 · 좌석표 인쇄
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">배치 이력 저장 및 언제든 복원</span>
+              <img src="./guide/v67-history-load.png" alt="배치 저장 및 불러오기">
+              <div class="shot-cap">
+                <b>시기별 배치 보존:</b> "1학기 중간고사", "2학기 1차 모둠" 등 메모와 함께 저장하고 언제든 이전 배치를 불러옵니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">학생별 짝·자리 누가기록 엑셀 다운로드</span>
+              <img src="./guide/10-download.png" alt="이력 다운로드 엑셀">
+              <div class="shot-cap">
+                <b>학기말 상담·행특 핵심 자료:</b> 지금까지 저장한 모든 배치에서 학생별로 몇 분단 몇 행에 앉았는지, 그때 양옆 짝이 누구였는지 한 줄로 정리된 엑셀을 내려받습니다.
+              </div>
+            </div>
+          </div>
+          <div class="shot-card">
+            <span class="shot-badge">학생용(교실 게시용) · 교탁용 좌석표 인쇄</span>
+            <img src="./guide/11-print.png" alt="좌석표 인쇄">
+            <div class="shot-cap">
+              <b>양방향 맞춤 출력:</b> 학생 시점(교실 게시판용)과 교탁 시점(교사용)을 각각 깔끔한 A4 한 장 레이아웃으로 인쇄합니다.
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 8: T-ong 출결관리 & 학생 팝업 & 시트 동기화 -->
+    <!-- ================================================================= -->
+    <section id="p2_att" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 4</div>
+      <h2>출결관리 · 학생 종합 기록 팝업(칭찬·관찰·세특) &amp; 구글 시트 6·8번 동기화</h2>
+      <p class="lead">
+        출결관리 전용 탭과 좌석표의 학생 이름 팝업이 100% 하나로 연결되어 있으며, 
+        기록하는 즉시 올인원 마스터 구글 시트의 <b>[8_출결_칭찬_기록]</b>과 <b>[6_수업관찰_기록]</b> 탭으로 전송됩니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">T-ong [출결관리] 탭 실제 화면</span>
+        <img src="./guide/20-attend.png" alt="T-ong 출결관리 실제 화면">
+        <div class="shot-cap">
+          <b>출결관리 4대 기능:</b> ① 달력으로 오늘 및 지난 날짜 출결 조회·수정 &rarr; ② 상단 출석·결석·지각·조퇴·결과 인원 실시간 집계 &rarr; 
+          ③ 학생별 상태·사유(질병/인정/미인정/기타)·메모 입력 &rarr; ④ 월별 출결 엑셀 다운로드 및 구글 시트 복사
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          자리배치에서 바로 출결 등록 &amp; 학생 종합 기록 팝업 (칭찬 · 관찰 · 세특)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">좌석표에서 학생 클릭 &rarr; 오늘 출결 바로 등록</span>
+              <img src="./guide/v67-seat-attendance.png" alt="자리에서 오늘 출결 바로 등록">
+              <div class="shot-cap">
+                <b>좌석표 이탈 없이 즉시 출결 체크:</b> 수업 시작 시 좌석표에서 빈자리 학생 이름을 눌러 결석·지각·조퇴와 사유를 누르면 출결관리 탭과 시트에 즉시 반영됩니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">학생 종합 기록 팝업 (칭찬 · 관찰·세특 · 종합)</span>
+              <img src="./guide/v67-student-record.png" alt="학생 종합 기록 팝업">
+              <div class="shot-cap">
+                <b>한 학생의 모든 기록 허브:</b> ① 칭찬 +1·-1 조절 / ② [관찰·세특] 탭에서 날짜·교과별 수업 관찰 누적 / [종합] 탭에서 현재 좌석·1인 1역·누적 근태·담임 메모·관찰 기록을 한눈에 확인합니다.
+              </div>
+            </div>
+          </div>
+          <div class="shot-card">
+            <span class="shot-badge">월별 · 기간별 출결 엑셀 다운로드 &amp; 시트 복사</span>
+            <img src="./guide/20A-attend-excel.png" alt="출결 엑셀 다운로드">
+            <div class="shot-cap">
+              <b>기간별 출결 통계:</b> 이번 달·지난 달·전체 기간의 날짜별 상태·사유와 학생별 결석·지각·조퇴·결과 합계를 한 줄로 정리해 엑셀 저장하거나 시트로 복사합니다.
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          [핵심] 디지털 교무수첩(T-ong) 입력 항목 &harr; 구글 시트 10개 탭 자동 동기화 매핑표
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>
+            선생님께서 T-ong에서 터치하거나 입력한 자료가 마스터 구글 시트의 <b>어느 탭, 어느 열</b>로 들어가고, 
+            어느 회색 수식 열이 자동으로 계산되는지 정확히 안내합니다.
+          </p>
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th>T-ong 교무수첩 입력 기능</th>
+                <th>구글 시트 수신 탭</th>
+                <th>자동 기록되는 열 (노란색/흰색)</th>
+                <th>연계 작동하는 회색 수식 열 (수정 금지)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>출결 체크</b><br>(결석·지각·조퇴·결과 + 사유/메모)</td>
+                <td><b>8_출결_칭찬_기록</b></td>
+                <td>기록일시, 학번, 성명, 구분(출결), 상세내용(질병결석 등), 사유메모</td>
+                <td><b>[3_창체_행특]</b> 및 <b>[1_대시보드]</b>의 학생별 출결 요약(COUNTIF) 자동 갱신</td>
+              </tr>
+              <tr>
+                <td><b>칭찬 포인트 (+1 / -1)</b><br>(알 &rarr; 부화중 &rarr; 병아리 &rarr; 닭)</td>
+                <td><b>8_출결_칭찬_기록</b></td>
+                <td>기록일시, 학번, 성명, 구분(칭찬), 누적 점수 및 성장 단계</td>
+                <td><b>[3_창체_행특]</b>의 칭찬·1인1역 요약 열에 자동 반영되어 행특 초안 재료로 활용</td>
+              </tr>
+              <tr>
+                <td><b>1인 1역 배정</b><br>(직접 배정 / 무작위 배정)</td>
+                <td><b>8_출결_칭찬_기록</b></td>
+                <td>학번, 성명, 구분(1인1역), 담당 역할명(예: 칠판 담당, 분리수거)</td>
+                <td><b>[3_창체_행특]</b> 자율·인성 기초 자료에 자동 결합</td>
+              </tr>
+              <tr>
+                <td><b>학생 팝업 &rarr; [관찰·세특]</b><br>(수업 발표·실험·태도 메모)</td>
+                <td><b>6_수업관찰_기록</b></td>
+                <td>날짜, 과목(분반), 학번, 성명, 영역/단원, 수업 관찰 원문</td>
+                <td><b>[7_AI세특_작성]</b> 및 나이스 웹앱 워크벤치로 즉시 불러와 1,500B 세특 완성</td>
+              </tr>
+              <tr>
+                <td><b>일정관리 &rarr; [상담] 속성 기록</b><br>(학생·학부모 상담 내용/후속조치)</td>
+                <td><b>5_상담기록</b></td>
+                <td>상담일자, 학번, 성명, 상담대상, 상담방식, 상담내용, 후속조치</td>
+                <td><b>[1_대시보드]</b> 누적 상담 건수 및 학생별 상담 이력 자동 집계</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 9: T-ong 교실운영 도구 모음 -->
+    <!-- ================================================================= -->
+    <section id="p2_classroom" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 5</div>
+      <h2>교실운영 도구 모음 — 컴시간 · 담임 5분 멘트 · 타이머 · 칭찬 성장 · 1인 1역 · 알림장</h2>
+      <p class="lead">
+        상단 <b>[교실운영]</b> 메뉴를 누르면 현재 좌석표를 떠나지 않고 수업과 조·종례에 즉시 쓰는 8가지 학급 경영 도구가 열립니다.
+      </p>
+
+      <div class="shot-grid-2">
+        <div class="shot-card">
+          <span class="shot-badge">상단 [교실운영] 통합 메뉴</span>
+          <img src="./guide/0B-dock.png" alt="교실운영 드롭다운 메뉴">
+          <div class="shot-cap">
+            <b>교실운영 8대 도구:</b> 컴시간알리미(교사용), 담임 5분 멘트, 간편 타이머, 칭찬 포인트, 사다리타기, 1인 1역, 룰렛 뽑기, 알림장을 한곳에 모았습니다.
+          </div>
+        </div>
+        <div class="shot-card">
+          <span class="shot-badge">칭찬 포인트 4단계 성장 시스템</span>
+          <img src="./guide/v67-praise-growth.png" alt="칭찬 포인트 성장 단계">
+          <div class="shot-cap">
+            <b>알(0점) &rarr; 부화 중(1~4점) &rarr; 병아리(5~9점) &rarr; 닭(10점 이상):</b> 학생 팝업·칭찬 목록·좌석 카드 배지가 실시간 연동되며 점수 높은 순으로 정렬됩니다.
+          </div>
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          전체화면 모래시계 타이머 · 교실 TV용 오늘의 알림장 · 1인 1역 엑셀 배정
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">전체화면 모래시계 간편 타이머</span>
+              <img src="./guide/17-timer.png" alt="전체화면 타이머">
+              <div class="shot-cap">
+                <b>모래시계 &amp; 마지막 10초 알림:</b> 시작을 누르면 교실 뒤에서도 잘 보이는 전체화면 타이머로 바뀌며, [작게 보기]로 좌석표를 보면서도 타이머를 계속 돌릴 수 있습니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">오늘의 알림장 (교실 TV 크게 보기)</span>
+              <img src="./guide/15-notice.png" alt="오늘의 알림장">
+              <div class="shot-cap">
+                <b>학급별 알림장 저장:</b> 준비물·과제·공지사항을 적어 좌석표 옆에 띄워 두고, [크게 보기]로 교실 TV 화면 가득 표시합니다.
+              </div>
+            </div>
+          </div>
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">1인 1역 배정 &amp; 엑셀 연동</span>
+              <img src="./guide/21A-duty-excel.png" alt="1인 1역 배정">
+              <div class="shot-cap">
+                <b>직접배정 &amp; 역할목록 무작위 배정:</b> 엑셀 양식으로 역할을 올리거나 무작위 배정하면 좌석표·학생 카드·구글 시트 8번 탭에 즉시 연결됩니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">컴시간알리미(교사용) &amp; 조회시간 담임 5분 멘트</span>
+              <img src="./guide/0E-five-minute-message.png" alt="담임 5분 멘트">
+              <div class="shot-cap">
+                <b>조·종례 시간 단축:</b> 컴시간알리미로 교사 개인 시간표를 확인하고, 담임 5분 멘트로 실시간 뉴스·명언·감동 에피소드를 1초 만에 준비합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 10: T-ong 일정관리 · 상담 기록 & Google 캘린더 동기화 -->
+    <!-- ================================================================= -->
+    <section id="p2_calendar" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 6</div>
+      <h2>일정관리 · 학생/학부모 상담 기록 &amp; Google 기본 캘린더 양방향 동기화</h2>
+      <p class="lead">
+        월간·주간·오늘 학사일정 관리는 물론, 일정 속성을 <b>[상담]</b>으로 지정하여 학생·학부모 상담 내역을 기록하고 
+        엑셀·구글 시트로 내보내거나 <b>Google 기본 캘린더</b>와 양방향 자동 동기화합니다.
+      </p>
+
+      <div class="shot-card">
+        <span class="shot-badge">T-ong [일정관리] 월간·주간·오늘 달력 실제 화면</span>
+        <img src="./guide/v67-calendar.png" alt="T-ong 일정관리 달력">
+        <div class="shot-cap">
+          <b>직관적인 달력 조작:</b> ① 월간·주간·오늘 탭 전환 / ② 날짜 더블클릭으로 일정 추가, 일정 카드 클릭으로 즉시 수정·삭제 / 
+          일정 카드를 드래그(모바일은 0.4초 길게 누르기)하여 날짜 이동 및 실행 취소 지원
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          [상담] · [출장] · [회의] 속성 관리 &amp; 상담 기록 엑셀·구글시트 내보내기
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-grid-2">
+            <div class="shot-card">
+              <span class="shot-badge">일정 속성 추가 및 [상담] 전용 입력칸</span>
+              <img src="./guide/22A-calendar-properties.png" alt="일정 속성 및 상담 기록">
+              <div class="shot-cap">
+                <b>상담 속성 선택 시 자동 확장:</b> 속성을 [상담]으로 고르면 상담 대상(학생/학부모)·관련 학생·상담 방식·진행 상태·후속 조치 입력칸이 열립니다.
+              </div>
+            </div>
+            <div class="shot-card">
+              <span class="shot-badge">구글시트 일정 가져오기 &amp; 상담기록 내보내기</span>
+              <img src="./guide/22B-calendar-export.png" alt="일정 가져오기 및 상담기록 내보내기">
+              <div class="shot-cap">
+                <b>상담기록 시트 복사 &amp; 엑셀:</b> 상담 속성의 기록만 모아 엑셀로 내려받거나 표 형태로 복사해 마스터 시트 [5_상담기록] 탭에 바로 붙여넣습니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          Google 기본 캘린더 양방향 자동 동기화 &amp; 개인정보 보호 원칙
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">Google 캘린더 양방향 동기화 설정 화면</span>
+            <img src="./guide/v67-google-calendar-sync.png" alt="Google 캘린더 양방향 동기화">
+            <div class="shot-cap">
+              <b>양방향 동기화 &amp; 민감정보 보호:</b> ① Google 계정 연결 시 기본 캘린더와 약 1분 간격으로 자동 동기화되며, 
+              학생 개인정보 보호를 위해 <b>[상담 일정도 Google에 보내기]</b>와 <b>[일정 메모도 Google에 보내기]</b>는 기본 해제되어 있습니다(교사가 원할 때만 체크).
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 11: T-ong 즐겨찾기 · 교실 게임 · 오늘의 학교 · 데이터 백업 -->
+    <!-- ================================================================= -->
+    <section id="p2_extra" class="page">
+      <div class="kick">PART 2 · 디지털 교무수첩 (t-ong.vercel.app) 가이드 7</div>
+      <h2>업무별 즐겨찾기 · 교실 게임 12종 · NEIS 오늘의 학교 · 데이터 백업</h2>
+      <p class="lead">
+        수업 중 자주 여는 교사용 사이트 즐겨찾기, 분위기 전환용 교실 게임 12종, 
+        NEIS 연동 학급 시간표·급식 조회, 그리고 기기 이동을 위한 데이터 백업 기능을 안내합니다.
+      </p>
+
+      <div class="shot-grid-2">
+        <div class="shot-card">
+          <span class="shot-badge">업무별 교사용 사이트 즐겨찾기 &amp; 직접 추가</span>
+          <img src="./guide/23-custom-favorites.png" alt="즐겨찾기 메뉴">
+          <div class="shot-cap">
+            <b>7대 업무 분류 + 나만의 즐겨찾기:</b> 수학·수업 및 클래스·교과서·생성형 AI·교무업무·진로진학·교사 도구함 기본 사이트와 내가 직접 등록한 사이트를 한곳에서 엽니다.
+          </div>
+        </div>
+        <div class="shot-card">
+          <span class="shot-badge">수업 전환과 참여를 위한 교실 게임 12종</span>
+          <img src="./guide/24-games.png" alt="교실 게임 메뉴">
+          <div class="shot-cap">
+            <b>교실 활동 게임:</b> 핸드러시, 핸드 카트라이더, 포즈 챌린지, 야구게임, SET(셋), 랜덤게임, 윷놀이, 기지개팡팡, 모의주식투자, 거북목탈출, 나는 가수다, 안면근육훈련을 지원합니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid-2">
+        <div class="shot-card">
+          <span class="shot-badge">오늘의 학교 — 날짜별 학급 시간표 &amp; 급식 조회</span>
+          <img src="./guide/26-school-today.png" alt="오늘의 학교 시간표 및 급식">
+          <div class="shot-cap">
+            <b>NEIS 공개정보 연동:</b> 학교 이름과 학년·반을 한 번 저장해 두면 원하는 날짜의 학급 시간표와 급식 식단을 즉시 조회합니다.
+          </div>
+        </div>
+        <div class="shot-card">
+          <span class="shot-badge">데이터 백업 코드 복사 &amp; 백업 파일 보관</span>
+          <img src="./guide/v67-data-backup.png" alt="데이터 백업 화면">
+          <div class="shot-cap">
+            <b>기기 이동 &amp; 학기말 영구 보관:</b> 교무실 PC와 교실 태블릿 간에 백업 코드나 백업 파일(.json)로 모든 학급 명렬표·좌석·출결·상담·즐겨찾기 데이터를 1초 만에 옮깁니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PART 3: 시트 10개 탭 상세 명세 & Apps Script 배포 -->
+    <!-- ================================================================= -->
+    <section id="p3_sheet" class="page">
+      <div class="kick">PART 3 · 시트 전체 명세 &amp; 보호 규칙</div>
+      <h2>구글 시트 10개 탭 상세 명세 및 수정 금지(회색 수식열) 규칙</h2>
+      <p class="lead">
+        선생님께서 직접 입력하거나 T-ong에서 자동 기록되는 <b>노란색/흰색 열</b>과, 
+        자동 참조 수식이 걸려 있어 건드리면 안 되는 <b>회색 음영 열</b>을 구분해 드립니다.
+      </p>
+
+      <div class="tip">
+        <b>셀 색상별 3대 규칙:</b><br>
+        - <span class="tag-input">노란색/흰색 열 (교사 입력)</span>: 선생님께서 직접 타이핑하거나 붙여넣는 자유 입력 영역입니다.<br>
+        - <span class="tag-sync">파란색/연녹색 열 (T-ong · 웹앱 동기화)</span>: 디지털 교무수첩(T-ong)이나 나이스 웹앱에서 전송된 기록이 자동 누적되는 영역입니다.<br>
+        - <span class="tag-auto">회색 음영 열 (수정 금지 · 자동 수식)</span>: <code>LENB</code>, <code>VLOOKUP</code>, <code>COUNTIF</code> 등 표준 수식이 걸려 있으므로 수동으로 지우거나 덮어쓰지 마세요.
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          10개 탭 전체 열(Column) 구조 및 회색 수식열 상세 매핑표
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <table class="manual-table">
+            <thead>
+              <tr>
+                <th>탭 이름</th>
+                <th>교사 입력 / 모바일 수신 열 (자유 입력)</th>
+                <th>회색 음영 수식 열 (절대 수정 금지)</th>
+                <th>적용된 표준 수식 역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>0_사용안내</b></td>
+                <td>안내문 및 탭 이동 버튼 전용</td>
+                <td>전체 내비게이션 하이퍼링크 셀</td>
+                <td>1~9번 각 탭으로 1클릭 이동하는 <code>HYPERLINK</code></td>
+              </tr>
+              <tr>
+                <td><b>1_대시보드</b></td>
+                <td>학교명·학년·반 기본 설정</td>
+                <td>전체 집계 카드 및 학생별 요약 행</td>
+                <td>2~8번 탭의 작성 건수·출결·상담 현황 실시간 집계</td>
+              </tr>
+              <tr>
+                <td><b>2_학생명렬표</b></td>
+                <td>학번(ID), 성명, 성별, 분반(5W/8V 등), 진로키워드</td>
+                <td>출결·상담·관찰 누적 건수 확인 열</td>
+                <td>모든 탭의 <code>VLOOKUP</code> 기준이 되는 마스터 키</td>
+              </tr>
+              <tr>
+                <td><b>3_창체_행특</b></td>
+                <td>자율·인성 메모, 동아리·진로 메모, 강점 키워드, 행특 초안</td>
+                <td><b>성명(B열), 교무수첩 누적 요약(F열), 바이트 계산(H열)</b></td>
+                <td>8번 탭의 출결·칭찬·1인1역 요약 결합 및 <code>LENB</code> 바이트 계산</td>
+              </tr>
+              <tr>
+                <td><b>4_대입상담</b></td>
+                <td>희망 계열, 1~3지망 대학·학과·전형, 9등급 내신, 모의고사</td>
+                <td><b>성명(B열), 2028 개편 5등급 환산(I열), 창체 연계 요약(K열)</b></td>
+                <td>9등급 내신을 2028 개편 5등급제로 자동 변환 및 3번 탭 참조</td>
+              </tr>
+              <tr>
+                <td><b>5_상담기록</b></td>
+                <td>상담일자, 학번, 구분(진학/학업/생활), 상담 요약, 후속조치</td>
+                <td><b>성명(C열, 학번 입력 시 자동 매칭)</b></td>
+                <td>2_학생명렬표 기준 성명 자동 호출 (<code>VLOOKUP</code>)</td>
+              </tr>
+              <tr>
+                <td><b>6_수업관찰_기록</b></td>
+                <td>날짜, 과목(분반), 학번, 단원/영역, 수업 관찰 메모(T-ong 수신)</td>
+                <td><b>성명(D열, 학번 입력 시 자동 매칭)</b></td>
+                <td>모바일 T-ong 수업관찰 메모 누적 및 성명 자동 매칭</td>
+              </tr>
+              <tr>
+                <td><b>7_AI세특_작성</b></td>
+                <td>학번, 과목명, 심화 탐구활동 메모, 세특 완성 문단</td>
+                <td><b>성명(B열), 6번 탭 관찰 자동집계(E열), 바이트검증(H열)</b></td>
+                <td>6번 탭 관찰 기록 자동 참조 및 <code>LENB &amp; " / 1500B"</code> 검증</td>
+              </tr>
+              <tr>
+                <td><b>8_출결_칭찬_기록</b></td>
+                <td>기록일시, 학번, 구분(출결/칭찬/1인1역), 상세내용, 사유메모</td>
+                <td><b>성명(C열), 3번 행특 탭 자동 반영 상태(G열)</b></td>
+                <td>모바일 T-ong 출결·칭찬·1인1역 실시간 적립 및 3번 탭 연동</td>
+              </tr>
+              <tr>
+                <td><b>_스킬지침</b></td>
+                <td>학교별 추가 기재 원칙 메모 가능</td>
+                <td>2026 교육부 기재요령 핵심 기준 셀</td>
+                <td>금지어·종결어미·바이트 상한 기준 보관</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 13: Apps Script 1분 웹 앱 배포 -->
+    <!-- ================================================================= -->
+    <section id="p3_gas" class="page">
+      <div class="kick">PART 3 · Apps Script 1분 웹 앱 배포</div>
+      <h2>Google Apps Script 1분 배포 &amp; 교무수첩·웹앱 실시간 연결</h2>
+      <p class="lead">
+        구글 보안 정책상 외부 웹앱(T-ong 및 나이스 웹앱)이 선생님의 개인 구글 시트에 기록을 자동 저장하려면, 
+        시트 내부의 <b>[Apps Script]</b>를 <b>웹 앱(액세스 권한: 모든 사용자)</b>으로 배포하여 고유 수신 URL을 발급받아야 합니다.
+      </p>
+
+      <div class="shot-grid-2">
+        <div class="shot-card">
+          <span class="shot-badge">STEP 1~2: 마스터 시트 사본 생성 &amp; Apps Script 열기</span>
+          <img src="./assets/gas-step2.svg" alt="확장 프로그램 Apps Script 열기">
+          <div class="shot-cap">
+            <b>확장 프로그램 &gt; Apps Script 클릭:</b> 사본으로 저장한 마스터 구글 시트 상단 메뉴에서 [확장 프로그램] &rarr; [Apps Script]를 클릭합니다.
+          </div>
+        </div>
+        <div class="shot-card">
+          <span class="shot-badge">STEP 3~4: 웹 앱 배포 완료 후 URL 복사</span>
+          <img src="./assets/gas-step6.svg" alt="웹 앱 URL 복사">
+          <div class="shot-cap">
+            <b>웹 앱 URL 복사 &amp; 붙여넣기:</b> [배포] &gt; [새 배포] &rarr; 유형: [웹 앱] &rarr; 액세스 권한: [모든 사용자]로 배포 후 발급된 URL을 T-ong과 나이스 웹앱에 붙여넣습니다.
+          </div>
+        </div>
+      </div>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">1</span>
+          통합 Apps Script 코드 (원클릭 클립보드 복사)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>
+            아래 코드는 나이스 생기부 웹앱과 디지털 교무수첩(T-ong)의 출결·칭찬·1인1역·수업관찰·상담기록 10개 탭 동기화 및 관리자 가입 승인을 모두 처리하는 통합 코드입니다.
+          </p>
+          <div class="code-wrap">
+            <button class="copy-btn" onclick="copyCode(this)">통합 스크립트 복사</button>
+            <pre>/**
+ * NEIS-HELP &amp; T-ONG 올인원 10개 탭 통합 동기화 웹 앱 (Google Apps Script)
+ * 지원: 2_학생명렬표, 3_창체_행특, 5_상담기록, 6_수업관찰_기록, 7_AI세특_작성, 8_출결_칭찬_기록
+ */
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var data = JSON.parse(e.postData.contents);
+    var action = data.action || "log";
+    
+    // 1. 교사 승인 요청 기록 (관리자용)
+    if (action === "auth_request" || action === "register_user") {
+      var authSheet = ss.getSheetByName("0_관리자승인") || ss.insertSheet("0_관리자승인");
+      if (authSheet.getLastRow() === 0) {
+        authSheet.appendRow(["승인여부", "신청일시", "성명", "소속학교", "구글이메일", "연락처/메모", "권한상태", "만료예정일"]);
+      }
+      authSheet.appendRow([
+        false,
+        new Date(),
+        data.name || "",
+        data.school || "",
+        data.email || "",
+        data.memo || "웹앱 로그인 신청",
+        "대기",
+        data.expiry || ""
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({ok: true, result: "success", msg: "가입신청 기록완료"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 2. 디지털 교무수첩(T-ong) 출결 · 칭찬 · 1인1역 수신 -> [8_출결_칭찬_기록]
+    if (action === "attendance" || action === "praise" || action === "duty" || action === "tong_record") {
+      var attSheet = ss.getSheetByName("8_출결_칭찬_기록");
+      if (attSheet) {
+        attSheet.appendRow([
+          data.date || new Date().toISOString().slice(0, 10),
+          data.studentId || "",
+          data.studentName || "",
+          data.category || (action === "praise" ? "칭찬" : action === "duty" ? "1인1역" : "출결"),
+          data.detail || data.status || "",
+          data.memo || "",
+          "자동반영됨"
+        ]);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ok: true, result: "success", msg: "8_출결_칭찬_기록 동기화완료"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 3. 디지털 교무수첩(T-ong) 수업관찰 · 세특 메모 수신 -> [6_수업관찰_기록]
+    if (action === "observation" || action === "setuk_memo") {
+      var obsSheet = ss.getSheetByName("6_수업관찰_기록");
+      if (obsSheet) {
+        obsSheet.appendRow([
+          data.date || new Date().toISOString().slice(0, 10),
+          data.subject || data.classCode || "교과수업",
+          data.studentId || "",
+          data.studentName || "",
+          data.unit || "수업관찰",
+          data.content || data.memo || "",
+          "교무수첩(T-ong)"
+        ]);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ok: true, result: "success", msg: "6_수업관찰_기록 동기화완료"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 4. 상담 기록 수신 -> [5_상담기록]
+    if (action === "counsel") {
+      var cSheet = ss.getSheetByName("5_상담기록");
+      if (cSheet) {
+        cSheet.appendRow([
+          data.date || new Date().toISOString().slice(0, 10),
+          data.studentId || "",
+          data.studentName || "",
+          data.type || "진학·학습",
+          data.summary || "",
+          data.followUp || ""
+        ]);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ok: true, result: "success", msg: "5_상담기록 동기화완료"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ok: true, result: "received"}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ok: false, result: "error", error: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({ok: true, status: "online", service: "NEIS-HELP & T-ONG ALL-IN-ONE GAS"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" open>
+        <summary>
+          <span class="num">2</span>
+          AI 에이전트(Gemini Pro · Antigravity)에게 자동 배포 맡기기 프롬프트
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <p>직접 메뉴를 찾아 누르기 번거로우실 경우, 아래 명령어 박스를 복사해 AI 에이전트에게 그대로 붙여넣으시면 배포 과정을 단계별로 안내받거나 자동 실행할 수 있습니다.</p>
+          <div class="prompt">
+            <button class="copy-btn" onclick="copyCode(this)">AI 배포 명령 프롬프트 복사</button>
+            <div class="ph">AI 에이전트용 Apps Script 배포 요청 프롬프트</div>
+            <pre>내가 복사한 교사용 올인원 구글 시트 주소는 [여기에 내 구글 시트 주소 붙여넣기] 야.
+이 시트의 [확장 프로그램 > Apps Script]에 위 통합 동기화 스크립트(doPost/doGet)를 등록하고,
+1) 다음 권한으로 실행: [나(본인 계정)]
+2) 액세스 권한: [모든 사용자(Anyone)]
+조건으로 새 웹 앱 배포를 진행한 뒤 발급된 https://script.google.com/macros/s/.../exec 주소를 알려줘.</pre>
+          </div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Sidebar Tab Navigation
+document.querySelectorAll('aside a[data-p]').forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    var pId = this.getAttribute('data-p');
+    
+    // Switch active state
+    document.querySelectorAll('aside a').forEach(function(a) { a.classList.remove('on'); });
+    this.classList.add('on');
+    
+    // Show active page
+    document.querySelectorAll('.page').forEach(function(page) { page.classList.remove('on'); });
+    var target = document.getElementById(pId);
+    if (target) {
+      target.classList.add('on');
+      history.replaceState(null, '', '#' + pId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+});
+
+// Fold / Unfold All in current page or all pages
+function foldAll(open) {
+  document.querySelectorAll('details.fold').forEach(function(d) {
+    d.open = open;
+  });
+}
+
+// Code Copy Button
+function copyCode(btn) {
+  var parent = btn.parentElement;
+  var pre = parent.querySelector('pre');
+  if (!pre) return;
+  var text = pre.innerText;
+  navigator.clipboard.writeText(text).then(function() {
+    var oldText = btn.innerText;
+    btn.innerText = "복사 완료!";
+    btn.classList.add('ok');
+    setTimeout(function() {
+      btn.innerText = oldText;
+      btn.classList.remove('ok');
+    }, 2000);
+  }).catch(function(err) {
+    alert("복사에 실패했습니다: " + err);
+  });
+}
+
+// Deep Linking via Hash
+window.addEventListener('load', function() {
+  if (window.location.hash) {
+    var hash = window.location.hash.replace('#', '');
+    var link = document.querySelector('aside a[data-p="' + hash + '"]');
+    if (link) {
+      link.click();
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%" style="font-family:'SUIT Variable', NanumSquareNeo, -apple-system, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2029" />
+      <stop offset="100%" stop-color="#14151c" />
+    </linearGradient>
+  </defs>
+
+  <!-- Browser Window Frame -->
+  <rect x="0" y="0" width="920" height="480" rx="14" fill="#0d0e12" />
+  
+  <!-- Window Header Bar -->
+  <rect x="0" y="0" width="920" height="40" rx="14" fill="#1b1c24" />
+  <rect x="0" y="28" width="920" height="12" fill="#1b1c24" />
+  <circle cx="24" cy="20" r="6" fill="#ef4444" />
+  <circle cx="44" cy="20" r="6" fill="#f59e0b" />
+  <circle cx="64" cy="20" r="6" fill="#10b981" />
+  <rect x="220" y="8" width="480" height="24" rx="6" fill="#0e0f14" />
+  <text x="360" y="24" fill="#94a3b8" font-size="12">gemini.google.com/gems (Gemini 2.5 Pro)</text>
+
+  <!-- Main Canvas Area -->
+  <rect x="0" y="40" width="920" height="440" fill="url(#cardGrad)" />
+
+  <!-- Step Content -->
+  
+  <rect x="40" y="140" width="840" height="310" rx="12" fill="#181822" stroke="#3b3b4f" />
+  <text x="70" y="175" fill="#ffffff" font-size="16" font-weight="800">다중 이미지 드래그 앤 드롭 (한 학급 20~30명 일괄)</text>
+  <text x="70" y="200" fill="#94a3b8" font-size="13">스마트폰으로 촬영하거나 스캐너로 읽은 학생 보고서 사진들을 한꺼번에 올립니다.</text>
+  
+  <!-- Image Cards Grid -->
+  <g transform="translate(70, 220)">
+    <rect x="0" y="0" width="140" height="150" rx="8" fill="#222433" stroke="#ef4444" stroke-width="2" />
+    <text x="12" y="26" fill="#f87171" font-size="11" font-weight="700">📷 20101_김○○.jpg</text>
+    <rect x="15" y="40" width="110" height="90" rx="4" fill="#33364a" />
+    <text x="35" y="90" fill="#cbd5e1" font-size="11">손글씨 수기</text>
+  </g>
+  <g transform="translate(230, 220)">
+    <rect x="0" y="0" width="140" height="150" rx="8" fill="#222433" stroke="#ef4444" stroke-width="2" />
+    <text x="12" y="26" fill="#f87171" font-size="11" font-weight="700">📷 20102_박○○.jpg</text>
+    <rect x="15" y="40" width="110" height="90" rx="4" fill="#33364a" />
+    <text x="35" y="90" fill="#cbd5e1" font-size="11">수행평가지</text>
+  </g>
+  <g transform="translate(390, 220)">
+    <rect x="0" y="0" width="140" height="150" rx="8" fill="#222433" stroke="#ef4444" stroke-width="2" />
+    <text x="12" y="26" fill="#f87171" font-size="11" font-weight="700">📷 20103_이○○.jpg</text>
+    <rect x="15" y="40" width="110" height="90" rx="4" fill="#33364a" />
+    <text x="35" y="90" fill="#cbd5e1" font-size="11">양면 스캔본</text>
+  </g>
+  <g transform="translate(550, 220)">
+    <rect x="0" y="0" width="140" height="150" rx="8" fill="#222433" stroke="#ef4444" stroke-width="2" />
+    <text x="12" y="26" fill="#f87171" font-size="11" font-weight="700">📷 20104_정○○.jpg</text>
+    <rect x="15" y="40" width="110" height="90" rx="4" fill="#33364a" />
+    <text x="35" y="90" fill="#cbd5e1" font-size="11">탐구 포트폴리오</text>
+  </g>
+  <g transform="translate(710, 220)">
+    <rect x="0" y="0" width="140" height="150" rx="8" fill="#151722" stroke="#3b3b4f" stroke-dasharray="6,4" />
+    <text x="30" y="80" fill="#94a3b8" font-size="28">+</text>
+    <text x="32" y="110" fill="#94a3b8" font-size="12">외 25개 파일</text>
+  </g>
+  
+  <rect x="70" y="390" width="800" height="42" rx="8" fill="#0f1118" />
+  <text x="90" y="416" fill="#38bdf8" font-size="13">💬 "위 첨부된 보고서들을 분석하여 구글 시트 표로 일괄 출력해줘."</text>
+
+
+  <!-- Floating Callout Step Banner -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="56" width="360" height="64" rx="10" fill="#b91c1c" />
+    <text x="44" y="82" fill="#ffffff" font-size="15" font-weight="800">STEP 3. 보고서 사진 일괄 드래그</text>
+    <text x="44" y="105" fill="#f8fafc" font-size="12.5">학급 전체(20~30명)의 보고서 사진을 한 번에 올립니다.</text>
+  </g>
+</svg>

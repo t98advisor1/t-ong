@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%" style="font-family:'SUIT Variable', NanumSquareNeo, -apple-system, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.3" />
+    </filter>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2029" />
+      <stop offset="100%" stop-color="#14151c" />
+    </linearGradient>
+  </defs>
+
+  <!-- Browser Window Frame -->
+  <rect x="0" y="0" width="920" height="480" rx="14" fill="#0d0e12" />
+  
+  <!-- Window Header Bar -->
+  <rect x="0" y="0" width="920" height="40" rx="14" fill="#1b1c24" />
+  <rect x="0" y="28" width="920" height="12" fill="#1b1c24" />
+  <circle cx="24" cy="20" r="6" fill="#ef4444" />
+  <circle cx="44" cy="20" r="6" fill="#f59e0b" />
+  <circle cx="64" cy="20" r="6" fill="#10b981" />
+  <rect x="220" y="8" width="480" height="24" rx="6" fill="#0e0f14" />
+  <text x="360" y="24" fill="#94a3b8" font-size="12">gemini.google.com/gems (Gemini 2.5 Pro)</text>
+
+  <!-- Main Canvas Area -->
+  <rect x="0" y="40" width="920" height="440" fill="url(#cardGrad)" />
+
+  <!-- Step Content -->
+  
+  <!-- Left: Sample Report Image Mockup -->
+  <rect x="40" y="140" width="360" height="310" rx="10" fill="#ffffff" filter="url(#shadow)" />
+  <rect x="40" y="140" width="360" height="36" rx="10" fill="#2563eb" />
+  <text x="56" y="163" fill="#ffffff" font-size="14" font-weight="700">고등학교 과학 탐구수행 보고서 (수기/스캔본)</text>
+  
+  <rect x="56" y="190" width="150" height="24" rx="4" fill="#f1f5f9" />
+  <text x="64" y="206" fill="#475569" font-size="11">학번: 20115  성명: 홍길동</text>
+  <rect x="216" y="190" width="168" height="24" rx="4" fill="#f1f5f9" />
+  <text x="224" y="206" fill="#475569" font-size="11">탐구주제: 삼투압과 세포막 투과</text>
+  
+  <text x="56" y="235" fill="#1e293b" font-size="12" font-weight="700">[1. 탐구 동기 및 가설]</text>
+  <text x="56" y="255" fill="#64748b" font-size="11">일상생활에서 식물이 시드는 원인을 농도 차이로...</text>
+  
+  <text x="56" y="285" fill="#1e293b" font-size="12" font-weight="700">[2. 실험 과정 및 관찰 사실]</text>
+  <text x="56" y="305" fill="#64748b" font-size="11">양파 표피세포에 설탕 농도별 용액을 처리하여 원형질...</text>
+  
+  <text x="56" y="335" fill="#1e293b" font-size="12" font-weight="700">[3. 결론 및 성장한 점]</text>
+  <text x="56" y="355" fill="#64748b" font-size="11">선택적 투과성의 원리를 직접 현미경으로 관찰하며...</text>
+
+  <!-- Right: Custom Prompt Box -->
+  <rect x="420" y="140" width="460" height="310" rx="12" fill="#1a1c26" stroke="#3b3b4f" />
+  <text x="440" y="170" fill="#38bdf8" font-size="14" font-weight="800">✨ 우리 학교 보고서 맞춤 프롬프트 변형</text>
+  <rect x="440" y="185" width="420" height="240" rx="8" fill="#12131a" />
+  <text x="455" y="210" fill="#a7f3d0" font-size="11.5">"너는 고등학교 생활기록부 2026 기재요령 전문가야."</text>
+  <text x="455" y="235" fill="#f1f5f9" font-size="11.5">"첨부된 학생 보고서 사진들에서 아래 5개 항목을 추출해:"</text>
+  <text x="455" y="260" fill="#f87171" font-size="11.5">1. 학번 및 성명</text>
+  <text x="455" y="280" fill="#f87171" font-size="11.5">2. 탐구 주제</text>
+  <text x="455" y="300" fill="#f87171" font-size="11.5">3. 나이스 3단 논법 세특 초안(동기-과정-성장, ~함 종결어미)"</text>
+  <text x="455" y="325" fill="#cbd5e1" font-size="11.5">"결과는 반드시 [구글 시트에 바로 복사할 수 있는 표]로 출력해줘."</text>
+  <text x="455" y="370" fill="#94a3b8" font-size="11">💡 본 앱 모달에서 '프롬프트 복사'를 누르면 즉시 사용할 수 있습니다.</text>
+
+
+  <!-- Floating Callout Step Banner -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="56" width="360" height="64" rx="10" fill="#2563eb" />
+    <text x="44" y="82" fill="#ffffff" font-size="15" font-weight="800">STEP 1. 보고서 양식 맞춤 프롬프트</text>
+    <text x="44" y="105" fill="#f8fafc" font-size="12.5">학교별 보고서 서식에 맞게 추출 항목을 지정합니다.</text>
+  </g>
+</svg>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.variable.min.css');
+      text { font-family: 'Pretendard Variable', -apple-system, sans-serif; }
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    </style>
+    <filter id="winShadow2" x="-2%" y="-2%" width="104%" height="106%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="560" fill="#0f172a" rx="14"/>
+
+  <!-- Window Frame -->
+  <g transform="translate(18, 16)" filter="url(#winShadow2)">
+    <rect width="924" height="528" rx="12" fill="#020617" stroke="#1e293b" stroke-width="1.5"/>
+
+    <!-- Top Window Bar -->
+    <path d="M 0 12 Q 0 0 12 0 L 912 0 Q 924 0 924 12 L 924 40 L 0 40 Z" fill="#090d16"/>
+    <circle cx="22" cy="20" r="5" fill="#ef4444"/>
+    <circle cx="38" cy="20" r="5" fill="#f59e0b"/>
+    <circle cx="54" cy="20" r="5" fill="#10b981"/>
+    <text x="80" y="24" fill="#94a3b8" font-size="12" font-weight="700">Google Antigravity IDE · Execution Agent (Codex Sandbox)</text>
+    <rect x="760" y="10" width="144" height="20" rx="4" fill="#1e293b"/>
+    <text x="832" y="24" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="middle">Agent Mode: ACTIVE</text>
+
+    <!-- Left File Explorer -->
+    <rect x="0" y="40" width="190" height="488" fill="#090d16" stroke="#1e293b"/>
+    <text x="18" y="65" fill="#64748b" font-size="11" font-weight="800">EXPLORER</text>
+    <text x="18" y="92" fill="#38bdf8" font-size="11.5" class="mono">&gt; repo_neis_help</text>
+    <text x="32" y="114" fill="#e2e8f0" font-size="11" class="mono">google_apps_script.js</text>
+    <text x="32" y="136" fill="#e2e8f0" font-size="11" class="mono">app.js</text>
+    <text x="32" y="158" fill="#e2e8f0" font-size="11" class="mono">google-sheet.js</text>
+    <text x="18" y="190" fill="#64748b" font-size="11" font-weight="800">AGENT TOOLS</text>
+    <text x="18" y="212" fill="#10b981" font-size="11">• Google Auth (Connected)</text>
+    <text x="18" y="232" fill="#10b981" font-size="11">• clasp CLI (Installed)</text>
+
+    <!-- Main Agent Execution Pane -->
+    <g transform="translate(190, 40)">
+      <!-- Editor Tab -->
+      <rect x="0" y="0" width="734" height="32" fill="#0f172a" stroke="#1e293b"/>
+      <rect x="0" y="0" width="160" height="32" fill="#020617" stroke="#1e293b"/>
+      <text x="16" y="20" fill="#38bdf8" font-size="11.5" class="mono">Agent Terminal / Log</text>
+
+      <!-- Terminal Output Area -->
+      <rect x="16" y="46" width="702" height="426" rx="8" fill="#090d16" stroke="#1e293b"/>
+      <text x="32" y="74" fill="#64748b" font-size="11" class="mono">&gt; User Prompt: "마스터 시트 연동 코드를 Google Apps Script에 배포해 줘."</text>
+      <text x="32" y="98" fill="#38bdf8" font-size="11.5" class="mono">&gt; [Antigravity Agent] Authenticated with indosupervisor0126@gmail.com</text>
+      <text x="32" y="122" fill="#94a3b8" font-size="11.5" class="mono">&gt; Clasp targeting Script ID: 12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc</text>
+      
+      <!-- Execution Steps -->
+      <text x="32" y="152" fill="#10b981" font-size="11.5" class="mono">✔ [Step 1/3] Uploaded google_apps_script_dual_relational.js (10 Tabs Sync Engine)</text>
+      <text x="32" y="176" fill="#10b981" font-size="11.5" class="mono">✔ [Step 2/3] Configured appsscript.json: runtimeVersion = V8, access = ANYONE</text>
+      <text x="32" y="200" fill="#10b981" font-size="11.5" class="mono">✔ [Step 3/3] Created deployment version: 1 @ 2026-11-08 11:00:15</text>
+
+      <!-- Success Callout -->
+      <rect x="32" y="224" width="670" height="96" rx="8" fill="#0f172a" stroke="#22c55e" stroke-width="1.5"/>
+      <text x="48" y="250" fill="#4ade80" font-size="12" font-weight="800">DEPLOYMENT SUCCESSFUL (웹 앱 배포 완료)</text>
+      <text x="48" y="274" fill="#94a3b8" font-size="11.5" class="mono">Web App URL:</text>
+      <text x="145" y="274" fill="#38bdf8" font-size="11.5" font-weight="700" class="mono">https://script.google.com/macros/s/AKfycbz_antigravity_master_deployed/exec</text>
+      <text x="48" y="302" fill="#e2e8f0" font-size="11.5">선생님, 배포가 완료되었습니다. 위 URL을 복사하여 교무수첩에 입력하시면 즉시 연동됩니다.</text>
+
+      <text x="32" y="350" fill="#a855f7" font-size="11" class="mono">&gt; Agent State: Completed task in 1.4s with 0 errors.</text>
+    </g>
+  </g>
+</svg>
