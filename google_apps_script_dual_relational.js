@@ -879,8 +879,24 @@ function createDocsForSelectedRow() {
 }
 
 // ==========================================
-// 4. 웹앱 양방향 통신 API (doGet, doPost)
+// 4. 웹앱 양방향 통신 API (doGet, doPost) — 10개 탭 마스터 시트 & T-ong & NEIS 웹앱 완전 양방향 동기화
 // ==========================================
+function findStudentRowInSheet(sh, sId, sName, startRow) {
+  if (!sh) return -1;
+  var sr = startRow || 5;
+  var lastR = sh.getLastRow();
+  if (lastR < sr) return -1;
+  var vals = sh.getRange(1, 1, lastR, Math.min(4, Math.max(2, sh.getLastColumn()))).getValues();
+  for (var r = sr - 1; r < vals.length; r++) {
+    var rowId = String(vals[r][0] || "").trim();
+    var rowName = String(vals[r][1] || "").trim();
+    if ((sId && rowId === String(sId).trim()) || (!sId && sName && rowName === String(sName).trim())) {
+      return r + 1;
+    }
+  }
+  return -1;
+}
+
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || "ping";
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -903,20 +919,187 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
+  // === [10개 탭 마스터 시트 전체 레코드 조회 API (js/counsel.js, js/google-sheet.js 양방향 연동)] ===
+  if (action === "getAllRecords") {
+    var rosterSheet = ss.getSheetByName("2_학생명렬표");
+    var changcheSheet = ss.getSheetByName("3_창체_행특");
+    var counselSheet = ss.getSheetByName("4_대입상담") || ss.getSheetByName("4_대입상담_진학기록");
+    var setukSheet = ss.getSheetByName("7_AI세특_작성");
+    var recordsMap = {};
+    var orderList = [];
+
+    if (rosterSheet && rosterSheet.getLastRow() >= 5) {
+      var rData = rosterSheet.getDataRange().getValues();
+      for (var r = 4; r < rData.length; r++) {
+        var sId = String(rData[r][0] || "").trim();
+        var sName = String(rData[r][1] || "").trim();
+        if (!sId && !sName) continue;
+        var key = sId || sName;
+        recordsMap[key] = {
+          id: "rec_" + key,
+          stuNumber: sId,
+          stuName: sName,
+          stuGender: String(rData[r][2] || ""),
+          stuTrack: String(rData[r][3] || ""),
+          stuMajor: String(rData[r][4] || ""),
+          keywords: String(rData[r][5] || ""),
+          grade5: "",
+          grade9: "",
+          mockExam: "",
+          targetUni1: "",
+          targetUni2: "",
+          targetUni3: "",
+          targetUni4: "",
+          targetUni5: "",
+          targetUni6: "",
+          counselOpinion: "",
+          setukMemo: "",
+          existingSetuk: "",
+          stuAutonomy: "",
+          stuClub: "",
+          stuCareer: "",
+          stuBehavior: "",
+          status: "상담완료"
+        };
+        orderList.push(key);
+      }
+    }
+
+    if (counselSheet && counselSheet.getLastRow() >= 5) {
+      var cData = counselSheet.getDataRange().getValues();
+      for (var cr = 4; cr < cData.length; cr++) {
+        var cId = String(cData[cr][0] || "").trim();
+        var cName = String(cData[cr][1] || "").trim();
+        if (!cId && !cName) continue;
+        var cKey = cId || cName;
+        if (!recordsMap[cKey]) {
+          recordsMap[cKey] = { id: "rec_" + cKey, stuNumber: cId, stuName: cName, stuMajor: String(cData[cr][2] || "") };
+          orderList.push(cKey);
+        }
+        var rec = recordsMap[cKey];
+        if (cData[cr][2] && !rec.stuMajor) rec.stuMajor = String(cData[cr][2]);
+        rec.grade5 = String(cData[cr][3] || "");
+        rec.grade9 = String(cData[cr][4] || "");
+        rec.mockExam = String(cData[cr][5] || "");
+        rec.targetUni1 = String(cData[cr][6] || "");
+        rec.targetUni2 = String(cData[cr][7] || "");
+        rec.targetUni3 = String(cData[cr][8] || "");
+        rec.targetUni4 = String(cData[cr][9] || "");
+        rec.targetUni5 = String(cData[cr][10] || "");
+        rec.targetUni6 = String(cData[cr][11] || "");
+        rec.counselOpinion = String(cData[cr][12] || "");
+        rec.docsUrl = String(cData[cr][13] || "");
+      }
+    }
+
+    if (changcheSheet && changcheSheet.getLastRow() >= 5) {
+      var chData = changcheSheet.getDataRange().getValues();
+      for (var hr = 4; hr < chData.length; hr++) {
+        var hId = String(chData[hr][0] || "").trim();
+        if (!hId || !recordsMap[hId]) continue;
+        recordsMap[hId].stuAutonomy = String(chData[hr][2] || "");
+        recordsMap[hId].stuClub = String(chData[hr][3] || "");
+        recordsMap[hId].stuCareer = String(chData[hr][4] || "");
+        recordsMap[hId].stuBehavior = String(chData[hr][5] || "");
+      }
+    }
+
+    if (setukSheet && setukSheet.getLastRow() >= 5) {
+      var sData = setukSheet.getDataRange().getValues();
+      for (var sr = 4; sr < sData.length; sr++) {
+        var stId = String(sData[sr][0] || "").trim();
+        if (!stId || !recordsMap[stId]) continue;
+        recordsMap[stId].setukMemo = String(sData[sr][4] || "");
+        recordsMap[stId].existingSetuk = String(sData[sr][7] || "");
+      }
+    }
+
+    var records = orderList.map(function(k) { return recordsMap[k]; });
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      records: records
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // === [모바일 교무수첩(T-ong) 양방향 불러오기 API: 명렬표·수업관찰·출결·칭찬·1인1역 조회] ===
+  if (action === "pull_tong_notebook") {
+    var rosterSh = ss.getSheetByName("2_학생명렬표");
+    var obsSh = ss.getSheetByName("6_수업관찰_기록");
+    var attSh = ss.getSheetByName("8_출결_칭찬_기록");
+    var students = [];
+    var observations = [];
+    var attPraise = [];
+
+    if (rosterSh && rosterSh.getLastRow() >= 5) {
+      var rVals = rosterSh.getDataRange().getValues();
+      for (var i = 4; i < rVals.length; i++) {
+        var idStr = String(rVals[i][0] || "").trim();
+        var nmStr = String(rVals[i][1] || "").trim();
+        if (!idStr && !nmStr) continue;
+        students.push({
+          id: idStr || String(i - 3),
+          name: nmStr,
+          gender: String(rVals[i][2] || "").trim(),
+          track: String(rVals[i][3] || "").trim(),
+          major: String(rVals[i][4] || "").trim()
+        });
+      }
+    }
+
+    if (obsSh && obsSh.getLastRow() >= 5) {
+      var oVals = obsSh.getDataRange().getValues();
+      for (var j = 4; j < oVals.length; j++) {
+        if (!oVals[j][1] && !oVals[j][2] && !oVals[j][5]) continue;
+        observations.push({
+          date: oVals[j][0] instanceof Date ? Utilities.formatDate(oVals[j][0], "Asia/Seoul", "yyyy-MM-dd") : String(oVals[j][0] || "").slice(0, 10),
+          studentId: String(oVals[j][1] || "").trim(),
+          studentName: String(oVals[j][2] || "").trim(),
+          subject: String(oVals[j][3] || "수업관찰").trim(),
+          category: String(oVals[j][4] || "수업 참여").trim(),
+          content: String(oVals[j][5] || "").trim()
+        });
+      }
+    }
+
+    if (attSh && attSh.getLastRow() >= 5) {
+      var aVals = attSh.getDataRange().getValues();
+      for (var k = 4; k < aVals.length; k++) {
+        if (!aVals[k][1] && !aVals[k][2] && !aVals[k][4]) continue;
+        attPraise.push({
+          timestamp: aVals[k][0] instanceof Date ? Utilities.formatDate(aVals[k][0], "Asia/Seoul", "yyyy-MM-dd HH:mm:ss") : String(aVals[k][0] || ""),
+          studentId: String(aVals[k][1] || "").trim(),
+          studentName: String(aVals[k][2] || "").trim(),
+          className: String(aVals[k][3] || "").trim(),
+          category: String(aVals[k][4] || "").trim(),
+          detail: String(aVals[k][5] || "").trim(),
+          memo: String(aVals[k][6] || "").trim()
+        });
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      students: students,
+      observations: observations,
+      attPraise: attPraise
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (action === "getRelationalData") {
-    var studentId = e.parameter.studentId;
-    var data = sheet.getDataRange().getValues();
+    var studentId = String(e.parameter.studentId || "").trim();
+    var counselSh = ss.getSheetByName("4_대입상담") || sheet;
+    var data = counselSh.getDataRange().getValues();
     var result = null;
 
     for (var r = 1; r < data.length; r++) {
-      if (String(data[r][0]).trim() === String(studentId).trim() || String(data[r][1]).trim() === String(studentId).trim()) {
+      if (String(data[r][0]).trim() === studentId || String(data[r][1]).trim() === studentId) {
         result = {
           studentId: data[r][0],
           name: data[r][1],
-          careerHope: data[r][3] || "", // 희망분야
-          targetUni: data[r][6] || "",   // 목표대학
-          counselMemo: data[r][10] || "",
-          docUrl: data[r][11] || ""
+          careerHope: data[r][2] || data[r][3] || "",
+          targetUni: data[r][6] || "",
+          counselMemo: data[r][12] || data[r][10] || "",
+          docUrl: data[r][13] || data[r][11] || ""
         };
         break;
       }
@@ -928,26 +1111,47 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // === [교과담임 모바일 교무수첩 관찰메모 조회 API] ===
+  // === [교과담임 모바일 교무수첩 관찰메모 조회 API — 7_AI세특_작성 & 6_수업관찰_기록 표준 탭 우선 연동] ===
   if (action === "get_subject_memos") {
+    var setukSh = ss.getSheetByName("7_AI세특_작성");
     var subSheet = ss.getSheetByName("교과담임_세특") || ss.getSheetByName("1_교과명렬_관찰기록");
+    var list = [];
+
+    if (setukSh && setukSh.getLastRow() >= 5) {
+      var sVals = setukSh.getDataRange().getValues();
+      for (var r = 4; r < sVals.length; r++) {
+        var row = sVals[r];
+        if (!row[0] && !row[1]) continue;
+        list.push({
+          studentId: String(row[0] || "").trim(),
+          name: String(row[1] || "").trim(),
+          subject: String(row[2] || "").trim(),
+          memo: String(row[4] || "").trim(),
+          tags: String(row[5] || "").trim(),
+          draft: String(row[7] || "").trim(),
+          updatedAt: ""
+        });
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true, list: list }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (!subSheet) {
       return ContentService.createTextOutput(JSON.stringify({ success: true, list: [] }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     var data = subSheet.getDataRange().getValues();
-    var list = [];
-    for (var r = 1; r < data.length; r++) {
-      var row = data[r];
-      if (!row[0] && !row[1]) continue;
+    for (var r2 = 1; r2 < data.length; r2++) {
+      var row2 = data[r2];
+      if (!row2[0] && !row2[1]) continue;
       list.push({
-        studentId: row[0],
-        name: row[1],
-        subject: row[2],
-        memo: row[3],
-        tags: row[4],
-        draft: row[5],
-        updatedAt: row[6]
+        studentId: row2[0],
+        name: row2[1],
+        subject: row2[2],
+        memo: row2[3],
+        tags: row2[4],
+        draft: row2[5],
+        updatedAt: row2[6]
       });
     }
     return ContentService.createTextOutput(JSON.stringify({ success: true, list: list }))
@@ -977,9 +1181,7 @@ function doGet(e) {
       }
       if (match) {
         if (isChkTab) {
-          // A열: 승인여부 (체크박스 TRUE/FALSE 또는 '승인')
           var isApproved = (r[0] === true || String(r[0]).toUpperCase() === "TRUE" || String(r[0]).trim() === "승인");
-          // G열: 만료예정일 — 관리자가 구글 시트에서 날짜를 변경하면 그 일자까지 승인 자동 연장
           var expVal = r[6];
           var expStr = "";
           if (expVal instanceof Date) {
@@ -988,9 +1190,9 @@ function doGet(e) {
             expStr = String(expVal).trim().slice(0, 10);
           }
           var todayStr = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
-          if (isApproved && expStr && /^\d{4}-\d{2}-\d{2}$/.test(expStr)) {
+          if (isApproved && expStr && /^\\d{4}-\\d{2}-\\d{2}$/.test(expStr)) {
             if (todayStr > expStr) {
-              isApproved = false; // 시트에 입력된 만료일이 지난 경우 만료 처리
+              isApproved = false;
             }
           }
           return ContentService.createTextOutput(JSON.stringify({
@@ -1003,7 +1205,6 @@ function doGet(e) {
             email: email
           })).setMimeType(ContentService.MimeType.JSON);
         } else {
-          // 사용자승인 탭
           var st = String(r[6] || "").trim();
           var ok = (st === "승인" || st === "승인완료" || st.toLowerCase() === "true");
           return ContentService.createTextOutput(JSON.stringify({
@@ -1025,58 +1226,112 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function upsertSingleStudentRecord(ss, rec, today) {
+  var sId = String(rec.studentId || rec.stuNumber || rec.id || "").replace(/^rec_/, "").trim();
+  var sName = String(rec.studentName || rec.stuName || rec.student || rec.name || "").trim();
+  if (!sId && !sName) return -1;
+
+  var careerHope = String(rec.careerHope || rec.stuMajor || rec.major || "").trim();
+  var track = String(rec.stuTrack || rec.track || "").trim();
+  var gender = String(rec.stuGender || rec.gender || "").trim();
+  var content = String(rec.content || rec.setukMemo || rec.existingSetuk || "").trim();
+  var counselOpinion = String(rec.counselOpinion || "").trim();
+
+  // 1. [2_학생명렬표] 확인 및 자동 등록/갱신
+  var rosterSh = ss.getSheetByName("2_학생명렬표");
+  if (rosterSh) {
+    var rRow = findStudentRowInSheet(rosterSh, sId, sName, 5);
+    if (rRow === -1 && sId && sName) {
+      rRow = Math.max(5, rosterSh.getLastRow() + 1);
+      rosterSh.getRange(rRow, 1, 1, 8).setValues([[
+        sId, sName, gender, track, careerHope, "", "", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")"
+      ]]);
+    } else if (rRow !== -1) {
+      if (careerHope) rosterSh.getRange(rRow, 5).setValue(careerHope);
+      if (track) rosterSh.getRange(rRow, 4).setValue(track);
+      if (gender) rosterSh.getRange(rRow, 3).setValue(gender);
+    }
+  }
+
+  // 2. [4_대입상담] 탭 업데이트
+  var counselSh = ss.getSheetByName("4_대입상담") || ss.getSheetByName("4_대입상담_진학기록");
+  var foundCounselRow = -1;
+  if (counselSh) {
+    foundCounselRow = findStudentRowInSheet(counselSh, sId, sName, 5);
+    if (foundCounselRow === -1 && sId) {
+      foundCounselRow = Math.max(5, counselSh.getLastRow() + 1);
+      counselSh.getRange(foundCounselRow, 1).setValue(sId);
+      counselSh.getRange(foundCounselRow, 2).setValue(sName);
+      if (careerHope) counselSh.getRange(foundCounselRow, 3).setValue(careerHope);
+    }
+    if (foundCounselRow !== -1) {
+      if (rec.grade5 !== undefined && rec.grade5 !== "") counselSh.getRange(foundCounselRow, 4).setValue(rec.grade5);
+      if (rec.grade9 !== undefined && rec.grade9 !== "") counselSh.getRange(foundCounselRow, 5).setValue(rec.grade9);
+      if (rec.mockExam !== undefined && rec.mockExam !== "") counselSh.getRange(foundCounselRow, 6).setValue(rec.mockExam);
+      if (rec.targetUni1 || rec.targetUni) counselSh.getRange(foundCounselRow, 7).setValue(rec.targetUni1 || rec.targetUni);
+      if (rec.targetUni2) counselSh.getRange(foundCounselRow, 8).setValue(rec.targetUni2);
+      if (rec.targetUni3) counselSh.getRange(foundCounselRow, 9).setValue(rec.targetUni3);
+      if (rec.targetUni4) counselSh.getRange(foundCounselRow, 10).setValue(rec.targetUni4);
+      if (rec.targetUni5) counselSh.getRange(foundCounselRow, 11).setValue(rec.targetUni5);
+      if (rec.targetUni6) counselSh.getRange(foundCounselRow, 12).setValue(rec.targetUni6);
+      if (counselOpinion) counselSh.getRange(foundCounselRow, 13).setValue(counselOpinion);
+      if (rec.docsUrl) counselSh.getRange(foundCounselRow, 14).setValue(rec.docsUrl);
+    }
+  }
+
+  // 3. [7_AI세특_작성] 탭 업데이트 (탐구보고서 OCR 초안 및 세특 메모)
+  var setukSh = ss.getSheetByName("7_AI세특_작성");
+  if (setukSh && content) {
+    var sRow = findStudentRowInSheet(setukSh, sId, sName, 5);
+    if (sRow === -1 && sId) {
+      sRow = Math.max(5, setukSh.getLastRow() + 1);
+      setukSh.getRange(sRow, 1).setValue(sId);
+      setukSh.getRange(sRow, 2).setValue(sName);
+    }
+    if (sRow !== -1) {
+      if (rec.subject) setukSh.getRange(sRow, 3).setValue(rec.subject);
+      if (content.length > 180) {
+        setukSh.getRange(sRow, 8).setValue(content);
+      } else {
+        var prevMemo = String(setukSh.getRange(sRow, 5).getValue() || "").trim();
+        if (prevMemo.indexOf(content) === -1) {
+          setukSh.getRange(sRow, 5).setValue(prevMemo ? (prevMemo + " / " + content) : content);
+        }
+      }
+    }
+  }
+
+  return foundCounselRow !== -1 ? foundCounselRow : 5;
+}
+
 function doPost(e) {
   try {
     var raw = (e && e.postData && e.postData.contents) || "{}";
     var body = JSON.parse(raw);
     var action = body.action || "saveRecord";
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getActiveSheet();
+    var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
 
-    if (action === "saveRecord" || action === "saveCounsel") {
-      var sId = String(body.studentId || "").trim();
-      var sName = String(body.studentName || "").trim();
-      var targetUni = body.targetUni || "";
-      var careerHope = body.careerHope || body.stuMajor || "";
-      var content = body.content || body.setukMemo || "";
-      var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
-
-      var data = sheet.getDataRange().getValues();
-      var foundRow = -1;
-
-      for (var r = 1; r < data.length; r++) {
-        // 학번(A열) 또는 이름(B열)으로 매칭
-        if ((sId && String(data[r][0]).trim() === sId) || (sName && String(data[r][1]).trim() === sName)) {
-          foundRow = r + 1;
-          break;
-        }
-      }
-
-      if (foundRow === -1) {
-        // 신규 행 추가
-        foundRow = sheet.getLastRow() + 1;
-        sheet.appendRow([sId, sName, "", careerHope, "", "", targetUni, "", "", "", "[" + today + "] " + content]);
-      } else {
-        // 기존 행 업데이트: 희망학과 업데이트
-        if (careerHope) {
-          sheet.getRange(foundRow, 4).setValue(careerHope); // D열
-        }
-        // 목표대학 업데이트
-        if (targetUni) {
-          sheet.getRange(foundRow, 7).setValue(targetUni);  // G열
-        }
-        // 상담/세특 내용 덧붙이기
-        var oldMemo = sheet.getRange(foundRow, 11).getValue() || "";
-        var newEntry = "\n[" + today + "] " + content;
-        sheet.getRange(foundRow, 11).setValue(oldMemo ? oldMemo + newEntry : newEntry);
-      }
-
+    if (action === "saveRecord" || action === "saveCounsel" || action === "sync_relational") {
+      var updatedRow = upsertSingleStudentRecord(ss, body, today);
       return ContentService.createTextOutput(JSON.stringify({
         success: true,
-        row: foundRow,
-        studentId: sId,
-        studentName: sName,
-        careerHope: careerHope
+        row: updatedRow,
+        studentId: body.studentId || body.stuNumber || "",
+        studentName: body.studentName || body.stuName || body.student || ""
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "batchSaveRecords") {
+      var list = Array.isArray(body.records) ? body.records : [];
+      var count = 0;
+      for (var i = 0; i < list.length; i++) {
+        if (upsertSingleStudentRecord(ss, list[i], today) !== -1) count++;
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        count: count,
+        message: "총 " + count + "명의 학생 기록이 10개 탭 마스터 시트에 일괄 동기화되었습니다."
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -1085,7 +1340,7 @@ function doPost(e) {
       var now = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
       var items = (body.items && Array.isArray(body.items) && body.items.length > 0) ? body.items : [body];
 
-      // 1. 마스터 통합 시트 탭 확인 (신규 10개 탭 및 하위 호환 탭 모두 지원)
+      var rosterSheet = ss.getSheetByName("2_학생명렬표");
       var obsSheet = ss.getSheetByName("6_수업관찰_기록") || ss.getSheetByName("3_수업관찰_기록");
       var setukSheet = ss.getSheetByName("7_AI세특_작성") || ss.getSheetByName("4_AI세특_작성");
       var changcheSheet = ss.getSheetByName("3_창체_행특");
@@ -1094,9 +1349,54 @@ function doPost(e) {
       if (!attPraiseSheet) {
         attPraiseSheet = ss.insertSheet("8_출결_칭찬_기록");
         attPraiseSheet.appendRow(["[출결·칭찬·역할] 8_출결_칭찬_기록 — 모바일 교무수첩(T-ong) 출결·칭찬포인트·1인1역·생활관찰 실시간 동기화 및 누가기록 탭"]);
-        attPraiseSheet.appendRow(["=HYPERLINK(\"#\x271_대시보드\x27!A1\",\"[중앙 대시보드 바로가기]\")", "=HYPERLINK(\"#\x270_사용안내\x27!A1\",\"[0_사용안내 바로가기]\")", "=HYPERLINK(\"#\x272_학생명렬표\x27!A1\",\"[2_학생명렬표]\")", "=HYPERLINK(\"#\x273_창체_행특\x27!A1\",\"[3_창체_행특]\")", "=HYPERLINK(\"#\x274_대입상담\x27!A1\",\"[4_대입상담]\")", "=HYPERLINK(\"#\x275_상담기록\x27!A1\",\"[5_상담기록]\")", "=HYPERLINK(\"#\x276_수업관찰_기록\x27!A1\",\"[6_수업관찰_기록]\")", "=HYPERLINK(\"#\x277_AI세특_작성\x27!A1\",\"[7_AI세특_작성]\")"]);
+        attPraiseSheet.appendRow(["=HYPERLINK(\"#'0_사용안내'!A1\",\"[홈 · 0_사용안내(설명서)]\")", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[1_대시보드(전체현황)]\")", "=HYPERLINK(\"#'2_학생명렬표'!A1\",\"[2_학생명렬표]\")", "=HYPERLINK(\"#'3_창체_행특'!A1\",\"[3_창체_행특]\")", "=HYPERLINK(\"#'4_대입상담'!A1\",\"[4_대입상담]\")", "=HYPERLINK(\"#'5_상담기록'!A1\",\"[5_상담기록]\")", "=HYPERLINK(\"#'6_수업관찰_기록'!A1\",\"[6_수업관찰_기록]\")", "=HYPERLINK(\"#'7_AI세특_작성'!A1\",\"[7_AI세특_작성]\")"]);
         attPraiseSheet.appendRow(["※ [입력칸 구분] 굵은 테두리+연노랑 음영 = [교사입력/앱동기화] | 연파랑 음영 = [AI자동 생성] | 회색 음영 = [자동연동·수정금지]"]);
         attPraiseSheet.appendRow(["기록일시 [교사/앱동기화]", "학번 [교사/앱동기화]", "성명 [자동연동]", "학급 [교사/앱동기화]", "구분(출결/칭찬/학급역할/학생관찰) [교사/앱동기화]", "상태·점수·역할명 [교사/앱동기화]", "사유 및 세부 관찰메모 [교사/앱동기화]", "대시보드 복귀 [자동연동]"]);
+      }
+
+      // 0. T-ong에서 함께 전달된 학생 명렬표(body.students)가 있으면 2_학생명렬표에 미등록 학생 자동 추가
+      if (rosterSheet && Array.isArray(body.students) && body.students.length > 0) {
+        var existingIds = {};
+        var rVals = rosterSheet.getDataRange().getValues();
+        for (var ri = 4; ri < rVals.length; ri++) {
+          var eid = String(rVals[ri][0] || "").trim();
+          if (eid) existingIds[eid] = true;
+        }
+        var newRosterRows = [];
+        for (var si = 0; si < body.students.length; si++) {
+          var st = body.students[si];
+          var stId = String(st.id || "").trim();
+          var stName = String(st.name || "").trim();
+          if (stId && stName && !existingIds[stId]) {
+            existingIds[stId] = true;
+            newRosterRows.push([stId, stName, st.gender || "", "", "", "", "", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")"]);
+          }
+        }
+        if (newRosterRows.length > 0) {
+          var startR = Math.max(5, rosterSheet.getLastRow() + 1);
+          rosterSheet.getRange(startR, 1, newRosterRows.length, 8).setValues(newRosterRows);
+        }
+      }
+
+      // 기존 수업관찰 및 출결·칭찬 기록 중복 방지 키 맵 생성
+      var existingObsKeys = {};
+      if (obsSheet && obsSheet.getLastRow() >= 5) {
+        var oData = obsSheet.getDataRange().getValues();
+        for (var oi = 4; oi < oData.length; oi++) {
+          var oDate = oData[oi][0] instanceof Date ? Utilities.formatDate(oData[oi][0], "Asia/Seoul", "yyyy-MM-dd") : String(oData[oi][0] || "").slice(0, 10);
+          var oKey = oDate + "_" + String(oData[oi][1] || "").trim() + "_" + String(oData[oi][5] || "").trim();
+          existingObsKeys[oKey] = true;
+        }
+      }
+
+      var existingAttKeys = {};
+      if (attPraiseSheet && attPraiseSheet.getLastRow() >= 5) {
+        var aData = attPraiseSheet.getDataRange().getValues();
+        for (var ai = 4; ai < aData.length; ai++) {
+          var aDate = aData[ai][0] instanceof Date ? Utilities.formatDate(aData[ai][0], "Asia/Seoul", "yyyy-MM-dd") : String(aData[ai][0] || "").slice(0, 10);
+          var aKey = aDate + "_" + String(aData[ai][1] || "").trim() + "_" + String(aData[ai][4] || "").trim() + "_" + String(aData[ai][5] || "").trim();
+          existingAttKeys[aKey] = true;
+        }
       }
 
       var setukData = setukSheet ? setukSheet.getDataRange().getValues() : null;
@@ -1106,6 +1406,8 @@ function doPost(e) {
       var attPraiseRowsToAdd = [];
       var obsColCount = obsSheet ? Math.max(7, obsSheet.getLastColumn()) : 8;
       var attColCount = attPraiseSheet ? Math.max(6, attPraiseSheet.getLastColumn()) : 8;
+      var nextObsRowNum = obsSheet ? Math.max(5, obsSheet.getLastRow() + 1) : 5;
+      var nextAttRowNum = attPraiseSheet ? Math.max(5, attPraiseSheet.getLastRow() + 1) : 5;
 
       for (var i = 0; i < items.length; i++) {
         var itm = items[i];
@@ -1118,23 +1420,30 @@ function doPost(e) {
         var dt = String(itm.timestamp || itm.date || now).trim();
         var dateOnly = dt.length >= 10 ? dt.slice(0, 10) : Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
 
-        var isSubjectObs = (cat === "수업관찰" || cat === "교과세특" || cat === "수업참여");
+        var isSubjectObs = (cat === "수업관찰" || cat === "교과세특" || cat === "수업참여" || cat === "수업 참여" || cat === "발표·토론" || cat === "실험·실습" || cat === "과제·보고서");
 
         // A. 수업관찰 항목인 경우: [6_수업관찰_기록] 및 [7_AI세특_작성] E열(누적 관찰메모)에 반영
         if (isSubjectObs && obsSheet) {
-          var obsRow = [
-            dateOnly,
-            sId,
-            sName,
-            clsName || cat,
-            "모바일교무수첩",
-            detail + (memo ? " (" + memo + ")" : ""),
-            ""
-          ];
-          if (obsColCount >= 8) {
-            obsRow.push("=HYPERLINK(\"#\x271_대시보드\x27!A1\",\"[대시보드로 이동]\")");
+          var fullDetail = detail + (memo ? " (" + memo + ")" : "");
+          var checkObsKey = dateOnly + "_" + sId + "_" + fullDetail;
+          if (!existingObsKeys[checkObsKey]) {
+            existingObsKeys[checkObsKey] = true;
+            var rNum = nextObsRowNum + obsRowsToAdd.length;
+            var vlookupFormula = "=IF(B" + rNum + "=\"\",\"\",IFERROR(VLOOKUP(B" + rNum + ",'2_학생명렬표'!$A$5:$B$300,2,FALSE),\"" + sName.replace(/"/g, "") + "\"))";
+            var obsRow = [
+              dateOnly,
+              sId,
+              vlookupFormula,
+              itm.subject || clsName || cat,
+              cat,
+              fullDetail,
+              ""
+            ];
+            if (obsColCount >= 8) {
+              obsRow.push("=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")");
+            }
+            obsRowsToAdd.push(obsRow);
           }
-          obsRowsToAdd.push(obsRow);
         }
 
         if (isSubjectObs && setukSheet && setukData && (sId || sName)) {
@@ -1153,21 +1462,27 @@ function doPost(e) {
           }
         }
 
-        // B. 출결 / 칭찬 / 학급역할(1인1역) / 학생관찰 항목인 경우: [8_출결_칭찬_기록]에 반영
+        // B. 출결 / 칭찬 / 학급역할(1인1역) / 학생관찰 항목인 경우: [8_출결_칭찬_기록]에 중복 없이 반영
         if (!isSubjectObs && attPraiseSheet) {
-          if (attColCount >= 8) {
-            attPraiseRowsToAdd.push([
-              dt,
-              sId,
-              sName,
-              clsName,
-              cat,
-              detail,
-              memo,
-              "=HYPERLINK(\"#\x271_대시보드\x27!A1\",\"[대시보드로 이동]\")"
-            ]);
-          } else {
-            attPraiseRowsToAdd.push([dt, sId, sName, cat, detail, memo]);
+          var checkAttKey = dateOnly + "_" + sId + "_" + cat + "_" + detail;
+          if (!existingAttKeys[checkAttKey]) {
+            existingAttKeys[checkAttKey] = true;
+            var aNum = nextAttRowNum + attPraiseRowsToAdd.length;
+            var attVlookup = "=IF(B" + aNum + "=\"\",\"\",IFERROR(VLOOKUP(B" + aNum + ",'2_학생명렬표'!$A$5:$B$300,2,FALSE),\"" + sName.replace(/"/g, "") + "\"))";
+            if (attColCount >= 8) {
+              attPraiseRowsToAdd.push([
+                dt,
+                sId,
+                attVlookup,
+                clsName,
+                cat,
+                detail,
+                memo,
+                "=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")"
+              ]);
+            } else {
+              attPraiseRowsToAdd.push([dt, sId, attVlookup, cat, detail, memo]);
+            }
           }
         }
 
@@ -1177,7 +1492,7 @@ function doPost(e) {
             var cRowId = String(changcheData[cr][0] || "").trim();
             var cRowName = String(changcheData[cr][1] || "").trim();
             if ((sId && cRowId === sId) || (sName && cRowName === sName)) {
-              var targetColIdx = (cat === "학급역할") ? 2 : 5; // 학급역할->C열(자율), 칭찬/학생관찰->F열(행특)
+              var targetColIdx = (cat === "학급역할") ? 2 : 5;
               var existingVal = String(changcheData[cr][targetColIdx] || "").trim();
               var appendTxt = "[" + cat + "] " + detail + (memo ? " (" + memo + ")" : "");
               if (detail && existingVal.indexOf(detail) === -1) {
@@ -1192,11 +1507,11 @@ function doPost(e) {
       }
 
       if (obsSheet && obsRowsToAdd.length > 0) {
-        obsSheet.getRange(obsSheet.getLastRow() + 1, 1, obsRowsToAdd.length, obsRowsToAdd[0].length).setValues(obsRowsToAdd);
+        obsSheet.getRange(Math.max(5, obsSheet.getLastRow() + 1), 1, obsRowsToAdd.length, obsRowsToAdd[0].length).setValues(obsRowsToAdd);
       }
 
       if (attPraiseSheet && attPraiseRowsToAdd.length > 0) {
-        attPraiseSheet.getRange(attPraiseSheet.getLastRow() + 1, 1, attPraiseRowsToAdd.length, attPraiseRowsToAdd[0].length).setValues(attPraiseRowsToAdd);
+        attPraiseSheet.getRange(Math.max(5, attPraiseSheet.getLastRow() + 1), 1, attPraiseRowsToAdd.length, attPraiseRowsToAdd[0].length).setValues(attPraiseRowsToAdd);
       }
 
       return ContentService.createTextOutput(JSON.stringify({
@@ -1204,19 +1519,13 @@ function doPost(e) {
         count: items.length,
         obsCount: obsRowsToAdd.length,
         attPraiseCount: attPraiseRowsToAdd.length,
-        message: "총 " + items.length + "건(수업관찰 " + obsRowsToAdd.length + "건, 출결·칭찬·역할 " + attPraiseRowsToAdd.length + "건)이 마스터 통합 시트에 동기화되었습니다.",
+        message: "총 " + items.length + "건 중 신규 (수업관찰 " + obsRowsToAdd.length + "건, 출결·칭찬·역할 " + attPraiseRowsToAdd.length + "건)이 마스터 통합 시트에 동기화되었습니다.",
         timestamp: now
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // === [교과담임 모바일 교무수첩 관찰메모 동기화 저장 API] ===
+    // === [교과담임 모바일 교무수첩 관찰메모 동기화 저장 API — 7_AI세특_작성 & 6_수업관찰_기록 표준 탭 동시 연동] ===
     if (action === "save_subject_memo") {
-      var subSheet = ss.getSheetByName("교과담임_세특") || ss.getSheetByName("1_교과명렬_관찰기록");
-      if (!subSheet) {
-        subSheet = ss.insertSheet("교과담임_세특");
-        subSheet.appendRow(["학번", "성명", "과목명", "수업관찰메모", "핵심역량태그", "세특초안(1500B)", "최종동기화일시"]);
-        subSheet.getRange("A1:G1").setBackground("#1e293b").setFontColor("#ffffff").setFontWeight("bold");
-      }
       var sId = String(body.studentId || "").trim();
       var sName = String(body.studentName || "").trim();
       var subName = body.subject || "일반교과";
@@ -1224,31 +1533,44 @@ function doPost(e) {
       var tags = body.tags || "";
       var draft = body.draft || "";
       var now = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
+      var dateOnly = now.slice(0, 10);
 
-      var data = subSheet.getDataRange().getValues();
-      var foundRow = -1;
-      for (var r = 1; r < data.length; r++) {
-        if ((sId && String(data[r][0]).trim() === sId) || (sName && String(data[r][1]).trim() === sName)) {
-          foundRow = r + 1;
-          break;
+      // 1) 7_AI세특_작성 탭 반영
+      var setukSh = ss.getSheetByName("7_AI세특_작성");
+      var foundSetukRow = -1;
+      if (setukSh) {
+        foundSetukRow = findStudentRowInSheet(setukSh, sId, sName, 5);
+        if (foundSetukRow === -1 && sId) {
+          foundSetukRow = Math.max(5, setukSh.getLastRow() + 1);
+          setukSh.getRange(foundSetukRow, 1).setValue(sId);
+          setukSh.getRange(foundSetukRow, 2).setValue(sName);
+        }
+        if (foundSetukRow !== -1) {
+          if (subName) setukSh.getRange(foundSetukRow, 3).setValue(subName);
+          if (memo) setukSh.getRange(foundSetukRow, 5).setValue(memo);
+          if (tags) setukSh.getRange(foundSetukRow, 6).setValue(tags);
+          if (draft) setukSh.getRange(foundSetukRow, 8).setValue(draft);
         }
       }
-      if (foundRow === -1) {
-        subSheet.appendRow([sId, sName, subName, memo, tags, draft, now]);
-        foundRow = subSheet.getLastRow();
-      } else {
-        if (subName) subSheet.getRange(foundRow, 3).setValue(subName);
-        subSheet.getRange(foundRow, 4).setValue(memo);
-        if (tags) subSheet.getRange(foundRow, 5).setValue(tags);
-        if (draft) subSheet.getRange(foundRow, 6).setValue(draft);
-        subSheet.getRange(foundRow, 7).setValue(now);
+
+      // 2) 6_수업관찰_기록 탭에도 누적 기록 추가
+      var obsSh = ss.getSheetByName("6_수업관찰_기록");
+      if (obsSh && memo) {
+        var nextR = Math.max(5, obsSh.getLastRow() + 1);
+        var vf = "=IF(B" + nextR + "=\"\",\"\",IFERROR(VLOOKUP(B" + nextR + ",'2_학생명렬표'!$A$5:$B$300,2,FALSE),\"" + sName.replace(/"/g, "") + "\"))";
+        obsSh.getRange(nextR, 1, 1, 8).setValues([[
+          dateOnly, sId, vf, subName, tags || "수업관찰", memo, "", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")"
+        ]]);
       }
-      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "교과담임 시트 동기화 완료", row: foundRow }))
-        .setMimeType(ContentService.MimeType.JSON);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: "7_AI세특_작성 및 6_수업관찰_기록 탭 동기화 완료",
+        row: foundSetukRow
+      })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // === [사용자 승인 신청 제출 API (신천고/교육청 자동승인 + 타 계정 수동승인)] ===
-        // === [사용자 승인 신청 제출 API — '2_교사승인명단' 및 '사용자승인' 완벽 지원] ===
+    // === [사용자 승인 신청 제출 API — '2_교사승인명단' 및 '사용자승인' 완벽 지원] ===
     if (action === "apply_access") {
       var appSheet = ss.getSheetByName("2_교사승인명단") || ss.getSheetByName("사용자승인") || ss.getSheetByName("승인관리");
       var isCheckboxSheet = true;
@@ -1267,7 +1589,7 @@ function doPost(e) {
       var isAuto = (domain === "sch.kr" || domain.endsWith(".sch.kr") || domain === "goedu.kr" || domain.endsWith(".goedu.kr") || targetEmail.endsWith("@sch.hs.kr")) || (body.approved === true) || (body.status === "승인");
 
       var expDate = new Date();
-      expDate.setDate(expDate.getDate() + 180); // 한 학기(6개월)
+      expDate.setDate(expDate.getDate() + 180);
       var expStr = Utilities.formatDate(expDate, "Asia/Seoul", "yyyy-MM-dd");
 
       var data = appSheet.getDataRange().getValues();

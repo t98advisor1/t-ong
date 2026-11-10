@@ -125,7 +125,12 @@ var CloudSheetSync = (function () {
 
   function getSheetUrl() {
     try {
-      return localStorage.getItem(SHEET_URL_KEY) || '';
+      return localStorage.getItem(SHEET_URL_KEY)
+        || localStorage.getItem('SR_GAS_MASTER_URL')
+        || localStorage.getItem('swk_gsheet_url')
+        || localStorage.getItem('swk_gsheet_homeroom_url')
+        || localStorage.getItem('swk_gsheet_subject_url')
+        || '';
     } catch (e) {
       return '';
     }
@@ -133,8 +138,12 @@ var CloudSheetSync = (function () {
 
   function setSheetUrl(url) {
     try {
-      if (url) localStorage.setItem(SHEET_URL_KEY, url);
-      else localStorage.removeItem(SHEET_URL_KEY);
+      var u = (url || '').trim();
+      var keys = [SHEET_URL_KEY, 'SR_GAS_MASTER_URL', 'swk_gsheet_url', 'swk_gsheet_homeroom_url', 'swk_gsheet_subject_url'];
+      keys.forEach(function (k) {
+        if (u) localStorage.setItem(k, u);
+        else localStorage.removeItem(k);
+      });
     } catch (e) {}
   }
 
@@ -585,10 +594,13 @@ var CloudSheetSync = (function () {
         }
       }
 
+      var curClass = allClassData[currentClassIndex] || {};
       var payload = {
         action: 'sync_tong_notebook',
         userEmail: auth ? auth.email : '',
         userName: auth ? auth.name : '',
+        className: curClass.className || ((currentClassIndex + 1) + '반'),
+        students: Array.isArray(students) ? students : [],
         items: uniqueItems
       };
 
@@ -606,6 +618,12 @@ var CloudSheetSync = (function () {
         localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
         isSyncing = false;
         updateUI();
+        if (window.parent && window.parent !== window) {
+          try { window.parent.postMessage({ type: 'tong-notebook-synced', count: uniqueItems.length }, '*'); } catch (e) {}
+        }
+        if (window.parent && window.parent !== window) {
+          try { window.parent.postMessage({ type: 'tong-notebook-synced', count: uniqueItems.length }, '*'); } catch (e) {}
+        }
         if (manual) {
           showToast('구글 시트와 동기화가 성공적으로 완료되었습니다 (' + uniqueItems.length + '건).', 'success');
         }
@@ -734,6 +752,13 @@ var CloudSheetSync = (function () {
       });
     }
 
+    var pullBtn = el('syncPullFromSheetBtn');
+    if (pullBtn) {
+      pullBtn.addEventListener('click', function () {
+        pullFromSheet(true);
+      });
+    }
+
     var logoutBtn = el('syncLogoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', logout);
@@ -752,6 +777,77 @@ var CloudSheetSync = (function () {
     }
   }
 
+  async function pullFromSheet(manual) {
+    var sheetUrl = getSheetUrl();
+    if (!sheetUrl) {
+      if (manual) {
+        showToast('먼저 구글 시트 웹앱 URL을 입력하고 저장해 주세요.', 'error');
+        toggleMenu(true);
+      }
+      return;
+    }
+    isSyncing = true;
+    updateUI();
+    try {
+      var res = await fetch(sheetUrl + (sheetUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=pull_tong_notebook&_t=' + Date.now());
+      var data = await res.json();
+      if (data && data.success) {
+        var d = allClassData[currentClassIndex];
+        var updatedCount = 0;
+        if (d && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
+          students = data.students.map(function (s) {
+            return { id: String(s.id), name: String(s.name), gender: s.gender || '' };
+          });
+          d.students = students.slice();
+          updatedCount += students.length;
+        }
+        if (d && Array.isArray(data.observations) && data.observations.length > 0) {
+          if (!Array.isArray(d.specialNotes)) d.specialNotes = [];
+          var existingObs = {};
+          d.specialNotes.forEach(function (sn) {
+            existingObs[(sn.date || '') + '_' + sn.studentId + '_' + sn.content] = true;
+          });
+          data.observations.forEach(function (ob) {
+            var k = (ob.date || '') + '_' + ob.studentId + '_' + ob.content;
+            if (ob.content && !existingObs[k]) {
+              existingObs[k] = true;
+              d.specialNotes.push({
+                id: generateId(),
+                studentId: ob.studentId,
+                studentName: ob.studentName,
+                date: ob.date,
+                subject: ob.subject || '수업관찰',
+                category: ob.category || '수업 참여',
+                content: ob.content,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+              updatedCount++;
+            }
+          });
+        }
+        saveCurrentClassData();
+        renderSeating();
+        if (typeof Attend !== 'undefined' && Attend.render) Attend.render();
+        isSyncing = false;
+        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+        updateUI();
+        if (manual) {
+          showToast('구글 시트에서 최신 명렬·관찰 데이터를 성공적으로 불러왔습니다 (' + updatedCount + '건 반영).', 'success');
+        }
+      } else {
+        throw new Error('데이터 조회 실패');
+      }
+    } catch (err) {
+      console.warn('Pull error:', err);
+      isSyncing = false;
+      updateUI();
+      if (manual) {
+        showToast('시트에서 불러오기에 실패했습니다. 웹앱 배포 상태를 확인해 주세요.', 'error');
+      }
+    }
+  }
+
   return {
     init: init,
     getAuth: getAuth,
@@ -760,9 +856,16 @@ var CloudSheetSync = (function () {
     setSheetUrl: setSheetUrl,
     queueRecord: queueRecord,
     syncNow: syncNow,
+    pullFromSheet: pullFromSheet,
     updateUI: updateUI
   };
 })();
+
+window.CloudSheetSync = CloudSheetSync;
+window.TongSyncBridge = {
+  pushToGoogleSheet: function () { return CloudSheetSync.syncNow(true); },
+  pullFromGoogleSheet: function () { return CloudSheetSync.pullFromSheet(true); }
+};
 
 // ===== 초기화 =====
 document.addEventListener('DOMContentLoaded', function() {
