@@ -98,6 +98,20 @@
                   <button type="button" id="customMathAddBtn" class="custom-fav-add">＋ 수학관련 사이트 추가</button>
                 </div>
               </details>
+              <details class="fav-category learning-apps-favorites">
+                <summary>학습용 앱 <small>2개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://go.geomath.workers.dev/" target="_blank" rel="noopener noreferrer">기하 벡터</a>
+                  <a href="https://ai-math-practice.vercel.app/" target="_blank" rel="noopener noreferrer">인공지능 수학</a>
+                </div>
+              </details>
+              <details class="fav-category activity-apps-favorites">
+                <summary>활용 앱 <small>2개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://starlight-tarot-3d.vercel.app/" target="_blank" rel="noopener noreferrer" title="타로 체험 (약 6분)">별빛 청춘 3D 타로</a>
+                  <a href="https://kwansang.vercel.app/" target="_blank" rel="noopener noreferrer" title="관상 체험 (약 4분)">관상 연구소</a>
+                </div>
+              </details>
               <details class="fav-category class-favorites">
                 <summary>수업 및 클래스 <small>5개 + 직접 추가</small></summary>
                 <div class="fav-category-grid">
@@ -284,10 +298,11 @@
             </div>
 
             <div class="sync-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
-              <button type="button" id="syncManualNowBtn" class="btn primary">시트로 지금 전송(Push)</button>
-              <button type="button" id="syncPullFromSheetBtn" class="btn" style="background:#0f766e; color:#fff; border:none; font-weight:700;">시트에서 명렬·기록 불러오기(Pull)</button>
+              <button type="button" id="syncManualNowBtn" class="btn primary" title="이 기기에서 입력한 기록을 구글 시트로 보냅니다">시트로 보내기 (Push)</button>
+              <button type="button" id="syncPullFromSheetBtn" class="btn" style="background:#0f766e; color:#fff; border:none; font-weight:700;" title="다른 기기에서 보낸 기록을 이 기기로 가져옵니다">시트에서 가져오기 (Pull)</button>
               <button type="button" id="syncLogoutBtn" class="btn" hidden>로그아웃</button>
             </div>
+            <p class="sync-help-text" style="margin-top:8px;"><b>태블릿 ↔ 노트북:</b> 같은 시트 웹앱 URL을 두 기기에 모두 저장한 뒤, 입력한 기기에서 <b>[시트로 보내기]</b>, 받을 기기에서 <b>[시트에서 가져오기]</b>를 누르세요. 관찰·세특 기록, 출결, 칭찬 포인트, 1인1역, 학생 메모가 옮겨집니다. 두 기기의 <b>반 이름과 명렬표(학번)</b>가 같아야 하며, 자리 배치·내 시간표·설정은 <b>설정 → 데이터 백업</b>으로 옮깁니다.</p>
           </div>
         </div>
       </div>
@@ -1165,6 +1180,20 @@
               <div class="fav-sub-label">내 수학관련 사이트</div>
               <div id="customMathModalList" class="custom-fav-list modal-list"></div>
               <button type="button" id="customMathModalAddBtn" class="btn primary full-width">＋ 수학관련 사이트 추가</button>
+            </div>
+          </details>
+          <details class="fav-category learning-apps-favorites">
+            <summary>🧮 학습용 앱 <small>2개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://go.geomath.workers.dev/" target="_blank" rel="noopener noreferrer">기하 벡터</a>
+              <a href="https://ai-math-practice.vercel.app/" target="_blank" rel="noopener noreferrer">인공지능 수학</a>
+            </div>
+          </details>
+          <details class="fav-category activity-apps-favorites">
+            <summary>🔮 활용 앱 <small>2개</small></summary>
+            <div class="fav-category-grid">
+              <a href="https://starlight-tarot-3d.vercel.app/" target="_blank" rel="noopener noreferrer" title="타로 체험 (약 6분)">별빛 청춘 3D 타로</a>
+              <a href="https://kwansang.vercel.app/" target="_blank" rel="noopener noreferrer" title="관상 체험 (약 4분)">관상 연구소</a>
             </div>
           </details>
           <details class="fav-category class-favorites">

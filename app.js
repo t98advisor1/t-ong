@@ -447,141 +447,246 @@ var CloudSheetSync = (function () {
     }
   }
 
-  function collectCurrentClassRecords() {
-    var records = [];
-    var nowStr = formatDate(new Date());
+  // ------------------------------------------------------------------
+  // 시트 동기화 상태 — 이 기기가 '시트에 이미 있다'고 알고 있는 것
+  //  obs : 받아 봤거나 보낸 관찰 기록(지운 기록이 Pull 로 되살아나지 않게)
+  //  rows: 출결·칭찬·1인1역·학생메모의 시트 줄 이력. 키별로 ['날짜|내용', ...] (시트에 쌓인 순서)
+  // 시트는 줄을 덧붙이기만 하는 기록장이라, 줄이 쌓인 순서를 '나중에 쓴 것이 이긴다'의 기준으로 씁니다.
+  // ------------------------------------------------------------------
+  var SYNC_STATE_KEY = 'tongSheetSyncState_v1';
+  // Apps Script 가 [6_수업관찰_기록] 탭으로 보내는 기록 유형. 그 밖의 유형은 '수업관찰'로 보내고 내용 앞에 [유형]을 붙입니다.
+  var SHEET_OBS_CATEGORIES = ['수업관찰', '교과세특', '수업참여', '수업 참여', '발표·토론', '실험·실습', '과제·보고서'];
+  var NOTE_CATEGORIES = ['수업 참여', '학업 역량', '탐구 활동', '발표·토론', '협업·소통', '기타'];
+  var SHEET_ATT_STATES = ['결석', '지각', '조퇴', '결과'];
+  var SHEET_ATT_REASONS = ['질병', '인정', '미인정', '기타'];
+  // 예전 전송분은 내용 뒤에 " (과목: 수학 (2-2))" 가 붙어 시트에 저장됩니다. (반 이름에 괄호가 한 겹 들어 있어도 인식)
+  var SUBJECT_SUFFIX_RE = /\s\(과목: [^()]*\(((?:[^()]|\([^()]*\))*)\)\)$/;
+  var REVISION_RE = /\s\[수정 \d+\]$/;
+  var pushInFlight = null;
 
+  function getSyncState(sheetUrl) {
+    var state = null;
+    try { state = JSON.parse(localStorage.getItem(SYNC_STATE_KEY) || 'null'); } catch (e) {}
+    // 다른 시트로 바꾸면 그 시트에 대해서는 아는 것이 없으므로 새로 시작합니다.
+    if (!state || typeof state !== 'object' || state.sheet !== sheetUrl) state = { sheet: sheetUrl };
+    if (!state.obs || typeof state.obs !== 'object') state.obs = {};
+    if (!state.rows || typeof state.rows !== 'object') state.rows = {};
+    return state;
+  }
+  function saveSyncState(state) {
+    try { localStorage.setItem(SYNC_STATE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function hashKey(text) {
+    var h = 5381;
+    for (var i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36) + '.' + text.length.toString(36);
+  }
+
+  function syncClasses() {
+    var list = [];
     for (var i = 0; i < MAX_CLASSES; i++) {
       var d = allClassData[i];
-      if (!d) continue;
-      var cName = d.className || ((i + 1) + '반');
+      if (d) list.push({ index: i, data: d, name: d.className || ((i + 1) + '반') });
+    }
+    return list;
+  }
+  // 현재 보고 있는 반의 학생 메모는 전역 변수(studentMemos)가 원본입니다.
+  function memosOf(cls) {
+    if (cls.index === currentClassIndex) return studentMemos;
+    if (!cls.data.studentMemos) cls.data.studentMemos = {};
+    return cls.data.studentMemos;
+  }
+
+  function stripSubjectSuffix(content) {
+    var text = String(content || '').trim();
+    var m;
+    while ((m = text.match(SUBJECT_SUFFIX_RE))) text = text.slice(0, m.index).trim();
+    return text;
+  }
+  // 같은 기록인지 비교할 때 쓰는 내용: 시트가 덧붙인 " (과목: … (반))" · " (반)" 을 떼어 냅니다.
+  function noteCompareText(content, classNames) {
+    var text = String(content || '').trim();
+    for (;;) {
+      var m = text.match(SUBJECT_SUFFIX_RE);
+      if (m) { text = text.slice(0, m.index).trim(); continue; }
+      var hit = '';
+      for (var i = 0; i < classNames.length; i++) {
+        var suffix = ' (' + classNames[i] + ')';
+        if (classNames[i] && text.length > suffix.length && text.slice(-suffix.length) === suffix) { hit = suffix; break; }
+      }
+      if (!hit) break;
+      text = text.slice(0, -hit.length).trim();
+    }
+    return text;
+  }
+  function noteKey(studentId, date, compareText) {
+    return String(studentId || '') + '|' + String(date || '') + '|' + compareText;
+  }
+
+  function rowsKey(kind, className, studentId, date) {
+    return kind + '|' + className + '|' + (date || '') + '|' + studentId;
+  }
+  function entryDetail(entry) {
+    var text = String(entry || '');
+    var at = text.indexOf('|');
+    return (at >= 0 ? text.slice(at + 1) : text).replace(REVISION_RE, '');
+  }
+
+  // 시트의 마지막 값과 다를 때만 한 줄을 보냅니다.
+  function queueRow(state, key, date, detail, base, items, commits) {
+    var hist = state.rows[key] || [];
+    if (hist.length && entryDetail(hist[hist.length - 1]) === detail) return;
+    var sendDetail = detail;
+    // Apps Script 는 (날짜·학번·구분·내용)이 같은 줄을 다시 받지 않으므로, 예전 값으로 되돌아갈 때는 [수정 n]을 붙여 구분합니다.
+    if (hist.indexOf(date + '|' + detail) >= 0) sendDetail = detail + ' [수정 ' + (hist.length + 1) + ']';
+    var item = { detail: sendDetail };
+    Object.keys(base).forEach(function (name) { item[name] = base[name]; });
+    items.push(item);
+    commits.push({ key: key, entry: date + '|' + sendDetail });
+  }
+
+  // 모든 반의 기록을 시트로 보낼 형태로 모읍니다. commits 는 전송에 성공했을 때 동기화 상태에 반영할 줄입니다.
+  function collectCurrentClassRecords(state) {
+    state = state || getSyncState(getSheetUrl());
+    var records = [];
+    var commits = [];
+    var nowStr = formatDate(new Date());
+    var classes = syncClasses();
+    var classNames = classes.map(function (c) { return c.name; });
+
+    classes.forEach(function (cls) {
+      var d = cls.data;
+      var cName = cls.name;
+      var roster = d.students || [];
       var studentMap = {};
-      (d.students || []).forEach(function (s) {
-        studentMap[String(s.id)] = s.name || '';
-      });
+      roster.forEach(function (st) { studentMap[String(st.id)] = st.name || ''; });
 
-      // 1) 특별 관찰 기록 (학생 세특용 관찰 메모)
+      // 1) 관찰·세특 기록 → [6_수업관찰_기록] · [7_AI세특_작성]
       if (Array.isArray(d.specialNotes)) {
+        var sent = {};
         d.specialNotes.forEach(function (sn) {
-          var sName = sn.studentName || studentMap[String(sn.studentId)] || '';
-          if (sn.content) {
-            records.push({
-              timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
-              studentId: sn.studentId || '',
-              studentName: sName,
-              className: cName,
-              subject: sn.subject || '',
-              category: sn.category || '수업관찰',
-              detail: sn.content,
-              memo: sn.subject ? ('과목: ' + sn.subject + ' (' + cName + ')') : cName
-            });
-          }
-        });
-      }
-
-      // 2) 학생별 일반 관찰 메모 (studentMemos)
-      if (d.studentMemos) {
-        Object.keys(d.studentMemos).forEach(function (sid) {
-          var memoText = String(d.studentMemos[sid] || '').trim();
-          if (memoText) {
-            records.push({
-              timestamp: nowStr + ' 12:00:00',
-              studentId: sid,
-              studentName: studentMap[String(sid)] || '',
-              className: cName,
-              category: '학생관찰',
-              detail: memoText,
-              memo: cName
-            });
-          }
-        });
-      }
-
-      // 3) 출결 기록 (8_출결_칭찬_기록 연동)
-      if (d.attendance) {
-        var dates = Object.keys(d.attendance);
-        dates.forEach(function (dk) {
-          var attObj = d.attendance[dk] || {};
-          var rzObj = (d.attendReasons && d.attendReasons[dk]) || {};
-          var memObj = (d.attendMemos && d.attendMemos[dk]) || {};
-          (d.students || []).forEach(function (s) {
-            var state = attObj[s.id];
-            if (state && state !== '출석') {
-              var rz = rzObj[s.id] || '';
-              var mm = memObj[s.id] || '';
-              records.push({
-                timestamp: dk + ' 09:00:00',
-                studentId: s.id || '',
-                studentName: s.name || '',
-                className: cName,
-                category: '출결',
-                detail: state + (rz ? ' (' + rz + ')' : ''),
-                memo: mm || (cName + ' 출결 기록')
-              });
-            }
+          var content = stripSubjectSuffix(sn.content);
+          if (!content) return;
+          // 예전 Pull 이 만든 사본(내용 뒤에 과목·반이 붙은 것)은 원본과 같은 기록이므로 한 번만 보냅니다.
+          var key = noteKey(sn.studentId, sn.date, noteCompareText(sn.content, classNames));
+          if (sent[key]) return;
+          sent[key] = true;
+          var category = sn.category || '수업관찰';
+          var known = SHEET_OBS_CATEGORIES.indexOf(category) >= 0;
+          records.push({
+            timestamp: sn.date ? (sn.date + ' 12:00:00') : (nowStr + ' 12:00:00'),
+            studentId: sn.studentId || '',
+            studentName: sn.studentName || studentMap[String(sn.studentId)] || '',
+            className: cName,
+            subject: sn.subject || '',
+            category: known ? category : '수업관찰',
+            detail: known ? content : ('[' + category + '] ' + content),
+            memo: sn.subject ? ('과목: ' + sn.subject + ' (' + cName + ')') : cName
           });
         });
       }
 
-      // 4) 칭찬 포인트 기록 (8_출결_칭찬_기록 & 3_창체_행특 연동)
-      if (d.praise) {
-        Object.keys(d.praise).forEach(function (sid) {
-          var score = Number(d.praise[sid]) || 0;
-          if (score > 0) {
-            var stgLabel = score >= 10 ? '닭 단계' : (score >= 5 ? '병아리 단계' : '부화 중 단계');
-            records.push({
-              timestamp: nowStr + ' 15:00:00',
-              studentId: sid,
-              studentName: studentMap[String(sid)] || '',
-              className: cName,
-              category: '칭찬',
-              detail: '+' + score + '점 (' + stgLabel + ')',
-              memo: cName + ' 칭찬 포인트 누적 ' + score + '점'
-            });
-          }
-        });
-      }
+      // 2) 학생별 일반 관찰 메모 → [8_출결_칭찬_기록]
+      var memos = memosOf(cls);
+      roster.forEach(function (st) {
+        var key = rowsKey('M', cName, st.id);
+        var memoText = String(memos[st.id] || '').trim();
+        if (!memoText && !state.rows[key]) return;
+        queueRow(state, key, nowStr, memoText || '(메모 삭제)', {
+          timestamp: nowStr + ' 12:00:00', studentId: st.id, studentName: st.name || '', className: cName, category: '학생관찰', memo: cName
+        }, records, commits);
+      });
 
-      // 5) 1인 1역 학급역할 기록 (8_출결_칭찬_기록 & 3_창체_행특 자율활동 연동)
-      if (d.duties) {
-        Object.keys(d.duties).forEach(function (sid) {
-          var roleName = String(d.duties[sid] || '').trim();
-          if (roleName) {
-            records.push({
-              timestamp: nowStr + ' 09:00:00',
-              studentId: sid,
-              studentName: studentMap[String(sid)] || '',
-              className: cName,
-              category: '학급역할',
-              detail: '1인1역: ' + roleName,
-              memo: cName + ' 학급 1인1역 역할 수행 (' + roleName + ')'
-            });
-          }
+      // 3) 출결 (출석이 아닌 상태) → [8_출결_칭찬_기록]
+      var attendance = d.attendance || {};
+      var markedKeys = {};
+      Object.keys(attendance).forEach(function (dk) {
+        var attObj = attendance[dk] || {};
+        var rzObj = (d.attendReasons && d.attendReasons[dk]) || {};
+        var memObj = (d.attendMemos && d.attendMemos[dk]) || {};
+        roster.forEach(function (st) {
+          var status = attObj[st.id];
+          if (!status || status === '출석') return;
+          var key = rowsKey('A', cName, st.id, dk);
+          markedKeys[key] = true;
+          queueRow(state, key, dk, status + (rzObj[st.id] ? ' (' + rzObj[st.id] + ')' : ''), {
+            timestamp: dk + ' 09:00:00', studentId: st.id, studentName: st.name || '', className: cName, category: '출결',
+            memo: memObj[st.id] || (cName + ' 출결 기록')
+          }, records, commits);
         });
-      }
-    }
+      });
+      // 시트에는 결석·지각 등으로 올라가 있는데 이 기기에서 출석으로 고친 날 → 정정 줄을 보내 다른 기기에도 전합니다.
+      var attPrefix = 'A|' + cName + '|';
+      Object.keys(state.rows).forEach(function (key) {
+        if (key.indexOf(attPrefix) !== 0 || markedKeys[key]) return;
+        var rest = key.slice(attPrefix.length);
+        var cut = rest.indexOf('|');
+        var dk = rest.slice(0, cut);
+        var sid = rest.slice(cut + 1);
+        if (!Object.prototype.hasOwnProperty.call(studentMap, sid)) return;
+        var hist = state.rows[key];
+        if (!hist.length || entryDetail(hist[hist.length - 1]).indexOf('출석') === 0) return;
+        queueRow(state, key, dk, '출석 (정정)', {
+          timestamp: dk + ' 09:00:00', studentId: sid, studentName: studentMap[sid], className: cName, category: '출결', memo: cName + ' 출결 정정'
+        }, records, commits);
+      });
 
-    return records;
+      // 4) 칭찬 포인트 (누적 점수가 바뀌었을 때만) → [8_출결_칭찬_기록] · [3_창체_행특]
+      var praise = d.praise || {};
+      roster.forEach(function (st) {
+        var key = rowsKey('P', cName, st.id);
+        var score = Number(praise[st.id]) || 0;
+        if (score <= 0 && !state.rows[key]) return;
+        var stage = score >= 10 ? '닭 단계' : (score >= 5 ? '병아리 단계' : '부화 중 단계');
+        queueRow(state, key, nowStr, score > 0 ? ('+' + score + '점 (' + stage + ')') : '+0점', {
+          timestamp: nowStr + ' 15:00:00', studentId: st.id, studentName: st.name || '', className: cName, category: '칭찬',
+          memo: cName + ' 칭찬 포인트 누적 ' + score + '점'
+        }, records, commits);
+      });
+
+      // 5) 1인 1역 (역할이 바뀌었을 때만) → [8_출결_칭찬_기록] · [3_창체_행특]
+      var duties = d.duties || {};
+      roster.forEach(function (st) {
+        var key = rowsKey('D', cName, st.id);
+        var roleName = String(duties[st.id] || '').trim();
+        if (!roleName && !state.rows[key]) return;
+        queueRow(state, key, nowStr, roleName ? ('1인1역: ' + roleName) : '1인1역: (해제)', {
+          timestamp: nowStr + ' 09:00:00', studentId: st.id, studentName: st.name || '', className: cName, category: '학급역할',
+          memo: roleName ? (cName + ' 학급 1인1역 역할 수행 (' + roleName + ')') : (cName + ' 1인1역 해제')
+        }, records, commits);
+      });
+    });
+
+    return { items: records, commits: commits };
   }
 
-  async function syncNow(manual) {
-    var sheetUrl = getSheetUrl();
-    if (!sheetUrl) {
-      if (manual) {
-        showToast('동기화할 구글 시트 웹앱 URL을 먼저 입력하고 저장해 주세요.', 'error');
-        toggleMenu(true);
-      }
-      return;
+  // 시트에 이미 있는 줄 하나를 그대로 다시 만듭니다. (Apps Script 가 중복으로 보고 새 줄을 만들지 않음)
+  function knownRowAsItem(state) {
+    var categoryOf = { A: '출결', P: '칭찬', D: '학급역할', M: '학생관찰' };
+    var keys = Object.keys(state.rows);
+    for (var i = 0; i < keys.length; i++) {
+      var parts = keys[i].split('|');
+      var hist = state.rows[keys[i]];
+      if (parts.length !== 4 || !categoryOf[parts[0]] || !hist || !hist.length) continue;
+      var entry = String(hist[hist.length - 1]);
+      var at = entry.indexOf('|');
+      if (at < 0) continue;
+      return { timestamp: entry.slice(0, at) + ' 09:00:00', studentId: parts[3], studentName: '', className: parts[1], category: categoryOf[parts[0]], detail: entry.slice(at + 1), memo: '' };
     }
+    return null;
+  }
 
-    var auth = getAuth();
-    isSyncing = true;
-    updateUI();
-
-    try {
-      var pending = getPending();
-      var classRecords = collectCurrentClassRecords();
-      var allItems = pending.concat(classRecords);
+  // 이 기기의 기록을 시트로 보냅니다. 성공하면 보낸 건수를 돌려주고, 실패하면 오류를 던집니다.
+  // 이미 보내는 중이면 그 전송이 끝나기를 기다립니다. (같은 줄을 두 번 보내지 않도록)
+  // rosterOnly: 보낼 기록이 없어도 명렬표를 등록하기 위해 요청할지 여부
+  function pushToSheet(sheetUrl, rosterOnly) {
+    if (pushInFlight) return pushInFlight;
+    pushInFlight = (async function () {
+      var auth = getAuth();
+      var state = getSyncState(sheetUrl);
+      var built = collectCurrentClassRecords(state);
+      var allItems = getPending().concat(built.items);
 
       var seen = {};
       var uniqueItems = [];
@@ -594,13 +699,23 @@ var CloudSheetSync = (function () {
         }
       }
 
+      // 보낼 기록이 없는 빈 요청은 Apps Script 가 [6_수업관찰_기록] 탭에 빈 줄을 만들기 때문에 되도록 보내지 않습니다.
+      var rosterList = Array.isArray(students) ? students : [];
+      var rosterSig = hashKey(currentClassIndex + ':' + rosterList.map(function (st) { return st.id + '=' + st.name; }).join(','));
+      if (!uniqueItems.length) {
+        if (state.roster === rosterSig || !rosterList.length) return 0;  // 명렬표도 그대로 → 요청하지 않음
+        var ping = knownRowAsItem(state);
+        if (ping) uniqueItems.push(ping);       // 이미 있는 줄을 함께 보내 명렬표만 갱신
+        else if (!rosterOnly) return 0;
+      }
+
       var curClass = allClassData[currentClassIndex] || {};
       var payload = {
         action: 'sync_tong_notebook',
         userEmail: auth ? auth.email : '',
         userName: auth ? auth.name : '',
         className: curClass.className || ((currentClassIndex + 1) + '반'),
-        students: Array.isArray(students) ? students : [],
+        students: rosterList,
         items: uniqueItems
       };
 
@@ -609,26 +724,51 @@ var CloudSheetSync = (function () {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-
       var data = null;
       try { data = await res.json(); } catch (e) {}
-
-      if (res.ok || (data && data.success)) {
-        savePending([]);
-        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
-        isSyncing = false;
-        updateUI();
-        if (window.parent && window.parent !== window) {
-          try { window.parent.postMessage({ type: 'tong-notebook-synced', count: uniqueItems.length }, '*'); } catch (e) {}
-        }
-        if (window.parent && window.parent !== window) {
-          try { window.parent.postMessage({ type: 'tong-notebook-synced', count: uniqueItems.length }, '*'); } catch (e) {}
-        }
-        if (manual) {
-          showToast('구글 시트와 동기화가 성공적으로 완료되었습니다 (' + uniqueItems.length + '건).', 'success');
-        }
-      } else {
+      if (!(res.ok || (data && data.success))) {
         throw new Error(data && data.message ? data.message : '동기화 응답 실패');
+      }
+
+      built.commits.forEach(function (commit) {
+        if (!state.rows[commit.key]) state.rows[commit.key] = [];
+        state.rows[commit.key].push(commit.entry);
+      });
+      state.roster = rosterSig;
+      saveSyncState(state);
+      savePending([]);
+      localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+      return uniqueItems.length;
+    })();
+    var settle = function () { pushInFlight = null; };
+    pushInFlight.then(settle, settle);
+    return pushInFlight;
+  }
+
+  async function syncNow(manual) {
+    var sheetUrl = getSheetUrl();
+    if (!sheetUrl) {
+      if (manual) {
+        showToast('동기화할 구글 시트 웹앱 URL을 먼저 입력하고 저장해 주세요.', 'error');
+        toggleMenu(true);
+      }
+      return;
+    }
+
+    isSyncing = true;
+    updateUI();
+
+    try {
+      var count = await pushToSheet(sheetUrl, true);
+      isSyncing = false;
+      updateUI();
+      if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'tong-notebook-synced', count: count }, '*'); } catch (e) {}
+      }
+      if (manual) {
+        showToast(count
+          ? '이 기기의 기록을 구글 시트로 보냈습니다 (' + count + '건). 다른 기기에서는 [시트에서 가져오기]를 누르세요.'
+          : '새로 보낼 기록이 없습니다. 시트가 이미 최신입니다.', 'success', null, null, 4000);
       }
     } catch (err) {
       console.warn('Sync error:', err);
@@ -777,6 +917,205 @@ var CloudSheetSync = (function () {
     }
   }
 
+  // ------------------------------------------------------------------
+  // 가져오기(Pull): 시트에 쌓인 기록을 이 기기에 합칩니다.
+  //  1) 먼저 이 기기의 변경을 보냅니다. (안 보내고 가져오면 시트의 옛 값이 이 기기의 새 값을 덮어쓸 수 있습니다)
+  //  2) 관찰 기록은 없는 것만 더합니다.
+  //  3) 출결·칭찬·1인1역·학생메모는 시트에서 가장 나중에 쌓인 줄이 이 기기가 아직 모르는 줄일 때만 반영합니다.
+  //     이 시트와 처음 맞춰 보는 항목은 이 기기에 값이 없을 때만 채웁니다. (이 기기의 값을 덮어쓰지 않음)
+  // ------------------------------------------------------------------
+  function findSyncClass(classes, className, studentId) {
+    var sid = String(studentId || '');
+    var byName = null;
+    var withStudent = [];
+    classes.forEach(function (cls) {
+      if (className && cls.name === className) byName = cls;
+      if ((cls.data.students || []).some(function (st) { return String(st.id) === sid; })) withStudent.push(cls);
+    });
+    if (byName && withStudent.indexOf(byName) >= 0) return byName;
+    if (!withStudent.length) return null;
+    var current = withStudent.filter(function (cls) { return cls.index === currentClassIndex; })[0];
+    return current || withStudent[0];
+  }
+
+  // [8_출결_칭찬_기록] 탭이 예전 6열 양식(학급 열 없음)이면 값이 한 칸씩 밀려 옵니다.
+  function normalizeSheetRow(row) {
+    var kinds = ['출결', '칭찬', '학급역할', '학생관찰'];
+    var out = {
+      timestamp: String(row.timestamp || ''), studentId: String(row.studentId || '').trim(), className: String(row.className || '').trim(),
+      category: String(row.category || '').trim(), detail: String(row.detail || '').trim(), memo: String(row.memo || '').trim()
+    };
+    if (kinds.indexOf(out.category) < 0 && kinds.indexOf(out.className) >= 0) {
+      out = { timestamp: out.timestamp, studentId: out.studentId, className: '', category: out.className, detail: out.category, memo: out.detail };
+    }
+    return out;
+  }
+
+  function mergeSheetNotes(observations, classes, classNames, state, summary) {
+    // 예전 Pull 이 만든 사본(내용 뒤에 과목·반이 붙은 중복)을 정리하고, 반별로 이미 있는 기록의 키를 모읍니다.
+    classes.forEach(function (cls) {
+      var kept = [];
+      cls.noteKeys = {};
+      (Array.isArray(cls.data.specialNotes) ? cls.data.specialNotes : []).forEach(function (sn) {
+        var key = noteKey(sn.studentId, sn.date, noteCompareText(sn.content, classNames));
+        if (cls.noteKeys[key]) { summary.cleaned++; return; }
+        cls.noteKeys[key] = true;
+        var clean = stripSubjectSuffix(sn.content);
+        if (clean && clean !== sn.content) sn.content = clean;
+        kept.push(sn);
+      });
+      cls.data.specialNotes = kept;
+    });
+
+    (Array.isArray(observations) ? observations : []).forEach(function (ob) {
+      var studentId = String(ob.studentId || '').trim();
+      var date = String(ob.date || '').slice(0, 10);
+      var raw = String(ob.content || '').trim();
+      if (!studentId || !raw) return;
+      var suffix = raw.match(SUBJECT_SUFFIX_RE);
+      var sheetClass = suffix ? String(suffix[1] || '').trim() : '';
+      var content = noteCompareText(raw, classNames);
+      var category = String(ob.category || '수업 참여').trim();
+      // 시트가 모르는 유형은 '수업관찰' + "[유형] 내용" 으로 보냈으므로 되돌려 놓습니다.
+      var tag = category === '수업관찰' ? content.match(/^\[([^\]]+)\]\s*/) : null;
+      if (tag && NOTE_CATEGORIES.indexOf(tag[1]) >= 0) {
+        category = tag[1];
+        content = content.slice(tag[0].length).trim();
+      }
+      if (!content) return;
+      var target = findSyncClass(classes, sheetClass, studentId);
+      if (!target) { summary.unmatched++; return; }
+      var key = noteKey(studentId, date, content);
+      var hash = hashKey('O|' + key);
+      if (target.noteKeys[key]) { state.obs[hash] = 1; return; }
+      if (state.obs[hash]) return;  // 이 기기에서 받은 뒤 지운 기록 → 되살리지 않습니다.
+      var nowIso = new Date().toISOString();
+      target.data.specialNotes.push({
+        id: generateId(), studentId: studentId, studentName: String(ob.studentName || '').trim(), date: date,
+        subject: String(ob.subject || '').trim() || '수업관찰', category: category, content: content,
+        createdAt: nowIso, updatedAt: nowIso
+      });
+      target.noteKeys[key] = true;
+      state.obs[hash] = 1;
+      summary.notes++;
+    });
+
+    // 보내기가 끝난 뒤이므로 이 기기의 기록도 모두 시트에 있습니다.
+    classes.forEach(function (cls) {
+      Object.keys(cls.noteKeys).forEach(function (key) { state.obs[hashKey('O|' + key)] = 1; });
+    });
+  }
+
+  // 시트의 한 줄을 이 기기에 반영합니다. fillOnly 이면 이 기기에 값이 없을 때만 채웁니다. 바뀌었으면 true.
+  function applySheetRow(group, detail, memo, fillOnly) {
+    var d = group.cls.data;
+    var sid = group.studentId;
+    if (group.kind === 'A') {
+      var date = group.date;
+      var status = detail.split(' (')[0].trim();
+      var current = (d.attendance && d.attendance[date] && d.attendance[date][sid]) || '';
+      if (current === '출석') current = '';
+      if (status === '출석') {
+        if (fillOnly || !current) return false;
+        delete d.attendance[date][sid];
+        if (d.attendReasons && d.attendReasons[date]) delete d.attendReasons[date][sid];
+        if (d.attendMemos && d.attendMemos[date]) delete d.attendMemos[date][sid];
+        return true;
+      }
+      if (SHEET_ATT_STATES.indexOf(status) < 0) return false;
+      if (fillOnly && current) return false;
+      var reasonMatch = detail.match(/\(([^()]*)\)/);
+      var reason = reasonMatch && SHEET_ATT_REASONS.indexOf(reasonMatch[1].trim()) >= 0 ? reasonMatch[1].trim() : '';
+      var currentReason = (d.attendReasons && d.attendReasons[date] && d.attendReasons[date][sid]) || '';
+      if (current === status && currentReason === reason) return false;
+      if (!d.attendance) d.attendance = {};
+      if (!d.attendance[date]) d.attendance[date] = {};
+      d.attendance[date][sid] = status;
+      if (!d.attendReasons) d.attendReasons = {};
+      if (!d.attendReasons[date]) d.attendReasons[date] = {};
+      if (reason) d.attendReasons[date][sid] = reason; else delete d.attendReasons[date][sid];
+      if (memo && !/출결 (기록|정정)$/.test(memo)) {
+        if (!d.attendMemos) d.attendMemos = {};
+        if (!d.attendMemos[date]) d.attendMemos[date] = {};
+        d.attendMemos[date][sid] = memo;
+      }
+      return true;
+    }
+    if (group.kind === 'P') {
+      var scoreMatch = detail.match(/^\+(\d+)점/);
+      if (!scoreMatch) return false;
+      var score = Number(scoreMatch[1]);
+      if (!d.praise) d.praise = {};
+      var currentScore = Number(d.praise[sid]) || 0;
+      if (currentScore === score || (fillOnly && currentScore > 0)) return false;
+      if (score > 0) d.praise[sid] = score; else delete d.praise[sid];
+      return true;
+    }
+    if (group.kind === 'D') {
+      var role = detail.replace(/^1인1역:\s*/, '').trim();
+      if (role === '(해제)') role = '';
+      if (!d.duties) d.duties = {};
+      var currentRole = String(d.duties[sid] || '').trim();
+      if (currentRole === role || (fillOnly && currentRole)) return false;
+      if (role) d.duties[sid] = role; else delete d.duties[sid];
+      return true;
+    }
+    if (group.kind === 'M') {
+      var text = detail === '(메모 삭제)' ? '' : detail;
+      var memos = memosOf(group.cls);
+      var currentText = String(memos[sid] || '').trim();
+      if (currentText === text || (fillOnly && currentText)) return false;
+      if (text) memos[sid] = text; else delete memos[sid];
+      return true;
+    }
+    return false;
+  }
+
+  function mergeSheetRows(rows, classes, state, summary) {
+    var kindOf = { '출결': 'A', '칭찬': 'P', '학급역할': 'D', '학생관찰': 'M' };
+    var counter = { A: 'attendance', P: 'praise', D: 'duties', M: 'memos' };
+    var groups = {};
+    (Array.isArray(rows) ? rows : []).forEach(function (raw) {
+      var row = normalizeSheetRow(raw);
+      var kind = kindOf[row.category];
+      if (!kind || !row.studentId || !row.detail) return;
+      var date = row.timestamp.slice(0, 10);
+      var cls = findSyncClass(classes, row.className, row.studentId);
+      if (!cls) { summary.unmatched++; return; }
+      var key = rowsKey(kind, cls.name, row.studentId, kind === 'A' ? date : '');
+      if (!groups[key]) groups[key] = { kind: kind, cls: cls, studentId: row.studentId, date: date, entries: [], memo: '' };
+      groups[key].entries.push(date + '|' + row.detail);
+      groups[key].memo = row.memo;
+    });
+
+    Object.keys(groups).forEach(function (key) {
+      var group = groups[key];
+      var known = state.rows[key] || [];
+      var newest = group.entries[group.entries.length - 1];
+      // 가장 나중 줄을 이 기기가 아직 모를 때만 반영합니다. (이미 아는 줄이 마지막이면 이 기기가 최신)
+      if (known.indexOf(newest) < 0 && applySheetRow(group, entryDetail(newest), group.memo, !known.length)) {
+        summary[counter[group.kind]]++;
+      }
+      state.rows[key] = group.entries.slice();
+    });
+    // 시트에서 사라진 줄은 잊습니다. (다음에 보낼 때 이 기기의 현재 값을 다시 올립니다)
+    Object.keys(state.rows).forEach(function (key) {
+      if (!groups[key]) delete state.rows[key];
+    });
+  }
+
+  function restoreAfterPull(snapshot) {
+    try {
+      allClassData = JSON.parse(snapshot.classes);
+      localStorage.setItem(SYNC_STATE_KEY, snapshot.state);
+    } catch (e) { return; }
+    loadCurrentClassData();
+    saveToLocalStorage();
+    renderSeating();
+    refreshClassExtras();
+    showToast('가져오기 전 상태로 되돌렸습니다.');
+  }
+
   async function pullFromSheet(manual) {
     var sheetUrl = getSheetUrl();
     if (!sheetUrl) {
@@ -789,61 +1128,61 @@ var CloudSheetSync = (function () {
     isSyncing = true;
     updateUI();
     try {
+      await pushToSheet(sheetUrl);
+
       var res = await fetch(sheetUrl + (sheetUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=pull_tong_notebook&_t=' + Date.now());
       var data = await res.json();
-      if (data && data.success) {
-        var d = allClassData[currentClassIndex];
-        var updatedCount = 0;
-        if (d && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
-          students = data.students.map(function (s) {
-            return { id: String(s.id), name: String(s.name), gender: s.gender || '' };
-          });
-          d.students = students.slice();
-          updatedCount += students.length;
-        }
-        if (d && Array.isArray(data.observations) && data.observations.length > 0) {
-          if (!Array.isArray(d.specialNotes)) d.specialNotes = [];
-          var existingObs = {};
-          d.specialNotes.forEach(function (sn) {
-            existingObs[(sn.date || '') + '_' + sn.studentId + '_' + sn.content] = true;
-          });
-          data.observations.forEach(function (ob) {
-            var k = (ob.date || '') + '_' + ob.studentId + '_' + ob.content;
-            if (ob.content && !existingObs[k]) {
-              existingObs[k] = true;
-              d.specialNotes.push({
-                id: generateId(),
-                studentId: ob.studentId,
-                studentName: ob.studentName,
-                date: ob.date,
-                subject: ob.subject || '수업관찰',
-                category: ob.category || '수업 참여',
-                content: ob.content,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              });
-              updatedCount++;
-            }
-          });
-        }
-        saveCurrentClassData();
-        renderSeating();
-        if (typeof Attend !== 'undefined' && Attend.render) Attend.render();
-        isSyncing = false;
-        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
-        updateUI();
-        if (manual) {
-          showToast('구글 시트에서 최신 명렬·관찰 데이터를 성공적으로 불러왔습니다 (' + updatedCount + '건 반영).', 'success');
-        }
-      } else {
-        throw new Error('데이터 조회 실패');
+      if (!data || !data.success) throw new Error('데이터 조회 실패');
+
+      saveCurrentClassData();
+      var state = getSyncState(sheetUrl);
+      var snapshot = { classes: JSON.stringify(allClassData), state: JSON.stringify(state) };
+      var summary = { roster: 0, notes: 0, attendance: 0, praise: 0, duties: 0, memos: 0, cleaned: 0, unmatched: 0 };
+
+      // 명렬표는 지금 보고 있는 반이 비어 있을 때만 시트의 명단으로 채웁니다.
+      var current = allClassData[currentClassIndex];
+      if (current && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
+        students = data.students.map(function (st) {
+          return { id: String(st.id), name: String(st.name), gender: st.gender || '' };
+        });
+        current.students = students.slice();
+        summary.roster = students.length;
+      }
+
+      var classes = syncClasses();
+      var classNames = classes.map(function (cls) { return cls.name; });
+      mergeSheetNotes(data.observations, classes, classNames, state, summary);
+      mergeSheetRows(data.attPraise, classes, state, summary);
+
+      saveSyncState(state);
+      saveCurrentClassData();
+      renderSeating();
+      refreshClassExtras();
+      isSyncing = false;
+      localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+      updateUI();
+
+      if (manual) {
+        var parts = [];
+        if (summary.roster) parts.push('명렬표 ' + summary.roster + '명');
+        if (summary.notes) parts.push('관찰 기록 ' + summary.notes + '건');
+        if (summary.attendance) parts.push('출결 ' + summary.attendance + '건');
+        if (summary.praise) parts.push('칭찬 ' + summary.praise + '명');
+        if (summary.duties) parts.push('1인1역 ' + summary.duties + '명');
+        if (summary.memos) parts.push('학생 메모 ' + summary.memos + '명');
+        if (summary.cleaned) parts.push('중복 기록 ' + summary.cleaned + '건 정리');
+        var changed = parts.length > 0;
+        var message = changed ? '시트에서 가져왔습니다 — ' + parts.join(' · ') : '이미 최신입니다. 새로 가져올 기록이 없습니다.';
+        if (summary.unmatched) message += ' (이 기기 명렬표에 없는 학생의 기록 ' + summary.unmatched + '건은 제외)';
+        if (changed) showToast(message, 'success', '되돌리기', function () { restoreAfterPull(snapshot); }, 15000);
+        else showToast(message, 'success', null, null, 4000);
       }
     } catch (err) {
       console.warn('Pull error:', err);
       isSyncing = false;
       updateUI();
       if (manual) {
-        showToast('시트에서 불러오기에 실패했습니다. 웹앱 배포 상태를 확인해 주세요.', 'error');
+        showToast('시트에서 가져오지 못했습니다. 웹앱 URL과 배포 상태를 확인해 주세요. (이 기기의 자료는 바뀌지 않았습니다)', 'error');
       }
     }
   }
@@ -3986,7 +4325,7 @@ function loadFromLocalStorage() {
   }
 }
 
-function showToast(msg, type, actionLabel, action) {
+function showToast(msg, type, actionLabel, action, duration) {
   var toast = document.getElementById('toast');
   if (!toast) return;
   clearTimeout(toastHideTimer);
@@ -4009,7 +4348,7 @@ function showToast(msg, type, actionLabel, action) {
   toast.className = 'toast show ' + (type || '');
   toastHideTimer = setTimeout(function() {
     toast.classList.remove('show');
-  }, actionLabel ? 5200 : 2500);
+  }, duration || (actionLabel ? 5200 : 2500));
 }
 
 function formatDate(d) {
@@ -8627,7 +8966,46 @@ function renderSeatPanel() {
     row('빈자리', Math.max(0, seats - students.length) + '석');
 }
 
+// 헤더 탭 줄은 가로로 넘기는 영역(overflow-x:auto)이라 그 안의 드롭다운(교실 도구·추천 사이트·게임)이
+// 잘려서 보이지 않습니다. 열린 메뉴를 화면 기준(position:fixed)으로 꺼내 버튼 바로 아래에 놓습니다.
+function placeHeaderMenus() {
+  document.querySelectorAll('#modeTabs .more-menu').forEach(function (menu) {
+    menu.style.position = '';
+    menu.style.left = '';
+    menu.style.right = '';
+    menu.style.top = '';
+    menu.style.maxHeight = '';
+    menu.style.overflowY = '';
+    if (!menu.classList.contains('open')) return;
+    if (getComputedStyle(menu).position === 'fixed') return;  // 좁은 화면은 CSS가 이미 화면 기준으로 띄웁니다.
+    var wrap = menu.closest('.more-wrap');
+    var button = wrap && wrap.querySelector('.mode-tab');
+    if (!button) return;
+    var rect = button.getBoundingClientRect();
+    var top = Math.round(rect.bottom + 8);
+    menu.style.position = 'fixed';
+    menu.style.right = 'auto';
+    menu.style.top = top + 'px';
+    menu.style.maxHeight = Math.max(160, window.innerHeight - top - 12) + 'px';
+    menu.style.overflowY = 'auto';
+    var left = Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8);
+    menu.style.left = Math.max(8, Math.round(left)) + 'px';
+  });
+}
+
+function initHeaderMenuPlacement() {
+  var tabs = document.getElementById('modeTabs');
+  if (!tabs || typeof MutationObserver === 'undefined') return;
+  var observer = new MutationObserver(placeHeaderMenus);
+  tabs.querySelectorAll('.more-menu').forEach(function (menu) {
+    observer.observe(menu, { attributes: true, attributeFilter: ['class'] });
+  });
+  tabs.addEventListener('scroll', placeHeaderMenus, { passive: true });
+  window.addEventListener('resize', placeHeaderMenus);
+}
+
 function initModeTabs() {
+  initHeaderMenuPlacement();
   document.querySelectorAll('.mode-tab[data-mode]').forEach(function (t) {
     t.addEventListener('click', function () { setMode(this.dataset.mode); });
   });
