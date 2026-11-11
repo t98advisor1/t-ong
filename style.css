@@ -3485,3 +3485,327 @@ html[data-theme] .header-sync-menu {
   background: rgba(0, 0, 0, 0.08);
   margin: 8px 0;
 }
+
+
+/* ===================================================================
+ * 2026 고교학점제 & 교무수첩: 학생별 시간표 업로드 및 NEIS 연동 스타일
+ * =================================================================== */
+.stu-tt-modal-card {
+  max-width: 480px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18) !important;
+  border: 1px solid #e2e8f0;
+}
+.stu-tt-modal-head {
+  padding: 12px 16px 0 !important;
+  border-bottom: none !important;
+  display: flex;
+  justify-content: flex-end;
+}
+.stu-tt-modal-body {
+  padding: 0 24px 24px !important;
+  text-align: center;
+}
+.stu-tt-badge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.stu-tt-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f3e8ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.stu-tt-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+.stu-tt-subtitle {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  word-break: keep-all;
+}
+.stu-tt-skip {
+  font-size: 0.8rem;
+  margin: 0 0 18px;
+}
+.stu-tt-skip a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+.stu-tt-skip a:hover {
+  text-decoration: underline;
+}
+.stu-tt-dropzone {
+  border: 2px dashed #93c5fd;
+  background: #f8faff;
+  border-radius: 14px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 14px;
+}
+.stu-tt-dropzone:hover,
+.stu-tt-dropzone.dragover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+.stu-tt-dz-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.stu-tt-dz-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  margin-bottom: 4px;
+}
+.stu-tt-dz-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+.stu-tt-guide-btn {
+  width: 100%;
+  border: 1px solid #bfdbfe;
+  background: #ffffff;
+  color: #1d4ed8;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all 0.15s ease;
+}
+.stu-tt-guide-btn:hover {
+  background: #f0f7ff;
+  border-color: #93c5fd;
+}
+.stu-tt-info-box {
+  background: #faf5ff;
+  border: 1px solid #f3e8ff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  font-size: 0.82rem;
+  color: #6b21a8;
+  line-height: 1.45;
+  word-break: keep-all;
+  margin-bottom: 10px;
+}
+.stu-tt-result-box {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 14px;
+  text-align: left;
+}
+.stu-tt-result-summary {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.stu-tt-result-list {
+  max-height: 160px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: #334155;
+}
+.stu-tt-result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* NEIS 시간표 다운로드 가이드 모달 */
+.guide-step-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.guide-step-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.guide-step-body strong {
+  display: block;
+  font-size: 0.86rem;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+.guide-step-body span {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* 교사용 시간표 및 NEIS 학교·학급 모달 */
+.tt-section-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.tt-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.tt-section-head h4 {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+.class-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 130px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.class-pill-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.class-pill-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.class-pill-btn.active {
+  background: #4f46e5;
+  color: #fff;
+  border-color: #4f46e5;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}
+
+/* 주간 시간표 그리드 */
+.weekly-tt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: center;
+}
+.weekly-tt-table th {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 6px 4px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+}
+.weekly-tt-table td {
+  border: 1px solid #e2e8f0;
+  padding: 6px 4px;
+  height: 48px;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.weekly-tt-table td:hover {
+  background: #eff6ff;
+}
+.weekly-tt-table td.filled {
+  background: #f0fdf4;
+}
+.weekly-tt-table td.filled strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #166534;
+}
+.weekly-tt-table td.filled small {
+  display: block;
+  font-size: 0.7rem;
+  color: #15803d;
+}
+.weekly-tt-table td.now-period {
+  outline: 2px solid #ef4444;
+  background: #fef2f2 !important;
+}
+
+/* 학생 개인 시간표 모달 탭 */
+.student-tt-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-top: 10px;
+}
+.student-tt-grid th, .student-tt-grid td {
+  border: 1px solid #e2e8f0;
+  padding: 6px 4px;
+  text-align: center;
+}
+.student-tt-grid th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+}
+.student-tt-grid td.current-sub {
+  background: #e0e7ff;
+  font-weight: 700;
+  color: #3730a3;
+}
+.student-tt-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
+  margin-bottom: 8px;
+}

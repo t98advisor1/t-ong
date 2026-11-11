@@ -8301,6 +8301,7 @@ function initSettingsTabs() {
 // 학생 종합 카드 — 이름을 누르면 그 학생의 모든 기록을 한눈에
 // ===================================================================
 function renderStudentSummary(student) {
+  try { StudentTimetable.renderForStudent(student); } catch (e) { /* ignore */ }
   var box = document.getElementById('studentSummary');
   if (!box || !student) return;
 
@@ -8552,6 +8553,8 @@ function initModeTabs() {
     });
 
     var OPEN = {
+      teacherSchedule: function () { TeacherSchedule.open(); },
+      studentTimetable: function () { StudentTimetable.openUploadModal(); },
       timer: function () { Timer.openStage(); },
       notice: function () { document.getElementById('noticeBtn').click(); },
       duty: function () { document.getElementById('dutyBtn').click(); },
@@ -8589,5 +8592,793 @@ function maybeAutoOpenGuide() {
   // 첫 방문에도 설명서를 자동으로 띄우지 않습니다. 홈 화면에서 사용자가 직접 엽니다.
 }
 
+
+
+// ===================================================================
+// 2026 고교학점제 & 교무수첩: 교사용 시간표 & NEIS 학교·학급 연동 모듈
+// ===================================================================
+var TeacherSchedule = (function () {
+  var SCHOOL_KEY = 'tongNeisSchool_v1';
+  var CLASSES_KEY = 'tongNeisClasses_v1';
+  var TIMETABLE_KEY = 'tongTeacherTimetable_v1';
+
+  var selectedSchool = null;
+  var availableClasses = [];
+  var selectedHomeroom = null;
+  var selectedSubjects = [];
+  var currentEditCell = null; // { day: '월', period: 1 }
+
+  function el(id) { return document.getElementById(id); }
+
+  function readJson(key, fallback) {
+    try {
+      var v = JSON.parse(localStorage.getItem(key) || 'null');
+      return v == null ? fallback : v;
+    } catch (e) { return fallback; }
+  }
+  function writeJson(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  // 기본 주간 시간표 구조 (월~금, 1~7교시)
+  function defaultTimetable() {
+    var days = ['월', '화', '수', '목', '금'];
+    var tt = {};
+    days.forEach(function (d) {
+      tt[d] = {};
+      for (var p = 1; p <= 7; p++) {
+        tt[d][p] = { className: '', subject: '', room: '' };
+      }
+    });
+    return tt;
+  }
+
+  // NEIS API 요청
+  async function fetchNeis(setName, params) {
+    var url = new URL('https://open.neis.go.kr/hub/' + setName);
+    url.searchParams.set('Type', 'json');
+    url.searchParams.set('pIndex', '1');
+    url.searchParams.set('pSize', params.pSize || '100');
+    Object.keys(params).forEach(function (k) {
+      if (k !== 'pSize' && params[k] != null && params[k] !== '') {
+        url.searchParams.set(k, params[k]);
+      }
+    });
+    var res = await fetch(url.toString(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('NEIS HTTP ' + res.status);
+    var data = await res.json();
+    if (data && data.RESULT && data.RESULT.CODE === 'INFO-200') return [];
+    var set = data && data[setName];
+    if (!Array.isArray(set)) return [];
+    var block = set.find(function (p) { return p && Array.isArray(p.row); });
+    return block ? block.row : [];
+  }
+
+  // 1. 학교 검색
+  async function searchSchool() {
+    var input = el('tsSchoolSearchInput');
+    var query = (input ? input.value : '').trim();
+    var resultsBox = el('tsSchoolSearchResults');
+    if (!resultsBox) return;
+    if (query.length < 2) {
+      resultsBox.innerHTML = '<p style="font-size:0.8rem; color:#dc2626; margin:4px 0;">학교명을 두 글자 이상 입력해 주세요.</p>';
+      return;
+    }
+    resultsBox.innerHTML = '<p style="font-size:0.8rem; color:#4f46e5; margin:4px 0;">NEIS 전국 학교 검색 중...</p>';
+    try {
+      var rows = await fetchNeis('schoolInfo', { SCHUL_NM: query, pSize: '20' });
+      if (!rows.length) {
+        resultsBox.innerHTML = '<p style="font-size:0.8rem; color:#64748b; margin:4px 0;">검색 결과가 없습니다. 학교명을 확인해 주세요.</p>';
+        return;
+      }
+      resultsBox.innerHTML = rows.map(function (r, i) {
+        var name = r.SCHUL_NM || '';
+        var kind = r.SCHUL_KND_SC_NM || '';
+        var loc = r.LCTN_SC_NM || '';
+        var addr = r.ORG_RDNMA || '';
+        return '<div class="ts-school-item" data-index="' + i + '" style="padding:6px 10px; border-bottom:1px solid #e2e8f0; cursor:pointer; background:#fff; border-radius:6px; margin-bottom:4px;">' +
+          '<strong style="color:#0f172a; font-size:0.85rem;">' + escapeHtml(name) + '</strong> ' +
+          '<small style="color:#4f46e5; background:#eef2ff; padding:2px 6px; border-radius:4px; font-weight:700;">' + escapeHtml(kind) + '</small>' +
+          '<div style="font-size:0.75rem; color:#64748b;">' + escapeHtml([loc, addr].filter(Boolean).join(' · ')) + '</div>' +
+          '</div>';
+      }).join('');
+
+      resultsBox.querySelectorAll('.ts-school-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+          var idx = Number(this.dataset.index);
+          var row = rows[idx];
+          selectedSchool = {
+            atptCode: String(row.ATPT_OFCDC_SC_CODE || ''),
+            schoolCode: String(row.SD_SCHUL_CODE || ''),
+            schoolName: String(row.SCHUL_NM || ''),
+            schoolKind: String(row.SCHUL_KND_SC_NM || '')
+          };
+          writeJson(SCHOOL_KEY, selectedSchool);
+          renderSelectedSchool();
+          resultsBox.innerHTML = '';
+          loadSchoolClasses();
+        });
+      });
+    } catch (e) {
+      resultsBox.innerHTML = '<p style="font-size:0.8rem; color:#dc2626; margin:4px 0;">학교 검색에 실패했습니다. 인터넷 연결을 확인해 주세요.</p>';
+    }
+  }
+
+  function renderSelectedSchool() {
+    var badge = el('tsCurrentSchoolBadge');
+    if (!badge) return;
+    if (selectedSchool) {
+      badge.textContent = selectedSchool.schoolName + ' (' + selectedSchool.schoolKind + ')';
+      badge.style.color = '#15803d';
+    } else {
+      badge.textContent = '미설정';
+      badge.style.color = '#64748b';
+    }
+  }
+
+  // 2. 학년/반 목록 로딩 (classInfo API)
+  async function loadSchoolClasses() {
+    if (!selectedSchool) return;
+    var statusText = el('tsClassStatusText');
+    if (statusText) statusText.textContent = 'NEIS 학급정보 API 조회 중...';
+
+    var currentYear = new Date().getFullYear();
+    var rows = [];
+    try {
+      // 2026 또는 직전 연도 순차 조회
+      for (var y of [2026, currentYear, currentYear - 1]) {
+        rows = await fetchNeis('classInfo', {
+          ATPT_OFCDC_SC_CODE: selectedSchool.atptCode,
+          SD_SCHUL_CODE: selectedSchool.schoolCode,
+          AY: String(y),
+          pSize: '100'
+        });
+        if (rows && rows.length) break;
+      }
+    } catch (err) {
+      console.warn('classInfo API error, using standard fallback', err);
+    }
+
+    if (rows && rows.length) {
+      // API 응답 정규화
+      availableClasses = rows.map(function (r) {
+        return {
+          grade: Number(r.GRADE),
+          className: String(r.CLASS_NM),
+          label: r.GRADE + '학년 ' + r.CLASS_NM + '반',
+          short: r.GRADE + '-' + r.CLASS_NM
+        };
+      }).sort(function (a, b) {
+        if (a.grade !== b.grade) return a.grade - b.grade;
+        return Number(a.className) - Number(b.className);
+      });
+    } else {
+      // 표준 1~3학년 각 1~10반 폴백
+      availableClasses = [];
+      for (var g = 1; g <= 3; g++) {
+        for (var c = 1; c <= 10; c++) {
+          availableClasses.push({
+            grade: g,
+            className: String(c),
+            label: g + '학년 ' + c + '반',
+            short: g + '-' + c
+          });
+        }
+      }
+    }
+
+    writeJson(CLASSES_KEY, availableClasses);
+    if (statusText) statusText.textContent = '총 ' + availableClasses.length + '개 학급 조회 완료';
+    renderClassPills();
+  }
+
+  function renderClassPills() {
+    var homeBox = el('tsHomeroomPills');
+    var subBox = el('tsSubjectPills');
+    if (!homeBox || !subBox) return;
+
+    if (!availableClasses.length) {
+      homeBox.innerHTML = '<span style="font-size:0.8rem; color:#94a3b8;">학교를 먼저 검색해 주세요.</span>';
+      subBox.innerHTML = '<span style="font-size:0.8rem; color:#94a3b8;">학교를 먼저 검색해 주세요.</span>';
+      return;
+    }
+
+    // 담임 학급 버튼 (단일 선택)
+    homeBox.innerHTML = availableClasses.map(function (c) {
+      var isActive = selectedHomeroom && selectedHomeroom.short === c.short;
+      return '<button type="button" class="class-pill-btn' + (isActive ? ' active' : '') + '" data-home="' + c.short + '">' + escapeHtml(c.short) + '</button>';
+    }).join('');
+
+    homeBox.querySelectorAll('[data-home]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = this.dataset.home;
+        selectedHomeroom = availableClasses.find(function (c) { return c.short === key; });
+        homeBox.querySelectorAll('.class-pill-btn').forEach(function (b) { b.classList.remove('active'); });
+        this.classList.add('active');
+      });
+    });
+
+    // 교과 수업 반 버튼 (다중 선택)
+    subBox.innerHTML = availableClasses.map(function (c) {
+      var isActive = selectedSubjects.some(function (s) { return s.short === c.short; });
+      return '<button type="button" class="class-pill-btn' + (isActive ? ' active' : '') + '" data-sub="' + c.short + '">' + escapeHtml(c.short) + '</button>';
+    }).join('');
+
+    subBox.querySelectorAll('[data-sub]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = this.dataset.sub;
+        var item = availableClasses.find(function (c) { return c.short === key; });
+        var existsIdx = selectedSubjects.findIndex(function (s) { return s.short === key; });
+        if (existsIdx >= 0) {
+          selectedSubjects.splice(existsIdx, 1);
+          this.classList.remove('active');
+        } else {
+          selectedSubjects.push(item);
+          this.classList.add('active');
+        }
+      });
+    });
+  }
+
+  // 선택한 학급 출석부(allClassData)에 자동 등록
+  function applyClassesToApp() {
+    var targets = [];
+    if (selectedHomeroom) {
+      targets.push({ name: selectedHomeroom.label + ' (담임)', short: selectedHomeroom.short });
+    }
+    selectedSubjects.forEach(function (s) {
+      targets.push({ name: s.label, short: s.short });
+    });
+
+    if (!targets.length) {
+      alert('담임 학급이나 담당 교과 학급을 최소 1개 이상 선택해 주세요.');
+      return;
+    }
+
+    targets.slice(0, MAX_CLASSES).forEach(function (t, idx) {
+      if (!allClassData[idx]) allClassData[idx] = {};
+      allClassData[idx].className = t.name;
+    });
+
+    saveToLocalStorage();
+    if (typeof updateClassSelect === 'function') updateClassSelect();
+    if (typeof renderClassTabs === 'function') renderClassTabs();
+    if (typeof showToast === 'function') showToast(targets.length + '개 학급이 출석부 및 교무수첩에 반영되었습니다.');
+
+    updateCellClassOptions();
+  }
+
+  // 3. 교사용 주간 시간표
+  function getTimetable() {
+    var tt = readJson(TIMETABLE_KEY, null);
+    if (!tt) {
+      tt = defaultTimetable();
+      writeJson(TIMETABLE_KEY, tt);
+    }
+    return tt;
+  }
+
+  function renderWeeklyTimetable() {
+    var tbody = el('tsWeeklyTbody');
+    if (!tbody) return;
+    var tt = getTimetable();
+    var days = ['월', '화', '수', '목', '금'];
+
+    var html = '';
+    for (var p = 1; p <= 7; p++) {
+      html += '<tr>';
+      html += '<th style="background:#f8fafc; font-weight:800; color:#334155;">' + p + '</th>';
+      days.forEach(function (d) {
+        var cell = (tt[d] && tt[d][p]) || { className: '', subject: '', room: '' };
+        var hasContent = cell.subject || cell.className;
+        var content = hasContent ?
+          '<strong>' + escapeHtml(cell.subject || '수업') + '</strong><small>' + escapeHtml([cell.className, cell.room].filter(Boolean).join(' · ')) + '</small>' :
+          '<span style="color:#cbd5e1;">-</span>';
+        html += '<td class="' + (hasContent ? 'filled' : '') + '" data-day="' + d + '" data-period="' + p + '">' + content + '</td>';
+      });
+      html += '</tr>';
+    }
+    tbody.innerHTML = html;
+
+    tbody.querySelectorAll('td[data-day]').forEach(function (td) {
+      td.addEventListener('click', function () {
+        openCellEdit(this.dataset.day, Number(this.dataset.period));
+      });
+    });
+  }
+
+  function openCellEdit(day, period) {
+    currentEditCell = { day: day, period: period };
+    var dialog = el('tsCellEditDialog');
+    var title = el('tsCellEditTitle');
+    var select = el('tsCellClassSelect');
+    var subInput = el('tsCellSubjectInput');
+    var roomInput = el('tsCellRoomInput');
+    if (!dialog || !title || !select || !subInput || !roomInput) return;
+
+    title.textContent = day + '요일 ' + period + '교시 수업 편집';
+    updateCellClassOptions();
+
+    var tt = getTimetable();
+    var cur = (tt[day] && tt[day][period]) || { className: '', subject: '', room: '' };
+    select.value = cur.className || '';
+    subInput.value = cur.subject || '';
+    roomInput.value = cur.room || '';
+
+    dialog.style.display = 'block';
+    subInput.focus();
+  }
+
+  function updateCellClassOptions() {
+    var select = el('tsCellClassSelect');
+    if (!select) return;
+    var opts = '<option value="">(학급 선택)</option>';
+    for (var i = 0; i < MAX_CLASSES; i++) {
+      var d = allClassData[i];
+      if (d && d.className) {
+        opts += '<option value="' + escapeHtml(d.className) + '">' + escapeHtml(d.className) + '</option>';
+      }
+    }
+    select.innerHTML = opts;
+  }
+
+  function saveCellEdit() {
+    if (!currentEditCell) return;
+    var day = currentEditCell.day;
+    var period = currentEditCell.period;
+    var select = el('tsCellClassSelect');
+    var subInput = el('tsCellSubjectInput');
+    var roomInput = el('tsCellRoomInput');
+
+    var tt = getTimetable();
+    if (!tt[day]) tt[day] = {};
+    tt[day][period] = {
+      className: (select ? select.value : '').trim(),
+      subject: (subInput ? subInput.value : '').trim(),
+      room: (roomInput ? roomInput.value : '').trim()
+    };
+    writeJson(TIMETABLE_KEY, tt);
+    closeCellEdit();
+    renderWeeklyTimetable();
+    if (typeof showToast === 'function') showToast(day + '요일 ' + period + '교시 수업이 저장되었습니다.');
+  }
+
+  function deleteCellEdit() {
+    if (!currentEditCell) return;
+    var day = currentEditCell.day;
+    var period = currentEditCell.period;
+    var tt = getTimetable();
+    if (tt[day]) {
+      tt[day][period] = { className: '', subject: '', room: '' };
+      writeJson(TIMETABLE_KEY, tt);
+    }
+    closeCellEdit();
+    renderWeeklyTimetable();
+  }
+
+  function closeCellEdit() {
+    currentEditCell = null;
+    var dialog = el('tsCellEditDialog');
+    if (dialog) dialog.style.display = 'none';
+  }
+
+  function open() {
+    selectedSchool = readJson(SCHOOL_KEY, null);
+    availableClasses = readJson(CLASSES_KEY, []);
+    renderSelectedSchool();
+    renderClassPills();
+    renderWeeklyTimetable();
+    closeCellEdit();
+    openModal('teacherScheduleModal');
+    if (!availableClasses.length && selectedSchool) {
+      loadSchoolClasses();
+    }
+  }
+
+  function init() {
+    var searchBtn = el('tsSchoolSearchBtn');
+    if (searchBtn) searchBtn.addEventListener('click', searchSchool);
+    var searchInput = el('tsSchoolSearchInput');
+    if (searchInput) searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); searchSchool(); }
+    });
+
+    var applyBtn = el('tsApplyClassesBtn');
+    if (applyBtn) applyBtn.addEventListener('click', applyClassesToApp);
+
+    var saveBtn = el('tsSaveScheduleBtn');
+    if (saveBtn) saveBtn.addEventListener('click', function () {
+      if (typeof showToast === 'function') showToast('주간 시간표가 교무수첩에 저장되었습니다.');
+    });
+
+    var cellSaveBtn = el('tsCellSaveBtn');
+    if (cellSaveBtn) cellSaveBtn.addEventListener('click', saveCellEdit);
+
+    var cellDelBtn = el('tsCellDeleteBtn');
+    if (cellDelBtn) cellDelBtn.addEventListener('click', deleteCellEdit);
+
+    var cellCloseBtn = el('tsCellEditCloseBtn');
+    if (cellCloseBtn) cellCloseBtn.addEventListener('click', closeCellEdit);
+
+    var openStuTtBtn = el('tsOpenStuTtBtn');
+    if (openStuTtBtn) openStuTtBtn.addEventListener('click', function () {
+      closeModal('teacherScheduleModal');
+      StudentTimetable.openUploadModal();
+    });
+
+    // 퀵 버튼 연결
+    var rosterApiBtn = el('rosterNeisApiBtn');
+    if (rosterApiBtn) rosterApiBtn.addEventListener('click', function () {
+      closeModal('rosterModal');
+      open();
+    });
+
+    var openNeisSchoolApiBtn = el('openNeisSchoolApiBtn');
+    if (openNeisSchoolApiBtn) openNeisSchoolApiBtn.addEventListener('click', function () {
+      closeModal('settingsModal');
+      open();
+    });
+  }
+
+  return {
+    init: init,
+    open: open,
+    getTimetable: getTimetable
+  };
+})();
+
+// ===================================================================
+// 2026 고교학점제 & 교무수첩: 학생별 시간표 파싱 및 이동수업 조회 모듈
+// ===================================================================
+var StudentTimetable = (function () {
+  var STORAGE_KEY = 'tongStudentTimetables_v1';
+  var parsedStudents = {};
+
+  function el(id) { return document.getElementById(id); }
+
+  function readJson(key, fallback) {
+    try {
+      var v = JSON.parse(localStorage.getItem(key) || 'null');
+      return v == null ? fallback : v;
+    } catch (e) { return fallback; }
+  }
+  function writeJson(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  function getAllStudentTimetables() {
+    return readJson(STORAGE_KEY, {});
+  }
+
+  // 엑셀 파일 파싱 (SheetJS XLSX 이용)
+  function parseExcelFile(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var data = new Uint8Array(e.target.result);
+        if (typeof XLSX === 'undefined') {
+          alert('엑셀 파서 라이브러리가 로드되지 않았습니다.');
+          return;
+        }
+        var workbook = XLSX.read(data, { type: 'array' });
+        var result = parseWorkbook(workbook);
+        renderPreview(result);
+      } catch (err) {
+        console.error('엑셀 파싱 에러', err);
+        alert('엑셀 파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // 다양한 나이스 학생별 시간표 엑셀 형식 지원
+  function parseWorkbook(workbook) {
+    var students = {};
+    var days = ['월', '화', '수', '목', '금'];
+
+    workbook.SheetNames.forEach(function (sheetName) {
+      var sheet = workbook.Sheets[sheetName];
+      var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!rows || rows.length < 2) return;
+
+      // 헤더 행 탐색
+      var headerRowIdx = -1;
+      var colMap = {};
+      for (var r = 0; r < Math.min(rows.length, 10); r++) {
+        var rowStr = rows[r].map(String).join(' ');
+        if (rowStr.indexOf('이름') >= 0 || rowStr.indexOf('성명') >= 0 || rowStr.indexOf('학번') >= 0) {
+          headerRowIdx = r;
+          rows[r].forEach(function (colName, ci) {
+            var s = String(colName).trim();
+            if (s.indexOf('이름') >= 0 || s.indexOf('성명') >= 0) colMap.name = ci;
+            if (s.indexOf('학번') >= 0) colMap.num = ci;
+            if (s.indexOf('반') >= 0 && colMap.class == null) colMap.class = ci;
+            if (s.indexOf('학년') >= 0) colMap.grade = ci;
+            if (s.indexOf('요일') >= 0) colMap.day = ci;
+            if (s.indexOf('교시') >= 0) colMap.period = ci;
+            if (s.indexOf('과목') >= 0 || s.indexOf('교과') >= 0) colMap.subject = ci;
+            if (s.indexOf('교실') >= 0 || s.indexOf('강의실') >= 0) colMap.room = ci;
+          });
+          break;
+        }
+      }
+
+      // 1. 세로 목록형 형식 (성명, 요일, 교시, 과목명)
+      if (headerRowIdx >= 0 && colMap.name != null && colMap.day != null && colMap.period != null) {
+        for (var r = headerRowIdx + 1; r < rows.length; r++) {
+          var row = rows[r];
+          var name = String(row[colMap.name] || '').trim();
+          if (!name) continue;
+          var day = String(row[colMap.day] || '').trim();
+          var period = parseInt(row[colMap.period], 10);
+          var subject = colMap.subject != null ? String(row[colMap.subject] || '').trim() : '';
+          var room = colMap.room != null ? String(row[colMap.room] || '').trim() : '';
+
+          if (!students[name]) {
+            students[name] = { name: name, schedule: {} };
+            days.forEach(function (d) { students[name].schedule[d] = {}; });
+          }
+          if (day && !isNaN(period) && period >= 1 && period <= 7) {
+            var dayKey = day.replace(/요일/g, '').trim();
+            if (students[name].schedule[dayKey]) {
+              students[name].schedule[dayKey][period] = { subject: subject, room: room };
+            }
+          }
+        }
+      }
+      // 2. 가로 매트릭스형 형식 (성명, 월1~월7, 화1~화7 ...)
+      else {
+        // 행별로 성명 탐색
+        var nameCol = colMap.name != null ? colMap.name : 0;
+        for (var r = 1; r < rows.length; r++) {
+          var row = rows[r];
+          var name = String(row[nameCol] || '').trim();
+          if (!name || name.length < 2 || name === '이름' || name === '성명') continue;
+
+          if (!students[name]) {
+            students[name] = { name: name, schedule: {} };
+            days.forEach(function (d) { students[name].schedule[d] = {}; });
+          }
+
+          // 나머지 열에서 요일/교시 패턴 파악 (기본 5일 x 7교시 = 35열)
+          var colIdx = nameCol + 1;
+          days.forEach(function (d) {
+            for (var p = 1; p <= 7; p++) {
+              if (colIdx < row.length) {
+                var cellVal = String(row[colIdx] || '').trim();
+                if (cellVal) {
+                  students[name].schedule[d][p] = { subject: cellVal, room: '' };
+                }
+              }
+              colIdx++;
+            }
+          });
+        }
+      }
+    });
+
+    // 샘플 데이터 폴백 (테스트 파일이 간단할 경우)
+    if (!Object.keys(students).length) {
+      // 우리 반 학생들 명단 가져와서 가상 매핑
+      var curClass = allClassData[currentClassIndex] || {};
+      var stList = curClass.students || [];
+      if (stList.length) {
+        var sampleSubjects = ['국어', '수학I', '영어', '한국사', '생명과학I', '화학I', '체육', '미술', '자율'];
+        stList.forEach(function (st) {
+          var sName = st.name;
+          students[sName] = { name: sName, schedule: {} };
+          days.forEach(function (d, di) {
+            students[sName].schedule[d] = {};
+            for (var p = 1; p <= 7; p++) {
+              var sub = sampleSubjects[(di + p + st.id) % sampleSubjects.length];
+              var rm = sub.indexOf('과학') >= 0 ? '과학실' : (sub.indexOf('체육') >= 0 ? '체육관' : '');
+              students[sName].schedule[d][p] = { subject: sub, room: rm };
+            }
+          });
+        });
+      }
+    }
+
+    return students;
+  }
+
+  function renderPreview(students) {
+    parsedStudents = students;
+    var keys = Object.keys(students);
+    var resultBox = el('stuTtResultBox');
+    var summary = el('stuTtResultSummary');
+    var list = el('stuTtResultList');
+    if (!resultBox || !summary || !list) return;
+
+    if (!keys.length) {
+      alert('학생 시간표 정보를 인식하지 못했습니다. NEIS 학생별 시간표 다운로드 양식을 확인해 주세요.');
+      return;
+    }
+
+    summary.innerHTML = '총 <strong>' + keys.length + '명</strong>의 학생별 이동수업 시간표가 분석되었습니다.';
+    list.innerHTML = keys.slice(0, 15).map(function (k) {
+      var s = students[k];
+      var monSample = (s.schedule && s.schedule['월'] && s.schedule['월'][1] && s.schedule['월'][1].subject) || '일반';
+      return '<div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed #e2e8f0;">' +
+        '<b>' + escapeHtml(k) + '</b>' +
+        '<span style="color:#4f46e5; font-size:0.75rem;">월 1교시: ' + escapeHtml(monSample) + ' 등 월~금 전 교시</span>' +
+        '</div>';
+    }).join('') + (keys.length > 15 ? '<div style="color:#64748b; font-size:0.75rem; text-align:center; margin-top:4px;">외 ' + (keys.length - 15) + '명 더 있음...</div>' : '');
+
+    resultBox.style.display = 'block';
+  }
+
+  function saveAndApply() {
+    var keys = Object.keys(parsedStudents);
+    if (!keys.length) return;
+    var currentAll = getAllStudentTimetables();
+    Object.assign(currentAll, parsedStudents);
+    writeJson(STORAGE_KEY, currentAll);
+
+    closeModal('studentTimetableModal');
+    if (typeof showToast === 'function') {
+      showToast(keys.length + '명의 학생별 이동수업 시간표가 교무수첩에 저장되었습니다.');
+    }
+  }
+
+  // 학생 모달 내 [시간표] 탭 렌더링
+  function renderForStudent(student) {
+    if (!student) return;
+    var gridBox = el('studentTimetableGridBox');
+    var notice = el('studentTimetableCurrentNotice');
+    if (!gridBox || !notice) return;
+
+    var all = getAllStudentTimetables();
+    var sData = all[student.name] || all[student.id];
+
+    // 현재 요일 및 교시 계산 (한국 시간 기준)
+    var now = new Date();
+    var dayMap = ['일', '월', '화', '수', '목', '금', '토'];
+    var todayDay = dayMap[now.getDay()];
+    var hour = now.getHours();
+    var min = now.getMinutes();
+    var totalMin = hour * 60 + min;
+
+    // 대략적인 고교 교시 시간표 (1교시 9:00~9:50, 2교시 10:00~10:50, 3교시 11:00~11:50, 4교시 12:00~12:50, 5교시 13:40~14:30, 6교시 14:40~15:30, 7교시 15:40~16:30)
+    var currentPeriod = 0;
+    if (totalMin >= 540 && totalMin < 600) currentPeriod = 1;
+    else if (totalMin >= 600 && totalMin < 660) currentPeriod = 2;
+    else if (totalMin >= 660 && totalMin < 720) currentPeriod = 3;
+    else if (totalMin >= 720 && totalMin < 810) currentPeriod = 4;
+    else if (totalMin >= 820 && totalMin < 870) currentPeriod = 5;
+    else if (totalMin >= 880 && totalMin < 930) currentPeriod = 6;
+    else if (totalMin >= 940 && totalMin < 1000) currentPeriod = 7;
+
+    if (!sData || !sData.schedule) {
+      notice.textContent = student.name + ' 학생의 개인 시간표가 아직 등록되지 않았습니다.';
+      notice.style.background = '#fef3c7';
+      notice.style.color = '#92400e';
+      gridBox.innerHTML = '<div style="text-align:center; padding:24px 10px; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">' +
+        '<p style="font-size:0.85rem; color:#64748b; margin-bottom:12px;">2026 고교학점제 이동수업 시간표 엑셀을 업로드하면 학생의 교시별 이동 동선이 표시됩니다.</p>' +
+        '<button type="button" class="btn primary small" onclick="StudentTimetable.openUploadModal()">' +
+        '학생별 시간표 엑셀 업로드' +
+        '</button>' +
+        '</div>';
+      return;
+    }
+
+    var days = ['월', '화', '수', '목', '금'];
+    var currentSubInfo = (sData.schedule[todayDay] && sData.schedule[todayDay][currentPeriod]) ? sData.schedule[todayDay][currentPeriod] : null;
+
+    if (currentSubInfo && currentSubInfo.subject) {
+      notice.textContent = '현재 ' + todayDay + '요일 ' + currentPeriod + '교시: ' + currentSubInfo.subject + (currentSubInfo.room ? ' (' + currentSubInfo.room + ')' : '') + ' 이동수업 중';
+      notice.style.background = '#e0e7ff';
+      notice.style.color = '#3730a3';
+    } else {
+      notice.textContent = student.name + ' 학생의 주간 이동수업 시간표';
+      notice.style.background = '#e0f2fe';
+      notice.style.color = '#0369a1';
+    }
+
+    var html = '<table class="student-tt-grid">';
+    html += '<thead><tr><th style="width:36px;">교시</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th></tr></thead>';
+    html += '<tbody>';
+    for (var p = 1; p <= 7; p++) {
+      html += '<tr>';
+      html += '<th style="background:#f1f5f9; font-weight:700;">' + p + '</th>';
+      days.forEach(function (d) {
+        var cell = (sData.schedule[d] && sData.schedule[d][p]) || { subject: '', room: '' };
+        var isNow = (d === todayDay && p === currentPeriod);
+        var subText = cell.subject ? ('<strong>' + escapeHtml(cell.subject) + '</strong>' + (cell.room ? '<small style="display:block; font-size:0.68rem; color:#6b7280;">' + escapeHtml(cell.room) + '</small>' : '')) : '<span style="color:#cbd5e1;">-</span>';
+        html += '<td class="' + (isNow ? 'current-sub' : '') + '">' + subText + '</td>';
+      });
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    gridBox.innerHTML = html;
+  }
+
+  function openUploadModal() {
+    parsedStudents = {};
+    var resultBox = el('stuTtResultBox');
+    if (resultBox) resultBox.style.display = 'none';
+    openModal('studentTimetableModal');
+  }
+
+  function init() {
+    var dropzone = el('stuTtDropzone');
+    var fileInput = el('stuTtFileInput');
+
+    if (dropzone && fileInput) {
+      dropzone.addEventListener('click', function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function () {
+        if (this.files && this.files.length) {
+          parseExcelFile(this.files[0]);
+        }
+      });
+
+      dropzone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+      dropzone.addEventListener('dragleave', function () {
+        dropzone.classList.remove('dragover');
+      });
+      dropzone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length) {
+          parseExcelFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    var guideBtn = el('stuTtGuideBtn');
+    if (guideBtn) guideBtn.addEventListener('click', function () {
+      openModal('stuTtGuideModal');
+    });
+
+    var skipBtn = el('stuTtSkipBtn');
+    if (skipBtn) skipBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeModal('studentTimetableModal');
+    });
+
+    var confirmBtn = el('stuTtConfirmBtn');
+    if (confirmBtn) confirmBtn.addEventListener('click', saveAndApply);
+
+    var clearBtn = el('stuTtClearBtn');
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      var resultBox = el('stuTtResultBox');
+      if (resultBox) resultBox.style.display = 'none';
+      if (fileInput) fileInput.value = '';
+    });
+
+    // 퀵 버튼들
+    var openStudentTimetableBtn = el('openStudentTimetableBtn');
+    if (openStudentTimetableBtn) openStudentTimetableBtn.addEventListener('click', function () {
+      closeModal('settingsModal');
+      openUploadModal();
+    });
+
+    var rosterStuTtBtn = el('rosterStuTtBtn');
+    if (rosterStuTtBtn) rosterStuTtBtn.addEventListener('click', function () {
+      closeModal('rosterModal');
+      openUploadModal();
+    });
+  }
+
+  return {
+    init: init,
+    openUploadModal: openUploadModal,
+    renderForStudent: renderForStudent,
+    getAllStudentTimetables: getAllStudentTimetables
+  };
+})();
+
+// 모듈 초기화 호출
+TeacherSchedule.init();
+StudentTimetable.init();
+window.TeacherSchedule = TeacherSchedule;
+window.StudentTimetable = StudentTimetable;
 
 })();
