@@ -26,6 +26,7 @@ vercel.json           캐시 헤더
 assets/               공개 테마·아이콘 이미지
 guide/                사용 설명서 이미지
 api/usage.js          익명 방문 통계 API
+api/neis.js           NEIS 조회 프록시 (서버 환경변수의 인증키를 붙여 호출)
 vendor/               AI 비서용 Anthropic SDK 브라우저 번들 (@anthropic-ai/sdk 0.132.1, esbuild로 묶음)
 tools/                검사·공개 파일 미리보기·배포 준비 도구
 ```
@@ -101,6 +102,18 @@ npx vercel deploy --prod
 
 `vercel.json`에 `buildCommand: npm run build`, `outputDirectory: dist`가 설정되어 있어
 **Vercel이 배포할 때마다 난독화 빌드를 자동으로 실행**합니다. 원본 소스는 업로드되지만 서빙되지 않습니다.
+
+### NEIS 인증키 (`NEIS_API_KEY`)
+
+NEIS 교육정보 개방 포털은 **인증키 없이 호출하면 요청당 5건만** 돌려줍니다. 하루 시간표는 6~7교시,
+학사일정은 한 학년도에 200건 안팎이라 인증키가 없으면 6·7교시와 학사일정 대부분이 빠집니다.
+
+1. https://open.neis.go.kr 로그인 → 인증키 신청 (무료)
+2. Vercel → Project → Settings → Environment Variables 에 `NEIS_API_KEY` 등록 후 재배포
+
+키가 등록되면 앱은 `/api/neis` 를 거쳐 전체 데이터를 받습니다. 키가 없으면 인증키 없이 직접 호출하고,
+받지 못한 교시는 임의로 채우지 않고 비워 둔 채 화면에 그 사실을 표시합니다.
+개인 키는 `학교·수업시간표` 창의 NEIS 인증키 칸에 넣어 그 브라우저에서만 쓸 수도 있습니다.
 
 현재 운영 주소: **https://t-ong.vercel.app**
 
