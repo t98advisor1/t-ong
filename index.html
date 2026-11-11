@@ -47,34 +47,48 @@
   <!-- 헤더 -->
   <header class="app-header">
     <div class="header-left">
-      <div class="home-wrap"><button type="button" class="brand-home" id="homeBtn" aria-label="홈 메뉴" title="홈 메뉴">🏠</button><div id="homeMenu" class="home-menu"><button type="button" data-home="first">🏠 첫 화면</button><button type="button" data-home="backup">📦 데이터 백업</button><button type="button" data-home="guide">📖 사용 설명서</button></div></div>
-      <h1 class="sr-only">T-ong 교무수첩</h1>
-      <nav class="mode-tabs" id="modeTabs" aria-label="주요 메뉴">
-        <button type="button" class="mode-tab active" data-mode="seat">자리배치</button>
-        <button type="button" class="mode-tab" data-mode="attend">✅ 출결관리</button>
-        <button type="button" class="mode-tab" id="topScheduleBtn">시간표·학급설정</button>
-        <div class="more-wrap">
-          <button type="button" class="mode-tab" id="extraBtn">➕ 교실운영 ▾</button>
-          <div class="more-menu" id="extraMenu">
-            <button type="button" id="menuTeacherScheduleBtn" data-open="teacherSchedule">교무 시간표 & NEIS 연동</button>
-            <button type="button" id="menuStudentTimetableBtn" data-open="studentTimetable">학생별 이동수업 시간표</button>
-            <a href="http://컴시간교사.kr" target="_blank" rel="noopener noreferrer">🕒 컴시간알리미(교사용)</a>
-            <button type="button" data-open="timer">⏱️ 간편 타이머</button>
-            <button type="button" data-open="praise">🏆 칭찬 포인트</button>
-            <button type="button" data-open="ladder">🪜 사다리타기</button>
-            <button type="button" data-open="duty">🧹 1인 1역</button>
-            <button type="button" data-open="pick">🎯 룰렛 뽑기</button>
-            <button type="button" data-open="notice">📢 알림장</button>
-          </div>
+      <div class="home-wrap">
+        <button type="button" class="brand-home" id="homeBtn" aria-label="홈 대시보드 메뉴" title="홈 대시보드 메뉴">
+          <img src="/assets/teacher-avatar.jpg" alt="홈" class="brand-avatar-img" id="headerAvatarImg">
+        </button>
+        <div id="homeMenu" class="home-menu">
+          <button type="button" data-home="first">첫 화면 (홈 대시보드)</button>
+          <button type="button" id="homeChangeAvatarBtn">아이콘 이미지 붙여넣기·변경</button>
+          <button type="button" data-home="backup">데이터 백업</button>
+          <button type="button" data-home="guide">사용 설명서</button>
         </div>
-        <button type="button" class="mode-tab" id="calendarBtn">📅 일정관리</button>
+      </div>
+      <h1 class="sr-only">T-ong 교무수첩</h1>
+      <nav class="mode-tabs" id="modeTabs" aria-label="교무수첩 통합 메뉴">
+        <button type="button" class="mode-tab" id="topDashboardBtn" title="홈 대시보드 (오늘 브리핑 · 시트 메모장)">홈 대시보드</button>
+        <button type="button" class="mode-tab" id="topScheduleBtn" title="1단계: NEIS 학교 검색 및 반별 수업 과목 선택·시간표 설정"><span class="tab-step-badge">1</span>학교·수업시간표</button>
+        <button type="button" class="mode-tab active" data-mode="seat" title="2단계: 학급 명렬표 및 좌석·모둠 배치 관리"><span class="tab-step-badge">2</span>학급 관리(자리)</button>
+        <button type="button" class="mode-tab" data-mode="attend" title="3단계: 출결 체크 및 교과 수업관찰·칭찬 누가기록"><span class="tab-step-badge">3</span>수업·출결 기록</button>
+        <button type="button" class="mode-tab" id="calendarBtn" title="4단계: 전체화면 NEIS 학사일정 및 상담 달력"><span class="tab-step-badge">4</span>일정·학사달력</button>
+        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="자주 쓰는 구글 시트 및 즐겨찾는 사이트 메모장"><span class="tab-step-badge">★</span>시트·사이트 메모</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="favBtn">🔖 즐겨찾기 ▾</button>
+          <button type="button" class="mode-tab" id="extraBtn">교실 도구 ▾</button>
+          <div class="more-menu" id="extraMenu">
+            <button type="button" id="menuTeacherScheduleBtn" data-open="teacherSchedule">교무 시간표 &amp; 반별 과목 선택</button>
+            <button type="button" id="menuStudentTimetableBtn" data-open="studentTimetable">학생별 이동수업 시간표(.xlsx)</button>
+            <button type="button" id="menuSheetMemoBtn" data-open="sheetMemo">구글 시트 &amp; 사이트 메모장</button>
+            <a href="http://컴시간교사.kr" target="_blank" rel="noopener noreferrer">컴시간알리미(교사용)</a>
+            <button type="button" data-open="timer">간편 타이머</button>
+            <button type="button" data-open="praise">칭찬 포인트</button>
+            <button type="button" data-open="ladder">사다리타기</button>
+            <button type="button" data-open="duty">1인 1역</button>
+            <button type="button" data-open="pick">룰렛 뽑기</button>
+            <button type="button" data-open="notice">알림장</button>
+          </div>
+        </div>
+
+        <div class="more-wrap">
+          <button type="button" class="mode-tab" id="favBtn">추천 사이트 ▾</button>
           <div class="more-menu fav-menu" id="favMenu">
             <div class="fav-category-list">
               <details class="fav-category math-favorites" open>
-                <summary>📐 수학관련 사이트 <small>4개 + 직접 추가</small></summary>
+                <summary>수학관련 사이트 <small>4개 + 직접 추가</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://askmath.kosac.re.kr/main.do" target="_blank" rel="noopener noreferrer">ASK MATH</a>
                   <a href="https://www.geogebra.org/?lang=ko" target="_blank" rel="noopener noreferrer">지오지브라</a>
@@ -88,7 +102,7 @@
                 </div>
               </details>
               <details class="fav-category class-favorites">
-                <summary>🏫 수업 및 클래스 <small>5개 + 직접 추가</small></summary>
+                <summary>수업 및 클래스 <small>5개 + 직접 추가</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://www.miricanvas.com/" target="_blank" rel="noopener noreferrer">미리캔버스</a>
                   <a href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer">클래스룸</a>
@@ -103,7 +117,7 @@
                 </div>
               </details>
               <details class="fav-category">
-                <summary>📚 교과서 사이트 <small>3개 + 직접 추가</small></summary>
+                <summary>교과서 사이트 <small>3개 + 직접 추가</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://www.m-teacher.co.kr/" target="_blank" rel="noopener noreferrer">미래엔</a>
                   <a href="https://www.vivasam.com/" target="_blank" rel="noopener noreferrer">비바샘</a>
@@ -116,7 +130,7 @@
                 </div>
               </details>
               <details class="fav-category">
-                <summary>🤖 생성형 AI <small>6개</small></summary>
+                <summary>생성형 AI <small>6개</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>
                   <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>
@@ -127,7 +141,7 @@
                 </div>
               </details>
               <details class="fav-category">
-                <summary>🗂️ 교무업무 <small>3개</small></summary>
+                <summary>교무업무 <small>3개</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://stas.moe.go.kr/cmn/main" target="_blank" rel="noopener noreferrer">교육과정 성취기준</a>
                   <a href="https://ncic.re.kr/board/B0024.cs?m=10" target="_blank" rel="noopener noreferrer">국가교육과정정보센터</a>
@@ -135,7 +149,7 @@
                 </div>
               </details>
               <details class="fav-category admissions-favorites">
-                <summary>🎓 진로진학 <small>7개 + 직접 추가</small></summary>
+                <summary>진로진학 <small>7개 + 직접 추가</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://more.goe.go.kr/jinhak/index.do" target="_blank" rel="noopener noreferrer">경기진학정보센터(경기진협)</a>
                   <a href="https://www.adiga.kr/" target="_blank" rel="noopener noreferrer">대입정보포털 어디가</a>
@@ -152,13 +166,13 @@
                 </div>
               </details>
               <details class="fav-category teacher-tools-favorites">
-                <summary>🧰 교사 도구함 <small>1개</small></summary>
+                <summary>교사 도구함 <small>1개</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://www.notiontalk.com/contents/tools/exam-question-cropper/" target="_blank" rel="noopener noreferrer">기출문항 크롭퍼</a>
                 </div>
               </details>
               <details class="fav-category personal-favorites">
-                <summary>🌐 나만의 즐겨찾기 <small>이 브라우저에 저장</small></summary>
+                <summary>나만의 즐겨찾기 <small>이 브라우저에 저장</small></summary>
                 <div class="fav-custom-body">
                   <div id="customFavList" class="custom-fav-list"></div>
                   <button type="button" id="customFavAddBtn" class="custom-fav-add">＋ 나만의 사이트 추가</button>
@@ -168,22 +182,23 @@
           </div>
         </div>
         <div class="more-wrap game-wrap">
-          <button type="button" class="mode-tab" id="gameBtn">🎮 게임 ▾</button>
+          <button type="button" class="mode-tab" id="gameBtn">게임 ▾</button>
           <div class="more-menu game-menu" id="gameMenu">
-            <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">🖐️ 핸드러시</a>
-            <a href="https://handcar26.netlify.app/" target="_blank" rel="noopener noreferrer">🏎️ 핸드 카트라이더</a>
-            <a href="https://t98advisor1.github.io/pose-mission-training/" target="_blank" rel="noopener noreferrer">📸 온몸으로 찰칵! 포즈 챌린지</a>
-            <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">⚾ 야구게임</a>
-            <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">🔷 SET(셋)</a>
-            <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">🎲 랜덤게임</a>
-            <a href="https://yutnori-seven.vercel.app/" target="_blank" rel="noopener noreferrer">🪵 윷놀이</a>
-            <a href="https://pangpang-six.vercel.app/" target="_blank" rel="noopener noreferrer">🙆 기지개팡팡</a>
-            <a href="https://stock-arena.vercel.app/" target="_blank" rel="noopener noreferrer">📈 모의주식투자</a>
-            <a href="https://stretching-zeta.vercel.app/" target="_blank" rel="noopener noreferrer">🐢 거북목탈출</a>
-            <a href="https://iamsinger.vercel.app/" target="_blank" rel="noopener noreferrer">🎤 나는 가수다</a>
-            <a href="https://joker-nine-pink.vercel.app/" target="_blank" rel="noopener noreferrer">🙂 안면근육훈련</a>
+            <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">핸드러시</a>
+            <a href="https://handcar26.netlify.app/" target="_blank" rel="noopener noreferrer">핸드 카트라이더</a>
+            <a href="https://t98advisor1.github.io/pose-mission-training/" target="_blank" rel="noopener noreferrer">온몸으로 찰칵! 포즈 챌린지</a>
+            <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">야구게임</a>
+            <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">SET(셋)</a>
+            <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">랜덤게임</a>
+            <a href="https://yutnori-seven.vercel.app/" target="_blank" rel="noopener noreferrer">윷놀이</a>
+            <a href="https://pangpang-six.vercel.app/" target="_blank" rel="noopener noreferrer">기지개팡팡</a>
+            <a href="https://stock-arena.vercel.app/" target="_blank" rel="noopener noreferrer">모의주식투자</a>
+            <a href="https://stretching-zeta.vercel.app/" target="_blank" rel="noopener noreferrer">거북목탈출</a>
+            <a href="https://iamsinger.vercel.app/" target="_blank" rel="noopener noreferrer">나는 가수다</a>
+            <a href="https://joker-nine-pink.vercel.app/" target="_blank" rel="noopener noreferrer">안면근육훈련</a>
           </div>
-        </div>      </nav>
+        </div>
+      </nav>
     </div>
     <div class="header-right">
       <div class="header-class-tools">
@@ -337,62 +352,140 @@
     </div>
   </div>
 
-  <!-- 설정 위자드 (시작 대시보드 + 오늘 브리핑 칠판 위젯 + 교실 설정) -->
-  <div id="setupWizard" class="wizard">
+  <!-- 통합 홈 대시보드 (학급 관리 + 수업 관리 + 구글 시트 메모장 + 오늘 브리핑 칠판) -->
+  <div id="setupWizard" class="wizard unified-dashboard-wrap">
     <div class="wizard-hero wizard-hero-split">
-      <div class="hero-main-col">
-        <div class="hero-badge">담임·교과교사를 위한 올인원 교무수첩</div>
-        <h2 class="tong-title"><span class="tong-word">T-ong</span><small>교무수첩</small></h2>
-        <p class="hero-tagline">학급 관리, 하나로 <strong>통(通)</strong>하다</p>
-        <p class="hero-sub">NEIS 학교·학급·시간표·학사일정 자동 연동부터 자리배치·출결·관찰·상담까지 한 화면에서 시작하세요.</p>
-
-        <div class="hero-tags hero-quick-grid" id="heroTags">
-          <button type="button" class="hero-tag hero-feature-card hero-card-primary" id="heroOpenScheduleBtn">
-            <span class="hero-feature-ic">NEIS</span><span><b>학교·학급·시간표 설정</b><small>우리 학교 검색 및 담임·수업반 시간표</small></span>
-          </button>
-          <button type="button" class="hero-tag hero-feature-card" id="heroOpenStuTtBtn">
-            <span class="hero-feature-ic">XLSX</span><span><b>학생별 이동수업 시간표</b><small>나이스 학생별 시간표 엑셀 업로드</small></span>
-          </button>
-          <button type="button" class="hero-tag hero-feature-card" id="heroOpenSeatBtn">
-            <span class="hero-feature-ic">좌석</span><span><b>좌석·모둠 배치 시작</b><small>관계·고정 조건을 반영해 자리 추첨</small></span>
-          </button>
-          <button type="button" class="hero-tag hero-feature-card" id="heroOpenAttendBtn">
-            <span class="hero-feature-ic">출결</span><span><b>출결·수업관찰 기록</b><small>구글 시트 10개 탭 실시간 연동</small></span>
-          </button>
-          <button type="button" class="hero-tag hero-feature-card" id="heroOpenCalendarBtn">
-            <span class="hero-feature-ic">달력</span><span><b>전체화면 일정·학사 달력</b><small>NEIS 학사일정 자동 입력 및 상담 관리</small></span>
-          </button>
-          <button type="button" class="hero-tag hero-feature-card" id="introGuideBtn">
-            <span class="hero-feature-ic">안내</span><span><b>처음 사용법 가이드</b><small>기능별 단계별 설명서 바로 보기</small></span>
-          </button>
+      <!-- 좌측: 학급 관리 · 수업 관리 통합 대시보드 & 구글 시트 메모장 -->
+      <div class="hero-main-col dashboard-main-col">
+        <!-- 1. 상단 교사 프로필 & 학교·학급 상태 바 -->
+        <div class="dash-profile-header">
+          <div class="dash-avatar-wrap" id="dashAvatarWrap" title="클릭하거나 Ctrl+V로 아이콘 이미지를 붙여넣어 변경할 수 있습니다">
+            <img src="/assets/teacher-avatar.jpg" alt="교사 아이콘" id="dashAvatarImg" class="dash-avatar-img">
+            <span class="dash-avatar-edit-badge">변경</span>
+            <input type="file" id="avatarUploadInput" accept="image/*" style="display:none;">
+          </div>
+          <div class="dash-title-area">
+            <div class="dash-school-chip-row">
+              <span class="dash-school-chip" id="dashCurrentSchoolText">신천고등학교 · 2-2 담임</span>
+              <button type="button" class="dash-paste-icon-btn" id="dashPasteAvatarBtn" title="클립보드에 복사한 이미지를 아이콘으로 바로 붙여넣습니다">아이콘 붙여넣기(Ctrl+V)</button>
+              <button type="button" class="dash-paste-icon-btn" id="introGuideBtn">사용법 가이드</button>
+            </div>
+            <h2 class="dash-main-title">T-ong 디지털 교무수첩 통합 대시보드</h2>
+            <p class="dash-main-sub">선생님의 하루 업무를 <b>[수업 관리]</b>와 <b>[학급 관리]</b>, 그리고 <b>[자주 쓰는 구글 시트 메모장]</b>으로 한 화면에 통합했습니다.</p>
+          </div>
         </div>
 
-        <p class="hero-hint">우측 칠판 브리핑에서 <b>오늘 내 수업, 우리 반 시간표, 급식, 학사일정, 날씨</b>를 한눈에 확인하세요.</p>
-        <nav class="step-tabs" id="stepTabs">
-          <button type="button" class="step-tab active" data-step="1">
-            <span class="st-no">1</span><span class="st-label">교실 크기</span>
-          </button>
-          <span class="step-line"></span>
-          <button type="button" class="step-tab" data-step="2">
-            <span class="st-no">2</span><span class="st-label">자리 형태</span>
-          </button>
-          <span class="step-line"></span>
-          <button type="button" class="step-tab" data-step="3">
-            <span class="st-no">3</span><span class="st-label">학생 수</span>
-          </button>
-        </nav>
-        <div class="step-progress"><div id="stepProgressFill"></div></div>
+        <!-- 2. [수업 관리] & [학급 관리] 양대 통합 모듈 카드 -->
+        <div class="dash-dual-pillars" id="heroTags">
+          <!-- 기둥 A: 수업 관리 (교과·시간표·관찰·세특) -->
+          <section class="dash-pillar-card pillar-lesson">
+            <div class="dash-pillar-head">
+              <div>
+                <span class="dash-pillar-tag tag-lesson">LESSON MANAGEMENT</span>
+                <h3>수업 관리 통합</h3>
+              </div>
+              <small>시간표 · 이동수업 · 수업관찰</small>
+            </div>
+            <div class="dash-pillar-actions">
+              <button type="button" class="dash-action-btn primary-action" id="heroOpenScheduleBtn">
+                <span class="dab-step">1</span>
+                <div class="dab-text">
+                  <strong>학교 검색 · 반별 수업 과목 선택</strong>
+                  <small>예: 2-2 선택 후 내 수업 과목 클릭 → 시간표 완성</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+              <button type="button" class="dash-action-btn" id="heroOpenStuTtBtn">
+                <span class="dab-step">2</span>
+                <div class="dab-text">
+                  <strong>학생별 이동수업 시간표 업로드</strong>
+                  <small>NEIS 학생별 시간표 엑셀(.xlsx) 등록 및 동선 조회</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+              <button type="button" class="dash-action-btn" id="heroOpenAttendBtn">
+                <span class="dab-step">3</span>
+                <div class="dab-text">
+                  <strong>교과 출결 · 수업관찰 · 세특 기록</strong>
+                  <small>수업 중 관찰 내용 기록 및 구글 시트(6·7번 탭) 연동</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- 기둥 B: 학급 관리 (담임·명렬·자리·일정·상담) -->
+          <section class="dash-pillar-card pillar-homeroom">
+            <div class="dash-pillar-head">
+              <div>
+                <span class="dash-pillar-tag tag-homeroom">HOMEROOM MANAGEMENT</span>
+                <h3>학급 관리 통합</h3>
+              </div>
+              <small>명렬표 · 자리배치 · 학사달력</small>
+            </div>
+            <div class="dash-pillar-actions">
+              <button type="button" class="dash-action-btn primary-action-green" id="heroOpenRosterBtn">
+                <span class="dab-step">1</span>
+                <div class="dab-text">
+                  <strong>우리 반 명렬표 등록 · 시트 연동</strong>
+                  <small>학급 학생 명단 등록 및 올인원 마스터 시트 연결</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+              <button type="button" class="dash-action-btn" id="heroOpenSeatBtn">
+                <span class="dab-step">2</span>
+                <div class="dab-text">
+                  <strong>우리 반 자리배치 · 모둠 추첨</strong>
+                  <small>관계·고정석 조건 반영 좌석표 배치 및 인쇄</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+              <button type="button" class="dash-action-btn" id="heroOpenCalendarBtn">
+                <span class="dab-step">3</span>
+                <div class="dab-text">
+                  <strong>전체화면 학사일정 · 상담 달력</strong>
+                  <small>NEIS 학사일정 자동 입력 및 학생·학부모 상담 관리</small>
+                </div>
+                <span class="dab-arrow">&gt;</span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- 3. 자주 사용하는 구글 시트 & 즐겨찾는 사이트 메모장 (사용자 요청 핵심 기능) -->
+        <section class="dash-sheet-memo-card">
+          <div class="dash-sm-head">
+            <div>
+              <strong>자주 쓰는 구글 시트 &amp; 즐겨찾는 사이트 메모장</strong>
+              <span>자주 여는 구글 스프레드시트나 업무 사이트 주소와 메모(용도·탭 번호·할 일)를 적어두고 원클릭으로 여세요.</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn small primary" id="dashAddSheetMemoBtn">＋ 시트·사이트 메모 추가</button>
+              <button type="button" class="btn small" id="dashOpenSheetMemoModalBtn">전체 관리</button>
+            </div>
+          </div>
+          <div id="dashSheetMemoList" class="dash-sm-grid"></div>
+        </section>
+
+        <!-- 4. 자리배치 교실 구조 설정 열기 토글 바 (평소에는 접어두어 대시보드 가독성 극대화) -->
+        <div class="dash-seat-toggle-bar">
+          <span>교실 책상 수 · 분단 · 짝꿍/모둠 형태를 변경하시겠습니까?</span>
+          <button type="button" class="btn small" id="toggleSeatConfigDrawerBtn">교실 좌석 구조 설정 펼치기 ▾</button>
+        </div>
       </div>
 
-      <!-- 우측: 칠판형 오늘 브리핑 위젯 (사용자 요청 디자인 반영) -->
+      <!-- 우측: 칠판형 오늘 브리핑 위젯 -->
       <div class="hero-briefing-col">
         <div class="chalkboard-card" id="homeChalkboardCard">
           <div class="cb-wood-frame">
             <div class="cb-board-inner">
               <div class="cb-top-bar">
-                <div>
-                  <div class="cb-date-line" id="cbHomeDateText">11월 11일 수요일 · 오늘 브리핑</div>
-                  <h3 class="cb-greeting">오늘도 반가워요!</h3>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="/assets/teacher-avatar.jpg" alt="교사 캐릭터" class="cb-header-avatar" id="cbHomeAvatarImg">
+                  <div>
+                    <div class="cb-date-line" id="cbHomeDateText">11월 11일 수요일 · 오늘 브리핑</div>
+                    <h3 class="cb-greeting">오늘도 반가워요!</h3>
+                  </div>
                 </div>
                 <button type="button" class="cb-school-pill" id="cbHomeSchoolBtn" title="학교 및 학급 설정 변경">학교 설정 &gt;</button>
               </div>
@@ -401,11 +494,11 @@
               <div class="cb-section" data-cb-sec="teacherTt">
                 <div class="cb-sec-head">
                   <div class="cb-sec-title">
-                    <span>오늘 수업</span>
+                    <span>오늘 내 수업</span>
                     <span class="cb-count-badge" id="cbHomeLessonCount">0</span>
                     <small class="cb-end-time" id="cbHomeLessonEnd"></small>
                   </div>
-                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">열기 &gt;</button>
+                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">시간표·과목 설정 &gt;</button>
                 </div>
                 <div class="cb-lesson-grid" id="cbHomeLessonGrid"></div>
               </div>
@@ -417,7 +510,7 @@
                     <span>우리 반 시간표</span>
                     <span class="cb-class-badge" id="cbHomeHomeroomBadge">미설정</span>
                   </div>
-                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">설정·열기 &gt;</button>
+                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">학급 변경 &gt;</button>
                 </div>
                 <div class="cb-homeroom-strip" id="cbHomeHomeroomList"></div>
               </div>
@@ -455,8 +548,8 @@
                   <div class="cb-sec-title"><span>날씨</span></div>
                 </div>
                 <div class="cb-info-row">
-                  <span class="cb-info-label" id="cbHomeWeatherLoc">수원</span>
-                  <div class="cb-info-val" id="cbHomeWeatherText">지금 흐림 14° · 맑음 4°/15°</div>
+                  <span class="cb-info-label" id="cbHomeWeatherLoc">시흥</span>
+                  <div class="cb-info-val" id="cbHomeWeatherText">지금 맑음 14° · 최저/최고 4°/14°</div>
                 </div>
               </div>
 
@@ -476,70 +569,69 @@
         </div>
       </div>
     </div>
-    <div class="wizard-content">
-      <div class="wizard-form-head">
-        <strong>우리 반 교실 설정</strong>
-        <span>책상 수 → 자리 형태 → 학생 수, 세 단계면 바로 시작합니다.</span>
-      </div>
-      <div class="step" data-step="1">
-        <h3>🪑 총 책상 개수</h3>
-        <div class="desk-count-input">
-          <button type="button" id="deskMinus" class="count-btn">−</button>
-          <input type="number" id="totalDesks" value="30" min="10" max="50">
-          <button type="button" id="deskPlus" class="count-btn">+</button>
+
+    <!-- 접이식 교실 좌석 구조 설정 패널 (기존 기능 100% 보존 + 평소에는 숨김 처리로 화면 정돈) -->
+    <div id="seatConfigDrawer" class="seat-config-drawer" hidden>
+      <div class="wizard-content">
+        <div class="wizard-form-head">
+          <strong>우리 반 교실 좌석 구조 설정</strong>
+          <nav class="step-tabs" id="stepTabs" style="margin:6px 0;">
+            <button type="button" class="step-tab active" data-step="1"><span class="st-no">1</span><span class="st-label">교실 크기</span></button>
+            <span class="step-line"></span>
+            <button type="button" class="step-tab" data-step="2"><span class="st-no">2</span><span class="st-label">자리 형태</span></button>
+            <span class="step-line"></span>
+            <button type="button" class="step-tab" data-step="3"><span class="st-no">3</span><span class="st-label">학생 수</span></button>
+          </nav>
+          <div class="step-progress"><div id="stepProgressFill"></div></div>
         </div>
-      </div>
-      <div class="step" data-step="1">
-        <h3 id="columnStepTitle">📐 열(분단) 수</h3>
-        <div id="columnOptions" class="column-options"></div>
-      </div>
-      <div class="step" data-step="2">
-        <h3>👥 자리 형태</h3>
-        <div class="seat-type-options">
-          <div class="type-card" data-type="single">
-            <div class="preview"><div class="seat"></div></div>
-            <p>시험대형</p>
-          </div>
-          <div class="type-card active" data-type="pair">
-            <div class="preview"><div class="seat"></div><div class="seat"></div></div>
-            <p>짝꿍</p>
-          </div>
-          <div class="type-card" data-type="triple">
-            <div class="preview"><div class="seat"></div><div class="seat"></div><div class="seat"></div></div>
-            <p>트리플</p>
-          </div>
-          <div class="type-card" data-type="group">
-            <div class="preview cluster"><div class="seat"></div><div class="seat"></div><div class="seat"></div><div class="seat"></div></div>
-            <p>모둠</p>
+        <div class="step" data-step="1">
+          <h3>총 책상 개수</h3>
+          <div class="desk-count-input">
+            <button type="button" id="deskMinus" class="count-btn">−</button>
+            <input type="number" id="totalDesks" value="30" min="10" max="50">
+            <button type="button" id="deskPlus" class="count-btn">+</button>
           </div>
         </div>
-      </div>
-      <div class="step" id="layoutStep" data-step="2" style="display:none;">
-        <h3 id="layoutStepTitle">🎯 레이아웃</h3>
-        <div id="layoutOptions" class="layout-options"></div>
-      </div>
-      <div class="step" data-step="3">
-        <h3>👥 학생 수</h3>
-        <div class="student-count-section">
-          <div class="count-display">
-            <span>책상 <strong id="deskCountDisplay">30</strong>개</span>
-            <span>vs</span>
-            <span>학생 <input type="number" id="studentCount" value="28" min="1" max="50">명</span>
+        <div class="step" data-step="1">
+          <h3 id="columnStepTitle">열(분단) 수</h3>
+          <div id="columnOptions" class="column-options"></div>
+        </div>
+        <div class="step" data-step="2">
+          <h3>자리 형태</h3>
+          <div class="seat-type-options">
+            <div class="type-card" data-type="single"><div class="preview"><div class="seat"></div></div><p>시험대형</p></div>
+            <div class="type-card active" data-type="pair"><div class="preview"><div class="seat"></div><div class="seat"></div></div><p>짝꿍</p></div>
+            <div class="type-card" data-type="triple"><div class="preview"><div class="seat"></div><div class="seat"></div><div class="seat"></div></div><p>트리플</p></div>
+            <div class="type-card" data-type="group"><div class="preview cluster"><div class="seat"></div><div class="seat"></div><div class="seat"></div><div class="seat"></div></div><p>모둠</p></div>
           </div>
-          <p id="emptySeatInfo" class="empty-seat-info"></p>
+        </div>
+        <div class="step" id="layoutStep" data-step="2" style="display:none;">
+          <h3 id="layoutStepTitle">레이아웃</h3>
+          <div id="layoutOptions" class="layout-options"></div>
+        </div>
+        <div class="step" data-step="3">
+          <h3>학생 수</h3>
+          <div class="student-count-section">
+            <div class="count-display">
+              <span>책상 <strong id="deskCountDisplay">30</strong>개</span>
+              <span>vs</span>
+              <span>학생 <input type="number" id="studentCount" value="28" min="1" max="50">명</span>
+            </div>
+            <p id="emptySeatInfo" class="empty-seat-info"></p>
+          </div>
+        </div>
+        <div class="wizard-nav">
+          <button type="button" id="stepPrevBtn" class="btn">← 이전</button>
+          <button type="button" id="stepNextBtn" class="btn primary large">다음 →</button>
+          <button type="button" id="applyConfigBtn" class="btn primary large">자리배치 시작하기</button>
         </div>
       </div>
-      <div class="wizard-nav">
-        <button type="button" id="stepPrevBtn" class="btn">← 이전</button>
-        <button type="button" id="stepNextBtn" class="btn primary large">다음 →</button>
-        <button type="button" id="applyConfigBtn" class="btn primary large">🎉 시작하기</button>
+      <div class="preview-panel">
+        <h3>미리보기</h3>
+        <div class="preview-desk">교탁</div>
+        <div id="previewGrid" class="preview-grid"></div>
+        <p class="preview-info">배치: <span id="previewLayout">2-2</span></p>
       </div>
-    </div>
-    <div class="preview-panel">
-      <h3>👁️ 미리보기</h3>
-      <div class="preview-desk">교탁</div>
-      <div id="previewGrid" class="preview-grid"></div>
-      <p class="preview-info">배치: <span id="previewLayout">2-2</span></p>
     </div>
   </div>
 
@@ -1939,10 +2031,11 @@
   <div id="toast" class="toast"></div>
 
   
-  <!-- 우측 하단 플로팅 [오늘] 브리핑 열기 버튼 -->
+  <!-- 우측 하단 플로팅 [오늘] 브리핑 열기 버튼 (업로드된 캐릭터 아이콘 적용) -->
   <button type="button" id="floatingTodayBtn" class="floating-today-btn" title="오늘 브리핑 칠판 열기">
-    <span class="ft-sprout" aria-hidden="true"></span>
-    <span class="ft-face" aria-hidden="true"></span>
+    <div class="ft-avatar-frame">
+      <img src="/assets/teacher-avatar.jpg" alt="오늘 브리핑" id="floatingAvatarImg" class="ft-avatar-img">
+    </div>
     <span class="ft-board">오늘</span>
   </button>
 
@@ -1953,9 +2046,12 @@
         <div class="cb-wood-frame">
           <div class="cb-board-inner">
             <div class="cb-top-bar">
-              <div>
-                <div class="cb-date-line" id="cbModalDateText">11월 11일 수요일 · 오늘 브리핑</div>
-                <h3 class="cb-greeting">오늘도 반가워요!</h3>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <img src="/assets/teacher-avatar.jpg" alt="교사 캐릭터" class="cb-header-avatar" id="cbModalAvatarImg">
+                <div>
+                  <div class="cb-date-line" id="cbModalDateText">11월 11일 수요일 · 오늘 브리핑</div>
+                  <h3 class="cb-greeting">오늘도 반가워요!</h3>
+                </div>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <button type="button" class="cb-school-pill" id="cbModalSchoolBtn">학교 설정 &gt;</button>
@@ -1966,11 +2062,11 @@
             <div class="cb-section" data-cb-sec="teacherTt">
               <div class="cb-sec-head">
                 <div class="cb-sec-title">
-                  <span>오늘 수업</span>
+                  <span>오늘 내 수업</span>
                   <span class="cb-count-badge" id="cbModalLessonCount">0</span>
                   <small class="cb-end-time" id="cbModalLessonEnd"></small>
                 </div>
-                <button type="button" class="cb-open-link" data-cb-action="openSchedule">열기 &gt;</button>
+                <button type="button" class="cb-open-link" data-cb-action="openSchedule">시간표·과목 설정 &gt;</button>
               </div>
               <div class="cb-lesson-grid" id="cbModalLessonGrid"></div>
             </div>
@@ -1981,7 +2077,7 @@
                   <span>우리 반 시간표</span>
                   <span class="cb-class-badge" id="cbModalHomeroomBadge">미설정</span>
                 </div>
-                <button type="button" class="cb-open-link" data-cb-action="openSchedule">설정·열기 &gt;</button>
+                <button type="button" class="cb-open-link" data-cb-action="openSchedule">학급 변경 &gt;</button>
               </div>
               <div class="cb-homeroom-strip" id="cbModalHomeroomList"></div>
             </div>
@@ -2016,8 +2112,8 @@
                 <div class="cb-sec-title"><span>날씨</span></div>
               </div>
               <div class="cb-info-row">
-                <span class="cb-info-label" id="cbModalWeatherLoc">수원</span>
-                <div class="cb-info-val" id="cbModalWeatherText">지금 흐림 14° · 맑음 4°/15°</div>
+                <span class="cb-info-label" id="cbModalWeatherLoc">시흥</span>
+                <div class="cb-info-val" id="cbModalWeatherText">지금 맑음 14° · 최저/최고 4°/14°</div>
               </div>
             </div>
 
@@ -2037,7 +2133,7 @@
     </div>
   </div>
 
-  <!-- 학생별 시간표 업로드 모달 (사용자 요청 UI 완벽 구현) -->
+  <!-- 학생별 시간표 업로드 모달 -->
   <div id="studentTimetableModal" class="modal">
     <div class="modal-content wide stu-tt-modal-card">
       <div class="modal-header stu-tt-modal-head">
@@ -2127,7 +2223,7 @@
           <span class="guide-step-no">4</span>
           <div class="guide-step-body">
             <strong>학년 및 반 선택 후 [엑셀 다운로드]</strong>
-            <span>담당 학년과 반을 선택하고 화면 우측 상단의 [엑셀 다운로드] 버튼을 클릭하여 저장합니다. (여러 반 파일을 한 번에 받으셔도 됩니다)</span>
+            <span>담당 학년과 반을 선택하고 화면 우측 상단의 [엑셀 다운로드] 버튼을 클릭하여 저장합니다.</span>
           </div>
         </div>
         <div class="guide-step-card">
@@ -2144,13 +2240,13 @@
     </div>
   </div>
 
-  <!-- 교사용 시간표 & NEIS 학교·학급 연동 모달 -->
+  <!-- 교사용 시간표 & NEIS 학교·학급·과목 연동 모달 -->
   <div id="teacherScheduleModal" class="modal">
-    <div class="modal-content wide" style="max-width: 720px;">
+    <div class="modal-content wide" style="max-width: 760px;">
       <div class="modal-header">
         <div>
-          <span style="font-size:0.75rem; color:#4f46e5; font-weight:800;">NEIS OPEN API 실시간 연동</span>
-          <h3 style="margin:2px 0 0;">교무 시간표 & 학교·학급·학사일정 설정</h3>
+          <span style="font-size:0.75rem; color:#4f46e5; font-weight:800;">STEP 1 · NEIS OPEN API 실시간 연동</span>
+          <h3 style="margin:2px 0 0;">학교 검색 · 학급 선택 · 반별 수업 과목으로 내 시간표 자동 완성</h3>
         </div>
         <button class="close-btn" data-modal="teacherScheduleModal">&times;</button>
       </div>
@@ -2168,31 +2264,45 @@
           <div id="tsSchoolSearchResults" style="margin-top:8px; max-height:150px; overflow-y:auto;"></div>
         </div>
 
-        <!-- 2. 학년/반 실시간 로딩 (classInfo API) -->
+        <!-- 2. 학년/반 선택 및 해당 반 NEIS 수업 과목 선택 -->
         <div class="tt-section-box">
           <div class="tt-section-head">
-            <h4>2. 학년 및 반 선택 (NEIS 학급정보 API 자동 조회)</h4>
+            <h4>2. 학년·반 선택 및 해당 반에서 수업하는 과목 고르기</h4>
             <span id="tsClassStatusText" style="font-size:0.78rem; color:#64748b;">학교를 먼저 선택해 주세요</span>
           </div>
 
           <div style="margin-bottom:10px;">
-            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내 담임 학급 (1개 선택 — 선택 시 칠판 브리핑에 우리 반 시간표 자동 표시)</label>
+            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내 담임 학급 (1개 선택 — 칠판 브리핑에 우리 반 시간표 자동 표시)</label>
             <div id="tsHomeroomPills" class="class-pills-wrap">
               <span style="font-size:0.8rem; color:#94a3b8;">학교를 선택하면 실제 개설된 반 목록이 나타납니다.</span>
             </div>
           </div>
 
-          <div>
-            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내가 들어가는 교과 수업 반 (복수 선택 가능)</label>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내가 수업 들어가는 학급 선택 (예: 2-2, 2-8 클릭 시 아래에 그 반의 수업 과목이 표시됩니다)</label>
             <div id="tsSubjectPills" class="class-pills-wrap">
               <span style="font-size:0.8rem; color:#94a3b8;">학교를 선택하면 실제 개설된 반 목록이 나타납니다.</span>
             </div>
           </div>
 
+          <!-- 2-1. 선택한 학급(예: 2-2)에서 실제 수업하는 NEIS 과목 선택 박스 -->
+          <div id="tsClassSubjectPickerBox" class="ts-subject-picker-box">
+            <div class="ts-subject-picker-head">
+              <div>
+                <strong id="tsActiveClassLabel" style="color:#1e293b; font-size:0.86rem;">[2학년 2반] 개설 수업 과목 고르기 (NEIS 시간표 연동)</strong>
+                <span style="display:block; font-size:0.75rem; color:#475569; margin-top:2px;">내가 이 반에서 가르치는 과목을 클릭하면, 해당 과목의 수업 요일·교시가 아래 <b>내 주간 시간표</b>에 자동으로 입력됩니다.</span>
+              </div>
+              <div id="tsActiveClassTabs" class="ts-active-class-tabs"></div>
+            </div>
+            <div id="tsClassSubjectPills" class="ts-subject-pills-grid">
+              <span style="font-size:0.8rem; color:#64748b;">학년·반을 클릭하면 해당 반의 NEIS 수업 과목 목록을 불러옵니다...</span>
+            </div>
+          </div>
+
           <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
             <button type="button" id="tsSyncAcademicCalBtn" class="btn" style="background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700; font-size:0.8rem;">NEIS 학사일정 달력에 자동 입력</button>
-            <button type="button" id="tsLoadHomeroomTtBtn" class="btn" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; font-weight:700; font-size:0.8rem;">담임 반 시간표를 내 시간표로 복사</button>
-            <button type="button" id="tsApplyClassesBtn" class="btn" style="background:#4f46e5; color:#fff; font-weight:700; font-size:0.82rem;">출석부(반 목록)에 반영하기</button>
+            <button type="button" id="tsLoadHomeroomTtBtn" class="btn" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; font-weight:700; font-size:0.8rem;">담임 반 전체 시간표 복사</button>
+            <button type="button" id="tsApplyClassesBtn" class="btn" style="background:#4f46e5; color:#fff; font-weight:700; font-size:0.82rem;">선택한 반을 출석부(반 목록)에 반영</button>
           </div>
         </div>
 
@@ -2201,11 +2311,12 @@
           <div class="tt-section-head">
             <h4>3. 내 주간 수업 시간표 (월~금 1~7교시)</h4>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" id="tsClearScheduleBtn" class="btn small" style="font-size:0.76rem;">시간표 비우기</button>
               <button type="button" id="tsOpenStuTtBtn" class="btn small" style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe; font-size:0.78rem; font-weight:700;">학생별 시간표 엑셀 업로드</button>
               <button type="button" id="tsSaveScheduleBtn" class="btn small primary" style="font-size:0.78rem;">시간표 저장</button>
             </div>
           </div>
-          <p style="font-size:0.78rem; color:#64748b; margin:0 0 10px;">교시 칸을 클릭하여 담당 학급(반), 과목명, 교실을 간편하게 수정할 수 있습니다. (저장 시 오늘 브리핑 칠판에 즉시 반영됩니다)</p>
+          <p style="font-size:0.78rem; color:#64748b; margin:0 0 10px;">위에서 반과 과목을 클릭해 자동 완성하거나, 아래 교시 칸을 직접 클릭하여 학급·과목·교실을 개별 편집할 수 있습니다.</p>
           <div style="overflow-x:auto;">
             <table class="weekly-tt-table" id="tsWeeklyTable">
               <thead>
@@ -2225,7 +2336,7 @@
           </div>
         </div>
 
-        <!-- 시간표 셀 편집 모달팝업/다이얼로그 (인라인) -->
+        <!-- 시간표 셀 편집 모달팝업/다이얼로그 (인라인 + 선택한 반의 과목 빠른 선택 칩 포함) -->
         <div id="tsCellEditDialog" style="display:none; background:#ffffff; border:2px solid #4f46e5; border-radius:12px; padding:12px 14px; margin-top:10px; box-shadow:0 8px 24px rgba(79,70,229,0.15);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <strong id="tsCellEditTitle" style="font-size:0.88rem; color:#1e293b;">수업 편집</strong>
@@ -2237,7 +2348,7 @@
               <select id="tsCellClassSelect" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px;"></select>
             </div>
             <div>
-              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">과목명</label>
+              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">과목명 (직접 입력 또는 아래 과목 클릭)</label>
               <input type="text" id="tsCellSubjectInput" placeholder="예: 경제 수학Y" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
             </div>
             <div>
@@ -2245,12 +2356,70 @@
               <input type="text" id="tsCellRoomInput" placeholder="예: 2-2" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
             </div>
           </div>
+          <div id="tsCellSubjectSuggestWrap" style="margin-top:8px;">
+            <span style="font-size:0.74rem; color:#4f46e5; font-weight:700; display:block; margin-bottom:4px;">선택한 학급의 개설 과목 빠른 선택:</span>
+            <div id="tsCellSubjectChips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+          </div>
           <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:6px;">
             <button type="button" id="tsCellDeleteBtn" class="btn small" style="background:#fee2e2; color:#b91c1c; border:none;">비우기</button>
             <button type="button" id="tsCellSaveBtn" class="btn small primary">적용</button>
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- 자주 쓰는 구글 시트 & 즐겨찾는 사이트 메모장 모달 -->
+  <div id="sheetMemoModal" class="modal">
+    <div class="modal-content wide" style="max-width: 720px;">
+      <div class="modal-header">
+        <div>
+          <span style="font-size:0.75rem; color:#059669; font-weight:800;">QUICK SHEET &amp; SITE MEMO PAD</span>
+          <h3 style="margin:2px 0 0;">자주 쓰는 구글 시트 &amp; 즐겨찾는 사이트 메모장</h3>
+        </div>
+        <button class="close-btn" data-modal="sheetMemoModal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:16px 20px;">
+        <form id="sheetMemoForm" class="tt-section-box" style="background:#f8fafc; margin-bottom:14px;">
+          <input type="hidden" id="smEditId" value="">
+          <div class="tt-section-head">
+            <h4 id="smFormTitle">새 구글 시트 / 즐겨찾는 사이트 등록</h4>
+            <span style="font-size:0.75rem; color:#64748b;">이 브라우저에 영구 저장되며 홈 대시보드에 바로 표시됩니다</span>
+          </div>
+          <div style="display:grid; grid-template-columns:130px 1fr 1.2fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">분류</label>
+              <select id="smCategoryInput" style="width:100%; padding:7px 8px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.82rem;">
+                <option value="구글시트">구글 시트</option>
+                <option value="수업관리">수업·평가</option>
+                <option value="학급관리">학급 운영</option>
+                <option value="행정업무">행정·기타</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">시트 / 사이트 제목</label>
+              <input type="text" id="smTitleInput" placeholder="예: 2-2 학급 운영 시트, 수행평가 채점표" required style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.84rem; margin:0;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">주소 (URL)</label>
+              <input type="text" id="smUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." required style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.84rem; margin:0;">
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="flex:1;">
+              <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">메모 (탭 위치, 작성 요령, 할 일 등 자유 기록)</label>
+              <input type="text" id="smMemoInput" placeholder="예: 매주 금요일 동아리 출결 입력 · 3번 탭 상담기록 확인" style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.84rem; margin:0;">
+            </div>
+            <div style="display:flex; gap:6px; padding-top:18px;">
+              <button type="button" id="smCancelEditBtn" class="btn small" hidden>취소</button>
+              <button type="submit" id="smSaveBtn" class="btn primary" style="padding:8px 16px;">저장</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="smModalList" class="sm-modal-list"></div>
       </div>
     </div>
   </div>
