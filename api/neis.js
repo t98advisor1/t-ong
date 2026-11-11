@@ -56,7 +56,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const upstream = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    // 요청 헤더를 따로 붙이지 않습니다. NEIS 는 Accept: application/json 이 있으면 HTTP 500 을 돌려줍니다.
+    const upstream = await fetch(url.toString());
     if (!upstream.ok) return send(res, 502, { error: 'NEIS_HTTP_' + upstream.status });
     const data = await upstream.json();
     // 키가 잘못됐을 때는 캐시하지 않습니다 (키를 고친 뒤에도 오류가 남는 일을 막기 위해).
