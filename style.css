@@ -4859,7 +4859,6 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 .ts-class-matrix-table td.matrix-cell.empty { color: #cbd5e1; cursor: default; }
 
 /* 담당 수업 추가: ① 학년 → ② 학급 → ③ 교과 + 오른쪽 '추가한 담당 수업' 패널 */
-.ts-head-hint { margin-left: 6px; font-size: 0.74rem; font-weight: 600; color: #64748b; }
 #teacherScheduleModal .tt-section-head { flex-wrap: wrap; gap: 4px 10px; }
 .ts-assign-layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 12px; align-items: start; }
 .ts-assign-steps { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -4867,22 +4866,29 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 .ts-step[hidden] { display: none; }
 .ts-step-label { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; font-size: 0.86rem; font-weight: 800; color: #1e293b; }
 .ts-step-label small { font-size: 0.74rem; font-weight: 600; color: #64748b; }
-.ts-step-no { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #4f46e5; color: #fff; font-size: 0.72rem; font-weight: 800; }
-.ts-step .class-pills-wrap { max-height: none; padding: 0; }
-.ts-step-empty { font-size: 0.8rem; color: #64748b; }
-.ts-grade-btn { padding: 7px 16px; font-weight: 700; }
-.ts-etc-btn { border-style: dashed; }
-.class-pill-btn.inspecting { outline: 2px solid #f59e0b; outline-offset: 1px; }
-.ts-pill-count { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; margin-left: 6px; padding: 0 4px; border-radius: 999px;
-  background: #e0e7ff; color: #3730a3; font-size: 0.68rem; font-weight: 800; }
-.class-pill-btn.active .ts-pill-count { background: rgba(255,255,255,0.28); color: #fff; }
-.ts-pill-tag { margin-left: 5px; padding: 1px 5px; border-radius: 6px; background: #fef3c7; color: #92400e; font-size: 0.66rem; font-weight: 800; }
-.ts-subject-pill-btn.added { background: #ecfdf5; border-color: #6ee7b7; cursor: default; }
-.ts-subject-pill-btn.added strong { color: #047857; }
-.ts-subject-pill-btn.added small { color: #059669; }
-.ts-step-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.ts-step-actions .btn.primary { background: #4f46e5; color: #fff; border: none; font-weight: 800; font-size: 0.84rem; padding: 8px 16px; }
-.ts-step-actions .btn.primary:disabled { background: #c7d2fe; cursor: not-allowed; }
+.ts-step-no { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #4f46e5; color: #fff; font-size: 0.72rem; font-weight: 800; font-style: normal; }
+/* 학년 → 학급 → 교과 드롭다운 + [추가] */
+.ts-pick-form { display: grid; grid-template-columns: minmax(96px, 0.7fr) minmax(104px, 0.8fr) minmax(0, 2.4fr) auto; gap: 8px; align-items: end; }
+.ts-pick-field { display: flex; flex-direction: column; gap: 5px; margin: 0; min-width: 0; }
+.ts-pick-field[hidden] { display: none; }
+.ts-pick-field > span { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 800; color: #1e293b; white-space: nowrap; }
+.ts-pick-field > span small { font-size: 0.72rem; font-weight: 600; color: #64748b; overflow: hidden; text-overflow: ellipsis; }
+.ts-pick-field select { width: 100%; max-width: none; min-width: 0; margin: 0; padding: 9px 10px; border: 1.5px solid #cbd5e1; border-radius: 9px; background: #fff; color: #0f172a; font: inherit; font-size: 0.86rem; font-weight: 600; }
+.ts-pick-field select:focus-visible { outline: 2px solid #4f46e5; outline-offset: 1px; border-color: #4f46e5; }
+.ts-pick-field select:disabled { background: #f1f5f9; color: #94a3b8; }
+.ts-pick-form > .btn.primary { align-self: end; padding: 9px 18px; border: none; border-radius: 9px; background: #4f46e5; color: #fff; font-size: 0.86rem; font-weight: 800; white-space: nowrap; }
+.ts-pick-form > .btn.primary:disabled { background: #c7d2fe; cursor: not-allowed; }
+.ts-pick-form > .btn.primary[hidden] { display: none; }
+.ts-pick-hint { margin: 8px 0 0; font-size: 0.74rem; color: #64748b; line-height: 1.5; }
+.ts-pick-hint[hidden] { display: none; }
+.ts-step .ts-neis-status { margin: 10px 0 0; }
+.ts-step .ts-neis-key-box { margin: 8px 0 0; }
+.ts-matrix-toggle-row { margin-top: 8px; }
+.ts-matrix-toggle-row[hidden] { display: none; }
+@media (max-width: 620px) {
+  .ts-pick-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ts-pick-field.ts-pick-subject, .ts-pick-form > .btn.primary { grid-column: 1 / -1; }
+}
 .ts-outline-btn { font-size: 0.73rem; padding: 5px 10px; background: #fff; border: 1px solid #6366f1; color: #4f46e5; font-weight: 700; }
 .ts-step .ts-class-matrix-wrap { margin-top: 10px; }
 .ts-etc-box { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid #c7d2fe; border-radius: 10px; background: #eef2ff; }

@@ -2288,29 +2288,31 @@
         <!-- 2. 담당 수업 추가: 학년 → 학급 → 교과 순서로 고르고, 고른 학급·수업은 오른쪽 패널에 쌓입니다 -->
         <div class="tt-section-box">
           <div class="tt-section-head">
-            <h4>2. 담당 수업 추가 <small class="ts-head-hint">학년 → 학급 → 교과 순서로 고르세요</small></h4>
+            <h4>2. 담당 수업 추가</h4>
             <span id="tsClassStatusText" style="font-size:0.78rem; color:#64748b;">학교를 먼저 선택해 주세요</span>
           </div>
 
           <div class="ts-assign-layout">
             <div class="ts-assign-steps">
-              <!-- ① 학년 -->
+              <!-- 학년 → 학급 → 교과를 드롭다운으로 고른 뒤 [추가] -->
               <div class="ts-step">
-                <div class="ts-step-label"><span class="ts-step-no">1</span>학년</div>
-                <div id="tsGradePills" class="class-pills-wrap" role="group" aria-label="학년 선택">
-                  <span class="ts-step-empty">학교를 선택하면 학년이 나타납니다.</span>
+                <div class="ts-pick-form">
+                  <label class="ts-pick-field" for="tsGradeSelect">
+                    <span><i class="ts-step-no">1</i>학년</span>
+                    <select id="tsGradeSelect"><option value="">학년 선택</option></select>
+                  </label>
+                  <label class="ts-pick-field" for="tsClassSelect">
+                    <span><i class="ts-step-no">2</i>학급</span>
+                    <select id="tsClassSelect" disabled><option value="">학급 선택</option></select>
+                  </label>
+                  <label class="ts-pick-field ts-pick-subject" for="tsSubjectSelect">
+                    <span><i class="ts-step-no">3</i>교과 <small id="tsActiveClassLabel"></small></span>
+                    <select id="tsSubjectSelect" disabled><option value="">교과 선택</option></select>
+                  </label>
+                  <button type="button" id="tsAddLessonsBtn" class="btn primary" disabled>＋ 추가</button>
                 </div>
-              </div>
+                <p class="ts-pick-hint" id="tsPickHint">학년과 학급을 고르면 그 반의 이번 주 NEIS 시간표에 있는 교과가 나옵니다. 교과를 고르고 [추가]를 누르면 수업 요일·교시가 내 시간표에 들어갑니다.</p>
 
-              <!-- ② 학급(강의실): 학년을 고르면 펼쳐집니다 -->
-              <div class="ts-step" id="tsClassStep" hidden>
-                <div class="ts-step-label"><span class="ts-step-no">2</span>학급 <small>고르면 [추가한 담당 수업] 목록에 담깁니다</small></div>
-                <div id="tsClassPills" class="class-pills-wrap" role="group" aria-label="학급 선택"></div>
-              </div>
-
-              <!-- ③ 교과: 고른 학급의 이번 주 NEIS 시간표 과목 -->
-              <div class="ts-step" id="tsSubjectStep" hidden>
-                <div class="ts-step-label"><span class="ts-step-no">3</span>교과 <small id="tsActiveClassLabel"></small></div>
                 <!-- NEIS 조회 상태: 어느 주 시간표인지, 빠진 교시가 있는지 표시 -->
                 <div id="tsNeisStatus" class="ts-neis-status" hidden></div>
                 <div id="tsNeisKeyBox" class="ts-neis-key-box" hidden>
@@ -2320,10 +2322,9 @@
                   <button type="button" id="tsNeisKeyClearBtn" class="btn small" hidden>키 삭제</button>
                   <small>인증키가 있어야 6·7교시와 학사일정 전체가 조회됩니다. <a href="https://open.neis.go.kr/" target="_blank" rel="noopener noreferrer">open.neis.go.kr</a> 로그인 후 [인증키 신청]에서 무료로 발급되며, 입력한 키는 이 기기 브라우저에만 저장됩니다.</small>
                 </div>
-                <div id="tsClassSubjectPills" class="ts-subject-pills-grid"></div>
-                <div class="ts-step-actions">
+
+                <div class="ts-matrix-toggle-row" id="tsMatrixToggleRow" hidden>
                   <button type="button" id="tsToggleClassMatrixBtn" class="btn small ts-outline-btn">학급 시간표 표 펼치기 ▾</button>
-                  <button type="button" id="tsAddLessonsBtn" class="btn primary" disabled>＋ 담당 수업 추가</button>
                 </div>
                 <div id="tsClassMatrixPreviewWrap" class="ts-class-matrix-wrap" hidden>
                   <div class="ts-class-matrix-caption">
@@ -2335,7 +2336,7 @@
 
               <!-- 기타: NEIS 학급 시간표에 없는 수업·동아리 -->
               <div class="ts-step" id="tsEtcStep" hidden>
-                <div class="ts-step-label"><span class="ts-step-no">＋</span>기타 추가 설정 <small>학급 시간표에 없는 수업·동아리</small></div>
+                <div class="ts-step-label">기타 추가 설정 <small>학급 시간표에 없는 수업·동아리</small></div>
 
                 <div class="ts-etc-box">
                   <strong>직접 입력으로 추가</strong>

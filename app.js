@@ -9625,45 +9625,58 @@ var TeacherSchedule = (function () {
     renderAssignedPanel();
   }
 
+  // 교과 드롭다운을 '아직 고를 수 없음' 상태로 둡니다.
+  function setSubjectPlaceholder(message) {
+    var select = el('tsSubjectSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">' + escapeHtml(message) + '</option>';
+    select.value = '';
+    select.disabled = true;
+  }
+
+  // 학년 · 학급 드롭다운을 현재 선택 상태에 맞게 채웁니다. (교과 드롭다운은 renderSubjectOptions 가 채웁니다)
   function renderStepper() {
-    var gradeBox = el('tsGradePills');
-    var classBox = el('tsClassPills');
-    var classStep = el('tsClassStep');
-    var subjectStep = el('tsSubjectStep');
-    var etcStep = el('tsEtcStep');
-    if (!gradeBox || !classBox) return;
+    var gradeSelect = el('tsGradeSelect');
+    var classSelect = el('tsClassSelect');
+    var subjectSelect = el('tsSubjectSelect');
+    if (!gradeSelect || !classSelect) return;
 
     var grades = gradesAvailable();
-    if (!grades.length) {
-      gradeBox.innerHTML = '<span class="ts-step-empty">학교를 먼저 검색해 주세요.</span>';
-      [classStep, subjectStep, etcStep].forEach(function (node) { if (node) node.hidden = true; });
-      return;
-    }
     if (activeGrade !== 'etc' && grades.indexOf(activeGrade) < 0) activeGrade = null;
+    gradeSelect.innerHTML = '<option value="">' + (grades.length ? '학년 선택' : '학교를 먼저 검색하세요') + '</option>' +
+      grades.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('') +
+      (grades.length ? '<option value="etc">기타 (직접 입력 · 동아리)</option>' : '');
+    gradeSelect.value = activeGrade == null ? '' : String(activeGrade);
+    gradeSelect.disabled = !grades.length;
 
-    gradeBox.innerHTML = grades.map(function (g) {
-      var picked = selectedSubjects.filter(function (c) { return c.grade === g; }).length;
-      var isActive = activeGrade === g;
-      return '<button type="button" class="class-pill-btn ts-grade-btn' + (isActive ? ' active' : '') + '" data-grade="' + g + '" aria-pressed="' + (isActive ? 'true' : 'false') + '">' +
-        g + '학년' + (picked ? '<span class="ts-pill-count" title="고른 학급 수">' + picked + '</span>' : '') +
-      '</button>';
-    }).join('') +
-      '<button type="button" class="class-pill-btn ts-grade-btn ts-etc-btn' + (activeGrade === 'etc' ? ' active' : '') + '" data-grade="etc" aria-pressed="' + (activeGrade === 'etc' ? 'true' : 'false') + '">기타</button>';
-
+    var isEtc = activeGrade === 'etc';
     var gradeChosen = typeof activeGrade === 'number';
-    if (classStep) classStep.hidden = !gradeChosen;
-    if (etcStep) etcStep.hidden = activeGrade !== 'etc';
-    if (gradeChosen) {
-      classBox.innerHTML = availableClasses.filter(function (c) { return c.grade === activeGrade; }).map(function (c) {
-        var inPanel = selectedSubjects.some(function (x) { return x.short === c.short; });
-        var isCurrent = Boolean(activePickerClass) && activePickerClass.short === c.short;
-        return '<button type="button" class="class-pill-btn' + (inPanel ? ' active' : '') + (isCurrent ? ' inspecting' : '') + '" data-class="' + escapeHtml(c.short) + '" aria-pressed="' + (isCurrent ? 'true' : 'false') + '">' +
-          escapeHtml(c.className + '반') + (isHomeroomClass(c.short) ? '<span class="ts-pill-tag">담임</span>' : '') +
-        '</button>';
-      }).join('');
-    }
-    if (subjectStep) {
-      subjectStep.hidden = !(gradeChosen && activePickerClass && activePickerClass.grade === activeGrade);
+    var classChosen = gradeChosen && Boolean(activePickerClass) && activePickerClass.grade === activeGrade;
+    classSelect.innerHTML = '<option value="">' + (gradeChosen ? '학급 선택' : '학년을 먼저 고르세요') + '</option>' +
+      (gradeChosen ? availableClasses.filter(function (c) { return c.grade === activeGrade; }).map(function (c) {
+        return '<option value="' + escapeHtml(c.short) + '">' + escapeHtml(c.className + '반' + (isHomeroomClass(c.short) ? ' (담임)' : '')) + '</option>';
+      }).join('') : '');
+    classSelect.value = classChosen ? activePickerClass.short : '';
+    classSelect.disabled = !gradeChosen;
+
+    // '기타'를 고르면 학급·교과 대신 추가 설정(직접 입력·동아리)이 열립니다.
+    var etcStep = el('tsEtcStep');
+    if (etcStep) etcStep.hidden = !isEtc;
+    [classSelect.closest('.ts-pick-field'), subjectSelect && subjectSelect.closest('.ts-pick-field'), el('tsAddLessonsBtn'), el('tsPickHint')].forEach(function (node) {
+      if (node) node.hidden = isEtc;
+    });
+
+    if (!classChosen) {
+      // 학급을 아직 고르지 않았으면 그 반에 딸린 표시(교과·조회 상태·시간표 표)는 모두 접어 둡니다.
+      setSubjectPlaceholder(gradeChosen ? '학급을 먼저 고르세요' : '학년·학급을 먼저 고르세요');
+      ['tsNeisStatus', 'tsNeisKeyBox', 'tsMatrixToggleRow', 'tsClassMatrixPreviewWrap'].forEach(function (id) {
+        var node = el(id);
+        if (node) node.hidden = true;
+      });
+      var toggleBtn = el('tsToggleClassMatrixBtn');
+      if (toggleBtn) toggleBtn.textContent = '학급 시간표 표 펼치기 ▾';
+      var label = el('tsActiveClassLabel');
+      if (label) label.textContent = '';
     }
   }
 
@@ -9706,7 +9719,7 @@ var TeacherSchedule = (function () {
           '</button>' +
           '<button type="button" class="ts-remove-btn" data-remove-class="' + escapeHtml(c.short) + '" aria-label="' + escapeHtml(c.label) + ' 빼기" title="이 학급 빼기">×</button>' +
         '</div>' +
-        (rows ? '<ul>' + rows + '</ul>' : '<p class="ts-selected-hint">교과를 고른 뒤 [담당 수업 추가]를 누르세요.</p>') +
+        (rows ? '<ul>' + rows + '</ul>' : '<p class="ts-selected-hint">아직 추가한 교과가 없습니다.</p>') +
       '</div>';
     });
 
@@ -9724,30 +9737,36 @@ var TeacherSchedule = (function () {
   }
 
   function selectGrade(value) {
-    activeGrade = value === 'etc' ? 'etc' : Number(value);
+    activeGrade = value === 'etc' ? 'etc' : (value === '' || value == null ? null : Number(value));
     pendingSubjects = [];
     if (activeGrade === 'etc') {
       renderClassPills();
       renderClubPicker();
       return;
     }
-    if (activePickerClass && activePickerClass.grade !== activeGrade) activePickerClass = null;
+    if (activePickerClass && activePickerClass.grade !== activeGrade) {
+      activePickerClass = null;
+      currentPickerData = null;
+    }
     renderClassPills();
     if (activePickerClass) renderClassSubjectPicker(activePickerClass);
     else updateAddLessonsButton();
   }
 
-  // ② 학급을 고르면 오른쪽 패널에 담기고, ③ 교과 목록이 열립니다.
+  // 학급을 고르면 그 반의 이번 주 NEIS 시간표에서 교과 목록을 불러옵니다.
+  // (오른쪽 '추가한 담당 수업'에는 교과를 [추가]했을 때 들어갑니다)
   function selectClass(short) {
     var item = availableClasses.find(function (c) { return c.short === short; });
-    if (!item) return;
-    if (!selectedSubjects.some(function (c) { return c.short === short; })) {
-      selectedSubjects.push(item);
-      writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
+    pendingSubjects = [];
+    if (!item) {
+      activePickerClass = null;
+      currentPickerData = null;
+      renderClassPills();
+      updateAddLessonsButton();
+      return;
     }
     activeGrade = item.grade;
     activePickerClass = item;
-    pendingSubjects = [];
     renderClassPills();
     renderClassSubjectPicker(item);
   }
@@ -9831,10 +9850,9 @@ var TeacherSchedule = (function () {
     var btn = el('tsAddLessonsBtn');
     if (!btn) return;
     btn.disabled = !pendingSubjects.length;
-    btn.textContent = pendingSubjects.length ? '＋ 담당 수업 추가 (' + pendingSubjects.length + ')' : '＋ 담당 수업 추가';
   }
 
-  // ③에서 고른 교과를 내 주간 시간표의 해당 요일·교시에 넣습니다.
+  // 드롭다운에서 고른 교과를 내 주간 시간표의 해당 요일·교시(NEIS 시간표 그대로)에 넣습니다.
   function addPickedLessons() {
     var classObj = activePickerClass;
     var data = currentPickerData;
@@ -10117,20 +10135,22 @@ var TeacherSchedule = (function () {
     });
   }
 
-  // ③ 교과 칩: 누르면 골라 두고(여러 개 가능), [담당 수업 추가]를 눌러 한 번에 넣습니다.
-  function renderSubjectChips(targetClass, data) {
-    var pillsEl = el('tsClassSubjectPills');
-    if (!pillsEl) return;
+  // 교과 드롭다운: 고른 학급의 NEIS 시간표에 있는 과목과 수업 요일·교시. 이미 추가한 과목은 고를 수 없게 표시합니다.
+  function renderSubjectOptions(targetClass, data) {
+    var select = el('tsSubjectSelect');
+    if (!select) return;
     var tt = getTimetable();
-    pillsEl.innerHTML = data.subjects.map(function (item, idx) {
+    var pickedIndex = -1;
+    select.innerHTML = '<option value="">교과 선택 (' + data.subjects.length + '과목)</option>' + data.subjects.map(function (item, idx) {
       var added = isLessonInTimetable(tt, targetClass.short, item.subject, item.slots);
-      var picked = !added && pendingSubjects.indexOf(item.subject) >= 0;
-      return '<button type="button" class="ts-subject-pill-btn' + (added ? ' added' : (picked ? ' selected' : '')) + '" data-sub-idx="' + idx + '"' +
-          (added ? ' disabled title="이미 추가한 수업입니다. [추가한 담당 수업] 목록에서 ×로 뺄 수 있습니다."' : ' aria-pressed="' + (picked ? 'true' : 'false') + '"') + '>' +
-        '<strong>' + (added ? '✓ ' : '') + escapeHtml(item.subject) + '</strong>' +
-        '<small>' + escapeHtml(item.slotSummary) + (added ? ' · 추가됨' : '') + '</small>' +
-      '</button>';
+      if (!added && pendingSubjects[0] === item.subject) pickedIndex = idx;
+      return '<option value="' + idx + '"' + (added ? ' disabled' : '') + '>' +
+        escapeHtml((added ? '✓ ' : '') + item.subject + ' — ' + item.slotSummary + (added ? ' (추가됨)' : '')) +
+      '</option>';
     }).join('');
+    select.disabled = false;
+    select.value = pickedIndex >= 0 ? String(pickedIndex) : '';
+    if (pickedIndex < 0) pendingSubjects = [];
     updateAddLessonsButton();
   }
 
@@ -10166,17 +10186,18 @@ var TeacherSchedule = (function () {
     });
   }
 
-  // ③ 고른 학급의 이번 주 NEIS 시간표에서 교과 목록과 시간표 표를 그립니다.
+  // 고른 학급의 이번 주 NEIS 시간표에서 교과 드롭다운과 시간표 표를 채웁니다.
   async function renderClassSubjectPicker(classObj, options) {
     ensureDefaultSchool();
     var targetClass = classObj || activePickerClass;
     var labelEl = el('tsActiveClassLabel');
-    var pillsEl = el('tsClassSubjectPills');
+    var subjectSelect = el('tsSubjectSelect');
     var matrixTitleEl = el('tsClassMatrixTitle');
     var matrixBoxEl = el('tsClassMatrixPreview');
-    if (!pillsEl) return;
+    var toggleRow = el('tsMatrixToggleRow');
+    if (!subjectSelect) return;
     if (!targetClass) {
-      // 아직 학급을 고르지 않은 상태 — ③단계는 접어 둡니다.
+      // 아직 학급을 고르지 않은 상태
       currentPickerData = null;
       pendingSubjects = [];
       renderStepper();
@@ -10185,20 +10206,26 @@ var TeacherSchedule = (function () {
     }
     if (!activePickerClass || activePickerClass.short !== targetClass.short) pendingSubjects = [];
     activePickerClass = targetClass;
-    if (activeGrade !== 'etc') activeGrade = targetClass.grade;
+    if (activeGrade === 'etc') {
+      // '기타' 화면에서는 학급·교과 영역이 접혀 있으므로 목록만 맞춰 둡니다.
+      renderClassPills();
+      return;
+    }
+    activeGrade = targetClass.grade;
     renderClassPills();
 
-    if (labelEl) labelEl.textContent = targetClass.label + ' · ' + (selectedSchool ? selectedSchool.schoolName : '');
+    if (labelEl) labelEl.textContent = targetClass.label;
     if (matrixTitleEl) {
       matrixTitleEl.textContent = '[' + targetClass.label + '] 주간 시간표 (칸을 누르면 그 교시만 내 시간표에 넣거나 뺍니다)';
     }
 
-    // 여러 반을 빠르게 눌렀을 때 늦게 도착한 응답이 화면을 덮어쓰지 않도록 요청 번호로 가립니다.
+    // 여러 반을 빠르게 바꿨을 때 늦게 도착한 응답이 화면을 덮어쓰지 않도록 요청 번호로 가립니다.
     var ownRequest = ++pickerRequestNo;
     var forceReload = Boolean(options && options.force);
     if (forceReload || !readClassTimetableCache(targetClass)) {
-      pillsEl.innerHTML = '<span class="ts-step-empty">NEIS에서 ' + escapeHtml(targetClass.label) + ' 이번 주 시간표를 불러오는 중...</span>';
+      setSubjectPlaceholder('NEIS에서 ' + targetClass.label + ' 시간표를 불러오는 중...');
       if (matrixBoxEl) matrixBoxEl.innerHTML = '';
+      updateAddLessonsButton();
     }
 
     var data = await fetchClassTimetableData(targetClass, { force: forceReload });
@@ -10207,16 +10234,15 @@ var TeacherSchedule = (function () {
     renderNeisStatus(data);
     if (!data || data.error || !data.subjects || !data.subjects.length) {
       pendingSubjects = [];
-      pillsEl.innerHTML = '<span class="ts-step-empty">표시할 교과가 없습니다.</span>';
+      setSubjectPlaceholder('표시할 교과가 없습니다');
       if (matrixBoxEl) matrixBoxEl.innerHTML = '';
+      if (toggleRow) toggleRow.hidden = true;
       updateAddLessonsButton();
       return;
     }
 
-    pendingSubjects = pendingSubjects.filter(function (name) {
-      return data.subjects.some(function (x) { return x.subject === name; });
-    });
-    renderSubjectChips(targetClass, data);
+    if (toggleRow) toggleRow.hidden = false;
+    renderSubjectOptions(targetClass, data);
     renderClassMatrix(targetClass, data);
   }
 
@@ -10875,30 +10901,16 @@ var TeacherSchedule = (function () {
     var loadHomeroomBtn = el('tsLoadHomeroomTtBtn');
     if (loadHomeroomBtn) loadHomeroomBtn.addEventListener('click', importHomeroomToTeacherTimetable);
 
-    // 담당 수업 추가: ① 학년 → ② 학급 → ③ 교과
-    var gradeBox = el('tsGradePills');
-    if (gradeBox) gradeBox.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-grade]');
-      if (btn) selectGrade(btn.getAttribute('data-grade'));
-    });
-    var classBox = el('tsClassPills');
-    if (classBox) classBox.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-class]');
-      if (btn) selectClass(btn.getAttribute('data-class'));
-    });
-    var subjectBox = el('tsClassSubjectPills');
-    if (subjectBox) subjectBox.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-sub-idx]');
-      if (!btn || btn.disabled || !currentPickerData || !activePickerClass) return;
-      var item = currentPickerData.subjects[Number(btn.getAttribute('data-sub-idx'))];
-      if (!item) return;
-      var at = pendingSubjects.indexOf(item.subject);
-      if (at >= 0) pendingSubjects.splice(at, 1);
-      else pendingSubjects.push(item.subject);
-      renderSubjectChips(activePickerClass, currentPickerData);
-      // 칩을 다시 그려도 방금 누른 칩에 초점이 남도록
-      var again = subjectBox.querySelector('[data-sub-idx="' + btn.getAttribute('data-sub-idx') + '"]');
-      if (again) again.focus();
+    // 담당 수업 추가: 학년 → 학급 → 교과 드롭다운
+    var gradeSelect = el('tsGradeSelect');
+    if (gradeSelect) gradeSelect.addEventListener('change', function () { selectGrade(this.value); });
+    var classSelect = el('tsClassSelect');
+    if (classSelect) classSelect.addEventListener('change', function () { selectClass(this.value); });
+    var subjectSelect = el('tsSubjectSelect');
+    if (subjectSelect) subjectSelect.addEventListener('change', function () {
+      var item = (this.value !== '' && currentPickerData) ? currentPickerData.subjects[Number(this.value)] : null;
+      pendingSubjects = item ? [item.subject] : [];
+      updateAddLessonsButton();
     });
     var addLessonsBtn = el('tsAddLessonsBtn');
     if (addLessonsBtn) addLessonsBtn.addEventListener('click', addPickedLessons);
