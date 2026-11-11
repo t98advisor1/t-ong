@@ -507,7 +507,7 @@
               <div class="cb-section" data-cb-sec="homeroomTt">
                 <div class="cb-sec-head">
                   <div class="cb-sec-title">
-                    <span>우리 반 시간표</span>
+                    <span id="cbHomeHomeroomTitle">우리 반 시간표</span>
                     <span class="cb-class-badge" id="cbHomeHomeroomBadge">미설정</span>
                   </div>
                   <button type="button" class="cb-open-link" data-cb-action="openSchedule">학급 변경 &gt;</button>
@@ -2074,7 +2074,7 @@
             <div class="cb-section" data-cb-sec="homeroomTt">
               <div class="cb-sec-head">
                 <div class="cb-sec-title">
-                  <span>우리 반 시간표</span>
+                  <span id="cbModalHomeroomTitle">우리 반 시간표</span>
                   <span class="cb-class-badge" id="cbModalHomeroomBadge">미설정</span>
                 </div>
                 <button type="button" class="cb-open-link" data-cb-action="openSchedule">학급 변경 &gt;</button>
@@ -2272,30 +2272,60 @@
           </div>
 
           <div style="margin-bottom:10px;">
-            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내 담임 학급 (1개 선택 — 칠판 브리핑에 우리 반 시간표 자동 표시)</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
+              <label style="font-size:0.82rem; font-weight:700; color:#334155; margin:0;">내 담임 학급 설정 (담임이 없는 교과전담·비담임 선생님은 [담임 없음]을 선택하세요)</label>
+              <span id="tsHomeroomStateNotice" style="font-size:0.75rem; font-weight:800; color:#4f46e5;"></span>
+            </div>
             <div id="tsHomeroomPills" class="class-pills-wrap">
               <span style="font-size:0.8rem; color:#94a3b8;">학교를 선택하면 실제 개설된 반 목록이 나타납니다.</span>
             </div>
           </div>
 
           <div style="margin-bottom:12px;">
-            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내가 수업 들어가는 학급 선택 (예: 2-2, 2-8 클릭 시 아래에 그 반의 수업 과목이 표시됩니다)</label>
+            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내가 수업 들어가는 학급 선택 (학급 클릭 시 아래에 해당 반의 정확한 NEIS 개설 과목과 시간표가 표시됩니다)</label>
             <div id="tsSubjectPills" class="class-pills-wrap">
               <span style="font-size:0.8rem; color:#94a3b8;">학교를 선택하면 실제 개설된 반 목록이 나타납니다.</span>
             </div>
           </div>
 
-          <!-- 2-1. 선택한 학급(예: 2-2)에서 실제 수업하는 NEIS 과목 선택 박스 -->
+          <!-- 2-1. 선택한 학급(예: 2-2, 2-8, 1-1)에서 실제 수업하는 NEIS 과목 & 학급 시간표 선택 박스 -->
           <div id="tsClassSubjectPickerBox" class="ts-subject-picker-box">
             <div class="ts-subject-picker-head">
               <div>
-                <strong id="tsActiveClassLabel" style="color:#1e293b; font-size:0.86rem;">[2학년 2반] 개설 수업 과목 고르기 (NEIS 시간표 연동)</strong>
-                <span style="display:block; font-size:0.75rem; color:#475569; margin-top:2px;">내가 이 반에서 가르치는 과목을 클릭하면, 해당 과목의 수업 요일·교시가 아래 <b>내 주간 시간표</b>에 자동으로 입력됩니다.</span>
+                <strong id="tsActiveClassLabel" style="color:#1e293b; font-size:0.88rem;">[2학년 2반] NEIS 개설 수업 과목 고르기</strong>
+                <span style="display:block; font-size:0.75rem; color:#475569; margin-top:2px;">과목 칩을 클릭하면 해당 반의 모든 수업 교시가 한 번에 입력되며, 아래 <b>학급 시간표 원본 표</b>에서 특정 교시 칸만 클릭해 개별 반영할 수도 있습니다.</span>
               </div>
-              <div id="tsActiveClassTabs" class="ts-active-class-tabs"></div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <div id="tsActiveClassTabs" class="ts-active-class-tabs"></div>
+                <button type="button" id="tsToggleClassMatrixBtn" class="btn small" style="font-size:0.73rem; padding:4px 9px; background:#fff; border:1px solid #6366f1; color:#4f46e5; font-weight:700;">학급 시간표 표 접기 ▴</button>
+              </div>
             </div>
             <div id="tsClassSubjectPills" class="ts-subject-pills-grid">
               <span style="font-size:0.8rem; color:#64748b;">학년·반을 클릭하면 해당 반의 NEIS 수업 과목 목록을 불러옵니다...</span>
+            </div>
+            <div id="tsClassMatrixPreviewWrap" class="ts-class-matrix-wrap">
+              <div class="ts-class-matrix-caption">
+                <span id="tsClassMatrixTitle">선택 학급 주간 시간표 (칸을 클릭하면 내 시간표의 해당 교시에 과목이 바로 입력/해제됩니다)</span>
+              </div>
+              <div id="tsClassMatrixPreview"></div>
+            </div>
+          </div>
+
+          <!-- 2-2. 창체 동아리 불러오기 & 담당 동아리 선택 박스 -->
+          <div id="tsClubPickerBox" class="ts-club-picker-box">
+            <div class="ts-subject-picker-head">
+              <div>
+                <strong style="color:#065f46; font-size:0.88rem;">창체 동아리 불러오기 &amp; 내 담당 동아리 선택 (교과처럼 원클릭 시간표 반영)</strong>
+                <span style="display:block; font-size:0.75rem; color:#047857; margin-top:2px;">동아리 운영 요일·교시를 선택하고 담당 동아리를 클릭하면 내 주간 시간표와 오늘 브리핑에 즉시 반영됩니다.</span>
+              </div>
+              <div id="tsClubSlotPills" class="ts-club-slot-pills"></div>
+            </div>
+            <div id="tsClubCatTabs" class="ts-club-cat-tabs"></div>
+            <div id="tsClubPills" class="ts-subject-pills-grid"></div>
+            <div class="ts-custom-club-bar">
+              <input type="text" id="tsCustomClubNameInput" placeholder="우리 학교 동아리명 직접 입력 (예: 과학실험탐구반, 벽화봉사반)" style="flex:1; min-width:180px; padding:6px 10px; border:1px solid #6ee7b7; border-radius:8px; font-size:0.8rem; margin:0;">
+              <input type="text" id="tsCustomClubRoomInput" placeholder="활동실 (예: 과학실, 동아리실)" style="width:140px; padding:6px 10px; border:1px solid #6ee7b7; border-radius:8px; font-size:0.8rem; margin:0;">
+              <button type="button" id="tsAddCustomClubBtn" class="btn small" style="background:#059669; color:#fff; border:none; font-weight:700; padding:6px 12px;">＋ 동아리 추가 및 시간표 반영</button>
             </div>
           </div>
 
@@ -2357,7 +2387,8 @@
             </div>
           </div>
           <div id="tsCellSubjectSuggestWrap" style="margin-top:8px;">
-            <span style="font-size:0.74rem; color:#4f46e5; font-weight:700; display:block; margin-bottom:4px;">선택한 학급의 개설 과목 빠른 선택:</span>
+            <div id="tsCellPeriodMatchNotice" style="font-size:0.76rem; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:6px; padding:5px 8px; margin-bottom:6px; font-weight:700; display:none;"></div>
+            <span style="font-size:0.74rem; color:#4f46e5; font-weight:700; display:block; margin-bottom:4px;">선택한 학급의 전체 개설 과목 및 동아리 빠른 선택 (클릭 시 과목명 정확히 입력):</span>
             <div id="tsCellSubjectChips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
           </div>
           <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:6px;">

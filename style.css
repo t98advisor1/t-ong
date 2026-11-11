@@ -4689,3 +4689,172 @@ html[data-theme] .header-sync-menu {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* 비담임(담임 없음) 버튼 및 선택 학급 시간표 매트릭스 & 동아리 선택기 스타일 */
+.class-pill-btn.non-homeroom-btn {
+  border: 1.5px dashed #64748b;
+  color: #334155;
+  background: #f8fafc;
+  font-weight: 800;
+  padding: 5px 12px;
+}
+.class-pill-btn.non-homeroom-btn.active {
+  background: #0f172a;
+  color: #fde68a;
+  border: 1.5px solid #0f172a;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
+}
+
+.ts-class-matrix-wrap {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #a5b4fc;
+}
+.ts-class-matrix-wrap[hidden] {
+  display: none !important;
+}
+.ts-class-matrix-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #3730a3;
+}
+.ts-class-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.75rem;
+  border: 1px solid #c7d2fe;
+}
+.ts-class-matrix-table th,
+.ts-class-matrix-table td {
+  border: 1px solid #e0e7ff;
+  padding: 5px 4px;
+  text-align: center;
+  word-break: keep-all;
+}
+.ts-class-matrix-table thead th {
+  background: #e0e7ff;
+  color: #1e1b4b;
+  font-weight: 800;
+}
+.ts-class-matrix-table tbody th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 800;
+  width: 36px;
+}
+.ts-class-matrix-table td.matrix-cell {
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  color: #1e293b;
+  font-weight: 600;
+}
+.ts-class-matrix-table td.matrix-cell:hover {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.ts-class-matrix-table td.matrix-cell.assigned {
+  background: #4f46e5;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* 창체 동아리 불러오기 & 선택 박스 (#tsClubPickerBox) */
+.ts-club-picker-box {
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.ts-club-slot-pills {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.ts-club-slot-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #34d399;
+  background: #ffffff;
+  color: #065f46;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ts-club-slot-btn.active {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+.ts-club-cat-tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.ts-club-cat-btn {
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+  background: rgba(255, 255, 255, 0.75);
+  color: #065f46;
+  font-size: 0.73rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ts-club-cat-btn.active {
+  background: #047857;
+  color: #ffffff;
+  border-color: #047857;
+}
+.ts-subject-pill-btn.club-pill {
+  border-color: #a7f3d0;
+}
+.ts-subject-pill-btn.club-pill:hover {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+.ts-subject-pill-btn.club-pill.selected {
+  background: #059669;
+  border-color: #047857;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);
+}
+.ts-subject-pill-btn.club-pill.selected small {
+  color: #d1fae5;
+}
+.ts-custom-club-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #6ee7b7;
+}
+.weekly-tt-table td.filled .tt-cls-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.weekly-tt-table td.filled.is-club-cell {
+  background: #ecfdf5;
+}
+.weekly-tt-table td.filled.is-club-cell .tt-cls-badge {
+  background: #d1fae5;
+  color: #065f46;
+}
