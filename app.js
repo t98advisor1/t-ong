@@ -1916,29 +1916,8 @@ function setModeScreen(element, visible, displayValue) {
   element.style.display = visible ? (displayValue || '') : 'none';
 }
 
-function showHomeScreen() {
-  appMode = 'home';
-  document.querySelectorAll('.mode-tab[data-mode]').forEach(function (tab) { tab.classList.remove('active'); });
-  var wizard = document.getElementById('setupWizard');
-  var stage = document.getElementById('stage');
-  var attend = document.getElementById('attendView');
-  var bar = document.querySelector('.action-bar');
-  if (wizard) { wizard.classList.remove('hidden'); wizard.classList.add('home-only'); wizard.style.display = 'grid'; }
-  setModeScreen(stage, false);
-  setModeScreen(attend, false);
-  setModeScreen(bar, false);
-  window.scrollTo({ top:0, behavior:'auto' });
-}
-
-function showSetupWizard() {
-  var wizard = document.getElementById('setupWizard');
-  if (wizard) {
-    wizard.classList.remove('hidden');
-    wizard.classList.remove('home-only');
-    wizard.style.display = 'grid';
-  }
-  setModeScreen(document.getElementById('stage'), false);
-  if (appMode === 'seat') setModeScreen(document.querySelector('.action-bar'), false);
+// 교실 좌석 구조 설정 폼(책상 수·분단·학생 수)을 현재 설정값으로 채웁니다.
+function prepareSeatConfigForm() {
   document.getElementById('totalDesks').value = config.totalDesks;
   document.getElementById('studentCount').value = students.length || 28;
   initColumnOptions();
@@ -1948,12 +1927,59 @@ function showSetupWizard() {
   if (typeof showWizardStep === 'function') showWizardStep(1);
 }
 
+// 홈 대시보드 — 헤더의 [홈 대시보드]·홈 메뉴·앱 시작 시 보이는 화면
+function showHomeScreen() {
+  appMode = 'home';
+  document.querySelectorAll('.mode-tab').forEach(function (tab) { tab.classList.remove('active'); });
+  var homeTab = document.getElementById('topDashboardBtn');
+  if (homeTab) homeTab.classList.add('active');
+  var wizard = document.getElementById('setupWizard');
+  var stage = document.getElementById('stage');
+  var attend = document.getElementById('attendView');
+  var bar = document.querySelector('.action-bar');
+  if (wizard) {
+    wizard.classList.remove('hidden');
+    wizard.classList.remove('home-only');
+    wizard.classList.remove('seat-setup-only');
+    wizard.style.display = 'grid';
+  }
+  setModeScreen(stage, false);
+  setModeScreen(attend, false);
+  setModeScreen(bar, false);
+  prepareSeatConfigForm();
+  window.scrollTo({ top:0, behavior:'auto' });
+}
+
+// 교실 좌석 구조 설정 화면.
+// [학급 관리(자리)]에서 들어왔을 때(appMode === 'seat')는 대시보드를 빼고 설정 폼만 보여 줍니다.
+function showSetupWizard() {
+  var wizard = document.getElementById('setupWizard');
+  var seatOnly = appMode === 'seat';
+  if (wizard) {
+    wizard.classList.remove('hidden');
+    wizard.classList.remove('home-only');
+    wizard.classList.toggle('seat-setup-only', seatOnly);
+    wizard.style.display = 'grid';
+  }
+  setModeScreen(document.getElementById('stage'), false);
+  if (appMode === 'seat') setModeScreen(document.querySelector('.action-bar'), false);
+  prepareSeatConfigForm();
+}
+
 function hideSetupWizard() {
   var wizard = document.getElementById('setupWizard');
   if (wizard) {
     wizard.classList.remove('home-only');
+    wizard.classList.remove('seat-setup-only');
     wizard.classList.add('hidden');
     wizard.style.display = 'none';
+  }
+  // 대시보드에서 바로 자리 화면으로 넘어온 경우(명렬표 등록 등) 탭 표시도 자리 화면으로 맞춥니다.
+  if (appMode === 'home') {
+    appMode = 'seat';
+    document.querySelectorAll('.mode-tab').forEach(function (tab) {
+      tab.classList.toggle('active', tab.dataset.mode === 'seat');
+    });
   }
   setModeScreen(document.getElementById('stage'), true, 'flex');
   // 상단 원본 액션은 좌측 메뉴와 우측 좌석 패널의 프록시 연결용으로만 숨겨 둡니다.
@@ -3895,12 +3921,39 @@ function confirmReset() {
 }
 
 // ===== 유틸리티 =====
+// 헤더 탭에서 화면 가득 여는 창들 — 열려 있는 동안에는 뒤의 홈 대시보드를 숨기고 해당 탭을 강조합니다.
+var HEADER_PAGE_MODALS = {
+  teacherScheduleModal: 'topScheduleBtn',
+  calendarModal: 'calendarBtn',
+  sheetMemoModal: 'topSheetMemoBtn'
+};
+
+function syncHeaderPageState() {
+  var openId = '';
+  Object.keys(HEADER_PAGE_MODALS).forEach(function (id) {
+    var modal = document.getElementById(id);
+    if (modal && modal.classList.contains('show')) openId = id;
+  });
+  document.body.classList.toggle('header-page-open', Boolean(openId));
+  Object.keys(HEADER_PAGE_MODALS).forEach(function (id) {
+    var tab = document.getElementById(HEADER_PAGE_MODALS[id]);
+    if (tab) tab.classList.toggle('active', id === openId);
+  });
+  // 창을 닫으면 원래 보고 있던 화면의 탭 강조가 돌아옵니다.
+  var baseTab = appMode === 'home'
+    ? document.getElementById('topDashboardBtn')
+    : document.querySelector('.mode-tab[data-mode="' + appMode + '"]');
+  if (baseTab) baseTab.classList.toggle('active', !openId);
+}
+
 function openModal(id) {
   document.getElementById(id).classList.add('show');
+  if (HEADER_PAGE_MODALS[id]) syncHeaderPageState();
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('show');
+  if (HEADER_PAGE_MODALS[id]) syncHeaderPageState();
 }
 
 function saveToLocalStorage() {
@@ -5326,6 +5379,147 @@ var HelpMenu = (function () {
 
 
 // ===================================================================
+// NEIS 교육정보 개방 포털 공통 호출부
+//  인증키 없이 호출하면 NEIS 는 요청당 앞의 5건(샘플)만 돌려줍니다. 하루 시간표는 6~7교시라
+//  5교시 뒤가 잘리므로, 아래 순서로 인증키가 붙은 경로를 먼저 씁니다.
+//   1) 이 기기에 저장한 개인 인증키  2) 서버 프록시(/api/neis, 환경변수 NEIS_API_KEY)
+//   3) 둘 다 없으면 인증키 없이 직접 호출 — 이때는 truncated 로 잘린 사실을 알려 줍니다.
+// ===================================================================
+var NeisApi = (function () {
+  var USER_KEY_STORAGE = 'tongNeisApiKey_v1';
+  var PROXY_PATH = '/api/neis';
+  var KEY_ERROR_CODES = ['ERROR-290', 'ERROR-337', 'INFO-300'];  // 잘못된 키 · 일일 호출 한도 초과 · 사용 제한된 키
+  var proxyState = null;  // null: 아직 모름 · true: 사용 가능 · false: 프록시 없음(키 미설정·정적 호스팅)
+  var proxyProbe = null;
+
+  function getUserKey() {
+    try { return String(localStorage.getItem(USER_KEY_STORAGE) || '').trim(); } catch (e) { return ''; }
+  }
+  function setUserKey(value) {
+    var key = String(value || '').trim();
+    try {
+      if (key) localStorage.setItem(USER_KEY_STORAGE, key);
+      else localStorage.removeItem(USER_KEY_STORAGE);
+    } catch (e) {}
+    return key;
+  }
+
+  function neisError(code, message) {
+    var error = new Error(message || ('NEIS ' + code));
+    error.neisCode = code;
+    error.isKeyError = KEY_ERROR_CODES.indexOf(code) >= 0;
+    return error;
+  }
+
+  function buildQuery(params) {
+    var query = new URLSearchParams();
+    query.set('pIndex', '1');
+    query.set('pSize', String(params.pSize || '100'));
+    Object.keys(params).forEach(function (name) {
+      if (name !== 'pSize' && params[name] != null && params[name] !== '') query.set(name, params[name]);
+    });
+    return query;
+  }
+
+  function parse(data, setName) {
+    var result = data && data.RESULT;
+    if (result && result.CODE) {
+      if (result.CODE === 'INFO-200') return { rows: [], total: 0 };
+      throw neisError(result.CODE, result.MESSAGE);
+    }
+    var set = data && data[setName];
+    if (!Array.isArray(set)) return { rows: [], total: 0 };
+    var headBlock = set.find(function (part) { return part && Array.isArray(part.head); });
+    var rowBlock = set.find(function (part) { return part && Array.isArray(part.row); });
+    var rows = rowBlock ? rowBlock.row : [];
+    var total = rows.length;
+    if (headBlock) {
+      headBlock.head.forEach(function (item) {
+        if (item && item.list_total_count != null) total = Number(item.list_total_count) || rows.length;
+      });
+    }
+    return { rows: rows, total: total };
+  }
+
+  async function requestDirect(setName, params, key) {
+    var query = buildQuery(params);
+    query.set('Type', 'json');
+    if (key) query.set('KEY', key);
+    var response = await fetch('https://open.neis.go.kr/hub/' + setName + '?' + query.toString(), { cache: 'no-store' });
+    if (!response.ok) throw new Error('NEIS HTTP ' + response.status);
+    return parse(await response.json(), setName);
+  }
+
+  // 프록시를 쓸 수 없으면 null 을 돌려주고, 호출한 쪽이 인증키 없는 직접 호출로 넘어갑니다.
+  async function requestProxy(setName, params) {
+    var query = buildQuery(params);
+    query.set('set', setName);
+    var response;
+    try { response = await fetch(PROXY_PATH + '?' + query.toString(), { cache: 'no-store' }); }
+    catch (e) { return null; }
+    if (response.status === 404 || response.status === 405 || response.status === 503) { proxyState = false; return null; }
+    if (!response.ok) return null;
+    var data;
+    try { data = await response.json(); }
+    catch (e) { proxyState = false; return null; }
+    try {
+      var parsed = parse(data, setName);
+      proxyState = true;
+      return parsed;
+    } catch (error) {
+      if (error.isKeyError) {
+        proxyState = false;
+        console.warn('[NEIS] 서버에 등록된 인증키를 쓸 수 없습니다: ' + error.message);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  // 첫 화면에서 여러 조회가 한꺼번에 나가도 프록시 유무 확인은 한 번만 하도록 줄을 세웁니다.
+  async function viaProxy(setName, params) {
+    if (proxyState === false) return null;
+    if (proxyState === null && proxyProbe) {
+      await proxyProbe;
+      return proxyState === false ? null : requestProxy(setName, params);
+    }
+    if (proxyState === null) {
+      var own = requestProxy(setName, params);
+      proxyProbe = own.then(function () {}, function () {});
+      try { return await own; } finally { proxyProbe = null; }
+    }
+    return requestProxy(setName, params);
+  }
+
+  // { rows, total, keyed, truncated } — truncated 는 NEIS 가 가진 건수보다 적게 받았다는 뜻입니다.
+  async function fetchSet(setName, params) {
+    params = params || {};
+    var userKey = getUserKey();
+    var parsed = null;
+    var keyed = false;
+    if (userKey) {
+      parsed = await requestDirect(setName, params, userKey);
+      keyed = true;
+    } else {
+      parsed = await viaProxy(setName, params);
+      if (parsed) keyed = true;
+      else parsed = await requestDirect(setName, params, '');
+    }
+    parsed.keyed = keyed;
+    parsed.truncated = parsed.total > parsed.rows.length;
+    return parsed;
+  }
+
+  return {
+    fetch: fetchSet,
+    getUserKey: getUserKey,
+    setUserKey: setUserKey,
+    hasUserKey: function () { return !!getUserKey(); }
+  };
+})();
+
+
+// ===================================================================
 // 도움말 실험 기능 — NEIS 오늘의 학교
 // ===================================================================
 var SchoolToday = (function () {
@@ -5334,6 +5528,7 @@ var SchoolToday = (function () {
   var profile=null;
   var selectedSchool=null;
   var requestNumber=0;
+  var lastTimetableCut=null;  // 인증키가 없어 시간표가 잘렸을 때 {shown,total}
 
   function el(id){return document.getElementById(id);}
   function readJson(key,fallback){try{var value=JSON.parse(localStorage.getItem(key)||'null');return value==null?fallback:value;}catch(e){return fallback;}}
@@ -5342,15 +5537,11 @@ var SchoolToday = (function () {
   function weekdayText(key){var d=new Date(String(key)+'T00:00:00');return ['일','월','화','수','목','금','토'][d.getDay()]+'요일';}
   function timetableDataset(kind){if(kind==='초등학교')return'elsTimetable';if(kind==='중학교')return'misTimetable';if(kind==='특수학교')return'spsTimetable';return'hisTimetable';}
   function semesterFor(key){var d=new Date(String(key)+'T00:00:00'),month=d.getMonth()+1,year=d.getFullYear();if(month<=2)return{year:year-1,semester:2};return{year:year,semester:month<=8?1:2};}
-  function apiRows(data,setName){
-    if(data&&data.RESULT&&data.RESULT.CODE==='INFO-200')return[];
-    var set=data&&data[setName];if(!Array.isArray(set))return[];
-    var block=set.find(function(part){return part&&Array.isArray(part.row);});return block?block.row:[];
-  }
+  // 인증키 경로(개인 키·서버 프록시)를 함께 쓰도록 공통 호출부에 맡깁니다.
   async function request(setName,params){
-    var url=new URL('https://open.neis.go.kr/hub/'+setName);url.searchParams.set('Type','json');url.searchParams.set('pIndex','1');url.searchParams.set('pSize',params.pSize||'100');
-    Object.keys(params).forEach(function(key){if(key!=='pSize'&&params[key]!==''&&params[key]!=null)url.searchParams.set(key,params[key]);});
-    var response=await fetch(url.toString(),{cache:'no-store'});if(!response.ok)throw new Error('NEIS '+response.status);return apiRows(await response.json(),setName);
+    var result=await NeisApi.fetch(setName,params);
+    if(result.truncated&&/Timetable$/.test(setName))lastTimetableCut={shown:result.rows.length,total:result.total};
+    return result.rows;
   }
   function normalizeSchool(row){return{atptCode:String(row.ATPT_OFCDC_SC_CODE||''),schoolCode:String(row.SD_SCHUL_CODE||''),schoolName:String(row.SCHUL_NM||''),schoolKind:String(row.SCHUL_KND_SC_NM||''),location:String(row.LCTN_SC_NM||''),address:String(row.ORG_RDNMA||'')};}
   function setStatus(text,type){var node=el('schoolTodayStatus');if(!node)return;node.textContent=text||'';node.className='school-today-status'+(type?' '+type:'');}
@@ -5381,13 +5572,13 @@ var SchoolToday = (function () {
   }
   function cacheKey(date){return[profile.atptCode,profile.schoolCode,date,profile.grade,profile.className].join('|');}
   function readCache(date){var all=readJson(CACHE_KEY,{}),item=all[cacheKey(date)];return item&&Date.now()-Number(item.savedAt||0)<21600000?item:null;}
-  function saveCache(date,item){var all=readJson(CACHE_KEY,{});all[cacheKey(date)]={savedAt:Date.now(),timetable:item.timetable,meal:item.meal};var keys=Object.keys(all).sort(function(a,b){return Number(all[b].savedAt)-Number(all[a].savedAt);});keys.slice(20).forEach(function(key){delete all[key];});writeJson(CACHE_KEY,all);}
-  function renderData(date,data,cached){el('schoolTimetableMeta').textContent=profile.grade+'학년 '+profile.className+'반';renderTimetable(data.timetable||[]);renderMeal(data.meal||[]);setStatus((Number(date.slice(5,7)))+'월 '+Number(date.slice(8,10))+'일 '+weekdayText(date)+' · NEIS 공개정보'+(cached?' · 저장된 조회 결과':''),cached?'cached':'ok');}
+  function saveCache(date,item){var all=readJson(CACHE_KEY,{});all[cacheKey(date)]={savedAt:Date.now(),timetable:item.timetable,meal:item.meal,timetableCut:item.timetableCut||null};var keys=Object.keys(all).sort(function(a,b){return Number(all[b].savedAt)-Number(all[a].savedAt);});keys.slice(20).forEach(function(key){delete all[key];});writeJson(CACHE_KEY,all);}
+  function renderData(date,data,cached){el('schoolTimetableMeta').textContent=profile.grade+'학년 '+profile.className+'반';renderTimetable(data.timetable||[]);renderMeal(data.meal||[]);setStatus((Number(date.slice(5,7)))+'월 '+Number(date.slice(8,10))+'일 '+weekdayText(date)+' · NEIS 공개정보'+(cached?' · 저장된 조회 결과':'')+(data.timetableCut?' · NEIS 인증키가 없어 '+data.timetableCut.total+'교시 중 '+data.timetableCut.shown+'교시까지만 표시됩니다':''),cached?'cached':'ok');}
   async function refresh(force){
     if(!profile){setSettings(true);setStatus('학교를 먼저 설정해 주세요.','error');return;}
     var date=el('schoolTodayDate').value||formatDate(new Date()),cached=!force&&readCache(date);if(cached){renderData(date,cached,true);return;}
     var ownRequest=++requestNumber;loading();setStatus('NEIS 공개정보를 조회하고 있습니다.');
-    try{var semester=semesterFor(date),common={ATPT_OFCDC_SC_CODE:profile.atptCode,SD_SCHUL_CODE:profile.schoolCode};var tableParams=Object.assign({},common,{AY:String(semester.year),SEM:String(semester.semester),ALL_TI_YMD:compactDate(date),GRADE:String(profile.grade),CLASS_NM:String(profile.className),pSize:'100'});var mealParams=Object.assign({},common,{MLSV_YMD:compactDate(date),pSize:'10'});var values=await Promise.all([request(timetableDataset(profile.schoolKind),tableParams),request('mealServiceDietInfo',mealParams)]);if(ownRequest!==requestNumber)return;var data={timetable:values[0],meal:values[1]};saveCache(date,data);renderData(date,data,false);}catch(error){if(ownRequest!==requestNumber)return;el('schoolTimetableList').innerHTML=emptyHtml('시간표를 불러오지 못했습니다.','잠시 후 새로고침해 주세요.');el('schoolMealList').innerHTML=emptyHtml('급식을 불러오지 못했습니다.','네트워크 연결을 확인해 주세요.');setStatus('NEIS 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.','error');}
+    try{var semester=semesterFor(date),common={ATPT_OFCDC_SC_CODE:profile.atptCode,SD_SCHUL_CODE:profile.schoolCode};var tableParams=Object.assign({},common,{AY:String(semester.year),SEM:String(semester.semester),ALL_TI_YMD:compactDate(date),GRADE:String(profile.grade),CLASS_NM:String(profile.className),pSize:'100'});var mealParams=Object.assign({},common,{MLSV_YMD:compactDate(date),pSize:'10'});lastTimetableCut=null;var values=await Promise.all([request(timetableDataset(profile.schoolKind),tableParams),request('mealServiceDietInfo',mealParams)]);if(ownRequest!==requestNumber)return;var data={timetable:values[0],meal:values[1],timetableCut:lastTimetableCut};saveCache(date,data);renderData(date,data,false);}catch(error){if(ownRequest!==requestNumber)return;el('schoolTimetableList').innerHTML=emptyHtml('시간표를 불러오지 못했습니다.','잠시 후 새로고침해 주세요.');el('schoolMealList').innerHTML=emptyHtml('급식을 불러오지 못했습니다.','네트워크 연결을 확인해 주세요.');setStatus('NEIS 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.','error');}
   }
   async function searchSchool(){
     var input=el('schoolSearchInput'),query=input.value.trim(),status=el('schoolSearchStatus'),results=el('schoolSearchResults');if(query.length<2){status.textContent='학교 이름을 두 글자 이상 입력해 주세요.';input.focus();return;}
@@ -8605,13 +8796,18 @@ function maybeAutoOpenGuide() {
 var TeacherSchedule = (function () {
   var SCHOOL_KEY = 'tongNeisSchool_v1';
   var CLASSES_KEY = 'tongNeisClasses_v1';
+  var CLASSES_SCHOOL_KEY = 'tongNeisClassesSchool_v1';  // 학급 목록을 NEIS에서 실제로 받아 온 학교
   var HOMEROOM_KEY = 'tongHomeroomClass_v1';
   var NON_HOMEROOM_KEY = 'tongIsNonHomeroom_v1';
   var SUBJECT_CLASSES_KEY = 'tongSubjectClasses_v1';
   var TIMETABLE_KEY = 'tongTeacherTimetable_v1';
-  var HOMEROOM_TT_KEY = 'tongHomeroomTimetable_v1';
-  var CLASS_TT_CACHE_KEY = 'tongClassTimetableCache_v3';
-  var ACADEMIC_CACHE_KEY = 'tongNeisAcademicEvents_v1';
+  // v1/v3 캐시에는 작년 시간표와 임의로 채운 교시가 섞여 있어 새 키로 바꿔 버립니다.
+  var HOMEROOM_TT_KEY = 'tongHomeroomTimetable_v2';
+  var CLASS_TT_CACHE_KEY = 'tongClassTimetableCache_v4';
+  var CLASS_TT_CACHE_MS = 6 * 60 * 60 * 1000;  // 학급 시간표 재조회 간격
+  var ACADEMIC_CACHE_KEY = 'tongNeisAcademicEvents_v2';
+  var ACADEMIC_META_KEY = 'tongNeisAcademicSync_v1';
+  var ACADEMIC_SYNC_MS = 6 * 60 * 60 * 1000;  // 학사일정 자동 재조회 간격
   var CUSTOM_CLUBS_KEY = 'tongCustomClubs_v1';
   var ACTIVE_CLUB_SLOT_KEY = 'tongActiveClubSlot_v1';
 
@@ -8669,6 +8865,7 @@ var TeacherSchedule = (function () {
     { name: '배드민턴·체육반', category: '예술·체육·미디어', room: '강당' }
   ];
 
+  var WEEK_DAYS = ['월', '화', '수', '목', '금'];
   var selectedSchool = null;
   var availableClasses = [];
   var isNonHomeroom = false; // 담임 없음(비담임·교과전담) 여부
@@ -8678,6 +8875,9 @@ var TeacherSchedule = (function () {
   var currentEditCell = null;
   var activeClubCategory = '전체';
   var activeClubSlotId = 'wed-7';
+  var activeGrade = null;        // 담당 수업 추가 ①단계에서 고른 학년(숫자) 또는 'etc'(기타)
+  var pendingSubjects = [];      // ③단계에서 골라 둔(아직 추가 전) 교과명
+  var currentPickerData = null;  // ③단계에 표시 중인 학급 시간표
 
   function el(id) { return document.getElementById(id); }
 
@@ -8737,64 +8937,45 @@ var TeacherSchedule = (function () {
       selectedSubjects = [sub22, sub28].filter(Boolean);
       writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
     }
-    if (!activePickerClass) {
-      activePickerClass = selectedHomeroom || selectedSubjects[0] || availableClasses[0];
-    }
-
     var savedSlotId = readJson(ACTIVE_CLUB_SLOT_KEY, null);
     if (savedSlotId && CLUB_SLOT_OPTIONS.some(function (o) { return o.id === savedSlotId; })) {
       activeClubSlotId = savedSlotId;
     }
   }
 
+  // 처음에는 빈 시간표로 시작합니다. (학급 시간표에서 과목을 눌러 채웁니다)
   function defaultTimetable() {
-    var days = ['월', '화', '수', '목', '금'];
     var tt = {};
-    days.forEach(function (d) {
+    WEEK_DAYS.forEach(function (d) {
       tt[d] = {};
       for (var p = 1; p <= 7; p++) {
         tt[d][p] = { className: '', subject: '', room: '' };
       }
     });
-    tt['월'][1] = { className: '2-2', subject: '세계사K', room: '2-2' };
-    tt['월'][3] = { className: '2-8', subject: '수학Ⅱ', room: '2-8' };
-    tt['화'][1] = { className: '2-2', subject: '사회·문화S1', room: '2-2' };
-    tt['화'][4] = { className: '2-8', subject: '생명과학ⅠK', room: '2-8' };
-    tt['수'][1] = { className: '2-2', subject: '사회·문화S1', room: '2-2' };
-    tt['수'][4] = { className: '2-8', subject: '중국어Ⅰ', room: '2-8' };
-    tt['목'][4] = { className: '2-2', subject: '세계사K', room: '2-2' };
-    tt['금'][3] = { className: '2-2', subject: '사회·문화S1', room: '2-2' };
     return tt;
   }
 
-  async function fetchNeisRaw(setName, params) {
-    var url = new URL('https://open.neis.go.kr/hub/' + setName);
-    url.searchParams.set('Type', 'json');
-    url.searchParams.set('pIndex', '1');
-    url.searchParams.set('pSize', params.pSize || '100');
-    Object.keys(params).forEach(function (k) {
-      if (k !== 'pSize' && params[k] != null && params[k] !== '') {
-        url.searchParams.set(k, params[k]);
-      }
-    });
-    var res = await fetch(url.toString(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('NEIS HTTP ' + res.status);
-    var data = await res.json();
-    if (data && data.RESULT && data.RESULT.CODE === 'INFO-200') return { rows: [], total: 0 };
-    var set = data && data[setName];
-    if (!Array.isArray(set)) return { rows: [], total: 0 };
-    var headBlock = set.find(function (p) { return p && Array.isArray(p.head); });
-    var total = 0;
-    if (headBlock && headBlock.head && headBlock.head[0] && headBlock.head[0].list_total_count != null) {
-      total = Number(headBlock.head[0].list_total_count) || 0;
-    }
-    var rowBlock = set.find(function (p) { return p && Array.isArray(p.row); });
-    return { rows: rowBlock ? rowBlock.row : [], total: total };
+  function fetchNeisRaw(setName, params) {
+    return NeisApi.fetch(setName, params);
   }
 
   async function fetchNeis(setName, params) {
     var r = await fetchNeisRaw(setName, params);
     return r.rows;
+  }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function toYmd(date) { return String(date.getFullYear()) + pad2(date.getMonth() + 1) + pad2(date.getDate()); }
+  function addDays(date, days) { var d = new Date(date.getFullYear(), date.getMonth(), date.getDate()); d.setDate(d.getDate() + days); return d; }
+  function ymdLabel(ymd) { return Number(ymd.slice(4, 6)) + '/' + Number(ymd.slice(6, 8)); }
+  // 이번 주 월요일 (주말에는 방금 끝난 주)
+  function mondayOf(date) {
+    var day = date.getDay();
+    return addDays(date, day === 0 ? -6 : 1 - day);
+  }
+  // 학년도: 3월에 시작하므로 1~2월은 전년도
+  function academicYearOf(date) {
+    return date.getMonth() + 1 <= 2 ? date.getFullYear() - 1 : date.getFullYear();
   }
 
   // 1. 스마트 학교 검색
@@ -8905,9 +9086,7 @@ var TeacherSchedule = (function () {
     renderSelectedSchool();
     await loadSchoolClasses();
     await fetchHomeroomTimetable();
-    if (activePickerClass) {
-      await renderClassSubjectPicker(activePickerClass);
-    }
+    await renderClassSubjectPicker(activePickerClass);
     renderClubPicker();
     await syncAcademicScheduleToCalendar(true);
     if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
@@ -8931,16 +9110,6 @@ var TeacherSchedule = (function () {
       var roleSuffix = isNonHomeroom ? ' · 비담임(교과전담)' : (selectedHomeroom ? ' · ' + selectedHomeroom.short + ' 담임' : '');
       dashChip.textContent = selectedSchool.schoolName + roleSuffix;
     }
-    var noticeEl = el('tsHomeroomStateNotice');
-    if (noticeEl) {
-      if (isNonHomeroom || !selectedHomeroom) {
-        noticeEl.textContent = '현재: 담임 없음 (비담임 · 교과전담)';
-        noticeEl.style.color = '#0f172a';
-      } else {
-        noticeEl.textContent = '현재: ' + selectedHomeroom.label + ' 담임';
-        noticeEl.style.color = '#4f46e5';
-      }
-    }
     var loadHomeroomBtn = el('tsLoadHomeroomTtBtn');
     if (loadHomeroomBtn) {
       loadHomeroomBtn.style.opacity = (isNonHomeroom || !selectedHomeroom) ? '0.55' : '1';
@@ -8957,54 +9126,78 @@ var TeacherSchedule = (function () {
     var maxGrade = isElem ? 6 : 3;
     var newClasses = [];
 
+    function classEntry(gradeNum, name) {
+      return { grade: gradeNum, className: String(name), label: gradeNum + '학년 ' + name + '반', short: gradeNum + '-' + name };
+    }
+    function byClassName(a, b) {
+      var na = Number(a), nb = Number(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return String(a).localeCompare(String(b), 'ko');
+    }
+
+    var loadFailed = false;
     try {
+      // 올해 학년도 → 아직 등록 전이면 지난 학년도 순서로 찾습니다.
+      var thisYear = academicYearOf(new Date());
+      var years = [String(thisYear), String(thisYear - 1)];
       var gradePromises = [];
       for (var g = 1; g <= maxGrade; g++) {
         (function (gradeNum) {
           gradePromises.push((async function () {
-            for (var ay of ['2026', '2025']) {
+            for (var yi = 0; yi < years.length; yi++) {
               var res = await fetchNeisRaw('classInfo', {
                 ATPT_OFCDC_SC_CODE: selectedSchool.atptCode,
                 SD_SCHUL_CODE: selectedSchool.schoolCode,
-                AY: ay,
-                GRADE: String(gradeNum)
+                AY: years[yi],
+                GRADE: String(gradeNum),
+                pSize: '200'
               });
-              if (res.total > 0 || res.rows.length > 0) {
-                var count = Math.max(res.total, res.rows.length);
-                return { grade: gradeNum, count: Math.min(Math.max(count, 1), 20) };
-              }
+              if (!res.total && !res.rows.length) continue;
+              var names = [];
+              res.rows.forEach(function (row) {
+                var name = String(row.CLASS_NM || '').trim();
+                if (name && names.indexOf(name) < 0) names.push(name);
+              });
+              // 전체 반 목록을 다 받았으면 실제 반 이름을 쓰고,
+              // 인증키가 없어 5개만 받았으면 총 개수(list_total_count)로 1~N반을 만듭니다.
+              if (!res.truncated && names.length) return { grade: gradeNum, names: names.sort(byClassName) };
+              var count = Math.min(Math.max(res.total, res.rows.length, 1), 30);
+              var numbered = [];
+              for (var n = 1; n <= count; n++) numbered.push(String(n));
+              return { grade: gradeNum, names: numbered };
             }
-            return { grade: gradeNum, count: 10 };
+            return { grade: gradeNum, names: [] };
           })());
         })(g);
       }
-      var gradeCounts = await Promise.all(gradePromises);
-      gradeCounts.sort(function (a, b) { return a.grade - b.grade; });
-      gradeCounts.forEach(function (gc) {
-        for (var c = 1; c <= gc.count; c++) {
-          newClasses.push({
-            grade: gc.grade,
-            className: String(c),
-            label: gc.grade + '학년 ' + c + '반',
-            short: gc.grade + '-' + c
-          });
-        }
+      var gradeLists = await Promise.all(gradePromises);
+      gradeLists.sort(function (a, b) { return a.grade - b.grade; });
+      gradeLists.forEach(function (item) {
+        item.names.forEach(function (name) { newClasses.push(classEntry(item.grade, name)); });
       });
     } catch (err) {
-      for (var g2 = 1; g2 <= maxGrade; g2++) {
-        for (var c2 = 1; c2 <= 10; c2++) {
-          newClasses.push({
-            grade: g2,
-            className: String(c2),
-            label: g2 + '학년 ' + c2 + '반',
-            short: g2 + '-' + c2
-          });
-        }
+      loadFailed = true;
+    }
+
+    // 조회에 실패했거나 등록된 학급이 없으면 이전 목록을 그대로 두고 사실대로 알립니다.
+    if (loadFailed || !newClasses.length) {
+      if (statusText) {
+        statusText.textContent = loadFailed
+          ? 'NEIS 학급 정보를 불러오지 못했습니다. 잠시 후 다시 검색해 주세요.'
+          : selectedSchool.schoolName + ' · NEIS에 등록된 학급 정보가 없습니다.';
       }
+      renderClassPills();
+      return;
     }
 
     availableClasses = newClasses;
     writeJson(CLASSES_KEY, availableClasses);
+    writeJson(CLASSES_SCHOOL_KEY, selectedSchool.atptCode + ':' + selectedSchool.schoolCode);
+    // 학교를 바꿨을 때 새 학교에 없는 반이 수업 학급으로 남지 않도록 정리합니다.
+    selectedSubjects = selectedSubjects.filter(function (s) {
+      return s && availableClasses.some(function (x) { return x.short === s.short; });
+    });
+    writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
     if (!isNonHomeroom) {
       if (!selectedHomeroom || !availableClasses.some(function (x) { return x.short === selectedHomeroom.short; })) {
         selectedHomeroom = availableClasses.find(function (x) { return x.short === '2-2'; }) || availableClasses[0];
@@ -9013,344 +9206,640 @@ var TeacherSchedule = (function () {
     } else {
       selectedHomeroom = null;
     }
-    activePickerClass = selectedHomeroom || selectedSubjects[0] || availableClasses[0];
+    activePickerClass = selectedHomeroom || selectedSubjects[0] || null;
+    activeGrade = activePickerClass ? activePickerClass.grade : null;
+    pendingSubjects = [];
     if (statusText) statusText.textContent = selectedSchool.schoolName + ' 총 ' + availableClasses.length + '개 학급 조회 완료';
     renderClassPills();
   }
 
-  function renderClassPills() {
-    var homeBox = el('tsHomeroomPills');
-    var subBox = el('tsSubjectPills');
-    if (!homeBox || !subBox) return;
-
-    if (!availableClasses.length) {
-      homeBox.innerHTML = '<span style="font-size:0.8rem; color:#94a3b8;">학교를 먼저 검색해 주세요.</span>';
-      subBox.innerHTML = '<span style="font-size:0.8rem; color:#94a3b8;">학교를 먼저 검색해 주세요.</span>';
-      return;
-    }
-
-    // 담임 학급 선택: 첫 번째 버튼은 [담임 없음 (비담임·교과전담)]
-    var nonHomeBtnHtml = '<button type="button" class="class-pill-btn non-homeroom-btn' + ((isNonHomeroom || !selectedHomeroom) ? ' active' : '') + '" data-home="NONE">담임 없음 (비담임·교과전담)</button>';
-    var classHomeBtnsHtml = availableClasses.map(function (c) {
-      var isActive = !isNonHomeroom && selectedHomeroom && selectedHomeroom.short === c.short;
-      return '<button type="button" class="class-pill-btn' + (isActive ? ' active' : '') + '" data-home="' + c.short + '">' + escapeHtml(c.short) + '</button>';
-    }).join('');
-    homeBox.innerHTML = nonHomeBtnHtml + classHomeBtnsHtml;
-
-    homeBox.querySelectorAll('[data-home]').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        var key = this.dataset.home;
-        if (key === 'NONE' || (!isNonHomeroom && selectedHomeroom && selectedHomeroom.short === key)) {
-          // 담임 없음(비담임·교과전담)으로 전환
-          isNonHomeroom = true;
-          selectedHomeroom = null;
-          writeJson(NON_HOMEROOM_KEY, true);
-          writeJson(HOMEROOM_KEY, null);
-          renderClassPills();
-          renderSelectedSchool();
-          if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
-            TodayBriefing.refreshAll();
-          }
-          if (typeof showToast === 'function') {
-            showToast('담임 없음 (비담임 · 교과전담) 모드로 설정되었습니다.');
-          }
-          return;
-        }
-
-        isNonHomeroom = false;
-        writeJson(NON_HOMEROOM_KEY, false);
-        selectedHomeroom = availableClasses.find(function (c) { return c.short === key; });
-        writeJson(HOMEROOM_KEY, selectedHomeroom);
-        activePickerClass = selectedHomeroom;
-        renderClassPills();
-        renderSelectedSchool();
-        await fetchHomeroomTimetable();
-        await renderClassSubjectPicker(activePickerClass);
-        if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
-          TodayBriefing.refreshAll();
-        }
-        if (typeof showToast === 'function') {
-          showToast('담임 학급이 ' + selectedHomeroom.label + '으로 설정되어 해당 반 개설 과목과 시간표를 불러왔습니다.');
-        }
-      });
-    });
-
-    subBox.innerHTML = availableClasses.map(function (c) {
-      var isActive = selectedSubjects.some(function (s) { return s.short === c.short; });
-      var isInspecting = activePickerClass && activePickerClass.short === c.short;
-      return '<button type="button" class="class-pill-btn' + (isActive ? ' active' : '') + (isInspecting ? ' inspecting' : '') + '" data-sub="' + c.short + '">' + escapeHtml(c.short) + '</button>';
-    }).join('');
-
-    subBox.querySelectorAll('[data-sub]').forEach(function (btn) {
-      btn.addEventListener('click', async function () {
-        var key = this.dataset.sub;
-        var item = availableClasses.find(function (c) { return c.short === key; });
-        var existsIdx = selectedSubjects.findIndex(function (s) { return s.short === key; });
-        if (existsIdx < 0 && item) {
-          selectedSubjects.push(item);
-        } else if (existsIdx >= 0 && activePickerClass && activePickerClass.short === key) {
-          // 이미 보고 있던 반을 한 번 더 누르면 담당 학급 목록에서 토글 해제하되 과목 보기는 유지
-          selectedSubjects.splice(existsIdx, 1);
-        }
-        writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
-        if (item) {
-          activePickerClass = item;
-          renderClassPills();
-          await renderClassSubjectPicker(activePickerClass);
-        }
-      });
-    });
+  // ===== 담당 수업 추가: ① 학년 → ② 학급 → ③ 교과, 고른 학급·수업은 오른쪽 패널에 쌓입니다 =====
+  function gradesAvailable() {
+    var grades = [];
+    availableClasses.forEach(function (c) { if (grades.indexOf(c.grade) < 0) grades.push(c.grade); });
+    return grades.sort(function (a, b) { return a - b; });
   }
 
-  // 학년별 표준 과목 풀 (NEIS API 미응답 또는 6·7교시 보완용 — 다른 학년 과목이 섞이지 않도록 학년별 분리)
-  function getGradeDefaultSubjects(grade) {
-    var g = String(grade || '2');
-    if (g === '1') {
-      return [
-        ['공통국어2', '통합과학2', '공통영어2', '공통수학2', '통합사회2', '한국사2', '창체(자율)'],
-        ['공통수학2', '통합과학2', '정보', '통합사회2', '운동과 건강', '공통국어2', '과학탐구실험2'],
-        ['진로활동', '통합과학2', '공통국어2', '운동과 건강', '한국사2', '미술', '창체(동아리)'],
-        ['통합사회2', '한국사2', '정보', '과학탐구실험2', '공통영어2', '공통수학2', '공통국어2'],
-        ['한국사2', '통합과학2', '통합사회2', '공통영어2', '공통수학2', '미술', '진로활동']
-      ];
-    }
-    if (g === '3') {
-      return [
-        ['스포츠 생활', '화법과 작문', '생활과 과학', '영어 독해와 작문D', '일본어 회화ⅠI', '확률과 통계', '창체(자율)'],
-        ['논술', '동아시아사E', '여행지리J', '영어 독해와 작문D', '확률과 통계', '윤리와 사상', '화법과 작문'],
-        ['윤리와 사상', '동아시아사E', '진로활동', '화법과 작문', '일본어 회화ⅠI', '진로 영어', '창체(동아리)'],
-        ['화법과 작문', '윤리와 사상', '여행지리J', '생활과 과학', '확률과 통계', '동아시아사E', '논술'],
-        ['생활과 과학', '미술 전공 실기H', '확률과 통계', '진로 영어', '영어 독해와 작문D', '여행지리J', '스포츠 생활']
-      ];
-    }
-    return [
-      ['세계사K', '미술 감상과 비평', '영어Ⅱ', '생활과 윤리Y', '기술·가정', '수학Ⅱ', '창체(자율)'],
-      ['사회·문화S1', '독서', '중국어Ⅰ', '세계사K', '생활과 윤리Y', '영어Ⅱ', '수학Ⅱ'],
-      ['사회·문화S1', '기술·가정', '수학Ⅱ', '미술 감상과 비평', '심화 국어', '독서', '창체(동아리)'],
-      ['운동과 건강', '미술 감상과 비평', '수학Ⅱ', '세계사K', '영어Ⅱ', '중국어Ⅰ', '독서'],
-      ['운동과 건강', '진로활동', '사회·문화S1', '수학Ⅱ', '생활과 윤리Y', '영어Ⅱ', '심화 국어']
-    ];
+  function isHomeroomClass(short) {
+    return !isNonHomeroom && Boolean(selectedHomeroom) && selectedHomeroom.short === short;
   }
 
-  // 특정 학급(예: 1-1, 2-1, 2-2, 2-8, 3-1)의 NEIS 주간 시간표 및 개설 과목 목록 정확 조회
-  async function fetchClassTimetableData(classObj) {
-    ensureDefaultSchool();
-    if (!selectedSchool || !classObj) return null;
-
-    var cacheAll = readJson(CLASS_TT_CACHE_KEY, {});
-    var cacheKey = selectedSchool.schoolCode + ':' + classObj.short;
-    if (cacheAll[cacheKey] && cacheAll[cacheKey].days && cacheAll[cacheKey].subjects && cacheAll[cacheKey].subjects.length) {
-      return cacheAll[cacheKey];
-    }
-
-    var kind = String(selectedSchool.schoolKind || '');
-    var endpoint = kind.indexOf('초등') >= 0 ? 'elsTimetable' : (kind.indexOf('중학') >= 0 ? 'misTimetable' : 'hisTimetable');
-    var grade = String(classObj.grade || '2');
-    var cls = String(classObj.className || '2');
-
-    var candidateDates = ['20251020', '20251021', '20251022', '20251023', '20251024'];
-    var dayNames = ['월', '화', '수', '목', '금'];
-    var daysMap = {};
-    dayNames.forEach(function (d) { daysMap[d] = {}; });
-
-    var gradeDefaults = getGradeDefaultSubjects(grade);
-
-    try {
-      var dayResults = await Promise.all(candidateDates.map(function (ymd) {
-        return fetchNeis(endpoint, {
-          ATPT_OFCDC_SC_CODE: selectedSchool.atptCode,
-          SD_SCHUL_CODE: selectedSchool.schoolCode,
-          AY: '2025',
-          SEM: '2',
-          ALL_TI_YMD: ymd,
-          GRADE: grade,
-          CLASS_NM: cls
-        }).catch(function () { return []; });
-      }));
-
-      // 해당 학급에서 NEIS가 실제로 반환한 순수 과목 풀 추출
-      var classOwnSubjects = [];
-      dayResults.forEach(function (rows, idx) {
-        var dName = dayNames[idx];
-        rows.forEach(function (r) {
-          var p = Number(r.PERIO);
-          var sub = String(r.ITRT_CNTNT || '').trim();
-          if (p >= 1 && p <= 7 && sub) {
-            daysMap[dName][p] = sub;
-            if (classOwnSubjects.indexOf(sub) < 0 && sub.indexOf('활동') < 0 && sub.indexOf('창체') < 0) {
-              classOwnSubjects.push(sub);
-            }
-          }
-        });
-      });
-
-      // NEIS 샘플 API가 1~5교시까지만 반환한 경우, 6~7교시는 다른 반 과목이 아닌 '해당 반 자체 개설 과목'과 창체(동아리/자율)로 정확히 채움
-      dayNames.forEach(function (dName, idx) {
-        for (var pFill = 1; pFill <= 7; pFill++) {
-          if (!daysMap[dName][pFill]) {
-            if (dName === '수' && pFill === 7) {
-              daysMap[dName][pFill] = '창체(동아리)';
-            } else if (dName === '월' && pFill === 7) {
-              daysMap[dName][pFill] = '창체(자율)';
-            } else if (classOwnSubjects.length > 0) {
-              daysMap[dName][pFill] = classOwnSubjects[(idx * 2 + pFill) % classOwnSubjects.length];
-            } else {
-              daysMap[dName][pFill] = gradeDefaults[idx][pFill - 1];
-            }
-          }
-        }
-      });
-    } catch (e) {
-      dayNames.forEach(function (d, idx) {
-        for (var p = 1; p <= 7; p++) {
-          daysMap[d][p] = gradeDefaults[idx][p - 1];
-        }
-      });
-    }
-
-    // 과목별 수업 요일·교시 집계 (오직 이 반 시간표에 실제 존재하는 과목만 정확히 집계)
-    var subSlotMap = {};
-    dayNames.forEach(function (d) {
+  // 내 주간 시간표에 들어 있는 수업을 학급 → 과목별로 묶습니다. (오른쪽 패널의 원본)
+  function collectLessons() {
+    var tt = getTimetable();
+    var groups = {};
+    WEEK_DAYS.forEach(function (d) {
       for (var p = 1; p <= 7; p++) {
-        var sName = daysMap[d][p];
-        if (!sName) continue;
-        if (!subSlotMap[sName]) subSlotMap[sName] = [];
-        subSlotMap[sName].push({ day: d, period: p, label: d + p });
+        var cell = tt[d] && tt[d][p];
+        if (!cell || !(cell.subject || cell.className)) continue;
+        var cls = cell.className || '';
+        var sub = cell.subject || '수업';
+        if (!groups[cls]) groups[cls] = {};
+        if (!groups[cls][sub]) groups[cls][sub] = [];
+        groups[cls][sub].push({ day: d, period: p, label: d + p });
       }
     });
+    return groups;
+  }
 
-    var subjectsList = Object.keys(subSlotMap).map(function (sName) {
-      return {
-        subject: sName,
-        slots: subSlotMap[sName],
-        slotSummary: subSlotMap[sName].map(function (x) { return x.label; }).join(' · ')
-      };
+  function renderClassPills() {
+    renderStepper();
+    renderAssignedPanel();
+  }
+
+  function renderStepper() {
+    var gradeBox = el('tsGradePills');
+    var classBox = el('tsClassPills');
+    var classStep = el('tsClassStep');
+    var subjectStep = el('tsSubjectStep');
+    var etcStep = el('tsEtcStep');
+    if (!gradeBox || !classBox) return;
+
+    var grades = gradesAvailable();
+    if (!grades.length) {
+      gradeBox.innerHTML = '<span class="ts-step-empty">학교를 먼저 검색해 주세요.</span>';
+      [classStep, subjectStep, etcStep].forEach(function (node) { if (node) node.hidden = true; });
+      return;
+    }
+    if (activeGrade !== 'etc' && grades.indexOf(activeGrade) < 0) activeGrade = null;
+
+    gradeBox.innerHTML = grades.map(function (g) {
+      var picked = selectedSubjects.filter(function (c) { return c.grade === g; }).length;
+      var isActive = activeGrade === g;
+      return '<button type="button" class="class-pill-btn ts-grade-btn' + (isActive ? ' active' : '') + '" data-grade="' + g + '" aria-pressed="' + (isActive ? 'true' : 'false') + '">' +
+        g + '학년' + (picked ? '<span class="ts-pill-count" title="고른 학급 수">' + picked + '</span>' : '') +
+      '</button>';
+    }).join('') +
+      '<button type="button" class="class-pill-btn ts-grade-btn ts-etc-btn' + (activeGrade === 'etc' ? ' active' : '') + '" data-grade="etc" aria-pressed="' + (activeGrade === 'etc' ? 'true' : 'false') + '">기타</button>';
+
+    var gradeChosen = typeof activeGrade === 'number';
+    if (classStep) classStep.hidden = !gradeChosen;
+    if (etcStep) etcStep.hidden = activeGrade !== 'etc';
+    if (gradeChosen) {
+      classBox.innerHTML = availableClasses.filter(function (c) { return c.grade === activeGrade; }).map(function (c) {
+        var inPanel = selectedSubjects.some(function (x) { return x.short === c.short; });
+        var isCurrent = Boolean(activePickerClass) && activePickerClass.short === c.short;
+        return '<button type="button" class="class-pill-btn' + (inPanel ? ' active' : '') + (isCurrent ? ' inspecting' : '') + '" data-class="' + escapeHtml(c.short) + '" aria-pressed="' + (isCurrent ? 'true' : 'false') + '">' +
+          escapeHtml(c.className + '반') + (isHomeroomClass(c.short) ? '<span class="ts-pill-tag">담임</span>' : '') +
+        '</button>';
+      }).join('');
+    }
+    if (subjectStep) {
+      subjectStep.hidden = !(gradeChosen && activePickerClass && activePickerClass.grade === activeGrade);
+    }
+  }
+
+  // 오른쪽 패널: 고른 학급과 그 학급에 추가한 담당 수업
+  function renderAssignedPanel() {
+    var select = el('tsHomeroomSelect');
+    if (select) {
+      select.innerHTML = '<option value="NONE">담임 없음 (비담임·교과전담)</option>' + availableClasses.map(function (c) {
+        return '<option value="' + escapeHtml(c.short) + '">' + escapeHtml(c.label) + '</option>';
+      }).join('');
+      select.value = (!isNonHomeroom && selectedHomeroom) ? selectedHomeroom.short : 'NONE';
+    }
+
+    var listEl = el('tsSelectedClassList');
+    var countEl = el('tsLessonCount');
+    if (!listEl) return;
+    var groups = collectLessons();
+    var lessonCount = 0;
+    var shown = {};
+
+    function lessonRows(cls) {
+      var subs = groups[cls] || {};
+      return Object.keys(subs).map(function (sub) {
+        lessonCount++;
+        return '<li class="ts-lesson-row">' +
+          '<span><b>' + escapeHtml(sub) + '</b><small>' + escapeHtml(subs[sub].map(function (x) { return x.label; }).join(' · ')) + '</small></span>' +
+          '<button type="button" class="ts-remove-btn" data-remove-lesson="' + escapeHtml(sub) + '" data-lesson-class="' + escapeHtml(cls) + '" aria-label="' + escapeHtml(sub) + ' 수업 삭제" title="이 수업 삭제">×</button>' +
+        '</li>';
+      }).join('');
+    }
+
+    var blocks = selectedSubjects.map(function (c) {
+      shown[c.short] = true;
+      var rows = lessonRows(c.short);
+      var isCurrent = activeGrade !== 'etc' && Boolean(activePickerClass) && activePickerClass.short === c.short;
+      return '<div class="ts-selected-class' + (isCurrent ? ' current' : '') + '">' +
+        '<div class="ts-selected-class-head">' +
+          '<button type="button" class="ts-class-jump" data-jump-class="' + escapeHtml(c.short) + '" title="이 학급의 교과 고르기">' +
+            escapeHtml(c.label) + (isHomeroomClass(c.short) ? '<em>담임</em>' : '') +
+          '</button>' +
+          '<button type="button" class="ts-remove-btn" data-remove-class="' + escapeHtml(c.short) + '" aria-label="' + escapeHtml(c.label) + ' 빼기" title="이 학급 빼기">×</button>' +
+        '</div>' +
+        (rows ? '<ul>' + rows + '</ul>' : '<p class="ts-selected-hint">교과를 고른 뒤 [담당 수업 추가]를 누르세요.</p>') +
+      '</div>';
     });
 
-    var record = {
-      schoolName: selectedSchool.schoolName,
-      classShort: classObj.short,
-      classLabel: classObj.label,
-      days: daysMap,
-      subjects: subjectsList
-    };
-    cacheAll[cacheKey] = record;
-    writeJson(CLASS_TT_CACHE_KEY, cacheAll);
+    // 고른 학급에 속하지 않는 수업(동아리·직접 입력 등)은 '기타'로 묶어 보여 줍니다.
+    Object.keys(groups).forEach(function (cls) {
+      if (shown[cls]) return;
+      blocks.push('<div class="ts-selected-class etc">' +
+        '<div class="ts-selected-class-head"><span class="ts-class-jump static">' + escapeHtml(cls || '학급 미지정') + '<em>기타</em></span></div>' +
+        '<ul>' + lessonRows(cls) + '</ul>' +
+      '</div>');
+    });
+
+    listEl.innerHTML = blocks.length ? blocks.join('') : '<p class="ts-panel-empty">아직 추가한 담당 수업이 없습니다.</p>';
+    if (countEl) countEl.textContent = String(lessonCount);
+  }
+
+  function selectGrade(value) {
+    activeGrade = value === 'etc' ? 'etc' : Number(value);
+    pendingSubjects = [];
+    if (activeGrade === 'etc') {
+      renderClassPills();
+      renderClubPicker();
+      return;
+    }
+    if (activePickerClass && activePickerClass.grade !== activeGrade) activePickerClass = null;
+    renderClassPills();
+    if (activePickerClass) renderClassSubjectPicker(activePickerClass);
+    else updateAddLessonsButton();
+  }
+
+  // ② 학급을 고르면 오른쪽 패널에 담기고, ③ 교과 목록이 열립니다.
+  function selectClass(short) {
+    var item = availableClasses.find(function (c) { return c.short === short; });
+    if (!item) return;
+    if (!selectedSubjects.some(function (c) { return c.short === short; })) {
+      selectedSubjects.push(item);
+      writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
+    }
+    activeGrade = item.grade;
+    activePickerClass = item;
+    pendingSubjects = [];
+    renderClassPills();
+    renderClassSubjectPicker(item);
+  }
+
+  function afterTimetableChanged() {
+    renderWeeklyTimetable();
+    renderClassPills();
+    if (activePickerClass) renderClassSubjectPicker(activePickerClass);
+    renderClubPicker();
+    if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) TodayBriefing.refreshAll();
+  }
+
+  function clearLessonCells(tt, cls, sub) {
+    var cleared = 0;
+    WEEK_DAYS.forEach(function (d) {
+      for (var p = 1; p <= 7; p++) {
+        var cell = tt[d] && tt[d][p];
+        if (!cell || !(cell.subject || cell.className)) continue;
+        if ((cell.className || '') !== cls) continue;
+        if (sub != null && (cell.subject || '수업') !== sub) continue;
+        tt[d][p] = { className: '', subject: '', room: '' };
+        cleared++;
+      }
+    });
+    return cleared;
+  }
+
+  function removeLesson(cls, sub) {
+    var tt = getTimetable();
+    clearLessonCells(tt, cls, sub);
+    writeJson(TIMETABLE_KEY, tt);
+    afterTimetableChanged();
+    if (typeof showToast === 'function') showToast('[' + (cls ? cls + ' ' : '') + sub + '] 수업을 담당 수업에서 뺐습니다.');
+  }
+
+  function removeSelectedClass(short) {
+    var item = selectedSubjects.find(function (c) { return c.short === short; });
+    if (!item) return;
+    var lessonNames = Object.keys(collectLessons()[short] || {});
+    if (lessonNames.length && !confirm(item.label + '과(와) 이 학급의 담당 수업 ' + lessonNames.length + '개를 목록과 내 시간표에서 뺄까요?')) return;
+    var tt = getTimetable();
+    clearLessonCells(tt, short, null);
+    writeJson(TIMETABLE_KEY, tt);
+    selectedSubjects = selectedSubjects.filter(function (c) { return c.short !== short; });
+    writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
+    if (activePickerClass && activePickerClass.short === short) {
+      activePickerClass = null;
+      pendingSubjects = [];
+      currentPickerData = null;
+    }
+    afterTimetableChanged();
+    updateAddLessonsButton();
+  }
+
+  async function setHomeroom(key) {
+    if (key === 'NONE') {
+      isNonHomeroom = true;
+      selectedHomeroom = null;
+      writeJson(NON_HOMEROOM_KEY, true);
+      writeJson(HOMEROOM_KEY, null);
+    } else {
+      var found = availableClasses.find(function (c) { return c.short === key; });
+      if (!found) return;
+      isNonHomeroom = false;
+      selectedHomeroom = found;
+      writeJson(NON_HOMEROOM_KEY, false);
+      writeJson(HOMEROOM_KEY, selectedHomeroom);
+    }
+    renderClassPills();
+    renderSelectedSchool();
+    await fetchHomeroomTimetable();
+    if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) TodayBriefing.refreshAll();
+    if (typeof showToast === 'function') {
+      showToast(key === 'NONE'
+        ? '담임 없음 (비담임 · 교과전담) 모드로 설정되었습니다.'
+        : '담임 학급을 ' + selectedHomeroom.label + '(으)로 설정하고 우리 반 시간표를 불러왔습니다.');
+    }
+  }
+
+  function updateAddLessonsButton() {
+    var btn = el('tsAddLessonsBtn');
+    if (!btn) return;
+    btn.disabled = !pendingSubjects.length;
+    btn.textContent = pendingSubjects.length ? '＋ 담당 수업 추가 (' + pendingSubjects.length + ')' : '＋ 담당 수업 추가';
+  }
+
+  // ③에서 고른 교과를 내 주간 시간표의 해당 요일·교시에 넣습니다.
+  function addPickedLessons() {
+    var classObj = activePickerClass;
+    var data = currentPickerData;
+    if (!classObj || !data || !pendingSubjects.length) return;
+    var tt = getTimetable();
+    var added = [];
+    var replaced = 0;
+    pendingSubjects.forEach(function (name) {
+      var item = data.subjects.find(function (x) { return x.subject === name; });
+      if (!item) return;
+      item.slots.forEach(function (sl) {
+        if (!tt[sl.day]) tt[sl.day] = {};
+        var cur = tt[sl.day][sl.period];
+        if (cur && (cur.subject || cur.className) && !(cur.className === classObj.short && cur.subject === name)) replaced++;
+        tt[sl.day][sl.period] = { className: classObj.short, subject: name, room: classObj.short };
+      });
+      added.push(name);
+    });
+    if (!added.length) return;
+    writeJson(TIMETABLE_KEY, tt);
+    pendingSubjects = [];
+    if (!selectedSubjects.some(function (c) { return c.short === classObj.short; })) {
+      selectedSubjects.push(classObj);
+      writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
+    }
+    afterTimetableChanged();
+    if (typeof showToast === 'function') {
+      showToast(classObj.label + ' [' + added.join(', ') + '] 수업을 담당 수업에 추가했습니다.' +
+        (replaced ? ' (같은 교시에 있던 다른 수업 ' + replaced + '칸을 바꿨습니다)' : ''));
+    }
+  }
+
+  // 기타: NEIS 학급 시간표에 없는 수업을 요일·교시를 정해 직접 넣습니다.
+  function addEtcLesson() {
+    var classInput = el('tsEtcClassInput');
+    var subjectInput = el('tsEtcSubjectInput');
+    var daySelect = el('tsEtcDaySelect');
+    var periodSelect = el('tsEtcPeriodSelect');
+    if (!classInput || !subjectInput || !daySelect || !periodSelect) return;
+    var cls = classInput.value.trim();
+    var sub = subjectInput.value.trim();
+    var day = daySelect.value;
+    var period = Number(periodSelect.value);
+    if (!sub) {
+      subjectInput.focus();
+      if (typeof showToast === 'function') showToast('수업명을 입력해 주세요.', 'error');
+      return;
+    }
+    var tt = getTimetable();
+    if (!tt[day]) tt[day] = {};
+    var cur = tt[day][period];
+    if (cur && (cur.subject || cur.className) &&
+        !confirm(day + '요일 ' + period + '교시에 이미 [' + ((cur.className ? cur.className + ' ' : '') + (cur.subject || '수업')) + '] 수업이 있습니다. 바꿀까요?')) return;
+    tt[day][period] = { className: cls, subject: sub, room: cls };
+    writeJson(TIMETABLE_KEY, tt);
+    afterTimetableChanged();
+    if (typeof showToast === 'function') showToast(day + '요일 ' + period + '교시에 [' + sub + '] 수업을 추가했습니다.');
+  }
+
+  function timetableEndpoint() {
+    var kind = String((selectedSchool && selectedSchool.schoolKind) || '');
+    if (kind.indexOf('초등') >= 0) return 'elsTimetable';
+    if (kind.indexOf('중학') >= 0) return 'misTimetable';
+    if (kind.indexOf('특수') >= 0) return 'spsTimetable';
+    return 'hisTimetable';
+  }
+
+  function classTimetableCacheKey(classObj) {
+    return selectedSchool.atptCode + ':' + selectedSchool.schoolCode + ':' + classObj.short;
+  }
+
+  // 저장해 둔 학급 시간표 — 이번 주 것이고 6시간이 지나지 않았을 때만 다시 씁니다.
+  function readClassTimetableCache(classObj) {
+    var record = readJson(CLASS_TT_CACHE_KEY, {})[classTimetableCacheKey(classObj)];
+    if (!record || !record.days) return null;
+    if (record.currentWeek !== toYmd(mondayOf(new Date()))) return null;
+    if (Date.now() - Number(record.fetchedAt || 0) > CLASS_TT_CACHE_MS) return null;
     return record;
   }
 
-  // 2-1. 선택한 학급(예: 2-2, 2-8, 1-1)의 NEIS 개설 과목 선택 칩 + 학급 시간표 매트릭스 렌더링
-  async function renderClassSubjectPicker(classObj) {
-    ensureDefaultSchool();
-    var targetClass = classObj || activePickerClass || selectedHomeroom || selectedSubjects[0] || availableClasses[0];
-    if (!targetClass) return;
-    activePickerClass = targetClass;
+  function clearClassTimetableCache() {
+    try {
+      localStorage.removeItem(CLASS_TT_CACHE_KEY);
+      localStorage.removeItem(HOMEROOM_TT_KEY);
+    } catch (e) {}
+  }
 
+  // 특정 학급의 NEIS 주간 시간표 조회.
+  //  - 이번 주(월~금)를 조회하고, 방학·연휴로 비어 있으면 최대 8주 전까지 거슬러 올라가 가장 최근 주를 씁니다.
+  //  - NEIS 가 돌려준 교시만 채웁니다. 받지 못한 교시는 비워 두고 partialDays 에 기록합니다.
+  //  반환: { days, subjects, weekStart, weekEnd, truncated, partialDays, keyed, fetchedAt } 또는 { error }
+  async function fetchClassTimetableData(classObj, options) {
+    ensureDefaultSchool();
+    if (!selectedSchool || !classObj) return null;
+    var force = Boolean(options && options.force);
+
+    if (!force) {
+      var cached = readClassTimetableCache(classObj);
+      if (cached) return cached;
+    }
+
+    var endpoint = timetableEndpoint();
+    var base = {
+      ATPT_OFCDC_SC_CODE: selectedSchool.atptCode,
+      SD_SCHUL_CODE: selectedSchool.schoolCode,
+      GRADE: String(classObj.grade),
+      CLASS_NM: String(classObj.className)
+    };
+    var currentMonday = mondayOf(new Date());
+    var MAX_WEEKS_BACK = 8;
+
+    try {
+      // 1) 데이터가 있는 가장 최근 주 찾기 (한 주에 한 번 조회)
+      var weekMonday = null;
+      var weekResult = null;
+      for (var back = 0; back <= MAX_WEEKS_BACK; back++) {
+        var monday = addDays(currentMonday, -7 * back);
+        var probe = await fetchNeisRaw(endpoint, Object.assign({}, base, {
+          TI_FROM_YMD: toYmd(monday),
+          TI_TO_YMD: toYmd(addDays(monday, 4)),
+          pSize: '1000'
+        }));
+        if (probe.total > 0 || probe.rows.length > 0) {
+          weekMonday = monday;
+          weekResult = probe;
+          break;
+        }
+      }
+      if (!weekMonday) {
+        return { error: '최근 ' + (MAX_WEEKS_BACK + 1) + '주 동안 NEIS에 등록된 ' + classObj.label + ' 시간표가 없습니다.' };
+      }
+
+      // 2) 주간 조회가 잘렸으면(인증키 없음) 요일별로 나눠 다시 조회 — 하루 앞의 5교시까지는 받을 수 있습니다.
+      var dayTotals = {};
+      var rows = weekResult.rows;
+      if (weekResult.truncated) {
+        var dayResults = await Promise.all(WEEK_DAYS.map(function (dName, idx) {
+          return fetchNeisRaw(endpoint, Object.assign({}, base, {
+            ALL_TI_YMD: toYmd(addDays(weekMonday, idx)),
+            pSize: '100'
+          }));
+        }));
+        rows = [];
+        dayResults.forEach(function (res, idx) {
+          dayTotals[WEEK_DAYS[idx]] = res.total;
+          rows = rows.concat(res.rows);
+        });
+      }
+
+      // 3) 요일·교시 표로 정리
+      var daysMap = {};
+      var loadedCount = {};
+      WEEK_DAYS.forEach(function (d) { daysMap[d] = {}; loadedCount[d] = 0; });
+      var weekYmds = WEEK_DAYS.map(function (d, idx) { return toYmd(addDays(weekMonday, idx)); });
+      rows.forEach(function (r) {
+        var dayIdx = weekYmds.indexOf(String(r.ALL_TI_YMD || ''));
+        var period = Number(r.PERIO);
+        var subject = String(r.ITRT_CNTNT || '').trim();
+        if (dayIdx < 0) return;
+        var dName = WEEK_DAYS[dayIdx];
+        loadedCount[dName]++;
+        if (!subject || !(period >= 1 && period <= 7)) return;
+        var existing = daysMap[dName][period];
+        if (!existing) daysMap[dName][period] = subject;
+        else if (existing.split(' / ').indexOf(subject) < 0) daysMap[dName][period] = existing + ' / ' + subject;
+      });
+
+      // 요일별로 NEIS 에 있는 교시 수보다 덜 받은 날 (인증키가 없을 때만 생깁니다)
+      var partialDays = [];
+      WEEK_DAYS.forEach(function (d) {
+        var total = dayTotals[d];
+        if (total != null && total > loadedCount[d]) partialDays.push({ day: d, loaded: loadedCount[d], total: total });
+      });
+
+      // 과목별 수업 요일·교시 집계 (이 반 시간표에 실제로 있는 과목만)
+      var subSlotMap = {};
+      WEEK_DAYS.forEach(function (d) {
+        for (var p = 1; p <= 7; p++) {
+          var sName = daysMap[d][p];
+          if (!sName) continue;
+          if (!subSlotMap[sName]) subSlotMap[sName] = [];
+          subSlotMap[sName].push({ day: d, period: p, label: d + p });
+        }
+      });
+      var subjectsList = Object.keys(subSlotMap).map(function (sName) {
+        return {
+          subject: sName,
+          slots: subSlotMap[sName],
+          slotSummary: subSlotMap[sName].map(function (x) { return x.label; }).join(' · ')
+        };
+      });
+
+      var record = {
+        schoolName: selectedSchool.schoolName,
+        classShort: classObj.short,
+        classLabel: classObj.label,
+        days: daysMap,
+        subjects: subjectsList,
+        weekStart: weekYmds[0],
+        weekEnd: weekYmds[4],
+        currentWeek: toYmd(currentMonday),
+        isCurrentWeek: weekYmds[0] === toYmd(currentMonday),
+        keyed: Boolean(weekResult.keyed),
+        truncated: partialDays.length > 0,
+        partialDays: partialDays,
+        fetchedAt: Date.now()
+      };
+      var cacheAll = readJson(CLASS_TT_CACHE_KEY, {});
+      cacheAll[classTimetableCacheKey(classObj)] = record;
+      writeJson(CLASS_TT_CACHE_KEY, cacheAll);
+      return record;
+    } catch (e) {
+      if (e && e.isKeyError) {
+        return { error: 'NEIS 인증키를 사용할 수 없습니다. (' + e.message + ')', keyError: true };
+      }
+      return { error: 'NEIS 시간표를 불러오지 못했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.' };
+    }
+  }
+
+  // 2-1. 선택한 학급(예: 2-2, 2-8, 1-1)의 NEIS 개설 과목 선택 칩 + 학급 시간표 매트릭스 렌더링
+  // 학급 시간표가 어느 주 기준인지, 빠진 교시가 있는지 사실대로 알려 주는 상태 줄
+  function renderNeisStatus(data) {
+    var statusEl = el('tsNeisStatus');
+    var keyBox = el('tsNeisKeyBox');
+    var keyInput = el('tsNeisKeyInput');
+    var clearBtn = el('tsNeisKeyClearBtn');
+    if (!statusEl) return;
+    var hasUserKey = NeisApi.hasUserKey();
+    var kind = 'ok';
+    var html = '';
+
+    if (!data || data.error) {
+      kind = 'error';
+      html = '<b>' + escapeHtml((data && data.error) || 'NEIS 시간표를 불러오지 못했습니다.') + '</b>';
+    } else {
+      var range = ymdLabel(data.weekStart) + '~' + ymdLabel(data.weekEnd);
+      var time = new Date(data.fetchedAt);
+      var stamp = pad2(time.getHours()) + ':' + pad2(time.getMinutes()) + ' 조회';
+      html = data.isCurrentWeek
+        ? '<b>이번 주(' + escapeHtml(range) + ') NEIS 시간표</b> · ' + stamp
+        : '<b>이번 주는 NEIS에 등록된 시간표가 없어 가장 최근 주(' + escapeHtml(range) + ')를 표시합니다.</b> · ' + stamp;
+      if (data.truncated) {
+        kind = 'warn';
+        var detail = data.partialDays.map(function (x) { return x.day + ' ' + x.total + '교시 중 ' + x.loaded; }).join(' · ');
+        html += '<br>NEIS 인증키가 없어 하루 5교시까지만 받았습니다 (' + escapeHtml(detail) + '). 받지 못한 교시는 비워 두었습니다.';
+      }
+    }
+    statusEl.className = 'ts-neis-status ' + kind;
+    statusEl.innerHTML = '<span>' + html + '</span><button type="button" class="btn small" id="tsNeisRefreshBtn">다시 조회</button>';
+    statusEl.hidden = false;
+    var refreshBtn = el('tsNeisRefreshBtn');
+    if (refreshBtn) refreshBtn.addEventListener('click', function () {
+      renderClassSubjectPicker(activePickerClass, { force: true });
+    });
+
+    // 인증키 입력란: 시간표가 잘렸거나, 키 오류가 났거나, 이미 저장한 키가 있을 때만 보입니다.
+    if (keyBox) keyBox.hidden = !((data && (data.truncated || data.keyError)) || hasUserKey);
+    if (keyInput && document.activeElement !== keyInput) keyInput.value = NeisApi.getUserKey();
+    if (clearBtn) clearBtn.hidden = !hasUserKey;
+  }
+
+  async function applyNeisKey(value) {
+    NeisApi.setUserKey(value);
+    clearClassTimetableCache();
+    await loadSchoolClasses();
+    await fetchHomeroomTimetable({ force: true });
+    await renderClassSubjectPicker(activePickerClass, { force: true });
+    await syncAcademicScheduleToCalendar(true, true);
+    if (typeof showToast === 'function') {
+      showToast(value ? 'NEIS 인증키를 이 기기에 저장하고 다시 조회했습니다.' : '저장된 NEIS 인증키를 삭제했습니다.');
+    }
+  }
+
+  var pickerRequestNo = 0;
+
+  function isLessonInTimetable(tt, clsShort, subName, slots) {
+    return slots.some(function (sl) {
+      var cell = tt[sl.day] && tt[sl.day][sl.period];
+      return cell && cell.className === clsShort && cell.subject === subName;
+    });
+  }
+
+  // ③ 교과 칩: 누르면 골라 두고(여러 개 가능), [담당 수업 추가]를 눌러 한 번에 넣습니다.
+  function renderSubjectChips(targetClass, data) {
+    var pillsEl = el('tsClassSubjectPills');
+    if (!pillsEl) return;
+    var tt = getTimetable();
+    pillsEl.innerHTML = data.subjects.map(function (item, idx) {
+      var added = isLessonInTimetable(tt, targetClass.short, item.subject, item.slots);
+      var picked = !added && pendingSubjects.indexOf(item.subject) >= 0;
+      return '<button type="button" class="ts-subject-pill-btn' + (added ? ' added' : (picked ? ' selected' : '')) + '" data-sub-idx="' + idx + '"' +
+          (added ? ' disabled title="이미 추가한 수업입니다. [추가한 담당 수업] 목록에서 ×로 뺄 수 있습니다."' : ' aria-pressed="' + (picked ? 'true' : 'false') + '"') + '>' +
+        '<strong>' + (added ? '✓ ' : '') + escapeHtml(item.subject) + '</strong>' +
+        '<small>' + escapeHtml(item.slotSummary) + (added ? ' · 추가됨' : '') + '</small>' +
+      '</button>';
+    }).join('');
+    updateAddLessonsButton();
+  }
+
+  // 고른 학급의 월~금 1~7교시 시간표 표 — 칸을 누르면 그 교시만 내 시간표에 넣거나 뺍니다.
+  function renderClassMatrix(targetClass, data) {
+    var matrixBoxEl = el('tsClassMatrixPreview');
+    if (!matrixBoxEl || !data.days) return;
+    var tt = getTimetable();
+    var mHtml = '<table class="ts-class-matrix-table"><thead><tr><th>교시</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th></tr></thead><tbody>';
+    for (var p = 1; p <= 7; p++) {
+      mHtml += '<tr><th>' + p + '</th>';
+      WEEK_DAYS.forEach(function (d) {
+        var subName = (data.days[d] && data.days[d][p]) || '';
+        var myCell = (tt[d] && tt[d][p]) || {};
+        var isAssignedHere = myCell.className === targetClass.short && myCell.subject === subName && Boolean(subName);
+        mHtml += '<td class="matrix-cell' + (isAssignedHere ? ' assigned' : '') + (subName ? '' : ' empty') + '" data-mday="' + d + '" data-mperiod="' + p + '" data-msub="' + escapeHtml(subName) + '">' +
+          (isAssignedHere ? '✓ ' : '') + escapeHtml(subName || '-') +
+        '</td>';
+      });
+      mHtml += '</tr>';
+    }
+    mHtml += '</tbody></table>';
+    matrixBoxEl.innerHTML = mHtml;
+
+    matrixBoxEl.querySelectorAll('td.matrix-cell').forEach(function (td) {
+      td.addEventListener('click', function () {
+        var d = this.getAttribute('data-mday');
+        var p = Number(this.getAttribute('data-mperiod'));
+        var sName = this.getAttribute('data-msub');
+        if (!d || !p || !sName) return;
+        toggleSingleSlotIntoTeacherTimetable(targetClass, d, p, sName);
+      });
+    });
+  }
+
+  // ③ 고른 학급의 이번 주 NEIS 시간표에서 교과 목록과 시간표 표를 그립니다.
+  async function renderClassSubjectPicker(classObj, options) {
+    ensureDefaultSchool();
+    var targetClass = classObj || activePickerClass;
     var labelEl = el('tsActiveClassLabel');
-    var tabsEl = el('tsActiveClassTabs');
     var pillsEl = el('tsClassSubjectPills');
     var matrixTitleEl = el('tsClassMatrixTitle');
     var matrixBoxEl = el('tsClassMatrixPreview');
     if (!pillsEl) return;
-
-    if (labelEl) {
-      labelEl.textContent = '[' + targetClass.label + '] NEIS 실제 개설 과목 고르기 (' + (selectedSchool ? selectedSchool.schoolName : '') + ')';
+    if (!targetClass) {
+      // 아직 학급을 고르지 않은 상태 — ③단계는 접어 둡니다.
+      currentPickerData = null;
+      pendingSubjects = [];
+      renderStepper();
+      updateAddLessonsButton();
+      return;
     }
+    if (!activePickerClass || activePickerClass.short !== targetClass.short) pendingSubjects = [];
+    activePickerClass = targetClass;
+    if (activeGrade !== 'etc') activeGrade = targetClass.grade;
+    renderClassPills();
+
+    if (labelEl) labelEl.textContent = targetClass.label + ' · ' + (selectedSchool ? selectedSchool.schoolName : '');
     if (matrixTitleEl) {
-      matrixTitleEl.textContent = '[' + targetClass.label + '] 주간 시간표 원본 (교시 칸을 클릭하면 내 시간표의 해당 교시에 과목이 바로 입력/해제됩니다)';
+      matrixTitleEl.textContent = '[' + targetClass.label + '] 주간 시간표 (칸을 누르면 그 교시만 내 시간표에 넣거나 뺍니다)';
     }
 
-    // 선택된 학급들(담임반 + 수업반) 간 빠른 전환 탭
-    if (tabsEl) {
-      var tabClasses = [];
-      var seenShort = {};
-      [selectedHomeroom].concat(selectedSubjects).forEach(function (c) {
-        if (c && !seenShort[c.short]) {
-          seenShort[c.short] = true;
-          tabClasses.push(c);
-        }
-      });
-      if (targetClass && !seenShort[targetClass.short]) {
-        tabClasses.push(targetClass);
-      }
-      tabsEl.innerHTML = tabClasses.map(function (c) {
-        var isCur = c.short === targetClass.short;
-        return '<button type="button" class="ts-class-tab-btn' + (isCur ? ' active' : '') + '" data-picker-cls="' + escapeHtml(c.short) + '">' + escapeHtml(c.short + ' 과목·시간표') + '</button>';
-      }).join('');
-
-      tabsEl.querySelectorAll('[data-picker-cls]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var s = this.getAttribute('data-picker-cls');
-          var found = availableClasses.find(function (x) { return x.short === s; });
-          if (found) renderClassSubjectPicker(found);
-        });
-      });
-    }
-
-    pillsEl.innerHTML = '<span style="font-size:0.8rem; color:#4f46e5;">NEIS에서 ' + escapeHtml(targetClass.label) + ' 개설 과목과 수업 교시를 불러오는 중...</span>';
-
-    var data = await fetchClassTimetableData(targetClass);
-    if (!data || !data.subjects || !data.subjects.length) {
-      pillsEl.innerHTML = '<span style="font-size:0.8rem; color:#64748b;">개설 과목 정보를 불러오지 못했습니다.</span>';
+    // 여러 반을 빠르게 눌렀을 때 늦게 도착한 응답이 화면을 덮어쓰지 않도록 요청 번호로 가립니다.
+    var ownRequest = ++pickerRequestNo;
+    var forceReload = Boolean(options && options.force);
+    if (forceReload || !readClassTimetableCache(targetClass)) {
+      pillsEl.innerHTML = '<span class="ts-step-empty">NEIS에서 ' + escapeHtml(targetClass.label) + ' 이번 주 시간표를 불러오는 중...</span>';
       if (matrixBoxEl) matrixBoxEl.innerHTML = '';
+    }
+
+    var data = await fetchClassTimetableData(targetClass, { force: forceReload });
+    if (ownRequest !== pickerRequestNo) return;
+    currentPickerData = (data && !data.error) ? data : null;
+    renderNeisStatus(data);
+    if (!data || data.error || !data.subjects || !data.subjects.length) {
+      pendingSubjects = [];
+      pillsEl.innerHTML = '<span class="ts-step-empty">표시할 교과가 없습니다.</span>';
+      if (matrixBoxEl) matrixBoxEl.innerHTML = '';
+      updateAddLessonsButton();
       return;
     }
 
-    var tt = getTimetable();
-
-    function isSubjectAssignedInTimetable(clsShort, subName, slots) {
-      return slots.some(function (sl) {
-        var cell = tt[sl.day] && tt[sl.day][sl.period];
-        return cell && cell.className === clsShort && cell.subject === subName;
-      });
-    }
-
-    pillsEl.innerHTML = data.subjects.map(function (item, idx) {
-      var assigned = isSubjectAssignedInTimetable(targetClass.short, item.subject, item.slots);
-      return '<button type="button" class="ts-subject-pill-btn' + (assigned ? ' selected' : '') + '" data-sub-idx="' + idx + '">' +
-        '<strong>' + (assigned ? '✓ ' : '＋ ') + escapeHtml(item.subject) + '</strong>' +
-        '<small>' + escapeHtml(targetClass.short + ' · ' + item.slotSummary) + '</small>' +
-      '</button>';
-    }).join('');
-
-    pillsEl.querySelectorAll('.ts-subject-pill-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var idx = Number(this.getAttribute('data-sub-idx'));
-        var subItem = data.subjects[idx];
-        if (!subItem) return;
-        toggleSubjectIntoTeacherTimetable(targetClass, subItem);
-      });
+    pendingSubjects = pendingSubjects.filter(function (name) {
+      return data.subjects.some(function (x) { return x.subject === name; });
     });
-
-    // 선택 학급의 월~금 1~7교시 실제 시간표 매트릭스 렌더링
-    if (matrixBoxEl && data.days) {
-      var days = ['월', '화', '수', '목', '금'];
-      var mHtml = '<table class="ts-class-matrix-table"><thead><tr><th>교시</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th></tr></thead><tbody>';
-      for (var p = 1; p <= 7; p++) {
-        mHtml += '<tr><th>' + p + '</th>';
-        days.forEach(function (d) {
-          var subName = (data.days[d] && data.days[d][p]) || '';
-          var myCell = (tt[d] && tt[d][p]) || {};
-          var isAssignedHere = myCell.className === targetClass.short && myCell.subject === subName && Boolean(subName);
-          mHtml += '<td class="matrix-cell' + (isAssignedHere ? ' assigned' : '') + '" data-mday="' + d + '" data-mperiod="' + p + '" data-msub="' + escapeHtml(subName) + '">' +
-            (isAssignedHere ? '✓ ' : '') + escapeHtml(subName || '-') +
-          '</td>';
-        });
-        mHtml += '</tr>';
-      }
-      mHtml += '</tbody></table>';
-      matrixBoxEl.innerHTML = mHtml;
-
-      matrixBoxEl.querySelectorAll('td.matrix-cell').forEach(function (td) {
-        td.addEventListener('click', function () {
-          var d = this.getAttribute('data-mday');
-          var p = Number(this.getAttribute('data-mperiod'));
-          var sName = this.getAttribute('data-msub');
-          if (!d || !p || !sName) return;
-          toggleSingleSlotIntoTeacherTimetable(targetClass, d, p, sName);
-        });
-      });
-    }
+    renderSubjectChips(targetClass, data);
+    renderClassMatrix(targetClass, data);
   }
 
   function toggleSingleSlotIntoTeacherTimetable(classObj, day, period, subName) {
@@ -9375,58 +9864,7 @@ var TeacherSchedule = (function () {
       }
     }
     writeJson(TIMETABLE_KEY, tt);
-    renderWeeklyTimetable();
-    renderClassSubjectPicker(classObj);
-    if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
-      TodayBriefing.refreshAll();
-    }
-  }
-
-  function toggleSubjectIntoTeacherTimetable(classObj, subItem) {
-    var tt = getTimetable();
-    var clsShort = classObj.short;
-    var subName = subItem.subject;
-    var slots = subItem.slots || [];
-
-    var alreadyAssigned = slots.some(function (sl) {
-      var cell = tt[sl.day] && tt[sl.day][sl.period];
-      return cell && cell.className === clsShort && cell.subject === subName;
-    });
-
-    if (alreadyAssigned) {
-      slots.forEach(function (sl) {
-        if (tt[sl.day] && tt[sl.day][sl.period] && tt[sl.day][sl.period].className === clsShort && tt[sl.day][sl.period].subject === subName) {
-          tt[sl.day][sl.period] = { className: '', subject: '', room: '' };
-        }
-      });
-      if (typeof showToast === 'function') {
-        showToast(classObj.label + ' [' + subName + '] 과목을 내 시간표에서 해제했습니다.');
-      }
-    } else {
-      slots.forEach(function (sl) {
-        if (!tt[sl.day]) tt[sl.day] = {};
-        tt[sl.day][sl.period] = {
-          className: clsShort,
-          subject: subName,
-          room: clsShort
-        };
-      });
-      if (!selectedSubjects.some(function (s) { return s.short === clsShort; })) {
-        selectedSubjects.push(classObj);
-        writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
-        renderClassPills();
-      }
-      if (typeof showToast === 'function') {
-        showToast(classObj.label + ' [' + subName + '] 수업(' + subItem.slotSummary + ')이 내 주간 시간표에 자동 입력되었습니다.');
-      }
-    }
-
-    writeJson(TIMETABLE_KEY, tt);
-    renderWeeklyTimetable();
-    renderClassSubjectPicker(classObj);
-    if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
-      TodayBriefing.refreshAll();
-    }
+    afterTimetableChanged();
   }
 
   // 2-2. 창체 동아리 불러오기 & 내 담당 동아리 선택 UI 렌더링
@@ -9567,11 +10005,11 @@ var TeacherSchedule = (function () {
     toggleClubIntoTimetable(newClub);
   }
 
-  async function fetchHomeroomTimetable() {
+  async function fetchHomeroomTimetable(options) {
     ensureDefaultSchool();
     var refClass = (!isNonHomeroom && selectedHomeroom) ? selectedHomeroom : (selectedSubjects[0] || availableClasses[0]);
     if (!selectedSchool || !refClass) return getHomeroomTimetable();
-    var data = await fetchClassTimetableData(refClass);
+    var data = await fetchClassTimetableData(refClass, options);
     if (data && data.days) {
       writeJson(HOMEROOM_TT_KEY, data);
       return data;
@@ -9581,14 +10019,17 @@ var TeacherSchedule = (function () {
 
   function getHomeroomTimetable() {
     var cached = readJson(HOMEROOM_TT_KEY, null);
-    if (cached && cached.days) return cached;
-    return null;
+    var refClass = (!isNonHomeroom && selectedHomeroom) ? selectedHomeroom : (selectedSubjects[0] || availableClasses[0]);
+    if (!cached || !cached.days || !refClass || !selectedSchool) return null;
+    // 담임 반이나 학교를 바꾼 직후 조회에 실패해도 이전 반 시간표가 '우리 반'으로 보이지 않게 합니다.
+    if (cached.classShort !== refClass.short || cached.schoolName !== selectedSchool.schoolName) return null;
+    return cached;
   }
 
   async function importHomeroomToTeacherTimetable() {
     if (isNonHomeroom || !selectedHomeroom) {
       if (typeof showToast === 'function') {
-        showToast('현재 비담임(담임 없음) 상태입니다. 위에서 과목 칩이나 동아리 칩을 클릭해 내 시간표를 구성하세요.');
+        showToast('현재 담임 없음 상태입니다. 오른쪽 [담임 학급]을 먼저 고르거나, 학년 → 학급 → 교과 순서로 담당 수업을 추가하세요.');
       }
       return;
     }
@@ -9606,65 +10047,105 @@ var TeacherSchedule = (function () {
       }
     });
     writeJson(TIMETABLE_KEY, tt);
-    renderWeeklyTimetable();
-    renderClassSubjectPicker(selectedHomeroom);
-    if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
-      TodayBriefing.refreshAll();
+    // 담임 반이 오른쪽 '추가한 담당 수업' 목록에도 학급으로 잡히도록 합니다.
+    if (!selectedSubjects.some(function (c) { return c.short === clsShort; })) {
+      selectedSubjects.push(selectedHomeroom);
+      writeJson(SUBJECT_CLASSES_KEY, selectedSubjects);
     }
+    activePickerClass = selectedHomeroom;
+    activeGrade = selectedHomeroom.grade;
+    afterTimetableChanged();
     if (typeof showToast === 'function') {
       showToast(clsShort + ' 담임 학급의 전체 시간표를 내 주간 시간표로 복사했습니다.');
     }
   }
 
   // NEIS 학사일정(SchoolSchedule) 자동 조회 및 일정관리 달력(ScheduleCalendar) 동기화
-  async function syncAcademicScheduleToCalendar(silent) {
+  //  - 인증키가 있으면 이번 학년도(3월~다음 해 2월) 전체를 한 번에 받습니다.
+  //  - 인증키가 없으면 요청당 5건만 오므로 이번 달·다음 달을 8일 단위로 나눠 받습니다(일부 누락 가능).
+  //  - 일정 날짜는 NEIS 가 준 날짜(AA_YMD)를 그대로 씁니다.
+  async function syncAcademicScheduleToCalendar(silent, force) {
     ensureDefaultSchool();
     if (!selectedSchool) return [];
 
     var now = new Date();
-    var year = now.getFullYear();
-    var month = now.getMonth() + 1;
-
-    function buildChunks(y, m) {
-      var ym = String(y) + String(m).padStart(2, '0');
-      return [
-        [ym + '01', ym + '08'],
-        [ym + '09', ym + '16'],
-        [ym + '17', ym + '24'],
-        [ym + '25', ym + '31']
-      ];
+    var schoolId = selectedSchool.atptCode + ':' + selectedSchool.schoolCode;
+    var meta = readJson(ACADEMIC_META_KEY, null);
+    // 화면을 열 때마다 도는 자동 조회는 6시간에 한 번이면 충분합니다. (버튼을 누르면 항상 새로 조회)
+    if (silent && !force && meta && meta.school === schoolId && Date.now() - Number(meta.syncedAt || 0) < ACADEMIC_SYNC_MS) {
+      return readJson(ACADEMIC_CACHE_KEY, []);
     }
 
-    var chunks = buildChunks(year, month).concat(buildChunks(2025, 11));
-    var fetchedEvents = [];
+    var base = { ATPT_OFCDC_SC_CODE: selectedSchool.atptCode, SD_SCHUL_CODE: selectedSchool.schoolCode };
+    var rows = [];
+    var complete = false;
+    var failed = false;
     try {
-      var chunkRows = await Promise.all(chunks.map(function (range) {
-        return fetchNeis('SchoolSchedule', {
-          ATPT_OFCDC_SC_CODE: selectedSchool.atptCode,
-          SD_SCHUL_CODE: selectedSchool.schoolCode,
-          AA_FROM_YMD: range[0],
-          AA_TO_YMD: range[1]
-        }).catch(function () { return []; });
+      var ay = academicYearOf(now);
+      var yearResult = await fetchNeisRaw('SchoolSchedule', Object.assign({}, base, {
+        AA_FROM_YMD: String(ay) + '0301',
+        AA_TO_YMD: toYmd(new Date(ay + 1, 2, 0)),
+        pSize: '1000'
       }));
-
-      var seenTitleInMonth = {};
-      [].concat.apply([], chunkRows).forEach(function (r) {
-        var ymd = String(r.AA_YMD || '').trim();
-        var title = String(r.EVENT_NM || '').trim();
-        if (!ymd || ymd.length !== 8 || !title || title === '토요휴업일') return;
-        var currentIsoDate = String(year) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8);
-        var titleKey = ymd.slice(4, 6) + '|' + title;
-        if (seenTitleInMonth[titleKey]) return;
-        seenTitleInMonth[titleKey] = true;
-        fetchedEvents.push({
-          start: currentIsoDate,
-          end: currentIsoDate,
-          title: title,
-          memo: String(r.SBTR_DD_SC_NM || 'NEIS 학사일정')
+      if (!yearResult.truncated) {
+        rows = yearResult.rows;
+        complete = true;
+      } else {
+        var chunks = [];
+        [0, 1].forEach(function (offset) {
+          var first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+          var lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+          var ym = String(first.getFullYear()) + pad2(first.getMonth() + 1);
+          [[1, 8], [9, 16], [17, 24], [25, lastDay]].forEach(function (range) {
+            chunks.push([ym + pad2(range[0]), ym + pad2(range[1])]);
+          });
         });
-      });
-    } catch (e) {}
+        var chunkResults = await Promise.all(chunks.map(function (range) {
+          return fetchNeisRaw('SchoolSchedule', Object.assign({}, base, { AA_FROM_YMD: range[0], AA_TO_YMD: range[1] }));
+        }));
+        chunkResults.forEach(function (res) { rows = rows.concat(res.rows); });
+      }
+    } catch (e) {
+      failed = true;
+    }
 
+    if (failed) {
+      if (!silent && typeof showToast === 'function') {
+        showToast('NEIS 학사일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.', 'error');
+      }
+      return readJson(ACADEMIC_CACHE_KEY, []);
+    }
+
+    // 같은 이름의 일정이 날짜가 이어지면 하나의 기간 일정으로 묶습니다. (예: 지필평가 4일)
+    var dayEvents = [];
+    var seenDayTitle = {};
+    rows.forEach(function (r) {
+      var ymd = String(r.AA_YMD || '').trim();
+      var title = String(r.EVENT_NM || '').trim();
+      if (ymd.length !== 8 || !title || title === '토요휴업일') return;
+      if (seenDayTitle[ymd + '|' + title]) return;
+      seenDayTitle[ymd + '|' + title] = true;
+      dayEvents.push({ ymd: ymd, title: title, memo: String(r.SBTR_DD_SC_NM || 'NEIS 학사일정') });
+    });
+    dayEvents.sort(function (a, b) { return a.ymd < b.ymd ? -1 : (a.ymd > b.ymd ? 1 : 0); });
+
+    function isoOf(ymd) { return ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8); }
+    function nextYmd(ymd) { return toYmd(addDays(new Date(Number(ymd.slice(0, 4)), Number(ymd.slice(4, 6)) - 1, Number(ymd.slice(6, 8))), 1)); }
+    var fetchedEvents = [];
+    var openRuns = {};
+    dayEvents.forEach(function (item) {
+      var run = openRuns[item.title];
+      if (run && nextYmd(run.lastYmd) === item.ymd) {
+        run.lastYmd = item.ymd;
+        run.event.end = isoOf(item.ymd);
+        return;
+      }
+      var event = { start: isoOf(item.ymd), end: isoOf(item.ymd), title: item.title, memo: item.memo };
+      openRuns[item.title] = { lastYmd: item.ymd, event: event };
+      fetchedEvents.push(event);
+    });
+
+    writeJson(ACADEMIC_META_KEY, { school: schoolId, syncedAt: Date.now(), complete: complete });
     writeJson(ACADEMIC_CACHE_KEY, fetchedEvents);
 
     if (typeof ScheduleCalendar !== 'undefined' && ScheduleCalendar.getData && ScheduleCalendar.setData) {
@@ -9708,7 +10189,8 @@ var TeacherSchedule = (function () {
         ScheduleCalendar.render();
       }
       if (!silent && typeof showToast === 'function') {
-        showToast(selectedSchool.schoolName + ' NEIS 학사일정 ' + (addedCount > 0 ? addedCount + '건을 달력에 새로 입력했습니다.' : '이 이미 최신 상태로 반영되어 있습니다.'));
+        showToast(selectedSchool.schoolName + ' NEIS 학사일정 ' + (addedCount > 0 ? addedCount + '건을 달력에 새로 입력했습니다.' : '이 이미 최신 상태로 반영되어 있습니다.') +
+          (complete ? '' : ' (NEIS 인증키가 없어 이번 달·다음 달 일부만 가져왔습니다)'));
       }
     }
     if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) {
@@ -9787,6 +10269,7 @@ var TeacherSchedule = (function () {
         openCellEdit(this.dataset.day, Number(this.dataset.period));
       });
     });
+    renderAssignedPanel();
   }
 
   // 개별 교시 셀 편집 시 선택한 학급(또는 동아리)의 정확한 해당 교시 과목 자동 매칭 및 과목 칩 렌더링
@@ -9979,12 +10462,22 @@ var TeacherSchedule = (function () {
   function open() {
     ensureDefaultSchool();
     renderSelectedSchool();
+    if (!activePickerClass) activePickerClass = selectedHomeroom || selectedSubjects[0] || null;
+    if (activeGrade == null) activeGrade = activePickerClass ? activePickerClass.grade : (gradesAvailable()[0] || null);
     renderClassPills();
     renderWeeklyTimetable();
-    renderClassSubjectPicker(activePickerClass || selectedHomeroom || selectedSubjects[0]);
+    renderClassSubjectPicker(activePickerClass);
     renderClubPicker();
     closeCellEdit();
     openModal('teacherScheduleModal');
+
+    // 이 학교의 학급 목록을 아직 NEIS에서 받아 온 적이 없으면(처음 열었을 때) 실제 학급 수로 맞춥니다.
+    var statusText = el('tsClassStatusText');
+    if (selectedSchool && readJson(CLASSES_SCHOOL_KEY, '') !== selectedSchool.atptCode + ':' + selectedSchool.schoolCode) {
+      loadSchoolClasses().then(function () { renderClassSubjectPicker(activePickerClass); });
+    } else if (statusText && selectedSchool) {
+      statusText.textContent = selectedSchool.schoolName + ' · ' + availableClasses.length + '개 학급';
+    }
   }
 
   function init() {
@@ -10004,6 +10497,57 @@ var TeacherSchedule = (function () {
     var loadHomeroomBtn = el('tsLoadHomeroomTtBtn');
     if (loadHomeroomBtn) loadHomeroomBtn.addEventListener('click', importHomeroomToTeacherTimetable);
 
+    // 담당 수업 추가: ① 학년 → ② 학급 → ③ 교과
+    var gradeBox = el('tsGradePills');
+    if (gradeBox) gradeBox.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-grade]');
+      if (btn) selectGrade(btn.getAttribute('data-grade'));
+    });
+    var classBox = el('tsClassPills');
+    if (classBox) classBox.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-class]');
+      if (btn) selectClass(btn.getAttribute('data-class'));
+    });
+    var subjectBox = el('tsClassSubjectPills');
+    if (subjectBox) subjectBox.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-sub-idx]');
+      if (!btn || btn.disabled || !currentPickerData || !activePickerClass) return;
+      var item = currentPickerData.subjects[Number(btn.getAttribute('data-sub-idx'))];
+      if (!item) return;
+      var at = pendingSubjects.indexOf(item.subject);
+      if (at >= 0) pendingSubjects.splice(at, 1);
+      else pendingSubjects.push(item.subject);
+      renderSubjectChips(activePickerClass, currentPickerData);
+      // 칩을 다시 그려도 방금 누른 칩에 초점이 남도록
+      var again = subjectBox.querySelector('[data-sub-idx="' + btn.getAttribute('data-sub-idx') + '"]');
+      if (again) again.focus();
+    });
+    var addLessonsBtn = el('tsAddLessonsBtn');
+    if (addLessonsBtn) addLessonsBtn.addEventListener('click', addPickedLessons);
+
+    // 오른쪽 패널: 학급으로 이동 · 학급 빼기 · 수업 삭제 · 담임 학급
+    var selectedList = el('tsSelectedClassList');
+    if (selectedList) selectedList.addEventListener('click', function (e) {
+      var jump = e.target.closest('[data-jump-class]');
+      if (jump) { selectClass(jump.getAttribute('data-jump-class')); return; }
+      var removeClassBtn = e.target.closest('[data-remove-class]');
+      if (removeClassBtn) { removeSelectedClass(removeClassBtn.getAttribute('data-remove-class')); return; }
+      var removeLessonBtn = e.target.closest('[data-remove-lesson]');
+      if (removeLessonBtn) removeLesson(removeLessonBtn.getAttribute('data-lesson-class'), removeLessonBtn.getAttribute('data-remove-lesson'));
+    });
+    var homeroomSelect = el('tsHomeroomSelect');
+    if (homeroomSelect) homeroomSelect.addEventListener('change', function () { setHomeroom(this.value); });
+
+    // 기타: 직접 입력으로 추가
+    var etcAddBtn = el('tsEtcAddBtn');
+    if (etcAddBtn) etcAddBtn.addEventListener('click', addEtcLesson);
+    ['tsEtcClassInput', 'tsEtcSubjectInput'].forEach(function (id) {
+      var input = el(id);
+      if (input) input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addEtcLesson(); }
+      });
+    });
+
     var toggleMatrixBtn = el('tsToggleClassMatrixBtn');
     if (toggleMatrixBtn) {
       toggleMatrixBtn.addEventListener('click', function () {
@@ -10013,6 +10557,24 @@ var TeacherSchedule = (function () {
         this.textContent = wrap.hidden ? '학급 시간표 표 펼치기 ▾' : '학급 시간표 표 접기 ▴';
       });
     }
+
+    var neisKeySaveBtn = el('tsNeisKeySaveBtn');
+    var neisKeyInput = el('tsNeisKeyInput');
+    if (neisKeySaveBtn && neisKeyInput) {
+      neisKeySaveBtn.addEventListener('click', function () {
+        var value = neisKeyInput.value.trim();
+        if (!value) { neisKeyInput.focus(); return; }
+        applyNeisKey(value);
+      });
+      neisKeyInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); neisKeySaveBtn.click(); }
+      });
+    }
+    var neisKeyClearBtn = el('tsNeisKeyClearBtn');
+    if (neisKeyClearBtn) neisKeyClearBtn.addEventListener('click', function () {
+      if (neisKeyInput) neisKeyInput.value = '';
+      applyNeisKey('');
+    });
 
     var addClubBtn = el('tsAddCustomClubBtn');
     if (addClubBtn) addClubBtn.addEventListener('click', addCustomClubAndAssign);
@@ -10100,7 +10662,7 @@ var TeacherSchedule = (function () {
     // 상단 메뉴 버튼 연결
     var topDashboardBtn = el('topDashboardBtn');
     if (topDashboardBtn) topDashboardBtn.addEventListener('click', function () {
-      if (typeof showSetupWizard === 'function') showSetupWizard();
+      if (typeof showHomeScreen === 'function') showHomeScreen();
     });
 
     var topScheduleBtn = el('topScheduleBtn');
@@ -10136,8 +10698,8 @@ var TeacherSchedule = (function () {
 
     var heroOpenSeatBtn = el('heroOpenSeatBtn');
     if (heroOpenSeatBtn) heroOpenSeatBtn.addEventListener('click', function () {
-      var applyConfigBtn = el('applyConfigBtn');
-      if (applyConfigBtn) applyConfigBtn.click();
+      var seatTab = document.querySelector('#modeTabs [data-mode="seat"]');
+      if (seatTab) seatTab.click();
     });
 
     var heroOpenAttendBtn = el('heroOpenAttendBtn');
@@ -10175,7 +10737,13 @@ var TeacherSchedule = (function () {
     fetchHomeroomTimetable: fetchHomeroomTimetable,
     getHomeroomTimetable: getHomeroomTimetable,
     syncAcademicScheduleToCalendar: syncAcademicScheduleToCalendar,
-    getCachedAcademicEvents: function () { return readJson(ACADEMIC_CACHE_KEY, []); },
+    getCachedAcademicEvents: function () {
+      ensureDefaultSchool();
+      var meta = readJson(ACADEMIC_META_KEY, null);
+      // 학교를 바꾼 뒤 아직 새로 조회하지 못했다면 이전 학교 일정을 보여 주지 않습니다.
+      if (!meta || !selectedSchool || meta.school !== selectedSchool.atptCode + ':' + selectedSchool.schoolCode) return [];
+      return readJson(ACADEMIC_CACHE_KEY, []);
+    },
     fetchNeis: fetchNeis
   };
 })();
@@ -10400,89 +10968,69 @@ var SheetMemoPad = (function () {
 // 교사 캐릭터 아이콘 이미지 붙여넣기(Ctrl+V) 및 업로드 모듈 (AvatarManager)
 // ===================================================================
 var AvatarManager = (function () {
+  // 캐릭터 아이콘은 [오늘] 사이드바 머리에서만 씁니다. (헤더·대시보드는 기존 T-ong 디자인 유지)
   var AVATAR_KEY = 'tongCustomAvatar_v1';
-  var DEFAULT_SRC = '/assets/teacher-avatar.jpg';
+  var DEFAULT_SRC = '/assets/teacher-icon.svg';
 
   function el(id) { return document.getElementById(id); }
 
-  function applyAvatarSrc(src) {
-    var url = src || DEFAULT_SRC;
-    ['headerAvatarImg', 'dashAvatarImg', 'cbHomeAvatarImg', 'cbModalAvatarImg', 'floatingAvatarImg'].forEach(function (id) {
-      var img = el(id);
-      if (img) img.src = url;
-    });
+  function readCustom() {
+    try {
+      var saved = localStorage.getItem(AVATAR_KEY);
+      return saved && saved.indexOf('data:image/') === 0 ? saved : '';
+    } catch (e) { return ''; }
+  }
+
+  function render() {
+    var custom = readCustom();
+    var img = el('todayAvatarImg');
+    if (img) img.src = custom || DEFAULT_SRC;
+    var resetBtn = el('todayAvatarResetBtn');
+    if (resetBtn) resetBtn.hidden = !custom;
   }
 
   function saveCustomAvatar(dataUrl) {
     try { localStorage.setItem(AVATAR_KEY, dataUrl); } catch (e) {}
-    applyAvatarSrc(dataUrl);
-    if (typeof showToast === 'function') {
-      showToast('선생님 캐릭터 아이콘 이미지가 변경되었습니다.');
-    }
+    render();
+    if (typeof showToast === 'function') showToast('사이드바 캐릭터 아이콘을 바꿨습니다.');
+  }
+
+  function resetAvatar() {
+    try { localStorage.removeItem(AVATAR_KEY); } catch (e) {}
+    render();
+    if (typeof showToast === 'function') showToast('기본 캐릭터 아이콘으로 되돌렸습니다.');
   }
 
   function handleFile(file) {
     if (!file || !file.type || file.type.indexOf('image/') !== 0) return;
     var reader = new FileReader();
     reader.onload = function (e) {
-      if (e.target && e.target.result) {
-        saveCustomAvatar(e.target.result);
-      }
+      if (e.target && e.target.result) saveCustomAvatar(e.target.result);
     };
     reader.readAsDataURL(file);
   }
 
   function init() {
-    try {
-      var saved = localStorage.getItem(AVATAR_KEY);
-      if (saved && saved.indexOf('data:image/') === 0) {
-        applyAvatarSrc(saved);
-      } else {
-        applyAvatarSrc(DEFAULT_SRC);
-      }
-    } catch (e) {
-      applyAvatarSrc(DEFAULT_SRC);
-    }
+    render();
 
-    var wrap = el('dashAvatarWrap');
     var fileInput = el('avatarUploadInput');
-    if (wrap && fileInput) {
-      wrap.addEventListener('click', function () { fileInput.click(); });
+    ['todayAvatarBtn', 'todayAvatarChangeBtn'].forEach(function (id) {
+      var btn = el(id);
+      if (btn && fileInput) btn.addEventListener('click', function () { fileInput.click(); });
+    });
+    if (fileInput) {
       fileInput.addEventListener('change', function () {
         if (this.files && this.files[0]) handleFile(this.files[0]);
+        this.value = '';
       });
     }
+    var resetBtn = el('todayAvatarResetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetAvatar);
 
-    var pasteBtn = el('dashPasteAvatarBtn');
-    if (pasteBtn) {
-      pasteBtn.addEventListener('click', async function () {
-        if (navigator.clipboard && navigator.clipboard.read) {
-          try {
-            var items = await navigator.clipboard.read();
-            for (var i = 0; i < items.length; i++) {
-              var types = items[i].types || [];
-              var imgType = types.find(function (t) { return t.indexOf('image/') === 0; });
-              if (imgType) {
-                var blob = await items[i].getType(imgType);
-                handleFile(blob);
-                return;
-              }
-            }
-          } catch (e) {}
-        }
-        if (typeof showToast === 'function') {
-          showToast('이미지를 복사한 상태에서 키보드 Ctrl+V를 누르거나 아이콘을 클릭해 파일을 선택하세요.');
-        }
-      });
-    }
-
-    var homeAvatarBtn = el('homeChangeAvatarBtn');
-    if (homeAvatarBtn && fileInput) {
-      homeAvatarBtn.addEventListener('click', function () { fileInput.click(); });
-    }
-
-    // 화면 어디서나 이미지가 클립보드에 있을 때 Ctrl+V 붙여넣기 지원 (입력창 포커스 중이 아닐 때)
+    // 이미지 붙여넣기(Ctrl+V)는 사이드바가 열려 있을 때만 아이콘으로 받습니다.
     document.addEventListener('paste', function (e) {
+      var sidebar = el('todaySidebar');
+      if (!sidebar || !sidebar.classList.contains('show')) return;
       var active = document.activeElement;
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
       var items = (e.clipboardData && e.clipboardData.items) || [];
@@ -10507,8 +11055,18 @@ var AvatarManager = (function () {
 // ===================================================================
 var TodayBriefing = (function () {
   var FILTER_KEY = 'tongBriefingFilters_v1';
+  var ORDER_KEY = 'tongBriefingOrder_v1';
+  // [오늘] 사이드바와 홈 칠판에 놓을 수 있는 위젯 (기본 순서)
+  var WIDGETS = [
+    { key: 'teacherTt', label: '오늘 내 수업', hint: '내 시간표에 넣은 오늘 수업' },
+    { key: 'homeroomTt', label: '우리 반 시간표', hint: '담임(담당) 학급의 오늘 시간표' },
+    { key: 'meal', label: '급식', hint: '오늘 중식 메뉴' },
+    { key: 'schedule', label: '학사일정', hint: '다가오는 학교 일정' },
+    { key: 'weather', label: '날씨', hint: '학교 지역의 현재 날씨' }
+  ];
   var cachedMealText = '';
-  var cachedWeather = { loc: '시흥', text: '지금 맑음 14° · 최저/최고 4°/14°' };
+  var cachedMealKey = '';  // 학교:날짜 — 같은 날 급식을 반복 조회하지 않기 위한 표시
+  var cachedWeather = { loc: '날씨', text: '날씨를 불러오는 중...' };
 
   function el(id) { return document.getElementById(id); }
 
@@ -10522,6 +11080,21 @@ var TodayBriefing = (function () {
 
   function saveFilters(f) {
     try { localStorage.setItem(FILTER_KEY, JSON.stringify(f)); } catch (e) {}
+  }
+
+  // 저장된 위젯 순서 (모르는 키는 버리고, 새로 생긴 위젯은 뒤에 붙입니다)
+  function getOrder() {
+    var known = WIDGETS.map(function (w) { return w.key; });
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]'); } catch (e) { saved = []; }
+    if (!Array.isArray(saved)) saved = [];
+    var order = saved.filter(function (key, idx) { return known.indexOf(key) >= 0 && saved.indexOf(key) === idx; });
+    known.forEach(function (key) { if (order.indexOf(key) < 0) order.push(key); });
+    return order;
+  }
+
+  function saveOrder(order) {
+    try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch (e) {}
   }
 
   function getTodayInfo() {
@@ -10618,39 +11191,40 @@ var TodayBriefing = (function () {
     }
   }
 
+  // 오늘 급식만 조회합니다. 같은 학교·날짜는 한 번만 불러옵니다.
   async function loadMealInfo() {
     var school = TeacherSchedule.getSelectedSchool();
     if (!school) return;
     var now = new Date();
     var ymdToday = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-    var candidateDates = [ymdToday, '20251111', '20251112', '20251110'];
+    var mealKey = school.atptCode + ':' + school.schoolCode + ':' + ymdToday;
+    if (cachedMealKey === mealKey) return;
+    cachedMealKey = mealKey;
 
-    for (var i = 0; i < candidateDates.length; i++) {
-      try {
-        var rows = await TeacherSchedule.fetchNeis('mealServiceDietInfo', {
-          ATPT_OFCDC_SC_CODE: school.atptCode,
-          SD_SCHUL_CODE: school.schoolCode,
-          MLSV_YMD: candidateDates[i]
-        });
-        if (rows && rows.length) {
-          var lunch = rows.find(function (r) { return String(r.MMEAL_SC_NM || '').indexOf('중식') >= 0; }) || rows[0];
-          var rawMenu = String(lunch.DDISH_NM || '')
-            .replace(/<br\s*\/?>/gi, ' · ')
-            .replace(/\([0-9.]+\)/g, '')
-            .replace(/\s+/g, ' ')
-            .replace(/( · )+/g, ' · ')
-            .replace(/^ · | · $/g, '')
-            .trim();
-          var cal = String(lunch.CAL_INFO || '').trim();
-          if (rawMenu) {
-            cachedMealText = escapeHtml(rawMenu) + (cal ? ' <small>' + escapeHtml(cal) + '</small>' : '');
-            updateMealDom();
-            return;
-          }
-        }
-      } catch (e) {}
+    try {
+      var rows = await TeacherSchedule.fetchNeis('mealServiceDietInfo', {
+        ATPT_OFCDC_SC_CODE: school.atptCode,
+        SD_SCHUL_CODE: school.schoolCode,
+        MLSV_YMD: ymdToday
+      });
+      if (cachedMealKey !== mealKey) return;
+      var lunch = rows.find(function (r) { return String(r.MMEAL_SC_NM || '').indexOf('중식') >= 0; }) || rows[0];
+      var rawMenu = lunch ? String(lunch.DDISH_NM || '')
+        .replace(/<br\s*\/?>/gi, ' · ')
+        .replace(/\([0-9.]+\)/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/( · )+/g, ' · ')
+        .replace(/^ · | · $/g, '')
+        .trim() : '';
+      var cal = lunch ? String(lunch.CAL_INFO || '').trim() : '';
+      cachedMealText = rawMenu
+        ? escapeHtml(rawMenu) + (cal ? ' <small>' + escapeHtml(cal) + '</small>' : '')
+        : '오늘은 NEIS에 등록된 급식이 없습니다.';
+    } catch (e) {
+      if (cachedMealKey !== mealKey) return;
+      cachedMealKey = '';  // 다음 새로고침 때 다시 시도
+      cachedMealText = '급식 정보를 불러오지 못했습니다.';
     }
-    cachedMealText = '모둠야채죽 · 불고기버거 · 콘샐러드 · 웨지감자튀김&amp;케찹 · 배추겉절이 · 핑크주스 <small>815.9 Kcal</small>';
     updateMealDom();
   }
 
@@ -10665,18 +11239,21 @@ var TodayBriefing = (function () {
     var node = el(prefix + 'ScheduleText');
     if (!node) return;
     var events = TeacherSchedule.getCachedAcademicEvents() || [];
-    if (!events.length) {
-      node.innerHTML = '수능 예비소집 · 대학수학능력시험 · 기말고사 <small>(학사일정 가져오기 클릭 시 달력 자동 반영)</small>';
+    var now = new Date();
+    var todayIso = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    // 오늘 진행 중이거나 앞으로 다가올 일정을 가까운 순서로 4개까지 보여 줍니다.
+    var upcoming = events.filter(function (ev) { return (ev.end || ev.start) >= todayIso; })
+      .sort(function (a, b) { return a.start < b.start ? -1 : (a.start > b.start ? 1 : 0); });
+    if (!upcoming.length) {
+      node.innerHTML = '다가오는 학사일정이 없습니다. <small>(학사일정 가져오기를 누르면 NEIS에서 다시 조회합니다)</small>';
       return;
     }
-    var uniqueTitles = [];
-    events.forEach(function (ev) {
-      var label = ev.start.slice(5).replace('-', '/') + ' ' + ev.title;
-      if (uniqueTitles.indexOf(label) < 0 && uniqueTitles.length < 4) {
-        uniqueTitles.push(label);
-      }
+    var labels = [];
+    upcoming.forEach(function (ev) {
+      var label = ev.start.slice(5).replace('-', '/') + (ev.end && ev.end !== ev.start ? '~' + ev.end.slice(5).replace('-', '/') : '') + ' ' + ev.title;
+      if (labels.indexOf(label) < 0 && labels.length < 4) labels.push(label);
     });
-    node.innerHTML = escapeHtml(uniqueTitles.join(' · '));
+    node.innerHTML = escapeHtml(labels.join(' · '));
   }
 
   async function loadWeatherInfo() {
@@ -10705,9 +11282,11 @@ var TodayBriefing = (function () {
           loc: city,
           text: '지금 ' + cond + ' ' + curTemp + '° · 최저/최고 ' + minTemp + '°/' + maxTemp + '°'
         };
+      } else {
+        cachedWeather = { loc: city, text: '날씨 정보를 불러오지 못했습니다.' };
       }
     } catch (e) {
-      cachedWeather = { loc: city, text: '지금 흐림 14° · 맑음 4°/15°' };
+      cachedWeather = { loc: city, text: '날씨 정보를 불러오지 못했습니다.' };
     }
     ['cbHome', 'cbModal'].forEach(function (prefix) {
       var locNode = el(prefix + 'WeatherLoc');
@@ -10717,16 +11296,21 @@ var TodayBriefing = (function () {
     });
   }
 
-  function applyFilterVisibility() {
+  // 위젯 보이기/숨기기와 순서를 홈 칠판·사이드바 칠판 양쪽에 똑같이 적용합니다.
+  function applyWidgetLayout() {
     var filters = getFilters();
-    document.querySelectorAll('[data-cb-sec]').forEach(function (sec) {
-      var key = sec.getAttribute('data-cb-sec');
-      sec.hidden = filters[key] === false;
+    var order = getOrder();
+    document.querySelectorAll('.cb-board-inner').forEach(function (board) {
+      var anchor = board.querySelector('.cb-bottom-bar, .tsb-empty');  // 위젯은 이 요소 바로 앞에 차례로 놓입니다
+      order.forEach(function (key) {
+        var sec = board.querySelector('[data-cb-sec="' + key + '"]');
+        if (!sec) return;
+        sec.hidden = filters[key] === false;
+        board.insertBefore(sec, anchor);
+      });
     });
-    document.querySelectorAll('[data-cb-toggle]').forEach(function (chk) {
-      var key = chk.getAttribute('data-cb-toggle');
-      chk.checked = filters[key] !== false;
-    });
+    var empty = el('todayWidgetEmpty');
+    if (empty) empty.hidden = order.some(function (key) { return filters[key] !== false; });
   }
 
   function refreshAll() {
@@ -10739,9 +11323,98 @@ var TodayBriefing = (function () {
       renderAcademicSchedule(prefix);
     });
     updateMealDom();
-    applyFilterVisibility();
+    applyWidgetLayout();
     loadMealInfo();
     loadWeatherInfo();
+  }
+
+  // ---- [오늘] 사이드바: 위젯 구성 목록 ---------------------------------
+  function renderWidgetConfig() {
+    var list = el('todayWidgetList');
+    if (!list) return;
+    var filters = getFilters();
+    var order = getOrder();
+    list.innerHTML = order.map(function (key, idx) {
+      var widget = WIDGETS.find(function (w) { return w.key === key; });
+      return '<li class="tsb-widget-item" data-widget="' + key + '">' +
+        '<label>' +
+          '<input type="checkbox" data-widget-toggle="' + key + '"' + (filters[key] !== false ? ' checked' : '') + '>' +
+          '<span><b>' + escapeHtml(widget.label) + '</b><small>' + escapeHtml(widget.hint) + '</small></span>' +
+        '</label>' +
+        '<span class="tsb-widget-move">' +
+          '<button type="button" data-widget-move="up" aria-label="' + escapeHtml(widget.label) + ' 위로 올리기"' + (idx === 0 ? ' disabled' : '') + '>▲</button>' +
+          '<button type="button" data-widget-move="down" aria-label="' + escapeHtml(widget.label) + ' 아래로 내리기"' + (idx === order.length - 1 ? ' disabled' : '') + '>▼</button>' +
+        '</span>' +
+      '</li>';
+    }).join('');
+  }
+
+  function moveWidget(key, direction) {
+    var order = getOrder();
+    var from = order.indexOf(key);
+    var to = from + (direction === 'up' ? -1 : 1);
+    if (from < 0 || to < 0 || to >= order.length) return;
+    order.splice(to, 0, order.splice(from, 1)[0]);
+    saveOrder(order);
+    applyWidgetLayout();
+    renderWidgetConfig();
+    // 목록을 다시 그려도 방금 누른 위젯에서 계속 옮길 수 있게 초점을 돌려놓습니다.
+    var item = el('todayWidgetList').querySelector('[data-widget="' + key + '"]');
+    var next = item && (item.querySelector('[data-widget-move="' + direction + '"]:not([disabled])') || item.querySelector('[data-widget-move]:not([disabled])'));
+    if (next) next.focus();
+  }
+
+  function setConfigOpen(open) {
+    var panel = el('todayWidgetConfig');
+    var btn = el('todayWidgetConfigBtn');
+    if (!panel) return;
+    panel.hidden = !open;
+    if (btn) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.classList.toggle('active', open);
+      btn.textContent = open ? '구성 닫기' : '위젯 구성';
+    }
+    if (open) renderWidgetConfig();
+  }
+
+  // ---- [오늘] 사이드바 열기 · 닫기 --------------------------------------
+  function isSidebarOpen() {
+    var sidebar = el('todaySidebar');
+    return Boolean(sidebar && sidebar.classList.contains('show'));
+  }
+
+  function openSidebar(withConfig) {
+    var sidebar = el('todaySidebar');
+    if (!sidebar) return;
+    refreshAll();
+    setConfigOpen(Boolean(withConfig));
+    sidebar.classList.add('show');
+    sidebar.setAttribute('aria-hidden', 'false');
+    var backdrop = el('todaySidebarBackdrop');
+    if (backdrop) backdrop.classList.add('show');
+    var floatBtn = el('floatingTodayBtn');
+    if (floatBtn) floatBtn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('today-sidebar-open');
+    setTimeout(function () {
+      var target = withConfig ? el('todayWidgetConfigBtn') : el('todaySidebarCloseBtn');
+      if (target && isSidebarOpen()) target.focus();
+    }, 60);
+  }
+
+  function closeSidebar() {
+    var sidebar = el('todaySidebar');
+    if (!sidebar || !sidebar.classList.contains('show')) return;
+    var hadFocus = sidebar.contains(document.activeElement);
+    sidebar.classList.remove('show');
+    sidebar.setAttribute('aria-hidden', 'true');
+    var backdrop = el('todaySidebarBackdrop');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('today-sidebar-open');
+    var floatBtn = el('floatingTodayBtn');
+    if (floatBtn) {
+      floatBtn.setAttribute('aria-expanded', 'false');
+      if (hadFocus) floatBtn.focus();
+    }
   }
 
   function init() {
@@ -10756,37 +11429,58 @@ var TodayBriefing = (function () {
     var floatBtn = el('floatingTodayBtn');
     if (floatBtn) {
       floatBtn.addEventListener('click', function () {
-        refreshAll();
-        openModal('floatingChalkboardModal');
+        if (isSidebarOpen()) closeSidebar();
+        else openSidebar(false);
       });
     }
+    var closeBtn = el('todaySidebarCloseBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    var backdrop = el('todaySidebarBackdrop');
+    if (backdrop) backdrop.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isSidebarOpen()) closeSidebar();
+    });
+
+    // 위젯 구성: 사이드바 머리의 버튼, 홈 칠판 아래 버튼 모두 사이드바의 구성 패널을 엽니다.
+    var configBtn = el('todayWidgetConfigBtn');
+    if (configBtn) configBtn.addEventListener('click', function () {
+      setConfigOpen(el('todayWidgetConfig').hidden);
+    });
+    var homeConfigBtn = el('cbHomeWidgetConfigBtn');
+    if (homeConfigBtn) homeConfigBtn.addEventListener('click', function () { openSidebar(true); });
+
+    var widgetList = el('todayWidgetList');
+    if (widgetList) {
+      widgetList.addEventListener('change', function (e) {
+        var key = e.target.getAttribute && e.target.getAttribute('data-widget-toggle');
+        if (!key) return;
+        var filters = getFilters();
+        filters[key] = e.target.checked;
+        saveFilters(filters);
+        applyWidgetLayout();
+      });
+      widgetList.addEventListener('click', function (e) {
+        var moveBtn = e.target.closest('[data-widget-move]');
+        if (!moveBtn || moveBtn.disabled) return;
+        moveWidget(moveBtn.closest('[data-widget]').getAttribute('data-widget'), moveBtn.getAttribute('data-widget-move'));
+      });
+    }
+    var resetBtn = el('todayWidgetResetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', function () {
+      var filters = {};
+      WIDGETS.forEach(function (w) { filters[w.key] = true; });
+      saveFilters(filters);
+      saveOrder(WIDGETS.map(function (w) { return w.key; }));
+      applyWidgetLayout();
+      renderWidgetConfig();
+      if (typeof showToast === 'function') showToast('위젯을 기본 구성으로 되돌렸습니다.');
+    });
 
     ['cbHomeSchoolBtn', 'cbModalSchoolBtn'].forEach(function (id) {
       var btn = el(id);
       if (btn) btn.addEventListener('click', function () {
-        closeModal('floatingChalkboardModal');
+        closeSidebar();
         TeacherSchedule.open();
-      });
-    });
-
-    [
-      { btn: 'cbHomeFilterBtn', panel: 'cbHomeFilterPanel' },
-      { btn: 'cbModalFilterBtn', panel: 'cbModalFilterPanel' }
-    ].forEach(function (pair) {
-      var b = el(pair.btn), p = el(pair.panel);
-      if (b && p) {
-        b.addEventListener('click', function () {
-          p.hidden = !p.hidden;
-        });
-      }
-    });
-
-    document.querySelectorAll('[data-cb-toggle]').forEach(function (chk) {
-      chk.addEventListener('change', function () {
-        var filters = getFilters();
-        filters[this.getAttribute('data-cb-toggle')] = this.checked;
-        saveFilters(filters);
-        applyFilterVisibility();
       });
     });
 
@@ -10795,15 +11489,15 @@ var TodayBriefing = (function () {
       if (!actionTarget) return;
       var act = actionTarget.getAttribute('data-cb-action');
       if (act === 'openSchedule') {
-        closeModal('floatingChalkboardModal');
+        closeSidebar();
         TeacherSchedule.open();
       } else if (act === 'openSchoolModal') {
-        closeModal('floatingChalkboardModal');
+        closeSidebar();
         openModal('schoolTodayModal');
       } else if (act === 'syncNeisCal') {
         TeacherSchedule.syncAcademicScheduleToCalendar(false);
       } else if (act === 'openCalendar') {
-        closeModal('floatingChalkboardModal');
+        closeSidebar();
         if (typeof ScheduleCalendar !== 'undefined' && ScheduleCalendar.open) {
           ScheduleCalendar.open();
         } else {
@@ -10815,7 +11509,9 @@ var TodayBriefing = (function () {
 
   return {
     init: init,
-    refreshAll: refreshAll
+    refreshAll: refreshAll,
+    openSidebar: openSidebar,
+    closeSidebar: closeSidebar
   };
 })();
 
