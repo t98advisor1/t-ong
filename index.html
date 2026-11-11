@@ -52,6 +52,7 @@
       <nav class="mode-tabs" id="modeTabs" aria-label="주요 메뉴">
         <button type="button" class="mode-tab active" data-mode="seat">자리배치</button>
         <button type="button" class="mode-tab" data-mode="attend">✅ 출결관리</button>
+        <button type="button" class="mode-tab" id="topScheduleBtn">시간표·학급설정</button>
         <div class="more-wrap">
           <button type="button" class="mode-tab" id="extraBtn">➕ 교실운영 ▾</button>
           <div class="more-menu" id="extraMenu">
@@ -336,47 +337,144 @@
     </div>
   </div>
 
-  <!-- 설정 위자드 (게임앱 스타일 단계 진행) -->
+  <!-- 설정 위자드 (시작 대시보드 + 오늘 브리핑 칠판 위젯 + 교실 설정) -->
   <div id="setupWizard" class="wizard">
-    <div class="wizard-hero">
-      <div class="hero-badge">👩‍🏫 담임·교과교사를 위한 올인원 교무수첩</div>
-      <h2 class="tong-title"><span class="tong-word">T-ong</span><small>교무수첩</small></h2>
-      <p class="hero-tagline">학급 관리, 하나로 <strong>통(通)</strong>하다</p>
-      <p class="hero-sub">자리배치부터 출결·일정·상담까지, 교사의 하루를 한 화면에서.</p>
-      <div class="hero-tags" id="heroTags">
-        <button type="button" class="hero-tag hero-feature-card" data-key="추첨 시작">
-          <span class="hero-feature-ic">🪑</span><span><b>좌석·모둠 배치</b><small>관계·고정 조건을 반영해 구성</small></span>
-        </button>
-        <button type="button" class="hero-tag hero-feature-card" data-key="누가기록">
-          <span class="hero-feature-ic">✅</span><span><b>출결·통합 기록</b><small>날짜별 입력부터 엑셀 정리까지</small></span>
-        </button>
-        <button type="button" class="hero-tag hero-feature-card" data-key="일정관리">
-          <span class="hero-feature-ic">📅</span><span><b>일정·상담 관리</b><small>캘린더와 상담 기록을 한곳에서</small></span>
-        </button>
-        <button type="button" class="hero-tag hero-feature-card" data-key="교실운영">
-          <span class="hero-feature-ic">🧰</span><span><b>교실운영 도구</b><small>타이머·칭찬·알림장·룰렛</small></span>
-        </button>
+    <div class="wizard-hero wizard-hero-split">
+      <div class="hero-main-col">
+        <div class="hero-badge">담임·교과교사를 위한 올인원 교무수첩</div>
+        <h2 class="tong-title"><span class="tong-word">T-ong</span><small>교무수첩</small></h2>
+        <p class="hero-tagline">학급 관리, 하나로 <strong>통(通)</strong>하다</p>
+        <p class="hero-sub">NEIS 학교·학급·시간표·학사일정 자동 연동부터 자리배치·출결·관찰·상담까지 한 화면에서 시작하세요.</p>
+
+        <div class="hero-tags hero-quick-grid" id="heroTags">
+          <button type="button" class="hero-tag hero-feature-card hero-card-primary" id="heroOpenScheduleBtn">
+            <span class="hero-feature-ic">NEIS</span><span><b>학교·학급·시간표 설정</b><small>우리 학교 검색 및 담임·수업반 시간표</small></span>
+          </button>
+          <button type="button" class="hero-tag hero-feature-card" id="heroOpenStuTtBtn">
+            <span class="hero-feature-ic">XLSX</span><span><b>학생별 이동수업 시간표</b><small>나이스 학생별 시간표 엑셀 업로드</small></span>
+          </button>
+          <button type="button" class="hero-tag hero-feature-card" id="heroOpenSeatBtn">
+            <span class="hero-feature-ic">좌석</span><span><b>좌석·모둠 배치 시작</b><small>관계·고정 조건을 반영해 자리 추첨</small></span>
+          </button>
+          <button type="button" class="hero-tag hero-feature-card" id="heroOpenAttendBtn">
+            <span class="hero-feature-ic">출결</span><span><b>출결·수업관찰 기록</b><small>구글 시트 10개 탭 실시간 연동</small></span>
+          </button>
+          <button type="button" class="hero-tag hero-feature-card" id="heroOpenCalendarBtn">
+            <span class="hero-feature-ic">달력</span><span><b>전체화면 일정·학사 달력</b><small>NEIS 학사일정 자동 입력 및 상담 관리</small></span>
+          </button>
+          <button type="button" class="hero-tag hero-feature-card" id="introGuideBtn">
+            <span class="hero-feature-ic">안내</span><span><b>처음 사용법 가이드</b><small>기능별 단계별 설명서 바로 보기</small></span>
+          </button>
+        </div>
+
+        <p class="hero-hint">우측 칠판 브리핑에서 <b>오늘 내 수업, 우리 반 시간표, 급식, 학사일정, 날씨</b>를 한눈에 확인하세요.</p>
+        <nav class="step-tabs" id="stepTabs">
+          <button type="button" class="step-tab active" data-step="1">
+            <span class="st-no">1</span><span class="st-label">교실 크기</span>
+          </button>
+          <span class="step-line"></span>
+          <button type="button" class="step-tab" data-step="2">
+            <span class="st-no">2</span><span class="st-label">자리 형태</span>
+          </button>
+          <span class="step-line"></span>
+          <button type="button" class="step-tab" data-step="3">
+            <span class="st-no">3</span><span class="st-label">학생 수</span>
+          </button>
+        </nav>
+        <div class="step-progress"><div id="stepProgressFill"></div></div>
       </div>
-      <div class="hero-onboarding">
-        <button type="button" id="introGuideBtn" class="hero-guide-btn">📖 처음이신가요? 3분 사용법 먼저 보기</button>
-        <span>기능 카드를 누르면 해당 사용법으로 바로 이동합니다.</span>
+
+      <!-- 우측: 칠판형 오늘 브리핑 위젯 (사용자 요청 디자인 반영) -->
+      <div class="hero-briefing-col">
+        <div class="chalkboard-card" id="homeChalkboardCard">
+          <div class="cb-wood-frame">
+            <div class="cb-board-inner">
+              <div class="cb-top-bar">
+                <div>
+                  <div class="cb-date-line" id="cbHomeDateText">11월 11일 수요일 · 오늘 브리핑</div>
+                  <h3 class="cb-greeting">오늘도 반가워요!</h3>
+                </div>
+                <button type="button" class="cb-school-pill" id="cbHomeSchoolBtn" title="학교 및 학급 설정 변경">학교 설정 &gt;</button>
+              </div>
+
+              <!-- 1. 오늘 수업 (교사 수업 시간표) -->
+              <div class="cb-section" data-cb-sec="teacherTt">
+                <div class="cb-sec-head">
+                  <div class="cb-sec-title">
+                    <span>오늘 수업</span>
+                    <span class="cb-count-badge" id="cbHomeLessonCount">0</span>
+                    <small class="cb-end-time" id="cbHomeLessonEnd"></small>
+                  </div>
+                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">열기 &gt;</button>
+                </div>
+                <div class="cb-lesson-grid" id="cbHomeLessonGrid"></div>
+              </div>
+
+              <!-- 2. 우리 반 시간표 (담임 학급 NEIS 실시간 시간표) -->
+              <div class="cb-section" data-cb-sec="homeroomTt">
+                <div class="cb-sec-head">
+                  <div class="cb-sec-title">
+                    <span>우리 반 시간표</span>
+                    <span class="cb-class-badge" id="cbHomeHomeroomBadge">미설정</span>
+                  </div>
+                  <button type="button" class="cb-open-link" data-cb-action="openSchedule">설정·열기 &gt;</button>
+                </div>
+                <div class="cb-homeroom-strip" id="cbHomeHomeroomList"></div>
+              </div>
+
+              <!-- 3. 급식 -->
+              <div class="cb-section" data-cb-sec="meal">
+                <div class="cb-sec-head">
+                  <div class="cb-sec-title"><span>급식</span></div>
+                  <button type="button" class="cb-open-link" data-cb-action="openSchoolModal">열기 &gt;</button>
+                </div>
+                <div class="cb-info-row">
+                  <span class="cb-info-label">중식</span>
+                  <div class="cb-info-val" id="cbHomeMealText">학교를 설정하면 오늘의 급식 메뉴와 칼로리를 불러옵니다.</div>
+                </div>
+              </div>
+
+              <!-- 4. 학사일정 (NEIS 연동) -->
+              <div class="cb-section" data-cb-sec="schedule">
+                <div class="cb-sec-head">
+                  <div class="cb-sec-title"><span>학사일정</span></div>
+                  <div style="display:flex; gap:8px;">
+                    <button type="button" class="cb-open-link cb-accent-link" data-cb-action="syncNeisCal">학사일정 가져오기</button>
+                    <button type="button" class="cb-open-link" data-cb-action="openCalendar">달력 열기 &gt;</button>
+                  </div>
+                </div>
+                <div class="cb-info-row">
+                  <span class="cb-info-label">일정</span>
+                  <div class="cb-info-val" id="cbHomeScheduleText">NEIS 학사일정 조회 중...</div>
+                </div>
+              </div>
+
+              <!-- 5. 날씨 -->
+              <div class="cb-section" data-cb-sec="weather">
+                <div class="cb-sec-head">
+                  <div class="cb-sec-title"><span>날씨</span></div>
+                </div>
+                <div class="cb-info-row">
+                  <span class="cb-info-label" id="cbHomeWeatherLoc">수원</span>
+                  <div class="cb-info-val" id="cbHomeWeatherText">지금 흐림 14° · 맑음 4°/15°</div>
+                </div>
+              </div>
+
+              <!-- 하단: 알려 줄 것 고르기 -->
+              <div class="cb-bottom-bar">
+                <button type="button" class="cb-filter-toggle-btn" id="cbHomeFilterBtn">알려 줄 것 고르기</button>
+                <div class="cb-filter-panel" id="cbHomeFilterPanel" hidden>
+                  <label><input type="checkbox" data-cb-toggle="teacherTt" checked> 오늘 수업</label>
+                  <label><input type="checkbox" data-cb-toggle="homeroomTt" checked> 우리 반 시간표</label>
+                  <label><input type="checkbox" data-cb-toggle="meal" checked> 급식</label>
+                  <label><input type="checkbox" data-cb-toggle="schedule" checked> 학사일정</label>
+                  <label><input type="checkbox" data-cb-toggle="weather" checked> 날씨</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="hero-hint">명렬표와 기록은 현재 브라우저에만 저장되므로 정기적인 백업을 권장합니다.</p>
-      <p class="hero-device-note">💻 노트북과 태블릿 화면에 최적화되어 있습니다.</p>
-      <p class="hero-home-prompt">상단 메뉴에서 원하는 업무를 선택하세요. <b>자리배치</b>를 누르면 좌석 화면으로 이동합니다.</p>
-      <nav class="step-tabs" id="stepTabs">
-        <button type="button" class="step-tab active" data-step="1">
-          <span class="st-no">1</span><span class="st-label">교실 크기</span>
-        </button>
-        <span class="step-line"></span>
-        <button type="button" class="step-tab" data-step="2">
-          <span class="st-no">2</span><span class="st-label">자리 형태</span>
-        </button>
-        <span class="step-line"></span>
-        <button type="button" class="step-tab" data-step="3">
-          <span class="st-no">3</span><span class="st-label">학생 수</span>
-        </button></nav>
-      <div class="step-progress"><div id="stepProgressFill"></div></div>
     </div>
     <div class="wizard-content">
       <div class="wizard-form-head">
@@ -1152,6 +1250,8 @@
         <h3>📅 일정관리</h3>
         <div class="cal-head-actions">
           <button type="button" id="calAddBtn" class="btn primary">＋ 일정 추가</button>
+          <button type="button" id="calNeisSyncBtn" class="btn" style="background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700;">NEIS 학사일정 가져오기</button>
+          <button type="button" id="calFullscreenToggleBtn" class="btn" title="전체화면/기본크기 전환">기본 크기로 보기</button>
           <button type="button" id="calGoogleBtn" class="btn google-cal-head-btn"><span aria-hidden="true">G</span> Google 동기화</button>
           <button type="button" id="calHelpBtn" class="btn">❓ 사용법</button>
           <button type="button" id="calTransferBtn" class="btn">⇄ 가져오기·내보내기</button>
@@ -1838,26 +1938,104 @@
   <div id="printArea" class="print-only"></div>
   <div id="toast" class="toast"></div>
 
-  <script src="/app.js?v=5.17.0-preview.73"></script>
-  <script>
-    // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
-    var localHost = location.hostname;
-    var isLocalDev = ['localhost', '127.0.0.1', '::1'].indexOf(localHost) !== -1 || /^192\.168\./.test(localHost) || /^10\./.test(localHost) || /^172\.(1[6-9]|2\d|3[01])\./.test(localHost);
-    if ('serviceWorker' in navigator) {
-      if (isLocalDev) {
-        navigator.serviceWorker.getRegistrations().then(function (rs) {
-          rs.forEach(function (r) { r.unregister(); });
-        });
-        if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
-      } else {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function (e) {
-            console.warn('SW 등록 실패:', e);
-          });
-        });
-      }
-    }
-  </script>
+  
+  <!-- 우측 하단 플로팅 [오늘] 브리핑 열기 버튼 -->
+  <button type="button" id="floatingTodayBtn" class="floating-today-btn" title="오늘 브리핑 칠판 열기">
+    <span class="ft-sprout" aria-hidden="true"></span>
+    <span class="ft-face" aria-hidden="true"></span>
+    <span class="ft-board">오늘</span>
+  </button>
+
+  <!-- 팝업 칠판 오늘 브리핑 모달 (어느 화면에서나 [오늘] 버튼으로 열기) -->
+  <div id="floatingChalkboardModal" class="modal">
+    <div class="modal-content cb-modal-content">
+      <div class="chalkboard-card">
+        <div class="cb-wood-frame">
+          <div class="cb-board-inner">
+            <div class="cb-top-bar">
+              <div>
+                <div class="cb-date-line" id="cbModalDateText">11월 11일 수요일 · 오늘 브리핑</div>
+                <h3 class="cb-greeting">오늘도 반가워요!</h3>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="cb-school-pill" id="cbModalSchoolBtn">학교 설정 &gt;</button>
+                <button type="button" class="cb-close-x" data-modal="floatingChalkboardModal" aria-label="닫기">&times;</button>
+              </div>
+            </div>
+
+            <div class="cb-section" data-cb-sec="teacherTt">
+              <div class="cb-sec-head">
+                <div class="cb-sec-title">
+                  <span>오늘 수업</span>
+                  <span class="cb-count-badge" id="cbModalLessonCount">0</span>
+                  <small class="cb-end-time" id="cbModalLessonEnd"></small>
+                </div>
+                <button type="button" class="cb-open-link" data-cb-action="openSchedule">열기 &gt;</button>
+              </div>
+              <div class="cb-lesson-grid" id="cbModalLessonGrid"></div>
+            </div>
+
+            <div class="cb-section" data-cb-sec="homeroomTt">
+              <div class="cb-sec-head">
+                <div class="cb-sec-title">
+                  <span>우리 반 시간표</span>
+                  <span class="cb-class-badge" id="cbModalHomeroomBadge">미설정</span>
+                </div>
+                <button type="button" class="cb-open-link" data-cb-action="openSchedule">설정·열기 &gt;</button>
+              </div>
+              <div class="cb-homeroom-strip" id="cbModalHomeroomList"></div>
+            </div>
+
+            <div class="cb-section" data-cb-sec="meal">
+              <div class="cb-sec-head">
+                <div class="cb-sec-title"><span>급식</span></div>
+                <button type="button" class="cb-open-link" data-cb-action="openSchoolModal">열기 &gt;</button>
+              </div>
+              <div class="cb-info-row">
+                <span class="cb-info-label">중식</span>
+                <div class="cb-info-val" id="cbModalMealText">학교를 설정하면 오늘의 급식 메뉴와 칼로리를 불러옵니다.</div>
+              </div>
+            </div>
+
+            <div class="cb-section" data-cb-sec="schedule">
+              <div class="cb-sec-head">
+                <div class="cb-sec-title"><span>학사일정</span></div>
+                <div style="display:flex; gap:8px;">
+                  <button type="button" class="cb-open-link cb-accent-link" data-cb-action="syncNeisCal">학사일정 가져오기</button>
+                  <button type="button" class="cb-open-link" data-cb-action="openCalendar">달력 열기 &gt;</button>
+                </div>
+              </div>
+              <div class="cb-info-row">
+                <span class="cb-info-label">일정</span>
+                <div class="cb-info-val" id="cbModalScheduleText">NEIS 학사일정 조회 중...</div>
+              </div>
+            </div>
+
+            <div class="cb-section" data-cb-sec="weather">
+              <div class="cb-sec-head">
+                <div class="cb-sec-title"><span>날씨</span></div>
+              </div>
+              <div class="cb-info-row">
+                <span class="cb-info-label" id="cbModalWeatherLoc">수원</span>
+                <div class="cb-info-val" id="cbModalWeatherText">지금 흐림 14° · 맑음 4°/15°</div>
+              </div>
+            </div>
+
+            <div class="cb-bottom-bar">
+              <button type="button" class="cb-filter-toggle-btn" id="cbModalFilterBtn">알려 줄 것 고르기</button>
+              <div class="cb-filter-panel" id="cbModalFilterPanel" hidden>
+                <label><input type="checkbox" data-cb-toggle="teacherTt" checked> 오늘 수업</label>
+                <label><input type="checkbox" data-cb-toggle="homeroomTt" checked> 우리 반 시간표</label>
+                <label><input type="checkbox" data-cb-toggle="meal" checked> 급식</label>
+                <label><input type="checkbox" data-cb-toggle="schedule" checked> 학사일정</label>
+                <label><input type="checkbox" data-cb-toggle="weather" checked> 날씨</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 학생별 시간표 업로드 모달 (사용자 요청 UI 완벽 구현) -->
   <div id="studentTimetableModal" class="modal">
@@ -1968,11 +2146,11 @@
 
   <!-- 교사용 시간표 & NEIS 학교·학급 연동 모달 -->
   <div id="teacherScheduleModal" class="modal">
-    <div class="modal-content wide" style="max-width: 680px;">
+    <div class="modal-content wide" style="max-width: 720px;">
       <div class="modal-header">
         <div>
-          <span style="font-size:0.75rem; color:#4f46e5; font-weight:800;">NEIS OPEN API 연동</span>
-          <h3 style="margin:2px 0 0;">교무 시간표 & 학교·학급 설정</h3>
+          <span style="font-size:0.75rem; color:#4f46e5; font-weight:800;">NEIS OPEN API 실시간 연동</span>
+          <h3 style="margin:2px 0 0;">교무 시간표 & 학교·학급·학사일정 설정</h3>
         </div>
         <button class="close-btn" data-modal="teacherScheduleModal">&times;</button>
       </div>
@@ -1984,10 +2162,10 @@
             <span id="tsCurrentSchoolBadge" style="font-size:0.8rem; color:#4f46e5; font-weight:700;">미설정</span>
           </div>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="tsSchoolSearchInput" placeholder="학교명을 입력하세요 (예: 서울고, 경기여고)" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.88rem; margin:0;">
+            <input type="text" id="tsSchoolSearchInput" placeholder="학교명을 입력하세요 (예: 신천고, 서울고, 경기여고)" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.88rem; margin:0;">
             <button type="button" id="tsSchoolSearchBtn" class="btn primary" style="padding:8px 14px;">검색</button>
           </div>
-          <div id="tsSchoolSearchResults" style="margin-top:8px; max-height:120px; overflow-y:auto;"></div>
+          <div id="tsSchoolSearchResults" style="margin-top:8px; max-height:150px; overflow-y:auto;"></div>
         </div>
 
         <!-- 2. 학년/반 실시간 로딩 (classInfo API) -->
@@ -1998,7 +2176,7 @@
           </div>
 
           <div style="margin-bottom:10px;">
-            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내 담임 학급 (1개 선택)</label>
+            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">내 담임 학급 (1개 선택 — 선택 시 칠판 브리핑에 우리 반 시간표 자동 표시)</label>
             <div id="tsHomeroomPills" class="class-pills-wrap">
               <span style="font-size:0.8rem; color:#94a3b8;">학교를 선택하면 실제 개설된 반 목록이 나타납니다.</span>
             </div>
@@ -2011,7 +2189,9 @@
             </div>
           </div>
 
-          <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+          <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="tsSyncAcademicCalBtn" class="btn" style="background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700; font-size:0.8rem;">NEIS 학사일정 달력에 자동 입력</button>
+            <button type="button" id="tsLoadHomeroomTtBtn" class="btn" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; font-weight:700; font-size:0.8rem;">담임 반 시간표를 내 시간표로 복사</button>
             <button type="button" id="tsApplyClassesBtn" class="btn" style="background:#4f46e5; color:#fff; font-weight:700; font-size:0.82rem;">출석부(반 목록)에 반영하기</button>
           </div>
         </div>
@@ -2020,12 +2200,12 @@
         <div class="tt-section-box">
           <div class="tt-section-head">
             <h4>3. 내 주간 수업 시간표 (월~금 1~7교시)</h4>
-            <div style="display:flex; gap:6px;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
               <button type="button" id="tsOpenStuTtBtn" class="btn small" style="background:#f3e8ff; color:#7c3aed; border:1px solid #d8b4fe; font-size:0.78rem; font-weight:700;">학생별 시간표 엑셀 업로드</button>
               <button type="button" id="tsSaveScheduleBtn" class="btn small primary" style="font-size:0.78rem;">시간표 저장</button>
             </div>
           </div>
-          <p style="font-size:0.78rem; color:#64748b; margin:0 0 10px;">교시 칸을 클릭하여 담당 학급(반), 과목명, 교실을 간편하게 수정할 수 있습니다.</p>
+          <p style="font-size:0.78rem; color:#64748b; margin:0 0 10px;">교시 칸을 클릭하여 담당 학급(반), 과목명, 교실을 간편하게 수정할 수 있습니다. (저장 시 오늘 브리핑 칠판에 즉시 반영됩니다)</p>
           <div style="overflow-x:auto;">
             <table class="weekly-tt-table" id="tsWeeklyTable">
               <thead>
@@ -2058,11 +2238,11 @@
             </div>
             <div>
               <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">과목명</label>
-              <input type="text" id="tsCellSubjectInput" placeholder="예: 생명과학I" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
+              <input type="text" id="tsCellSubjectInput" placeholder="예: 경제 수학Y" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
             </div>
             <div>
               <label style="font-size:0.75rem; font-weight:700; color:#475569; display:block; margin-bottom:2px;">교실/실</label>
-              <input type="text" id="tsCellRoomInput" placeholder="예: 과학1실" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
+              <input type="text" id="tsCellRoomInput" placeholder="예: 2-2" style="width:100%; padding:6px; font-size:0.8rem; border:1px solid #cbd5e1; border-radius:6px; margin:0;">
             </div>
           </div>
           <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:6px;">
@@ -2075,5 +2255,25 @@
     </div>
   </div>
 
+  <script src="/app.js?v=5.17.0-preview.73"></script>
+  <script>
+    // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
+    var localHost = location.hostname;
+    var isLocalDev = ['localhost', '127.0.0.1', '::1'].indexOf(localHost) !== -1 || /^192\.168\./.test(localHost) || /^10\./.test(localHost) || /^172\.(1[6-9]|2\d|3[01])\./.test(localHost);
+    if ('serviceWorker' in navigator) {
+      if (isLocalDev) {
+        navigator.serviceWorker.getRegistrations().then(function (rs) {
+          rs.forEach(function (r) { r.unregister(); });
+        });
+        if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
+      } else {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function (e) {
+            console.warn('SW 등록 실패:', e);
+          });
+        });
+      }
+    }
+  </script>
 </body>
 </html>

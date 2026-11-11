@@ -92,13 +92,17 @@ write('app.js', obfuscated);
 const css = minifyCss(read('style.css'));
 write('style.css', css);
 
-const html = minifyHtml(read('index.html'));
+const rawHtml = minifyHtml(read('index.html'));
+
+// 3) 캐시 버전을 내용 해시로 교체 (sw.js 및 index.html의 ?v= 쿼리 모두 갱신)
+const hash = crypto.createHash('sha1')
+  .update(obfuscated).update(css).update(rawHtml)
+  .digest('hex').slice(0, 10);
+const html = rawHtml
+  .replace(/\/app\.js(\?v=[^"']*)?/g, '/app.js?v=' + hash)
+  .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash);
 write('index.html', html);
 
-// 3) 캐시 버전을 내용 해시로 교체
-const hash = crypto.createHash('sha1')
-  .update(obfuscated).update(css).update(html)
-  .digest('hex').slice(0, 10);
 const sw = read('sw.js').replace(
   /var CACHE_VERSION = '[^']*';/,
   "var CACHE_VERSION = '" + hash + "';"

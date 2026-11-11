@@ -3809,3 +3809,441 @@ html[data-theme] .header-sync-menu {
   color: #0369a1;
   margin-bottom: 8px;
 }
+
+
+/* === 2026 시작 UI & 칠판형 오늘 브리핑 & 전체화면 달력 스타일 === */
+.wizard-hero.wizard-hero-split {
+  display: grid !important;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 22px;
+  align-items: stretch;
+  text-align: left;
+  padding: 22px 26px !important;
+}
+.hero-main-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hero-quick-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.hero-quick-grid .hero-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  text-align: left;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.hero-quick-grid .hero-feature-card:hover {
+  transform: translateY(-2px);
+  border-color: #4f46e5;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.14);
+}
+.hero-quick-grid .hero-card-primary {
+  border: 2px solid #4f46e5;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+}
+.hero-quick-grid .hero-feature-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+.hero-quick-grid .hero-feature-card:nth-child(2) .hero-feature-ic { background: #7c3aed; }
+.hero-quick-grid .hero-feature-card:nth-child(3) .hero-feature-ic { background: #0f766e; }
+.hero-quick-grid .hero-feature-card:nth-child(4) .hero-feature-ic { background: #0284c7; }
+.hero-quick-grid .hero-feature-card:nth-child(5) .hero-feature-ic { background: #d97706; }
+.hero-quick-grid .hero-feature-card:nth-child(6) .hero-feature-ic { background: #475569; }
+
+/* 칠판형 오늘 브리핑 위젯 (사용자 업로드 이미지 디자인 완벽 구현) */
+.hero-briefing-col {
+  display: flex;
+  flex-direction: column;
+}
+.chalkboard-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+.cb-wood-frame {
+  width: 100%;
+  background: linear-gradient(145deg, #d7b377 0%, #c1975b 50%, #b5894c 100%);
+  padding: 10px;
+  border-radius: 22px;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.24), inset 0 1px 2px rgba(255, 255, 255, 0.45);
+  border: 2px solid #9a6f38;
+  display: flex;
+}
+.cb-board-inner {
+  width: 100%;
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px),
+    radial-gradient(circle at 20% 15%, #374f40 0%, #2c4033 55%, #24352a 100%);
+  border-radius: 14px;
+  padding: 18px 20px 14px;
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+.cb-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.cb-date-line {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.cb-greeting {
+  margin: 3px 0 0;
+  font-size: 1.28rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+.cb-school-pill {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fde68a;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.cb-school-pill:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.cb-close-x {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.cb-section {
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+}
+.cb-section:first-of-type {
+  padding-top: 2px;
+}
+.cb-sec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.cb-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fde68a;
+}
+.cb-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(253, 230, 138, 0.22);
+  color: #fde68a;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+.cb-class-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(167, 243, 208, 0.18);
+  color: #a7f3d0;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+.cb-end-time {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+.cb-open-link {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.cb-open-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+.cb-accent-link {
+  background: rgba(253, 230, 138, 0.16);
+  color: #fde68a;
+  border: 1px solid rgba(253, 230, 138, 0.35);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.cb-lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.cb-lesson-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.cb-lesson-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+.cb-lesson-period {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+.cb-lesson-sub {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 2px 0;
+}
+.cb-lesson-cls {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+.cb-homeroom-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.cb-period-chip {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  color: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cb-period-chip b {
+  color: #fde68a;
+  font-weight: 800;
+}
+.cb-info-row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 0.81rem;
+  line-height: 1.48;
+}
+.cb-info-label {
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.77rem;
+}
+.cb-info-val {
+  color: #f8fafc;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.cb-info-val small {
+  color: #cbd5e1;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.cb-bottom-bar {
+  margin-top: 10px;
+  padding-top: 6px;
+  text-align: center;
+}
+.cb-filter-toggle-btn {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 10px;
+}
+.cb-filter-toggle-btn:hover {
+  color: #ffffff;
+}
+.cb-filter-panel {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: #e2e8f0;
+}
+.cb-filter-panel label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* 우측 하단 플로팅 [오늘] 캐릭터 칠판 버튼 */
+.floating-today-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1200;
+  width: 62px;
+  height: 68px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.28));
+  transition: transform 0.18s ease;
+}
+.floating-today-btn:hover {
+  transform: translateY(-3px) scale(1.04);
+}
+.floating-today-btn .ft-sprout {
+  width: 18px;
+  height: 10px;
+  background: #65a30d;
+  border-radius: 10px 10px 2px 10px;
+  margin-bottom: -3px;
+  z-index: 3;
+}
+.floating-today-btn .ft-face {
+  width: 46px;
+  height: 26px;
+  background: #fde68a;
+  border: 3px solid #b45309;
+  border-radius: 18px 18px 6px 6px;
+  margin-bottom: -5px;
+  z-index: 2;
+  position: relative;
+}
+.floating-today-btn .ft-face::before,
+.floating-today-btn .ft-face::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  background: #451a03;
+  border-radius: 50%;
+}
+.floating-today-btn .ft-face::before { left: 11px; }
+.floating-today-btn .ft-face::after { right: 11px; }
+.floating-today-btn .ft-board {
+  width: 56px;
+  height: 34px;
+  background: #2c4033;
+  border: 3px solid #c8a26d;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  letter-spacing: -0.02em;
+}
+
+.cb-modal-content {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  max-width: 520px !important;
+  width: calc(100vw - 24px) !important;
+  padding: 0 !important;
+}
+
+/* 전체화면 일정관리 달력 UI */
+#calendarModal .calendar-content:not(.calendar-compact) {
+  width: calc(100vw - 16px) !important;
+  height: calc(100dvh - 16px) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 8px auto !important;
+  border-radius: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#calendarModal .calendar-content:not(.calendar-compact) .calendar-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#calendarModal .calendar-content:not(.calendar-compact) .calendar-layout {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#calendarModal .calendar-content:not(.calendar-compact) .cal-month-pane {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#calendarModal .calendar-content:not(.calendar-compact) .cal-grid {
+  flex: 1 1 auto !important;
+  grid-auto-rows: minmax(96px, 1fr) !important;
+}
+
+@media (max-width: 980px) {
+  .wizard-hero.wizard-hero-split {
+    grid-template-columns: 1fr;
+  }
+}
