@@ -37,7 +37,8 @@ function send(res, status, body, cacheSeconds) {
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); return send(res, 405, { error: 'METHOD_NOT_ALLOWED' }); }
 
-  const key = process.env.NEIS_API_KEY;
+  // 환경변수에 붙여넣을 때 섞이기 쉬운 앞뒤 공백·줄바꿈·따옴표는 떼어 냅니다.
+  const key = String(process.env.NEIS_API_KEY || '').trim().replace(/^["']+|["']+$/g, '').trim();
   if (!key) return send(res, 503, { error: 'NEIS_KEY_NOT_CONFIGURED' });
 
   const query = req.query || {};
@@ -63,6 +64,9 @@ module.exports = async function handler(req, res) {
     // 키가 잘못됐을 때는 캐시하지 않습니다 (키를 고친 뒤에도 오류가 남는 일을 막기 위해).
     const code = data && data.RESULT && data.RESULT.CODE;
     const failed = code && code !== 'INFO-200';
+    // NEIS 가 키를 거부하면, 저장된 값이 인증키 모양인지(값 자체는 드러내지 않고) 알려 줍니다.
+    // NEIS 인증키는 open.neis.go.kr 에서 발급하는 32자리 영문·숫자입니다.
+    if (code === 'ERROR-290') data.keyCheck = { length: key.length, lettersAndDigitsOnly: /^[0-9A-Za-z]+$/.test(key) };
     return send(res, 200, data, failed ? 0 : (CACHE_SECONDS[setName] || 600));
   } catch (error) {
     return send(res, 502, { error: 'NEIS_UNAVAILABLE' });
