@@ -1901,14 +1901,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">T-ong 엑셀 3종 자동 인식</span>
-              <img src="./03-excel.png" alt="엑셀 명렬표 자동 인식">
+              <img src="./v11_03_roster_modal.png" alt="엑셀 명렬표 자동 인식">
               <div class="shot-cap">
                 <b>다중 분반 한 번에 등록:</b> 시트별 분반(5W반 시트, 8V반 시트) 또는 학급 열이 있는 한 장짜리 엑셀을 끌어다 놓으면 최대 10개 분반이 한 번에 생성됩니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">분반별 출결 체크 및 기록</span>
-              <img src="./20-attend.png" alt="출결관리 화면">
+              <img src="./v11_07_attend_main.png" alt="출결관리 화면">
               <div class="shot-cap">
                 <b>상단 분반 드롭다운 전환:</b> 수업 들어가는 분반(예: 5W반)을 상단에서 고른 뒤 출결이나 관찰을 기록하면 해당 학생의 원적 학번 기준으로 시트 6번·8번 탭에 즉시 동기화됩니다.
               </div>
@@ -2306,24 +2306,64 @@ body.all-units-mode .unit-pager {
       </div>
 
       <div class="qd-quick-guide">
-        <div class="qd-quick-head"><span>핵심 순서</span> 디지털 교무수첩 처음 열었을 때 3단계 설정 순서</div>
+        <div class="qd-quick-head"><span>핵심 순서</span> 모든 기기에서 똑같이 쓰기 위한 Google 연동 우선 3단계 순서</div>
         <div class="qd-step-grid">
           <div class="qd-step-item">
-            <b>1단계. 디지털 교무수첩(t-ong.vercel.app) 접속 후 학교·학급 이름 적기</b>
-            <p>왼쪽 위 학급 표시 영역을 눌러 우리 학교 이름과 학년·반(또는 수업 분반), 선생님 성함을 입력합니다.</p>
+            <b>1단계. 가장 먼저 [Google 시트 연동]부터 연결하기 (출발점)</b>
+            <p>대시보드 맨 위 <b>STEP 1 [Google 시트 통합 연동]</b> 카드(또는 상단 <code>1 Google 시트 연동</code> 메뉴)에 내 마스터 시트 웹앱 URL(<code>https://script.google.com/.../exec</code>)을 먼저 붙여넣고 연결합니다. 스마트폰·태블릿에서 열었을 때도 이 단계에서 <b>[불러오기 (Pull)]</b>만 누르면 PC 시간표와 명렬표가 즉시 복원됩니다.</p>
           </div>
           <div class="qd-step-item">
-            <b>2단계. 오른쪽 위 [구글 시트 동기화] 버튼 눌러 연결 주소 넣기</b>
-            <p>오른쪽 위 도구 모음에서 시트 연결 아이콘을 누르고, 내 구글 시트의 웹 앱 주소(https://script.google.com/.../exec)를 붙여넣은 뒤 [자동 동기화 켜기]를 체크합니다.</p>
+            <b>2단계. 학교 검색 · 비담임/담임 · 과목·동아리 시간표 설정</b>
+            <p>시트가 연결된 상태에서 <code>2 학교·수업시간표</code>로 이동해 우리 학교, 담임 반(또는 <b>담임 없음·교과전담</b>), 학급별 개설 과목, 창체 동아리를 선택하면 내 주간 시간표가 완성되고 구글 시트(<code>9_교무수첩_시간표_동기화</code>)에 자동 저장됩니다.</p>
           </div>
           <div class="qd-step-item">
-            <b>3단계. [시트로 지금 전송] 및 [시트에서 불러오기] 버튼 확인하기</b>
-            <p>[시트로 지금 전송(Push)]을 누르면 수첩 기록이 시트로 즉시 저장되고, 다른 컴퓨터에서 접속했을 때는 [시트에서 명렬·기록 불러오기(Pull)]를 눌러 시트의 데이터를 수첩으로 그대로 가져올 수 있습니다.</p>
+            <b>3단계. 교실 현장 기록(출결·관찰) &amp; NEIS-Help 세특 자동 연계</b>
+            <p>수업 중 기록한 출결·칭찬·관찰 메모가 실시간으로 내 구글 시트(6·8번 탭)에 쌓이며, <code>neis-help-one.vercel.app</code>에서도 같은 시트를 열어 세특·행특 초안을 바로 생성할 수 있습니다.</p>
           </div>
         </div>
         <div class="qd-sync-callout">
-          [초보자 팁] 교실에서 태블릿으로 기록하고 교무실 컴퓨터에서 이어서 보실 때는, 교무실 컴퓨터에서 [시트에서 명렬·기록 불러오기(Pull)] 버튼만 한 번 눌러주시면 최신 기록이 그대로 나타납니다.
+          [기존 로컬 사용자 안심 안내] 이미 태블릿이나 PC에 로컬로 명렬표·출결·관찰 기록을 저장해 쓰고 계셔도 걱정하지 마세요. 구글 시트 URL을 연결하더라도 <b>내 기기의 기존 로컬 데이터는 절대 삭제되지 않으며</b>, 기준 기기에서 처음 연결하면 현재 내용이 시트로 안전하게 업로드(Push)됩니다.
         </div>
+        <table class="manual-table" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <th style="width:220px;">선생님의 현재 상황</th>
+              <th>올바른 연결 순서</th>
+              <th style="width:210px;">핵심 주의사항</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>상황 A. 태블릿/PC에 이미 기록이 쌓여 있고, 시트는 새로 만든 경우</b></td>
+              <td>① (권장) 기존 기기에서 <code>[데이터 백업(.json)]</code> 1회 저장 → ② <b>기록이 있는 기기에서 먼저</b> STEP 1 URL 입력 후 <code>[연결]</code> 클릭(시트로 업로드) → ③ 이후 새 기기에서는 <code>[불러오기]</code> 클릭</td>
+              <td>반드시 <b>데이터가 들어 있는 원본 기기</b>에서 먼저 시트에 올려 주세요.</td>
+            </tr>
+            <tr>
+              <td><b>상황 B. 이미 시트에 데이터가 올라가 있고, 새 기기(폰·다른 PC)를 연결하는 경우</b></td>
+              <td>① 새 기기에서 STEP 1 URL 입력 → ② <code>[연결]</code> 시 뜨는 안내창에서 <b>[확인(시트 데이터 불러오기)]</b> 선택 (또는 <code>[불러오기]</code> 버튼 클릭)</td>
+              <td>빈 기기에서 <code>[시트 저장(Push)]</code>을 먼저 누르지 않도록 주의합니다.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="qd-sync-callout" style="margin-top:12px; background:#f0f9ff; border-color:#bae6fd; color:#0c4a6e;">
+          <b>[초보자용 한눈에 보기] T-ong에서 입력한 내용이 구글 시트 몇 번 탭에 들어가나요?</b>
+        </div>
+        <table class="manual-table" style="margin-top:8px;">
+          <thead>
+            <tr>
+              <th style="width:210px;">구글 시트 탭 이름</th>
+              <th>T-ong에서 입력한 어떤 내용이 자동으로 들어가나요?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>2_학생명렬표</code></td><td>우리 반·수업 반 학생 명단 (학번, 성명, 성별)</td></tr>
+            <tr><td><code>3_창체_행특</code></td><td>칭찬 포인트 누적, 1인 1역 역할 (행특 참고용 자동 연계)</td></tr>
+            <tr><td><code>6_수업관찰_기록</code></td><td>수업 중 기록한 학생별 교과 수업관찰 누가기록</td></tr>
+            <tr><td><code>7_AI세특_작성</code></td><td>6번 탭의 관찰 메모가 모여 <b>NEIS-Help</b>에서 AI 세특 초안을 만드는 탭</td></tr>
+            <tr><td><code>8_출결_칭찬_기록</code></td><td>출결(지각·조퇴·결석 등), 칭찬, 1인 1역, 학생관찰 실시간 기록</td></tr>
+            <tr><td><code>9_교무수첩_시간표_동기화</code></td><td>내 학교, 담임/비담임, 주간 시간표(1~7교시), 동아리, 시트 메모장</td></tr>
+          </tbody>
+        </table>
       </div>
 
 
@@ -2379,14 +2419,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">상단 [설정·도움말] 및 9가지 화면 테마</span>
-              <img src="../screenshots/screen_2_tong_calendar_modal.png" alt="T-ong 설정 도움말 및 화면 테마">
+              <img src="./v11_15_help_menu.png" alt="T-ong 설정 도움말 및 화면 테마">
               <div class="shot-cap">
                 <b>9종 화면 테마:</b> 초록 식물도감, T-ong 클래식, 순정만화, 몽글 스티커, 물빛 산책, 초록 숲편지, 별빛 야간, 맑은 교정, 포근한 교사 책상 중 교실 분위기에 맞는 테마를 즉시 적용합니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">상단 [홈] 메뉴 및 데이터 백업</span>
-              <img src="./v67-home-backup.png" alt="T-ong 홈 메뉴 및 데이터 백업">
+              <img src="./v15_backup_modal.png" alt="T-ong 홈 메뉴 및 데이터 백업">
               <div class="shot-cap">
                 <b>홈 하위메뉴:</b> 좌측 상단 집 모양 [홈] 버튼을 누르면 첫 화면 이동, 3분 사용 설명서 캐러셀 열기, 데이터 백업 창을 언제든 호출합니다.
               </div>
@@ -2405,16 +2445,16 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">좌측 접이식 메뉴 (설정·사용법·기록)</span>
-              <img src="./0C-leftmenu.png" alt="좌측 메뉴">
+              <img src="./v15_left_rail.png" alt="좌측 메뉴">
               <div class="shot-cap">
-                <b>좌측 메뉴:</b> 평소에는 아이콘만 보이도록 접어 두어 좌석표를 넓게 쓰고, 필요할 때 펼쳐 설정·명렬표·데이터 기록을 관리합니다.
+                <b>좌측 아이콘 레일:</b> 평소에는 아이콘만 보이도록 접어 두어 좌석표를 넓게 쓰고, 상단 메뉴 버튼으로 펼쳐 주요 화면과 백업·사용 설명서로 빠르게 이동합니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">우측 좌석 설정 패널 (명렬표~출력 한 흐름)</span>
-              <img src="./0D-seatpanel.png" alt="우측 좌석 설정 패널">
+              <img src="./v15_right_panel.png" alt="우측 좌석 설정 패널">
               <div class="shot-cap">
-                <b>위에서 아래로 한 흐름:</b> ① 명렬표 업로드 &rarr; ② 현재 좌석 조건 확인 &rarr; ③ 설정 바꾸기 &rarr; ④ 추첨 시작·저장·출력을 순서대로 실행합니다.
+                <b>위에서 아래로 한 흐름:</b> ① 배치기간·명렬표 업로드 &rarr; ② 좌석 설정 &rarr; ③ 추첨 시작·저장 &rarr; ④ 배치 불러오기·교탁 시점·백업·출력을 순서대로 실행합니다.
               </div>
             </div>
           </div>
@@ -2474,14 +2514,14 @@ body.all-units-mode .unit-pager {
       <div class="shot-grid-2">
         <div class="shot-card">
           <span class="shot-badge">설정 1단계: 학생 명단 준비</span>
-          <img src="./18-settings-steps.png" alt="설정 메뉴 학생 명단 준비">
+          <img src="./v11_02_schedule_modal.png" alt="설정 메뉴 학생 명단 준비">
           <div class="shot-cap">
             <b>작업 순서대로 번호 안내:</b> 1-1 명렬표 직접 입력 또는 1-2 엑셀로 한 번에 올리기 중 편한 방법을 하나만 선택하면 됩니다.
           </div>
         </div>
         <div class="shot-card">
           <span class="shot-badge">명렬표 직접 입력 및 다중 학급 추가</span>
-          <img src="./02-roster.png" alt="명렬표 직접 입력">
+          <img src="./v11_03_roster_modal.png" alt="명렬표 직접 입력">
           <div class="shot-cap">
             <b>한 줄에 한 명씩 입력:</b> <code>학번 이름 성별</code>(예: <code>1 홍길동 남</code> 또는 <code>20312 이지은 여</code>) 형식으로 적으면 남학생(파랑)·여학생(분홍)이 자동 구분됩니다.
           </div>
@@ -2497,7 +2537,7 @@ body.all-units-mode .unit-pager {
         <div class="fbody">
           <div class="shot-card">
             <span class="shot-badge">엑셀 명렬표 드래그 앤 드롭 업로드 실제 화면</span>
-            <img src="./03-excel.png" alt="엑셀 명렬표 업로드">
+            <img src="./v11_03_roster_modal.png" alt="엑셀 명렬표 업로드">
             <div class="shot-cap">
               <b>자동 양식 판별:</b> 엑셀 파일을 끌어다 놓으면 아래 3가지 양식을 자동으로 판별하여 학급(분반)과 학생 명단을 즉시 구성합니다.
             </div>
@@ -2571,14 +2611,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">자리배치 3단계 설정 화면</span>
-              <img src="./01-wizard.png" alt="자리배치 3단계 위자드">
+              <img src="./v13_04_seating_main.png" alt="자리배치 3단계 위자드">
               <div class="shot-cap">
                 <b>1 교실 크기 &rarr; 2 자리 형태 &rarr; 3 학생 수:</b> 총 책상 수와 분단 수를 고르고 시험대형(1인)·짝꿍(2인)·트리플(3인)·모둠 중 형태를 선택합니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">모둠 단위 묶음 배치</span>
-              <img src="./14-group.png" alt="모둠 배치 화면">
+              <img src="./v11_05_seating_arranged.png" alt="모둠 배치 화면">
               <div class="shot-cap">
                 <b>모둠 인원(4·5·6명) &amp; 가로 모둠 수:</b> 1모둠·2모둠 번호가 자동 부여되며, 모둠 안에서도 가까이·멀리 교우 관계 조건이 그대로 반영됩니다.
               </div>
@@ -2596,7 +2636,7 @@ body.all-units-mode .unit-pager {
         <div class="fbody">
           <div class="shot-card">
             <span class="shot-badge">실제 좌석표 화면 (드래그 자리 교환 &amp; 학생 카드)</span>
-            <img src="./04-seating.png" alt="좌석표 화면">
+            <img src="./v11_05_seating_arranged.png" alt="좌석표 화면">
             <div class="shot-cap">
               <b>직관적인 좌석 카드:</b> 남학생(파랑)·여학생(분홍), 번호·이름·분단/행 위치, 칭찬 성장 배지가 표시되며 카드를 끌어다 놓으면 두 학생의 자리가 즉시 맞바뀝니다.
             </div>
@@ -2604,14 +2644,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">학번 가로순 · 세로순 배치</span>
-              <img src="./v67-number-order.png" alt="학번 가로순 세로순 배치">
+              <img src="./v12_04_seating_annotated.png" alt="학번 가로순 세로순 배치">
               <div class="shot-cap">
                 <b>시험 기간 &amp; 학기 초 필수:</b> 고정 좌석은 유지한 채 남은 학생을 학번 가로순(앞줄 왼쪽부터) 또는 세로순(왼쪽 열 앞에서 뒤로)으로 1초 만에 정렬합니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">같은 성별끼리 우선 배치</span>
-              <img src="./v67-same-gender.png" alt="같은 성별 우선 배치">
+              <img src="./v15_right_panel.png" alt="같은 성별 우선 배치">
               <div class="shot-cap">
                 <b>남녀 짝·분단·모둠 우선 구성:</b> 무작위 추첨 시 [같은 성별끼리 배치]를 켜면 짝꿍·분단·모둠 안에서 같은 성별을 우선 배정합니다.
               </div>
@@ -2653,7 +2693,7 @@ body.all-units-mode .unit-pager {
             </div>
             <div class="shot-card">
               <span class="shot-badge">특정 자리 고정(자물쇠) &amp; 교탁 시점 뒤집기</span>
-              <img src="./v67-teacher-view.png" alt="교탁 시점 화면">
+              <img src="./v11_06_seating_teacher_view.png" alt="교탁 시점 화면">
               <div class="shot-cap">
                 <b>자물쇠 고정 &amp; 교탁 시점:</b> 시력 보호 학생이나 빈자리를 고정하고, 수업 중에는 [교탁 시점] 버튼으로 교사가 바라보는 방향으로 화면을 즉시 뒤집습니다.
               </div>
@@ -2672,7 +2712,7 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">배치 이력 저장 및 언제든 복원</span>
-              <img src="./v67-history-load.png" alt="배치 저장 및 불러오기">
+              <img src="./v15_history_modal.png" alt="배치 저장 및 불러오기">
               <div class="shot-cap">
                 <b>시기별 배치 보존:</b> "1학기 중간고사", "2학기 1차 모둠" 등 메모와 함께 저장하고 언제든 이전 배치를 불러옵니다.
               </div>
@@ -2747,7 +2787,7 @@ body.all-units-mode .unit-pager {
 
       <div class="shot-card">
         <span class="shot-badge">T-ong [출결관리] 탭 실제 화면</span>
-        <img src="./20-attend.png" alt="T-ong 출결관리 실제 화면">
+        <img src="./v11_07_attend_main.png" alt="T-ong 출결관리 실제 화면">
         <div class="shot-cap">
           <b>출결관리 4대 기능:</b> ① 달력으로 오늘 및 지난 날짜 출결 조회·수정 &rarr; ② 상단 출석·결석·지각·조퇴·결과 인원 실시간 집계 &rarr; 
           ③ 학생별 상태·사유(질병/인정/미인정/기타)·메모 입력 &rarr; ④ 월별 출결 엑셀 다운로드 및 구글 시트 복사
@@ -2764,14 +2804,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">좌석표에서 학생 클릭 &rarr; 오늘 출결 바로 등록</span>
-              <img src="./v67-seat-attendance.png" alt="자리에서 오늘 출결 바로 등록">
+              <img src="./v12_06b_seat_student.png" alt="자리에서 오늘 출결 바로 등록">
               <div class="shot-cap">
                 <b>좌석표 이탈 없이 즉시 출결 체크:</b> 수업 시작 시 좌석표에서 빈자리 학생 이름을 눌러 결석·지각·조퇴와 사유를 누르면 출결관리 탭과 시트에 즉시 반영됩니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">학생 종합 기록 팝업 (칭찬 · 관찰·세특 · 종합)</span>
-              <img src="./v67-student-record.png" alt="학생 종합 기록 팝업">
+              <img src="./v12_07b_attend_student.png" alt="학생 종합 기록 팝업">
               <div class="shot-cap">
                 <b>한 학생의 모든 기록 허브:</b> ① 칭찬 +1·-1 조절 / ② [관찰·세특] 탭에서 날짜·교과별 수업 관찰 누적 / [종합] 탭에서 현재 좌석·1인 1역·누적 근태·담임 메모·관찰 기록을 한눈에 확인합니다.
               </div>
@@ -2779,7 +2819,7 @@ body.all-units-mode .unit-pager {
           </div>
           <div class="shot-card">
             <span class="shot-badge">월별 · 기간별 출결 엑셀 다운로드 &amp; 시트 복사</span>
-            <img src="./20A-attend-excel.png" alt="출결 엑셀 다운로드">
+            <img src="./v11_07_attend_main.png" alt="출결 엑셀 다운로드">
             <div class="shot-cap">
               <b>기간별 출결 통계:</b> 이번 달·지난 달·전체 기간의 날짜별 상태·사유와 학생별 결석·지각·조퇴·결과 합계를 한 줄로 정리해 엑셀 저장하거나 시트로 복사합니다.
             </div>
@@ -2896,14 +2936,14 @@ body.all-units-mode .unit-pager {
       <div class="shot-grid-2">
         <div class="shot-card">
           <span class="shot-badge">상단 [교실운영] 통합 메뉴</span>
-          <img src="./0B-dock.png" alt="교실운영 드롭다운 메뉴">
+          <img src="./v11_09_classroom_menu.png" alt="교실운영 드롭다운 메뉴">
           <div class="shot-cap">
             <b>교실운영 8대 도구:</b> 컴시간알리미(교사용), 담임 5분 멘트, 간편 타이머, 칭찬 포인트, 사다리타기, 1인 1역, 룰렛 뽑기, 알림장을 한곳에 모았습니다.
           </div>
         </div>
         <div class="shot-card">
           <span class="shot-badge">칭찬 포인트 4단계 성장 시스템</span>
-          <img src="./v67-praise-growth.png" alt="칭찬 포인트 성장 단계">
+          <img src="./v11_10_praise_modal.png" alt="칭찬 포인트 성장 단계">
           <div class="shot-cap">
             <b>알(0점) &rarr; 부화 중(1~4점) &rarr; 병아리(5~9점) &rarr; 닭(10점 이상):</b> 학생 팝업·칭찬 목록·좌석 카드 배지가 실시간 연동되며 점수 높은 순으로 정렬됩니다.
           </div>
@@ -2920,14 +2960,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">전체화면 모래시계 간편 타이머</span>
-              <img src="./17-timer.png" alt="전체화면 타이머">
+              <img src="./v11_13_timer_modal.png" alt="전체화면 타이머">
               <div class="shot-cap">
                 <b>모래시계 &amp; 마지막 10초 알림:</b> 시작을 누르면 교실 뒤에서도 잘 보이는 전체화면 타이머로 바뀌며, [작게 보기]로 좌석표를 보면서도 타이머를 계속 돌릴 수 있습니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">오늘의 알림장 (교실 TV 크게 보기)</span>
-              <img src="./15-notice.png" alt="오늘의 알림장">
+              <img src="./v11_12_notice_modal.png" alt="오늘의 알림장">
               <div class="shot-cap">
                 <b>학급별 알림장 저장:</b> 준비물·과제·공지사항을 적어 좌석표 옆에 띄워 두고, [크게 보기]로 교실 TV 화면 가득 표시합니다.
               </div>
@@ -2936,14 +2976,14 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">1인 1역 배정 &amp; 엑셀 연동</span>
-              <img src="./21A-duty-excel.png" alt="1인 1역 배정">
+              <img src="./v11_11_duty_modal.png" alt="1인 1역 배정">
               <div class="shot-cap">
                 <b>직접배정 &amp; 역할목록 무작위 배정:</b> 엑셀 양식으로 역할을 올리거나 무작위 배정하면 좌석표·학생 카드·구글 시트 8번 탭에 즉시 연결됩니다.
               </div>
             </div>
             <div class="shot-card">
               <span class="shot-badge">컴시간알리미(교사용) &amp; 조회시간 담임 5분 멘트</span>
-              <img src="./0E-five-minute-message.png" alt="담임 5분 멘트">
+              <img src="./v11_09_classroom_menu.png" alt="담임 5분 멘트">
               <div class="shot-cap">
                 <b>조·종례 시간 단축:</b> 컴시간알리미로 교사 개인 시간표를 확인하고, 담임 5분 멘트로 실시간 뉴스·명언·감동 에피소드를 1초 만에 준비합니다.
               </div>
@@ -3004,7 +3044,7 @@ body.all-units-mode .unit-pager {
 
       <div class="shot-card">
         <span class="shot-badge">T-ong [일정관리] 월간·주간·오늘 달력 실제 화면</span>
-        <img src="./v67-calendar.png" alt="T-ong 일정관리 달력">
+        <img src="./v13_08_calendar_main.png" alt="T-ong 일정관리 달력">
         <div class="shot-cap">
           <b>직관적인 달력 조작:</b> ① 월간·주간·오늘 탭 전환 / ② 날짜 더블클릭으로 일정 추가, 일정 카드 클릭으로 즉시 수정·삭제 / 
           일정 카드를 드래그(모바일은 0.4초 길게 누르기)하여 날짜 이동 및 실행 취소 지원
@@ -3021,7 +3061,7 @@ body.all-units-mode .unit-pager {
           <div class="shot-grid-2">
             <div class="shot-card">
               <span class="shot-badge">일정 속성 추가 및 [상담] 전용 입력칸</span>
-              <img src="./22A-calendar-properties.png" alt="일정 속성 및 상담 기록">
+              <img src="./v12_08_calendar_annotated.png" alt="일정 속성 및 상담 기록">
               <div class="shot-cap">
                 <b>상담 속성 선택 시 자동 확장:</b> 속성을 [상담]으로 고르면 상담 대상(학생/학부모)·관련 학생·상담 방식·진행 상태·후속 조치 입력칸이 열립니다.
               </div>
@@ -3046,7 +3086,7 @@ body.all-units-mode .unit-pager {
         <div class="fbody">
           <div class="shot-card">
             <span class="shot-badge">Google 캘린더 양방향 동기화 설정 화면</span>
-            <img src="./v67-google-calendar-sync.png" alt="Google 캘린더 양방향 동기화">
+            <img src="./v11_01_sync_modal.png" alt="Google 캘린더 양방향 동기화">
             <div class="shot-cap">
               <b>양방향 동기화 &amp; 민감정보 보호:</b> ① Google 계정 연결 시 기본 캘린더와 약 1분 간격으로 자동 동기화되며, 
               학생 개인정보 보호를 위해 <b>[상담 일정도 Google에 보내기]</b>와 <b>[일정 메모도 Google에 보내기]</b>는 기본 해제되어 있습니다(교사가 원할 때만 체크).
@@ -3108,14 +3148,14 @@ body.all-units-mode .unit-pager {
       <div class="shot-grid-2">
         <div class="shot-card">
           <span class="shot-badge">업무별 교사용 사이트 즐겨찾기 &amp; 직접 추가</span>
-          <img src="./23-custom-favorites.png" alt="즐겨찾기 메뉴">
+          <img src="./v11_14_fav_sheets.png" alt="즐겨찾기 메뉴">
           <div class="shot-cap">
             <b>7대 업무 분류 + 나만의 즐겨찾기:</b> 수학·수업 및 클래스·교과서·생성형 AI·교무업무·진로진학·교사 도구함 기본 사이트와 내가 직접 등록한 사이트를 한곳에서 엽니다.
           </div>
         </div>
         <div class="shot-card">
           <span class="shot-badge">수업 전환과 참여를 위한 교실 게임 12종</span>
-          <img src="./24-games.png" alt="교실 게임 메뉴">
+          <img src="./v11_09_classroom_menu.png" alt="교실 게임 메뉴">
           <div class="shot-cap">
             <b>교실 활동 게임:</b> 핸드러시, 핸드 카트라이더, 포즈 챌린지, 야구게임, SET(셋), 랜덤게임, 윷놀이, 기지개팡팡, 모의주식투자, 거북목탈출, 나는 가수다, 안면근육훈련을 지원합니다.
           </div>
@@ -3125,14 +3165,14 @@ body.all-units-mode .unit-pager {
       <div class="shot-grid-2">
         <div class="shot-card">
           <span class="shot-badge">오늘의 학교 — 날짜별 학급 시간표 &amp; 급식 조회</span>
-          <img src="./26-school-today.png" alt="오늘의 학교 시간표 및 급식">
+          <img src="./v13_00_dashboard.png" alt="오늘의 학교 시간표 및 급식">
           <div class="shot-cap">
             <b>NEIS 공개정보 연동:</b> 학교 이름과 학년·반을 한 번 저장해 두면 원하는 날짜의 학급 시간표와 급식 식단을 즉시 조회합니다.
           </div>
         </div>
         <div class="shot-card">
           <span class="shot-badge">데이터 백업 코드 복사 &amp; 백업 파일 보관</span>
-          <img src="./v67-data-backup.png" alt="데이터 백업 화면">
+          <img src="./v15_backup_modal.png" alt="데이터 백업 화면">
           <div class="shot-cap">
             <b>기기 이동 &amp; 학기말 영구 보관:</b> 교무실 PC와 교실 태블릿 간에 백업 코드나 백업 파일(.json)로 모든 학급 명렬표·좌석·출결·상담·즐겨찾기 데이터를 1초 만에 옮깁니다.
           </div>
