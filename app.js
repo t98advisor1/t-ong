@@ -12424,14 +12424,26 @@ function openDashHelpPopup(topic) {
   if (!title || !body) return;
 
   if (topic === 'sync') {
-    if (badge) badge.textContent = 'STEP 1 · 기기간 동기화 & 기존 데이터 안심 안내';
-    title.textContent = '구글 시트 연동 및 기존 태블릿·PC 데이터 보호 안내';
+    if (badge) badge.textContent = 'STEP 1 · 기기간 동기화 · 시트 탭 위치 안내';
+    title.textContent = '구글 시트 연동 & 내 기록이 저장되는 시트 탭 위치';
     body.innerHTML =
       '<div class="dash-help-box safe"><b>1. 기존에 로컬로 쓰던 데이터는 안전합니다</b><br>시트 URL을 연결하더라도 태블릿이나 PC에 이미 저장된 명렬표·출결·관찰 기록은 삭제되지 않습니다.</div>' +
       '<div class="dash-help-box"><b>2. 상황별 올바른 연동 순서</b><br>' +
       '• <b>상황 A (태블릿/PC에 이미 기록이 있고, 시트는 새 사본인 경우)</b>: 기록이 있는 기기에서 먼저 URL을 입력하고 <b>[연결]</b>을 누르면 현재 데이터가 시트로 안전하게 업로드(Push)됩니다.<br>' +
       '• <b>상황 B (이미 시트에 데이터가 있고, 새 폰/PC를 연결하는 경우)</b>: URL 입력 후 <b>[불러오기]</b>를 누르면 시트의 시간표·명렬이 그대로 복원됩니다.</div>' +
-      '<div class="dash-help-box warn"><b>3. 덮어쓰기 방지 자동 보호</b><br>URL을 연결할 때 시트에 이미 다른 기기에서 올려둔 데이터가 있으면 자동으로 감지해 <b>불러올지(Pull) 덮어쓸지(Push)</b> 먼저 확인합니다.</div>';
+      '<div class="dash-help-box warn"><b>3. 덮어쓰기 방지 자동 보호</b><br>URL을 연결할 때 시트에 이미 다른 기기에서 올려둔 데이터가 있으면 자동으로 감지해 <b>불러올지(Pull) 덮어쓸지(Push)</b> 먼저 확인합니다.</div>' +
+      '<div class="dash-help-box"><b>4. T-ong에서 입력한 내용이 구글 시트 몇 번 탭에 들어가나요?</b>' +
+      '<table class="dash-tab-map-table">' +
+        '<thead><tr><th style="width:155px;">구글 시트 탭 이름</th><th>T-ong에서 자동 저장·불러오기 되는 내용</th></tr></thead>' +
+        '<tbody>' +
+          '<tr><td><code>2_학생명렬표</code></td><td>우리 반·수업 반 학생 명단 (학번, 성명, 성별)</td></tr>' +
+          '<tr><td><code>3_창체_행특</code></td><td>칭찬 포인트, 1인 1역 역할 (행특 참고용 자동 연계)</td></tr>' +
+          '<tr><td><code>6_수업관찰_기록</code></td><td>수업 중 기록한 학생별 교과 수업관찰 누가기록</td></tr>' +
+          '<tr><td><code>7_AI세특_작성</code></td><td>6번 탭의 관찰 메모가 모여 <b>NEIS-Help</b>에서 AI 세특 초안을 만드는 탭</td></tr>' +
+          '<tr><td><code>8_출결_칭찬_기록</code></td><td>출결(지각·조퇴·결석 등), 칭찬, 1인 1역, 학생관찰 실시간 기록</td></tr>' +
+          '<tr><td><code>9_교무수첩_시간표_동기화</code></td><td>내 학교, 담임/비담임, 주간 시간표(1~7교시), 동아리, 시트 메모장</td></tr>' +
+        '</tbody>' +
+      '</table></div>';
   } else if (topic === 'lesson') {
     if (badge) badge.textContent = 'LESSON MANAGEMENT';
     title.textContent = '수업 관리 사용법 한눈에 보기';
@@ -12459,6 +12471,8 @@ function initTong2026Modules() {
 
   var sBtn = document.getElementById('dashSyncHelpBtn');
   if (sBtn) sBtn.addEventListener('click', function () { openDashHelpPopup('sync'); });
+  var tmBtn = document.getElementById('dashSyncTabMapBtn');
+  if (tmBtn) tmBtn.addEventListener('click', function () { openDashHelpPopup('sync'); });
   var lBtn = document.getElementById('dashLessonHelpBtn');
   if (lBtn) lBtn.addEventListener('click', function () { openDashHelpPopup('lesson'); });
   var hBtn = document.getElementById('dashHomeroomHelpBtn');

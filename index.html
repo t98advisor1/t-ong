@@ -63,15 +63,10 @@
         <button type="button" class="mode-tab active" data-mode="seat" title="3단계: 학급 명렬표 및 좌석·모둠 배치 관리"><span class="tab-step-badge">3</span>학급 관리(자리)</button>
         <button type="button" class="mode-tab" data-mode="attend" title="4단계: 출결 체크 및 교과 수업관찰·칭찬 누가기록"><span class="tab-step-badge">4</span>수업·출결 기록</button>
         <button type="button" class="mode-tab" id="calendarBtn" title="5단계: 전체화면 NEIS 학사일정 및 상담 달력"><span class="tab-step-badge">5</span>일정·학사달력</button>
-        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="자주 쓰는 구글 시트 및 즐겨찾는 사이트 메모장"><span class="tab-step-badge">★</span>시트·사이트 메모</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="extraBtn">교실 도구 ▾</button>
+          <button type="button" class="mode-tab" id="extraBtn"><span class="tab-step-badge">6</span>교실 도구 ▾</button>
           <div class="more-menu" id="extraMenu">
-            <button type="button" id="menuTeacherScheduleBtn" data-open="teacherSchedule">교무 시간표 &amp; 반별 과목 선택</button>
-            <button type="button" id="menuStudentTimetableBtn" data-open="studentTimetable">학생별 이동수업 시간표(.xlsx)</button>
-            <button type="button" id="menuSheetMemoBtn" data-open="sheetMemo">구글 시트 &amp; 사이트 메모장</button>
-            <a href="http://컴시간교사.kr" target="_blank" rel="noopener noreferrer">컴시간알리미(교사용)</a>
             <button type="button" data-open="timer">간편 타이머</button>
             <button type="button" data-open="praise">칭찬 포인트</button>
             <button type="button" data-open="ladder">사다리타기</button>
@@ -80,6 +75,26 @@
             <button type="button" data-open="notice">알림장</button>
           </div>
         </div>
+
+        <div class="more-wrap game-wrap">
+          <button type="button" class="mode-tab" id="gameBtn">게임 ▾</button>
+          <div class="more-menu game-menu" id="gameMenu">
+            <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">핸드러시</a>
+            <a href="https://handcar26.netlify.app/" target="_blank" rel="noopener noreferrer">핸드 카트라이더</a>
+            <a href="https://t98advisor1.github.io/pose-mission-training/" target="_blank" rel="noopener noreferrer">온몸으로 찰칵! 포즈 챌린지</a>
+            <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">야구게임</a>
+            <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">SET(셋)</a>
+            <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">랜덤게임</a>
+            <a href="https://yutnori-seven.vercel.app/" target="_blank" rel="noopener noreferrer">윷놀이</a>
+            <a href="https://pangpang-six.vercel.app/" target="_blank" rel="noopener noreferrer">기지개팡팡</a>
+            <a href="https://stock-arena.vercel.app/" target="_blank" rel="noopener noreferrer">모의주식투자</a>
+            <a href="https://stretching-zeta.vercel.app/" target="_blank" rel="noopener noreferrer">거북목탈출</a>
+            <a href="https://iamsinger.vercel.app/" target="_blank" rel="noopener noreferrer">나는 가수다</a>
+            <a href="https://joker-nine-pink.vercel.app/" target="_blank" rel="noopener noreferrer">안면근육훈련</a>
+          </div>
+        </div>
+
+        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">7</span>구글 시트 모음</button>
 
         <div class="more-wrap">
           <button type="button" class="mode-tab" id="favBtn">추천 사이트 ▾</button>
@@ -193,23 +208,6 @@
             </div>
           </div>
         </div>
-        <div class="more-wrap game-wrap">
-          <button type="button" class="mode-tab" id="gameBtn">게임 ▾</button>
-          <div class="more-menu game-menu" id="gameMenu">
-            <a href="https://mathlove22.github.io/hand-rush-car/" target="_blank" rel="noopener noreferrer">핸드러시</a>
-            <a href="https://handcar26.netlify.app/" target="_blank" rel="noopener noreferrer">핸드 카트라이더</a>
-            <a href="https://t98advisor1.github.io/pose-mission-training/" target="_blank" rel="noopener noreferrer">온몸으로 찰칵! 포즈 챌린지</a>
-            <a href="https://script.google.com/macros/s/AKfycbxMsBhxSb1CPQx2DryDZngjZhQF_XaKnkrfVMn3RpRMkkr0TbVx1TNrIxixkReiLuqgLQ/exec" target="_blank" rel="noopener noreferrer">야구게임</a>
-            <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">SET(셋)</a>
-            <a href="https://lazygyu.github.io/roulette/" target="_blank" rel="noopener noreferrer">랜덤게임</a>
-            <a href="https://yutnori-seven.vercel.app/" target="_blank" rel="noopener noreferrer">윷놀이</a>
-            <a href="https://pangpang-six.vercel.app/" target="_blank" rel="noopener noreferrer">기지개팡팡</a>
-            <a href="https://stock-arena.vercel.app/" target="_blank" rel="noopener noreferrer">모의주식투자</a>
-            <a href="https://stretching-zeta.vercel.app/" target="_blank" rel="noopener noreferrer">거북목탈출</a>
-            <a href="https://iamsinger.vercel.app/" target="_blank" rel="noopener noreferrer">나는 가수다</a>
-            <a href="https://joker-nine-pink.vercel.app/" target="_blank" rel="noopener noreferrer">안면근육훈련</a>
-          </div>
-        </div>
       </nav>
     </div>
     <div class="header-right">
@@ -218,12 +216,8 @@
         <button type="button" id="headerRosterBtn" class="header-roster-btn">👥 학급 명렬표 등록</button>
       </div>
 
-      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 위젯 -->
+      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 드롭다운 (상단 [1 Google 시트 연동]에서 호출) -->
       <div class="header-sync-wrap" id="headerSyncWrap">
-        <button type="button" id="headerSyncBtn" class="header-sync-btn sync-offline" aria-expanded="false" title="Google 연동 및 클라우드 동기화">
-          <span class="sync-dot"></span>
-          <span id="headerSyncText">Google 연동</span>
-        </button>
         <div id="headerSyncMenu" class="header-sync-menu" hidden>
           <div class="sync-card-header">
             <div class="sync-user-profile">
@@ -332,7 +326,6 @@
           <button type="button" data-help="version">ℹ️ 버전 안내 <small>5.17.0-preview.73</small></button>
           <button type="button" data-help="updates">✨ 업데이트 사항</button>
           <button type="button" data-help="support">💜 개발자 응원하기 <small>응원 한마디</small></button>
-          <button type="button" data-help="school">🏫 오늘의 학교 <small>실험</small></button>
           <a href="manual.html" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; gap:8px; padding:10px 14px; text-decoration:none; color:#1e40af; font-size:0.84rem; font-weight:700; background:#eff6ff; border-radius:8px; margin:4px 0 8px; border:1px solid #bfdbfe;"><span>교사용 올인원 동기화 매뉴얼 (HTML 다운로드)</span><small style="color:#2563eb; margin-left:auto;">새 창 ↗</small></a>
           <a href="https://hot-narcissus-8cf.notion.site/281ea939afdb40a89a8a01ea4db46e12?pvs=105" target="_blank" rel="noopener noreferrer">🛠️ 오류, 기능개선 문의</a>
           <div class="help-data-notice">
@@ -380,6 +373,7 @@
             <div class="dash-title-inline">
               <h2 class="dash-main-title">T-ong 교무수첩</h2>
               <span class="dash-sub-pill">기능 한눈에 보기</span>
+              <a href="manual.html" target="_blank" rel="noopener noreferrer" class="dash-sub-pill manual-pill">올인원 동기화 매뉴얼 ↗</a>
             </div>
             <p class="dash-main-sub">수업 · 학급 · 구글 시트를 한 화면에서 바로 실행하세요.</p>
           </div>
@@ -392,7 +386,8 @@
               <span class="dash-sync-step-pill">STEP 1</span>
               <strong>Google 시트 연동</strong>
               <span class="dash-sync-badge offline" id="dashSyncStatusBadge">로컬 모드</span>
-              <button type="button" class="dash-help-q-btn" id="dashSyncHelpBtn" title="기존 데이터 보호 및 기기간 동기화 방법 보기">?</button>
+              <button type="button" class="dash-help-q-btn" id="dashSyncHelpBtn" title="기존 데이터 보호 · 시트 탭별 저장 위치 보기">?</button>
+              <button type="button" class="dash-tabmap-link-btn" id="dashSyncTabMapBtn" title="구글 시트 몇 번 탭에 무엇이 저장되는지 보기">시트 탭 위치 안내</button>
             </div>
             <button type="button" class="btn small" id="dashOpenGoogleSyncBtn" style="background:#ffffff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700; padding:3px 9px; font-size:0.72rem;">로그인·시트 사본</button>
           </div>
