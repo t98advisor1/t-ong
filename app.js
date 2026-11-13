@@ -4886,15 +4886,27 @@ var GUIDE_SLIDES = [
   // ===== 1. 시작 · 1~7번 전체 구조 =====
   {
     section: 'start',
-    img: 'guide/v12_00_dashboard.png',
-    title: '전체 화면 구조 — 상단 1~7번 메뉴와 우측 하단 버튼 한눈에 보기',
-    desc: '<ul>' +
-      '<li><strong>1~2번 초기 설정</strong>1. Google 시트 연동(클라우드·캘린더 연결) → 2. 학교·수업시간표(NEIS 시간표·학사일정 불러오기)<span class="gd-when">활용: 학기 초 최초 1회 세팅</span></li>' +
-      '<li><strong>3~5번 매일 교실 업무</strong>3. 학급 관리(자리 배치) → 4. 수업·출결 기록 → 5. 일정·학사달력(상담·NEIS 일정)<span class="gd-when">활용: 매일 아침 조회·수업·종례</span></li>' +
-      '<li><strong>6~7번 수업 도구·자료</strong>6. 교실 도구(타이머·칭찬·1인1역·알림장·학습앱·웹툰) / 7. 구글 시트 모음·추천 사이트<span class="gd-when">활용: 수업 중 활동 및 시트 바로 열기</span></li>' +
-      '<li><strong>우측 하단 [오늘] 프로필 버튼</strong>클릭하면 오늘 일정·브리핑을 빠르게 열고, 내 사진으로 프로필 아이콘을 직접 바꿀 수 있습니다.<span class="gd-when">활용: 나만의 교무수첩 꾸미기</span></li>' +
-      '</ul>',
-    callout: { type: 'good', text: '상단 번호 1번 → 2번 → [학급 명렬표 등록] 순서대로 한 번만 맞춰 두면, 3~7번 기능이 모두 자동으로 연결됩니다.' }
+    img: 'guide/v13_00_dashboard.png',
+    title: '처음 시작 1단계 — 1·2번 초기 설정과 명렬표 · 우측 하단 버튼',
+    spots: [
+      { num: 1, target: [11.7, 1.3, 10.7, 4.1], card: [4, 18], title: '1. Google 시트 연동', text: '마스터 시트 URL과 Google 계정·캘린더를 한 번에 연결합니다.', when: '가장 먼저 1회 설정' },
+      { num: 2, target: [22.6, 1.3, 9.9, 4.1], card: [33, 18], title: '2. 학교·수업시간표', text: 'NEIS 학교 검색으로 내 수업 시간표와 학사일정을 자동 불러옵니다.', when: '학기 초·시간표 변경 시' },
+      { num: 3, target: [80.6, 1.3, 9.3, 4.2], card: [66, 18], title: '학급 명렬표 등록', text: '직접 입력·엑셀 업로드·마스터 시트 연동으로 학생 명단을 올립니다.', when: '자리·출결 사용 전 필수' },
+      { num: 4, target: [93.8, 89.2, 4.9, 9.2], card: [64, 68], title: '우측 하단 [오늘] 버튼', text: '오늘 브리핑을 빠르게 열고, 내 사진으로 프로필 아이콘을 바꿀 수 있습니다.', when: '나만의 교무수첩 꾸미기' }
+    ],
+    callout: { type: 'good', text: '1번(시트 연동) → 2번(시간표) → 명렬표 등록 순서로 1회만 설정해 두면 됩니다.' }
+  },
+  {
+    section: 'start',
+    img: 'guide/v13_00_dashboard.png',
+    title: '매일 쓰는 교무 업무 — 상단 3~7번 핵심 메뉴 한눈에 보기',
+    spots: [
+      { num: 3, target: [32.8, 1.3, 9.7, 4.1], card: [4, 22], title: '3. 학급 관리(자리)', text: '자리 배치, 추첨, 교탁 시점, 자리 클릭 출결·관찰을 실행합니다.', when: '수업 중·자리 교체 시' },
+      { num: 4, target: [42.8, 1.3, 9.3, 4.1], card: [34, 22], title: '4. 수업·출결 기록', text: '출석 체크, 칭찬·세특 관찰 기록, 월간 출결 엑셀을 관리합니다.', when: '매일 조회·종례·수업 후' },
+      { num: 5, target: [52.4, 1.3, 9.0, 4.1], card: [64, 22], title: '5. 일정·학사달력', text: 'NEIS 학사일정, 학생 상담 기록, Google 캘린더를 동기화합니다.', when: '주간·월간 일정 관리' },
+      { num: 6, target: [61.7, 1.3, 18.1, 4.1], card: [64, 52], title: '6. 교실 도구 · 7. 시트 모음', text: '타이머·칭찬·1인1역·알림장·학습앱·웹툰과 마스터 시트를 엽니다.', when: '수업 활동·자료 확인 시' }
+    ],
+    callout: { type: 'good', text: '필요한 번호만 눌러 바로 이동할 수 있습니다. 다음 장부터 각 메뉴 상세 사용법을 안내합니다.' }
   },
   {
     section: 'start',
@@ -4944,14 +4956,27 @@ var GUIDE_SLIDES = [
   // ===== 2. 3번 메뉴: 자리 배치 (앱의 출발점) =====
   {
     section: 'seat',
-    img: 'guide/v12_04_seating_annotated.png',
-    title: '3번 메뉴 · 학급 관리(자리) — 박스 번호 1~9번 기능 및 활용 안내',
-    desc: '<ul>' +
-      '<li><strong>[1] 배치기간 · [2] 명렬표 업로드 · [3] 좌석 설정</strong>배치 날짜를 정하고 명렬표와 분단·행·열(짝꿍형/모둠형) 구조를 맞춥니다.<span class="gd-when">활용: 새 달 자리 바꾸기 시작 시</span></li>' +
-      '<li><strong>[4] 추첨 시작 · [5] 저장 · [6] 배치 불러오기</strong>카운트다운 추첨으로 자리를 배정하고 저장해 두면 이전 달 배치로 언제든 되돌립니다.<span class="gd-when">활용: 공정한 자리 추첨·이력 관리</span></li>' +
-      '<li><strong>[7] 교탁 시점 · [8] 출력 · [9] 좌측 빠른 메뉴</strong>화면 180도 반전, 교실 게시용 인쇄, 좌측 메뉴(학생 메모·교우관계·백업·AI 비서)를 엽니다.<span class="gd-when">활용: 수업 중 학생 확인·학급 게시</span></li>' +
-      '</ul>',
-    callout: { type: 'good', text: '자리 배치는 T-ong 교무수첩의 출발점입니다. 배치된 자리에서 학생을 클릭하면 출결·칭찬·관찰 기록이 한 번에 연결됩니다.' }
+    img: 'guide/v13_04_seating_main.png',
+    title: '3번 메뉴 · 자리 배치 ① — 배치 전 준비와 추첨 (1~4단계)',
+    spots: [
+      { num: 1, target: [84.0, 15.1, 13.6, 6.8], card: [48, 13], title: '배치기간 설정', text: '이번 자리 배치의 시작일과 종료일을 지정해 이력으로 남깁니다.', when: '새 달 자리 바꿀 때' },
+      { num: 2, target: [84.0, 23.0, 13.6, 5.0], card: [48, 29], title: '명렬표 업로드', text: '엑셀/시트 파일이나 텍스트로 반 명렬표를 불러옵니다.', when: '학생 명단 최초·수정 시' },
+      { num: 3, target: [84.0, 29.3, 13.6, 5.0], card: [48, 45], title: '좌석 설정', text: '분단·모둠(4/6인)·학번순(가로/세로)·성별 우선 조건을 고릅니다.', when: '교실 책상 구조 맞출 때' },
+      { num: 4, target: [84.0, 35.6, 13.6, 5.0], card: [48, 62], title: '추첨 시작', text: '카운트다운과 함께 공정하게 자리를 추첨해 배정합니다.', when: '학생들과 함께 추첨할 때' }
+    ],
+    callout: { type: 'good', text: '자리 배치는 T-ong의 출발점입니다. 오른쪽 위에서 아래 순서대로 누르면 배치가 끝납니다.' }
+  },
+  {
+    section: 'seat',
+    img: 'guide/v13_04_seating_main.png',
+    title: '3번 메뉴 · 자리 배치 ② — 저장 · 교탁 시점 · 출력 · 좌측 메뉴',
+    spots: [
+      { num: 1, target: [84.0, 41.3, 13.6, 10.7], card: [48, 24], title: '저장 · 배치 불러오기', text: '현재 자리를 저장하고, 이전 달 배치로 언제든 되돌립니다.', when: '직전 짝꿍 중복 확인 시' },
+      { num: 2, target: [84.0, 52.8, 13.6, 5.0], card: [48, 44], title: '교탁 시점 (180도 반전)', text: '인쇄 없이 선생님 눈높이 기준으로 좌석표를 뒤집어 봅니다.', when: '수업 중 교탁에서 이름 확인할 때' },
+      { num: 3, target: [84.0, 58.5, 13.6, 10.7], card: [48, 63], title: '데이터 백업 · 출력', text: '교실 게시용/교탁용 좌석표 인쇄 및 백업 파일을 저장합니다.', when: '학급 게시·PC 이전 시' },
+      { num: 4, target: [1.3, 8.6, 3.8, 80.4], card: [9, 28], title: '좌측 빠른 아이콘 메뉴', text: '학생 메모·교우관계(붙이기/떼기)·배치 이력·AI 비서를 엽니다.', when: '배려 학생 조건 지정 시' }
+    ],
+    callout: { type: 'good', text: '배치 후에는 학생 카드를 클릭해 출결·칭찬·관찰 기록을 바로 남길 수 있습니다.' }
   },
   {
     section: 'seat',
@@ -5046,14 +5071,15 @@ var GUIDE_SLIDES = [
   // ===== 4. 5번 메뉴: 일정·학사달력 =====
   {
     section: 'calendar',
-    img: 'guide/v12_08_calendar_annotated.png',
-    title: '5번 메뉴 · 일정·학사달력 — 박스 번호 1~4번으로 보는 전체화면 달력',
-    desc: '<ul>' +
-      '<li><strong>[1] 일정 추가 & 날짜 클릭</strong>원하는 날짜를 누르거나 [+ 일정 추가]로 학사·수업·학급·상담·개인 일정을 등록합니다.<span class="gd-when">활용: 시험·수행평가·상담 예약</span></li>' +
-      '<li><strong>[2] NEIS 학사일정 가져오기</strong>학교 시간표에서 고른 우리 학교의 공식 학사일정을 버튼 한 번으로 달력에 채웁니다.</li>' +
-      '<li><strong>[3] Google 동기화 · [4] 내보내기</strong>Google 기본 캘린더와 일정을 동기화하고, 상담 기록만 따로 엑셀로 내려받을 수 있습니다.</li>' +
-      '</ul>',
-    callout: { type: 'good', text: '등록한 일정 카드는 마우스로 다른 날짜에 끌어다 놓으면 날짜가 바로 변경되며, 휠로 이전/다음 달을 넘길 수 있습니다.' }
+    img: 'guide/v13_08_calendar_main.png',
+    title: '5번 메뉴 · 일정·학사달력 — 핵심 4개 버튼으로 일정 완벽 관리',
+    spots: [
+      { num: 1, target: [41.9, 2.4, 6.6, 3.8], card: [8, 20], title: '+ 일정 추가', text: '학사·수업·학급·상담·개인 등 속성별로 일정을 등록합니다.', when: '시험·상담 예약 입력 시' },
+      { num: 2, target: [49.1, 2.3, 11.6, 4.0], card: [36, 20], title: 'NEIS 학사일정 가져오기', text: '2번 메뉴에서 고른 우리 학교 공식 학사일정을 한 번에 채웁니다.', when: '학기 초 1클릭 일괄 등록' },
+      { num: 3, target: [70.1, 2.1, 9.8, 4.3], card: [66, 20], title: 'Google 동기화', text: '내 Google 기본 캘린더와 일정을 양방향으로 동기화합니다.', when: '스마트폰과 일정 공유 시' },
+      { num: 4, target: [86.7, 2.3, 10.2, 3.9], card: [66, 52], title: '가져오기·내보내기', text: '학생 상담 기록만 따로 엑셀로 내려받거나 시트로 복사합니다.', when: '상담 누가기록 정리 시' }
+    ],
+    callout: { type: 'good', text: '일정 카드는 마우스로 끌어 다른 날짜로 바로 옮길 수 있고, 휠로 달을 넘깁니다.' }
   },
   {
     section: 'calendar',
@@ -5209,21 +5235,64 @@ function initGuide() {
 
   GUIDE_SLIDES.forEach(function(slide, i) {
     var el = document.createElement('div');
-    el.className = 'guide-slide';
-
-    var callout = '';
-    if (slide.callout) {
-      callout = '<div class="guide-callout ' + (slide.callout.type || '') + '">💡 ' + slide.callout.text + '</div>';
+    if (Array.isArray(slide.spots) && slide.spots.length) {
+      el.className = 'guide-slide is-stage';
+      var spotsHtml = slide.spots.map(function (sp, idx) {
+        var t = sp.target; // [x, y, w, h] in %
+        return '<div class="guide-spot" style="left:' + t[0] + '%;top:' + t[1] + '%;width:' + t[2] + '%;height:' + t[3] + '%;">' +
+          '<span class="guide-spot-num">' + (sp.num || (idx + 1)) + '</span></div>';
+      }).join('');
+      var cardsHtml = slide.spots.map(function (sp, idx) {
+        var c = sp.card; // [cx, cy] in %
+        var whenHtml = sp.when ? '<span class="guide-call-when">' + escapeHtml(sp.when) + '</span>' : '';
+        return '<div class="guide-call-card" style="left:' + c[0] + '%;top:' + c[1] + '%;">' +
+          '<div class="guide-call-head"><span class="guide-call-num">' + (sp.num || (idx + 1)) + '</span><strong>' + escapeHtml(sp.title) + '</strong></div>' +
+          '<p>' + sp.text + '</p>' + whenHtml +
+        '</div>';
+      }).join('');
+      var linesHtml = slide.spots.map(function (sp) {
+        var t = sp.target;
+        var c = sp.card;
+        // Start from card center-top or center-right toward target center (in 0..1000 viewBox)
+        var sx = Math.round((c[0] + 13) * 10);
+        var sy = Math.round((c[1] + (c[1] > t[1] ? 1 : 9)) * 10);
+        var tx = Math.round((t[0] + t[2] / 2) * 10);
+        var ty = Math.round((t[1] + (c[1] > t[1] ? t[3] : t[3] / 2)) * 10);
+        if (c[0] + 28 < t[0]) { sx = Math.round((c[0] + 26) * 10); sy = Math.round((c[1] + 7) * 10); tx = Math.round(t[0] * 10); ty = Math.round((t[1] + t[3] / 2) * 10); }
+        else if (c[0] > t[0] + t[2]) { sx = Math.round(c[0] * 10); sy = Math.round((c[1] + 7) * 10); tx = Math.round((t[0] + t[2]) * 10); ty = Math.round((t[1] + t[3] / 2) * 10); }
+        return '<line x1="' + sx + '" y1="' + sy + '" x2="' + tx + '" y2="' + ty + '" stroke="#ef4444" stroke-width="3.2" stroke-linecap="round" marker-end="url(#guideArrowHead)" />';
+      }).join('');
+      var tipBadge = slide.callout ? '<span class="guide-stage-tip">' + escapeHtml(slide.callout.text) + '</span>' : '';
+      el.innerHTML =
+        '<div class="guide-stage-banner">' +
+          '<div><span class="guide-stage-sub">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</span><h4>' + slide.title + '</h4></div>' +
+          tipBadge +
+        '</div>' +
+        '<div class="guide-stage">' +
+          '<img class="guide-stage-img" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + '" loading="lazy">' +
+          '<div class="guide-stage-dim"></div>' +
+          spotsHtml +
+          '<svg class="guide-stage-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">' +
+            '<defs><marker id="guideArrowHead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444" /></marker></defs>' +
+            linesHtml +
+          '</svg>' +
+          cardsHtml +
+        '</div>';
+    } else {
+      el.className = 'guide-slide';
+      var callout = '';
+      if (slide.callout) {
+        callout = '<div class="guide-callout ' + (slide.callout.type || '') + '">' + slide.callout.text + '</div>';
+      }
+      el.innerHTML =
+        '<div class="guide-step">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</div>' +
+        '<h4>' + slide.title + '</h4>' +
+        '<img class="guide-shot" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + ' 화면" loading="lazy">' +
+        '<div class="guide-side">' +
+          '<div class="guide-desc">' + slide.desc + '</div>' +
+          callout +
+        '</div>';
     }
-
-    el.innerHTML =
-      '<div class="guide-step">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</div>' +
-      '<h4>' + slide.title + '</h4>' +
-      '<img class="guide-shot" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + ' 화면" loading="lazy">' +
-      '<div class="guide-side">' +
-        '<div class="guide-desc">' + slide.desc + '</div>' +
-        callout +
-      '</div>';
     track.appendChild(el);
 
     var dot = document.createElement('button');

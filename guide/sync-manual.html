@@ -1282,7 +1282,20 @@ body.all-units-mode .unit-pager {
     .track-jump-btn:hover { background:#eff6ff; }
     .opt-skip-banner { background:#fffbeb; border:1.5px solid #fcd34d; border-radius:12px; padding:11px 14px; margin:0 0 14px; font-size:13px; color:#78350f; line-height:1.55; }
 
-  </style>
+  
+.track-flow-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+.track-flow-node { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #1e293b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 11px; }
+.track-flow-node em { font-style: normal; width: 20px; height: 20px; border-radius: 50%; background: #2563eb; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; }
+.track-flow-node.opt em { background: #d97706; }
+.track-flow-arrow { color: #64748b; font-weight: 900; font-size: 14px; }
+.track-step-card .t-one-line { margin: 2px 0 6px; font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.45; }
+.track-fold { margin: 4px 0 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 6px 10px; }
+.track-fold summary { cursor: pointer; font-size: 12px; font-weight: 800; color: #2563eb; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+.track-fold summary::-webkit-details-marker { display: none; }
+.track-fold[open] summary { margin-bottom: 6px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+.track-fold p { margin: 0; font-size: 12px; color: #475569; line-height: 1.55; }
+
+</style>
 </head>
 <body data-p="p0">
 
@@ -1466,11 +1479,11 @@ body.all-units-mode .unit-pager {
     <!-- PAGE 0: Intro & 0_사용안내 Tab -->
     <!-- ================================================================= -->
     <section id="p0_intro" class="page on">
-      <div class="track-hub" id="dualTrackHub">
+            <div class="track-hub" id="dualTrackHub">
         <div class="track-hub-head">
           <div>
             <h3 class="track-hub-title">나에게 맞는 권장 시작 순서 고르기 (초보자 맞춤 경로)</h3>
-            <p class="track-hub-sub">먼저 쓰려는 앱에 따라 버튼 하나만 누르면 권장 1~4단계와 바로가기가 바뀝니다.</p>
+            <p class="track-hub-sub">먼저 쓰려는 앱을 고르면 전체 1→4단계 흐름도와 할 일이 바뀝니다. 자세한 절차는 각 카드의 [구체적 방법 보기]를 펼쳐 확인하세요.</p>
           </div>
           <div class="track-tabs" role="tablist">
             <button type="button" class="track-tab-btn active" data-track="tong">트랙 A · 디지털 교무수첩(T-ong)부터 시작</button>
@@ -1479,65 +1492,115 @@ body.all-units-mode .unit-pager {
         </div>
 
         <div class="track-panel active" id="trackPanelTong">
-          <div style="font-size:13px; color:#0f766e; background:#f0fdfa; border:1px solid #99f6e4; border-radius:9px; padding:8px 12px; font-weight:700;">
+          <div class="track-flow-bar" aria-label="트랙 A 전체 흐름">
+            <span class="track-flow-node"><em>1</em> 시트 사본·URL 연결</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node"><em>2</em> 학교·시간표·명렬표 등록</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node"><em>3</em> 매일 자리·출결·관찰</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node opt"><em>4</em> (선택) 학기말 세특만 연동</span>
+          </div>
+          <div style="font-size:12.5px; color:#0f766e; background:#f0fdfa; border:1px solid #99f6e4; border-radius:9px; padding:7px 12px; font-weight:700; margin-bottom:10px;">
             대상: 자리배치 · 시간표 · 출결 · 수업관찰부터 바로 쓰고 싶은 선생님 (초·중등, 고1·2, 교과전담, 대입 상담 미사용 포함)
           </div>
           <div class="track-steps">
             <div class="track-step-card">
               <span class="t-badge">1단계 · 공통 출발점</span>
               <b>구글 마스터 시트 &amp; URL 연결</b>
-              <p>마스터 시트 사본을 만들고 <code>15단원</code> 안내대로 웹앱 URL을 복사해, T-ong 홈 대시보드 <b>STEP 1 [Google 시트 연동]</b>에 붙여넣고 <b>[연결]</b>을 누릅니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_layout], #p2_layout'); if(window.goPage){goPage('p2_layout');}else if(el){el.scrollIntoView({behavior:'smooth'});}">07단원(시트 연결) 보기 →</button>
+              <p class="t-one-line">마스터 시트 사본을 만들고 웹앱 URL을 T-ong에 저장합니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>15단원 안내대로 마스터 시트 사본의 Apps Script 웹앱 URL(<code>.../exec</code>)을 복사한 뒤, T-ong 홈 대시보드 <b>STEP 1 [Google 시트 연동]</b>에 붙여넣고 <b>[연결]</b>을 누릅니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_layout');}">07단원(시트 연결) 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">2단계 · 학교·시간표·명렬</span>
-              <b>학교 · 비담임/담임 · 시간표 · 명렬표</b>
-              <p><code>2 학교·수업시간표</code>에서 학교·과목·동아리를 고르고, <code>명렬표 등록</code>에서 학생 명단을 올립니다. (시트 <code>2번</code>·<code>9번</code> 탭에 자동 저장)</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_roster], #p2_roster'); if(window.goPage){goPage('p2_roster');}else if(el){el.scrollIntoView({behavior:'smooth'});}">08단원(명렬표 등록) 보기 →</button>
+              <b>학교 · 시간표 · 명렬표 등록</b>
+              <p class="t-one-line">학교·수업 과목을 고르고 학생 명렬표를 올립니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>상단 <code>2 학교·수업시간표</code>에서 학교와 담당 수업을 추가하고, <code>학급 명렬표 등록</code>에서 명단을 올리면 시트 <code>2번(명렬표)</code>·<code>9번(기본설정)</code> 탭에 자동 저장됩니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_roster');}">08단원(명렬표 등록) 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">3단계 · 매일 교실 현장</span>
-              <b>자리배치 · 출결 · 수업관찰 · 교실도구</b>
-              <p>수업 중 좌석을 터치해 출결·칭찬·1인1역·수업관찰을 남기면 구글 시트 <code>6_수업관찰_기록</code>과 <code>8_출결_칭찬_기록</code>에 실시간 누적됩니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_seating], #p2_seating'); if(window.goPage){goPage('p2_seating');}else if(el){el.scrollIntoView({behavior:'smooth'});}">09~10단원(자리·출결) 보기 →</button>
+              <b>자리배치 · 출결 · 수업관찰</b>
+              <p class="t-one-line">수업 중 좌석을 눌러 출결·칭찬·관찰을 바로 남깁니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>좌석표에서 학생을 클릭해 출결·칭찬·1인1역·수업관찰을 남기면 구글 시트 <code>6_수업관찰_기록</code>과 <code>8_출결_칭찬_기록</code> 탭에 실시간 누적됩니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_seating');}">09~10단원(자리·출결) 보기 →</button>
             </div>
             <div class="track-step-card opt">
               <span class="t-badge">4단계 · 선택 (학기 말만)</span>
-              <b>필요할 때만 NEIS-Help 세특 생성</b>
-              <p>학기 말 세특 작성이 필요할 때만 <code>NEIS-Help</code>에서 같은 시트 URL을 연결해 <code>6·7번</code> 탭 관찰 메모를 불러와 AI 세특·바이트 점검만 사용합니다. (<b>대입 상담은 건너뛰어도 됩니다.</b>)</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_draft], #p1_draft'); if(window.goPage){goPage('p1_draft');}else if(el){el.scrollIntoView({behavior:'smooth'});}">03단원(세특 초안) 보기 →</button>
+              <b>필요할 때만 NEIS-Help 세특</b>
+              <p class="t-one-line">학기 말에 관찰 기록을 불러와 세특 초안만 만듭니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 건너뛰기 안내 ▾</summary>
+                <p><code>NEIS-Help</code>에 같은 시트 URL을 연결하면 <code>6·7번</code> 탭 관찰 메모를 불러와 AI 세특·바이트 점검만 쓸 수 있습니다. <b>대입 진학 상담(06단원)은 건너뛰어도 됩니다.</b></p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_draft');}">03단원(세특 초안) 보기 →</button>
             </div>
           </div>
         </div>
 
         <div class="track-panel" id="trackPanelNeis">
-          <div style="font-size:13px; color:#1e40af; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; padding:8px 12px; font-weight:700;">
+          <div class="track-flow-bar" aria-label="트랙 B 전체 흐름">
+            <span class="track-flow-node"><em>1</em> 시트 연결·명렬/상담 입력</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node"><em>2</em> T-ong [불러오기] 동기화</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node"><em>3</em> AI 세특·OCR·바이트 점검</span>
+            <span class="track-flow-arrow">→</span>
+            <span class="track-flow-node"><em>4</em> 2027 대입 진학 상담</span>
+          </div>
+          <div style="font-size:12.5px; color:#1e40af; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; padding:7px 12px; font-weight:700; margin-bottom:10px;">
             대상: 나이스 세특·행특 일괄 작성과 2027 수시 진학상담이 주 목적인 선생님 (고3 담임 및 입시 지도 교사)
           </div>
           <div class="track-steps">
             <div class="track-step-card">
               <span class="t-badge">1단계 · 시트 준비</span>
-              <b>마스터 시트 연결 &amp; 명렬표·상담 세팅</b>
-              <p>마스터 시트 사본에 Apps Script URL을 배포한 뒤, <code>NEIS-Help</code>에 URL을 연결하고 <code>2_학생명렬표</code>와 <code>4_대입상담</code> 기초 자료를 입력합니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p0_intro], #p0_intro'); if(window.goPage){goPage('p0_intro');}else if(el){el.scrollIntoView({behavior:'smooth'});}">01단원(전체 흐름) 보기 →</button>
+              <b>시트 연결 &amp; 명렬·상담 세팅</b>
+              <p class="t-one-line">NEIS-Help에 시트 URL을 연결하고 기초 명단을 입력합니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>마스터 시트 사본에 Apps Script 웹앱 URL을 배포한 뒤, <code>NEIS-Help</code>에 URL을 연결해 <code>2_학생명렬표</code>와 <code>4_대입상담</code> 기초 자료를 저장합니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p0_intro');}">01단원(전체 흐름) 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">2단계 · 교무수첩 동기화</span>
-              <b>T-ong에서 [불러오기]로 즉시 연동</b>
-              <p><code>T-ong</code>을 열어 같은 시트 URL을 입력하고 <b>[불러오기]</b>를 누르면 <code>NEIS-Help</code>와 동일한 명렬표가 그대로 복원됩니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_layout], #p2_layout'); if(window.goPage){goPage('p2_layout');}else if(el){el.scrollIntoView({behavior:'smooth'});}">07단원(교무수첩 연동) 보기 →</button>
+              <b>T-ong에서 [불러오기] 연동</b>
+              <p class="t-one-line">같은 시트 URL로 T-ong에 명렬표를 그대로 복원합니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p><code>T-ong</code>을 열어 같은 시트 URL을 입력하고 <b>[불러오기]</b>를 누르면 <code>NEIS-Help</code>와 동일한 명렬표가 자동으로 채워져 자리배치·출결을 바로 쓸 수 있습니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_layout');}">07단원(교무수첩 연동) 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">3단계 · 세특·OCR·점검</span>
-              <b>AI 세특 초안 &amp; 바이트·금지어 자동 점검</b>
-              <p>수업관찰(<code>6·7번</code> 탭)과 학생 보고서 OCR 텍스트를 합쳐 나이스 규격에 맞는 세특·창체·행특 초안을 생성하고 바이트·금지어를 자동 검증합니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_draft], #p1_draft'); if(window.goPage){goPage('p1_draft');}else if(el){el.scrollIntoView({behavior:'smooth'});}">03~05단원(세특·점검) 보기 →</button>
+              <b>AI 세특 &amp; 바이트·금지어 점검</b>
+              <p class="t-one-line">관찰 기록과 보고서 OCR로 나이스 규격 초안을 만듭니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>수업관찰(<code>6·7번</code> 탭)과 학생 탐구보고서 OCR 텍스트를 합쳐 세특·창체·행특 초안을 생성하고 바이트·금지어를 자동 검증합니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_draft');}">03~05단원(세특·점검) 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">4단계 · 진학 상담</span>
-              <b>2027 대입 진학 상담 &amp; 133개 대학 조회</b>
-              <p>9등급·5등급 환산 내신과 모의고사 성적으로 안정·적정·소신 대학을 찾고 상담 결과를 <code>4·5번</code> 탭에 저장합니다.</p>
-              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_counsel], #p1_counsel'); if(window.goPage){goPage('p1_counsel');}else if(el){el.scrollIntoView({behavior:'smooth'});}">06단원(대입 상담) 보기 →</button>
+              <b>2027 대입 상담 &amp; 대학 조회</b>
+              <p class="t-one-line">환산 내신·모의고사로 안정·적정·소신 대학을 찾습니다.</p>
+              <details class="track-fold">
+                <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
+                <p>9등급·5등급 환산 내신과 모의고사 성적으로 133개 대학 배치표를 조회하고 상담 결과를 <code>4·5번</code> 탭에 저장합니다.</p>
+              </details>
+              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_counsel');}">06단원(대입 상담) 보기 →</button>
             </div>
           </div>
         </div>

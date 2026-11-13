@@ -349,9 +349,170 @@ hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
 .guide-desc li strong { display: block; font-size: 0.92rem; color: #1e3a8a; margin-bottom: 2px; }
 .guide-desc li .gd-when { display: inline-block; margin-top: 3px; font-size: 0.79rem; font-weight: 700; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 5px; padding: 1px 6px; }
 .guide-callout { grid-column: 2; grid-row: 4; align-self: start; background: #fff8e6; border: 1px solid #ffe0a3; border-left: 4px solid #f0a500; border-radius: 8px; padding: 10px 12px; font-size: 0.84rem; line-height: 1.52; color: #6b4c00; }
+
+/* Full-screen Spotlight + Arrow Coachmark Stage */
+.guide-slide.is-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 54px 14px;
+  background: #0f172a;
+  gap: 8px;
+}
+.guide-stage-banner {
+  width: 100%;
+  max-width: 1220px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255,255,255,0.96);
+  border-radius: 10px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+  flex-shrink: 0;
+}
+.guide-stage-banner h4 {
+  margin: 0;
+  font-size: 1.04rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+.guide-stage-banner .guide-stage-sub {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #4f46e5;
+  margin-right: 8px;
+}
+.guide-stage-banner .guide-stage-tip {
+  font-size: 0.8rem;
+  color: #0f766e;
+  font-weight: 700;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.guide-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1220px;
+  max-height: calc(100vh - 205px);
+  aspect-ratio: 1366 / 840;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  background: #1e293b;
+}
+.guide-stage-img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+.guide-stage-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.34);
+  pointer-events: none;
+}
+.guide-spot {
+  position: absolute;
+  border: 3px solid #ef4444;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.08), 0 0 16px rgba(239, 68, 68, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 2;
+}
+.guide-spot-num {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+.guide-stage-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+.guide-call-card {
+  position: absolute;
+  width: min(285px, 28%);
+  background: rgba(255, 255, 255, 0.97);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.32);
+  z-index: 4;
+  color: #1e293b;
+}
+.guide-call-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.guide-call-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.guide-call-head strong {
+  font-size: 0.88rem;
+  color: #0f172a;
+  line-height: 1.25;
+}
+.guide-call-card p {
+  margin: 0;
+  font-size: 0.79rem;
+  line-height: 1.48;
+  color: #334155;
+}
+.guide-call-when {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 5px;
+  padding: 1px 6px;
+}
 @media (max-width: 960px) {
   .guide-slide { display: flex; flex-direction: column; padding: 14px 18px 20px; gap: 10px; }
   .guide-shot { height: auto; max-height: 46vh; }
+  .guide-slide.is-stage { padding: 12px 14px; justify-content: flex-start; overflow-y: auto; }
+  .guide-stage-banner { flex-direction: column; align-items: flex-start; }
+  .guide-stage-banner .guide-stage-tip { white-space: normal; }
+  .guide-call-card { position: static; width: 100%; margin-top: 8px; }
+  .guide-stage-svg, .guide-stage-dim { display: none; }
+  .guide-stage { aspect-ratio: auto; max-height: none; overflow: visible; background: transparent; box-shadow: none; }
+  .guide-stage-img { border-radius: 10px; height: auto; }
 }
 .guide-callout.danger { background: #fff0f0; border-color: #ffc9c9; border-left-color: #e03131; color: #8b2020; }
 .guide-callout.good { background: #eefbf3; border-color: #b7e8cc; border-left-color: #12b76a; color: #0d5c39; }
