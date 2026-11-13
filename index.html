@@ -241,88 +241,144 @@
         <button type="button" id="headerRosterBtn" class="header-roster-btn">👥 학급 명렬표 등록</button>
       </div>
 
-      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 드롭다운 (상단 [1 Google 시트 연동]에서 호출) -->
+      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 중앙 대형 모달 (상단 [1 Google 시트 연동]에서 호출) -->
       <div class="header-sync-wrap" id="headerSyncWrap">
-        <div id="headerSyncMenu" class="header-sync-menu" hidden>
-          <div class="sync-card-header">
-            <div class="sync-user-profile">
-              <div class="sync-avatar" id="syncUserAvatar">G</div>
-              <div class="sync-meta">
-                <div class="sync-name-row">
-                  <strong id="syncUserName">로컬 저장 모드</strong>
-                  <span class="sync-badge-perm" id="syncPermBadge" hidden>영구 유지</span>
+        <div id="headerSyncMenu" class="header-sync-menu" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle" hidden>
+          <div class="header-sync-dialog">
+            <div class="sync-modal-topbar">
+              <div>
+                <h2 id="syncModalTitle">1. Google 시트 · 캘린더 통합 연동</h2>
+                <p class="sync-modal-sub">어려운 설정 없이 왼쪽 3단계 순서대로 따라 하면 내 PC, 태블릿, 구글 시트, 캘린더가 한 번에 연결됩니다.</p>
+              </div>
+              <button type="button" id="syncModalCloseBtn" class="sync-modal-close" aria-label="창 닫기">&times;</button>
+            </div>
+
+            <div class="sync-modal-grid">
+              <!-- 좌측: 3단계 워크플로우 및 스크린샷/시각 안내 -->
+              <div class="sync-workflow-col">
+                <div class="sync-workflow-card">
+                  <div class="sync-workflow-title">처음 연결하는 분을 위한 3단계 안내</div>
+                  <ol class="sync-step-list">
+                    <li>
+                      <span class="sync-step-num">1</span>
+                      <div>
+                        <strong>구글 드라이브에 내 시트 사본 만들기</strong>
+                        <p>아래 버튼으로 마스터 시트 사본을 내 구글 드라이브에 저장하세요. 권한 오류가 뜨면 표준 엑셀(.xlsx)을 받아 드라이브에 올려 스프레드시트로 열면 동일하게 작동합니다.</p>
+                        <div class="sync-sheet-link-group" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                          <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none;">1단계: 구글 드라이브 사본 복사 ↗</a>
+                          <a href="assets/teacher_allinone_template_2026.xlsx" download="2026_교사용_올인원_마스터_통합서식.xlsx" style="background:#059669; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none;">표준 엑셀(.xlsx) 다운로드 ⬇</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="sync-step-num">2</span>
+                      <div>
+                        <strong>Apps Script 열기 및 웹앱 배포</strong>
+                        <p>복사한 시트 상단 메뉴에서 <b>확장 프로그램 → Apps Script</b>를 열고, <b>배포 → 새 배포(유형: 웹 앱, 액세스: 모든 사용자)</b>를 눌러 생성된 <code>.../exec</code> 주소를 복사하세요.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="sync-step-num">3</span>
+                      <div>
+                        <strong>오른쪽 입력칸에 URL 붙여넣기 및 저장</strong>
+                        <p>복사한 웹앱 URL을 오른쪽에 넣고 <b>[저장]</b>을 누르면 수업관찰·출결·칭찬·1인1역이 시트와 실시간으로 오갑니다.</p>
+                      </div>
+                    </li>
+                  </ol>
                 </div>
-                <small id="syncUserEmail">Google 계정 로그인 시 안전하게 동기화</small>
+
+                <div class="sync-guide-viewer">
+                  <div class="sync-guide-viewer-head">
+                    <strong>화면으로 보는 단계별 안내</strong>
+                    <a href="manual.html" target="_blank" rel="noopener noreferrer" class="sync-manual-ext-link">전체 매뉴얼 새 창 ↗</a>
+                  </div>
+                  <div class="sync-guide-tabs" role="tablist" aria-label="시트 연동 단계별 화면">
+                    <button type="button" class="sync-guide-tab is-active" data-step="0" data-img="assets/gas-step1.svg" data-cap="1. 사본 복사 직후 학생 입력 전에 먼저 Apps Script를 연결합니다.">1. 사본 직후</button>
+                    <button type="button" class="sync-guide-tab" data-step="1" data-img="assets/gas-step2.svg" data-cap="2. 시트 상단 [확장 프로그램] → [Apps Script]를 열고 코드를 확인/붙여넣기 합니다.">2. 스크립트 열기</button>
+                    <button type="button" class="sync-guide-tab" data-step="2" data-img="assets/gas-step5.svg" data-cap="3. [배포 → 새 배포]에서 웹 앱을 선택하고 액세스 권한을 [모든 사용자]로 설정합니다.">3. 새 배포·권한</button>
+                    <button type="button" class="sync-guide-tab" data-step="3" data-img="assets/gas-step6.svg" data-cap="4. 생성된 웹 앱 URL(/exec)을 복사해 오른쪽 입력칸에 붙여넣고 저장합니다.">4. URL 복사</button>
+                  </div>
+                  <div class="sync-guide-img-box">
+                    <img id="syncGuideViewerImg" src="assets/gas-step1.svg" alt="구글 시트 Apps Script 연동 단계 안내">
+                  </div>
+                  <p id="syncGuideViewerCap" class="sync-guide-cap">1. 사본 복사 직후 학생 입력 전에 먼저 Apps Script를 연결합니다.</p>
+                </div>
+              </div>
+
+              <!-- 우측: 로그인 및 시트 URL 등록 / 실행 컨트롤 -->
+              <div class="sync-control-col">
+                <div class="sync-card-header">
+                  <div class="sync-user-profile">
+                    <div class="sync-avatar" id="syncUserAvatar">G</div>
+                    <div class="sync-meta">
+                      <div class="sync-name-row">
+                        <strong id="syncUserName">이 브라우저에만 저장 중</strong>
+                        <span class="sync-badge-perm" id="syncPermBadge" hidden>영구 유지</span>
+                      </div>
+                      <small id="syncUserEmail">Google 통합 로그인 시 계정과 캘린더가 함께 연결됩니다</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="sync-card-body">
+                  <div id="syncLoginSection" class="sync-login-section">
+                    <div id="googleBtnContainer" class="google-btn-container"></div>
+                  </div>
+
+                  <div class="sync-section-divider"></div>
+
+                  <div class="sync-sheet-section">
+                    <div class="sync-field-label-row">
+                      <label for="tongSheetUrlInput"><b>내 마스터 시트 웹앱 URL (10개 탭 연동)</b></label>
+                    </div>
+                    <div class="sync-input-group">
+                      <input type="url" id="tongSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
+                      <button type="button" id="tongSheetUrlSaveBtn" class="btn primary">저장</button>
+                    </div>
+                    <p class="sync-help-text">수업 관찰은 <b>[6_수업관찰_기록 · 7_AI세특_작성]</b>으로, 출결·칭찬·1인1역은 <b>[8_출결_칭찬_기록 · 3_창체_행특]</b>으로 자동 동기화됩니다.</p>
+                  </div>
+
+                  <div class="sync-status-box">
+                    <div class="sync-status-row">
+                      <span>시트 동기화 상태:</span>
+                      <strong id="syncStateText">미연결 (현재 기기만 저장)</strong>
+                    </div>
+                    <div class="sync-status-row">
+                      <span>마지막 시트 동기화:</span>
+                      <span id="syncLastTimeText">기록 없음</span>
+                    </div>
+                    <div class="sync-status-row">
+                      <span>동기화 대기 기록:</span>
+                      <span id="syncPendingCountText">0건</span>
+                    </div>
+                  </div>
+
+                  <div class="sync-section-divider" style="margin:10px 0;"></div>
+
+                  <div class="sync-cal-section" style="background:rgba(15,23,42,0.03); border:1px solid rgba(148,163,184,0.28); border-radius:8px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                      <strong style="font-size:0.8rem;">Google 캘린더 연동 (일정관리)</strong>
+                      <span id="syncCalModeBadge" style="font-size:0.7rem; padding:2px 6px; border-radius:999px; background:#e0e7ff; color:#3730a3; font-weight:700;">통합 연동</span>
+                    </div>
+                    <div style="font-size:0.76rem; color:#475569; margin-bottom:8px; line-height:1.4;" id="syncCalAccountText">
+                      Google 통합 로그인 한 번으로 교무수첩과 캘린더가 함께 동기화됩니다.
+                    </div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                      <button type="button" id="syncCalConnectNowBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더 즉시 동기화</button>
+                      <button type="button" id="syncSwitchCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더만 다른 계정 변경</button>
+                      <button type="button" id="syncUseMainCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;" hidden>기본 계정으로 통일</button>
+                    </div>
+                  </div>
+
+                  <div class="sync-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+                    <button type="button" id="syncManualNowBtn" class="btn primary" title="이 기기에서 입력한 기록을 구글 시트로 보냅니다">시트로 보내기 (Push)</button>
+                    <button type="button" id="syncPullFromSheetBtn" class="btn" style="background:#0f766e; color:#fff; border:none; font-weight:700;" title="다른 기기에서 보낸 기록을 이 기기로 가져옵니다">시트에서 가져오기 (Pull)</button>
+                    <button type="button" id="syncLogoutBtn" class="btn" hidden>로그아웃</button>
+                  </div>
+                  <p class="sync-help-text" style="margin-top:8px;"><b>태블릿 ↔ 노트북:</b> 두 기기에 같은 시트 URL을 저장한 뒤, 보낼 기기에서 <b>[시트로 보내기]</b>, 받을 기기에서 <b>[시트에서 가져오기]</b>를 누르세요.</p>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="sync-card-body">
-            <div id="syncLoginSection" class="sync-login-section">
-              <div id="googleBtnContainer" class="google-btn-container"></div>
-            </div>
-
-            <div class="sync-section-divider"></div>
-
-            <div class="sync-sheet-section">
-              <div class="sync-field-label-row">
-                <label for="tongSheetUrlInput"><b>교사용 올인원 마스터 통합 시트 웹앱 URL (10개 탭 연동)</b></label>
-              </div>
-              <div style="font-size:0.75rem; color:#92400e; background:#fffbeb; border:1px solid #f59e0b; border-radius:6px; padding:6px 8px; margin:4px 0 6px; font-weight:700; line-height:1.45;">
-                [필수 권장] 마스터 시트 사본을 저장한 직후, 학생 정보를 입력하기 전에 먼저 Apps Script 연결부터 완료하세요!
-              </div>
-              <div class="sync-sheet-link-group" style="display:flex; gap:8px; margin:4px 0 8px; flex-wrap:wrap;">
-                <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; text-decoration:none;">1단계: 구글 드라이브 사본 복사 ↗</a>
-                <a href="assets/teacher_allinone_template_2026.xlsx" download="2026_교사용_올인원_마스터_통합서식.xlsx" style="background:#059669; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:4px;">표준 엑셀(.xlsx) 즉시 다운로드 (권한오류 없음) ⬇</a>
-                <a href="manual.html" target="_blank" rel="noopener noreferrer" style="background:#0f172a; color:#fff; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:4px;">동기화 시각 매뉴얼 전체보기 (HTML 다운로드) ↗</a>
-              </div>
-              <div style="font-size:0.72rem; color:#475569; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px; margin:2px 0 6px; line-height:1.4;">
-                ※ 구글 일반 계정(@gmail.com)에서 '권한이 없습니다'가 뜨는 경우: 원본 시트가 교육청 도메인으로 제한되어 있을 수 있습니다. 권한 오류 시 <b>[표준 엑셀 즉시 다운로드]</b>를 받아 구글 드라이브에 직접 업로드(스프레드시트로 열기)하시면 100% 동일하게 연동됩니다.
-              </div>
-              <div class="sync-input-group">
-                <input type="url" id="tongSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
-                <button type="button" id="tongSheetUrlSaveBtn" class="btn primary">저장</button>
-              </div>
-              <p class="sync-help-text">선생님께서 복사하신 교사용 올인원 마스터 시트의 Apps Script 배포 웹앱 URL을 등록하시면, 수업 관찰은 <b>[6_수업관찰_기록 · 7_AI세특_작성]</b>으로, 출결·칭찬 포인트·1인1역·생활관찰은 <b>[8_출결_칭찬_기록 · 3_창체_행특]</b>으로 실시간 동기화됩니다.</p>
-            </div>
-
-            <div class="sync-status-box">
-              <div class="sync-status-row">
-                <span>시트 동기화 상태:</span>
-                <strong id="syncStateText">로컬 단독 모드</strong>
-              </div>
-              <div class="sync-status-row">
-                <span>마지막 시트 동기화:</span>
-                <span id="syncLastTimeText">기록 없음</span>
-              </div>
-              <div class="sync-status-row">
-                <span>동기화 대기 기록:</span>
-                <span id="syncPendingCountText">0건</span>
-              </div>
-            </div>
-
-            <div class="sync-section-divider" style="margin:10px 0;"></div>
-
-            <div class="sync-cal-section" style="background:rgba(15,23,42,0.03); border:1px solid rgba(148,163,184,0.28); border-radius:8px; padding:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
-                <strong style="font-size:0.8rem;">Google 캘린더 연동 (일정관리)</strong>
-                <span id="syncCalModeBadge" style="font-size:0.7rem; padding:2px 6px; border-radius:999px; background:#e0e7ff; color:#3730a3; font-weight:700;">통합 연동</span>
-              </div>
-              <div style="font-size:0.76rem; color:#475569; margin-bottom:8px; line-height:1.4;" id="syncCalAccountText">
-                Google 로그인 한 번으로 교무수첩과 캘린더가 함께 동기화됩니다.
-              </div>
-              <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <button type="button" id="syncCalConnectNowBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더 즉시 동기화</button>
-                <button type="button" id="syncSwitchCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;">캘린더만 다른 계정 변경</button>
-                <button type="button" id="syncUseMainCalAccountBtn" class="btn" style="font-size:0.74rem; padding:5px 9px;" hidden>기본 계정으로 통일</button>
-              </div>
-            </div>
-
-            <div class="sync-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
-              <button type="button" id="syncManualNowBtn" class="btn primary" title="이 기기에서 입력한 기록을 구글 시트로 보냅니다">시트로 보내기 (Push)</button>
-              <button type="button" id="syncPullFromSheetBtn" class="btn" style="background:#0f766e; color:#fff; border:none; font-weight:700;" title="다른 기기에서 보낸 기록을 이 기기로 가져옵니다">시트에서 가져오기 (Pull)</button>
-              <button type="button" id="syncLogoutBtn" class="btn" hidden>로그아웃</button>
-            </div>
-            <p class="sync-help-text" style="margin-top:8px;"><b>태블릿 ↔ 노트북:</b> 같은 시트 웹앱 URL을 두 기기에 모두 저장한 뒤, 입력한 기기에서 <b>[시트로 보내기]</b>, 받을 기기에서 <b>[시트에서 가져오기]</b>를 누르세요. 관찰·세특 기록, 출결, 칭찬 포인트, 1인1역, 학생 메모가 옮겨집니다. 두 기기의 <b>반 이름과 명렬표(학번)</b>가 같아야 하며, 자리 배치·내 시간표·설정은 <b>설정 → 데이터 백업</b>으로 옮깁니다.</p>
           </div>
         </div>
       </div>

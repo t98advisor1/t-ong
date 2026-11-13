@@ -254,15 +254,15 @@ var CloudSheetSync = (function () {
       if (avatar) {
         avatar.innerHTML = 'G';
       }
-      if (nameEl) nameEl.textContent = '로컬 저장 모드';
-      if (emailEl) emailEl.textContent = 'Google 로그인 시 자동 동기화';
+      if (nameEl) nameEl.textContent = '이 브라우저에만 저장 중';
+      if (emailEl) emailEl.textContent = 'Google 통합 로그인 시 계정과 캘린더가 함께 연결됩니다';
 
       if (badge) badge.className = 'header-sync-btn sync-offline';
       if (badgeText) {
-        badgeText.textContent = pending.length > 0 ? ('로컬 모드 (' + pending.length + '건)') : 'Google 연동';
+        badgeText.textContent = pending.length > 0 ? ('미연결 (' + pending.length + '건)') : 'Google 연동';
       }
       if (stateText) {
-        stateText.textContent = '로컬 단독 모드 (미로그인)';
+        stateText.textContent = '미연결 (현재 기기만 저장)';
       }
       renderGoogleButton();
     }
@@ -824,7 +824,32 @@ var CloudSheetSync = (function () {
     var menu = el('headerSyncMenu');
     if (menu) {
       menu.addEventListener('click', function (e) {
-        e.stopPropagation();
+        if (e.target === menu) {
+          toggleMenu(false);
+        } else {
+          e.stopPropagation();
+        }
+      });
+    }
+
+    var closeModalBtn = el('syncModalCloseBtn');
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', function () {
+        toggleMenu(false);
+      });
+    }
+
+    var guideTabs = document.querySelectorAll('.sync-guide-tab');
+    if (guideTabs && guideTabs.length) {
+      guideTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          guideTabs.forEach(function (t) { t.classList.remove('is-active'); });
+          tab.classList.add('is-active');
+          var imgEl = el('syncGuideViewerImg');
+          var capEl = el('syncGuideViewerCap');
+          if (imgEl && tab.dataset.img) imgEl.src = tab.dataset.img;
+          if (capEl && tab.dataset.cap) capEl.textContent = tab.dataset.cap;
+        });
       });
     }
 
