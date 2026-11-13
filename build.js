@@ -103,10 +103,10 @@ const html = rawHtml
   .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash);
 write('index.html', html);
 
-const sw = read('sw.js').replace(
-  /var CACHE_VERSION = '[^']*';/,
-  "var CACHE_VERSION = '" + hash + "';"
-);
+const sw = read('sw.js')
+  .replace(/var CACHE_VERSION = '[^']*';/, "var CACHE_VERSION = '" + hash + "';")
+  .replace(/\/app\.js(\?v=[^"']*)?/g, '/app.js?v=' + hash)
+  .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash);
 write('sw.js', sw);
 
 // 4) 정적 파일 (매뉴얼, 매니페스트, 아이콘, 템플릿 등)

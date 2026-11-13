@@ -60,6 +60,25 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
+  // 앱 핵심 자산(style.css, app.js)은 네트워크 우선으로 받아 화면 깨짐/구버전 캐시 고착을 방지합니다.
+  var urlPath = new URL(req.url).pathname;
+  if (urlPath === '/style.css' || urlPath === '/app.js' || urlPath === '/index.html') {
+    event.respondWith(
+      fetch(req)
+        .then(function (res) {
+          if (res && res.ok) {
+            var copy = res.clone();
+            caches.open(CACHE_NAME).then(function (c) { c.put(req, copy); });
+          }
+          return res;
+        })
+        .catch(function () {
+          return caches.match(req);
+        })
+    );
+    return;
+  }
+
   // 그 외 정적 자원(SheetJS CDN 포함): 캐시 우선 → 없으면 네트워크 후 캐시에 저장
   event.respondWith(
     caches.match(req).then(function (cached) {
