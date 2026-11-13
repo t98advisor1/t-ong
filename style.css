@@ -5800,3 +5800,312 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   color: #475569;
   font-weight: 800;
 }
+
+
+/* ================================================================= */
+/* 교실 도구 QR 링크 버튼 + 학생 접속 QR 공유 모달 + 수업 메모보드 */
+/* ================================================================= */
+.fav-category-grid .extra-qr-row {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+.fav-category-grid .extra-qr-row > a {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fav-category-grid .extra-qr-row > .extra-qr-btn {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 38px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e40af;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.fav-category-grid .extra-qr-row > .extra-qr-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+#qrShareModal {
+  z-index: 1200;
+}
+
+.qr-share-dialog {
+  max-width: 440px;
+  width: 92vw;
+}
+.qr-share-dialog.is-zoomed {
+  max-width: 620px;
+}
+.qr-share-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+.qr-share-body {
+  padding: 18px 20px 22px;
+  text-align: center;
+}
+.qr-share-desc {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+}
+.qr-share-svg-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  margin-bottom: 12px;
+}
+.qr-share-svg-box svg {
+  width: 240px;
+  height: 240px;
+  display: block;
+}
+.qr-share-dialog.is-zoomed .qr-share-svg-box svg {
+  width: 360px;
+  height: 360px;
+}
+.qr-share-url {
+  font-size: 0.76rem;
+  color: #64748b;
+  word-break: break-all;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  max-height: 64px;
+  overflow: auto;
+}
+.qr-share-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.qr-share-actions .btn-outline,
+.qr-share-actions .btn-primary {
+  text-decoration: none;
+  font-size: 0.84rem;
+  padding: 8px 14px;
+  border-radius: 9px;
+}
+
+.memo-board-dialog {
+  width: 96vw;
+  max-width: 1180px;
+  height: 88vh;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+.memo-board-dialog.is-fullscreen {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+}
+.memo-board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.memo-board-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+}
+.memo-board-badge.is-live {
+  background: #dcfce7;
+  color: #166534;
+}
+.memo-board-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.memo-board-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 18px 20px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.memo-board-question-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.memo-board-question-bar label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1e293b;
+  white-space: nowrap;
+}
+.memo-board-question-bar input {
+  flex: 1 1 260px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.memo-board-guide-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.82rem;
+}
+.memo-board-compose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+#memoBoardAuthorInput {
+  width: 130px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.85rem;
+}
+#memoBoardTextInput {
+  flex: 1 1 240px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.88rem;
+}
+.memo-board-colors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mb-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  cursor: pointer;
+}
+.mb-color.active {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  transform: scale(1.1);
+}
+.memo-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.memo-sticky-card {
+  border-radius: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 115px;
+}
+.memo-sticky-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #334155;
+}
+.memo-sticky-time {
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+.memo-sticky-body {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #0f172a;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1 1 auto;
+}
+.memo-sticky-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(15, 23, 42, 0.12);
+}
+.memo-sticky-btn {
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  color: #1e293b;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.memo-sticky-btn:hover {
+  background: #ffffff;
+}
+.memo-board-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 46px 16px;
+  color: #64748b;
+  font-size: 0.92rem;
+  background: #ffffff;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+}

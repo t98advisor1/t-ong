@@ -9124,7 +9124,8 @@ function initModeTabs() {
       pick: function () { document.getElementById('pickStudentBtn').click(); },
       ladder: function () { document.getElementById('ladderBtn').click(); },
       links: function () { document.getElementById('linksBtn').click(); },
-      calendar: function () { ScheduleCalendar.open(); }
+      calendar: function () { ScheduleCalendar.open(); },
+      memoBoard: function () { if (window.MemoBoardModule) window.MemoBoardModule.open(); }
     };
     menu.querySelectorAll('button[data-open]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -12325,4 +12326,472 @@ window.TeacherSchedule = TeacherSchedule;
 window.StudentTimetable = StudentTimetable;
 window.TodayBriefing = TodayBriefing;
 
+})();
+
+
+// ===================================================================
+// 교실 도구 QR 공유 모달 + 패들렛 스타일 수업 메모보드 모듈
+// ===================================================================
+(function () {
+  'use strict';
+
+  function getStoredSheetUrl() {
+    var keys = ['tong_gsheet_webapp_url', 'tong_sheet_url', 'SR_GAS_MASTER_URL', 'swk_gsheet_url', 'swk_gsheet_homeroom_url', 'swk_gsheet_subject_url'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var v = localStorage.getItem(keys[i]);
+        if (v && /^https:\/\/script\.google\.com\/macros\/s\//.test(v.trim())) return v.trim();
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  function showQrModal(title, url, opts) {
+    opts = opts || {};
+    var modal = document.getElementById('qrShareModal');
+    if (!modal) return;
+    var dialog = modal.querySelector('.qr-share-dialog');
+    var kickerEl = document.getElementById('qrShareKicker');
+    var titleEl = document.getElementById('qrShareTitle');
+    var descEl = document.getElementById('qrShareDesc');
+    var svgBox = document.getElementById('qrShareSvgBox');
+    var urlEl = document.getElementById('qrShareUrlText');
+    var copyBtn = document.getElementById('qrShareCopyBtn');
+    var openBtn = document.getElementById('qrShareOpenBtn');
+    var zoomBtn = document.getElementById('qrShareFullscreenBtn');
+
+    if (dialog) dialog.classList.remove('is-zoomed');
+    if (zoomBtn) zoomBtn.textContent = '크게 보기';
+    if (kickerEl) kickerEl.textContent = opts.kicker || '학생 참여 QR 링크';
+    if (titleEl) titleEl.textContent = title || 'QR 코드';
+    if (descEl) descEl.textContent = opts.desc || '학생들이 스마트폰·태블릿 카메라로 아래 QR 코드를 스캔하면 바로 접속합니다.';
+    if (urlEl) urlEl.textContent = url || '';
+    if (openBtn) openBtn.href = url || '#';
+
+    if (svgBox) {
+      svgBox.innerHTML = '';
+      if (typeof window.qrcode === 'function' && url) {
+        try {
+          var qr = window.qrcode(0, 'M');
+          qr.addData(url);
+          qr.make();
+          svgBox.innerHTML = qr.createSvgTag(6, 2);
+        } catch (err) {
+          svgBox.textContent = 'QR 생성 오류: 주소 길이를 확인해 주세요.';
+        }
+      } else {
+        svgBox.textContent = 'QR 라이브러리를 불러오지 못했습니다.';
+      }
+    }
+
+    if (copyBtn) {
+      copyBtn.onclick = function () {
+        if (!url) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () {
+            copyBtn.textContent = '복사 완료!';
+            setTimeout(function () { copyBtn.textContent = '주소 복사'; }, 1500);
+          });
+        }
+      };
+    }
+
+    if (zoomBtn && dialog) {
+      zoomBtn.onclick = function () {
+        var zoomed = dialog.classList.toggle('is-zoomed');
+        zoomBtn.textContent = zoomed ? '기본 크기' : '크게 보기';
+      };
+    }
+
+    modal.classList.add('show');
+  }
+
+  function enhanceExtraMenuWithQrButtons() {
+    var menu = document.getElementById('extraMenu');
+    if (!menu) return;
+    menu.querySelectorAll('a[href^="http"]').forEach(function (link) {
+      if (link.parentElement && link.parentElement.classList.contains('extra-qr-row')) return;
+      var row = document.createElement('div');
+      row.className = 'extra-qr-row';
+      link.parentNode.insertBefore(row, link);
+      row.appendChild(link);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'extra-qr-btn';
+      btn.textContent = 'QR';
+      btn.title = '학생 접속용 QR 코드 띄우기';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        menu.classList.remove('open');
+        showQrModal(link.textContent.trim(), link.href, {
+          kicker: '게임·학습 도구 QR 공유',
+          desc: '교실 TV나 화면에 띄워 학생들이 스마트폰·태블릿으로 스캔하면 바로 접속합니다.'
+        });
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  var MemoBoardModule = (function () {
+    var LOCAL_NOTES_KEY = 'tong_memo_board_notes_v1';
+    var LOCAL_TOPIC_KEY = 'tong_memo_board_topic_v1';
+    var LOCAL_ROOM_KEY = 'tong_memo_board_room_v1';
+    var selectedColor = '#fef3c7';
+    var pollTimer = null;
+    var notesCache = [];
+
+    function getRoomId() {
+      try {
+        var r = localStorage.getItem(LOCAL_ROOM_KEY);
+        if (!r) {
+          r = 'room_' + Math.random().toString(36).slice(2, 8);
+          localStorage.setItem(LOCAL_ROOM_KEY, r);
+        }
+        return r;
+      } catch (e) {
+        return 'room_default';
+      }
+    }
+
+    function loadLocalNotes() {
+      try {
+        var raw = localStorage.getItem(LOCAL_NOTES_KEY);
+        var arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLocalNotes(arr) {
+      try {
+        localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(arr));
+      } catch (e) {}
+    }
+
+    function updateSyncUi() {
+      var sheetUrl = getStoredSheetUrl();
+      var badge = document.getElementById('memoBoardSyncBadge');
+      var banner = document.getElementById('memoBoardGuideBanner');
+      if (badge) {
+        badge.textContent = sheetUrl ? '구글 시트 실시간 연동' : '로컬 보드 모드';
+        badge.classList.toggle('is-live', !!sheetUrl);
+      }
+      if (banner) {
+        banner.style.display = sheetUrl ? 'none' : 'flex';
+      }
+    }
+
+    function renderNotes(list) {
+      notesCache = Array.isArray(list) ? list : [];
+      var grid = document.getElementById('memoBoardGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      if (notesCache.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'memo-board-empty';
+        empty.textContent = '아직 올라온 메모가 없습니다. 위 입력칸에서 직접 붙이거나 [QR 학생 참여]를 눌러 학생들에게 화면을 공유해 보세요.';
+        grid.appendChild(empty);
+        return;
+      }
+      notesCache.slice().reverse().forEach(function (item) {
+        var card = document.createElement('div');
+        card.className = 'memo-sticky-card';
+        card.style.background = item.color || '#fef3c7';
+
+        var head = document.createElement('div');
+        head.className = 'memo-sticky-head';
+        var authorSpan = document.createElement('span');
+        authorSpan.textContent = item.author || '익명';
+        var timeSpan = document.createElement('span');
+        timeSpan.className = 'memo-sticky-time';
+        timeSpan.textContent = (item.createdAt || '').slice(11, 16) || '';
+        head.appendChild(authorSpan);
+        head.appendChild(timeSpan);
+
+        var body = document.createElement('div');
+        body.className = 'memo-sticky-body';
+        body.textContent = item.text || '';
+
+        var foot = document.createElement('div');
+        foot.className = 'memo-sticky-foot';
+        var likeBtn = document.createElement('button');
+        likeBtn.type = 'button';
+        likeBtn.className = 'memo-sticky-btn';
+        likeBtn.textContent = '공감 ' + (Number(item.likes) || 0);
+        likeBtn.addEventListener('click', function () { likeNote(item.id); });
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'memo-sticky-btn';
+        delBtn.textContent = '삭제';
+        delBtn.addEventListener('click', function () { deleteNote(item.id); });
+
+        foot.appendChild(likeBtn);
+        foot.appendChild(delBtn);
+
+        card.appendChild(head);
+        card.appendChild(body);
+        card.appendChild(foot);
+        grid.appendChild(card);
+      });
+    }
+
+    async function fetchNotes() {
+      var sheetUrl = getStoredSheetUrl();
+      if (!sheetUrl) {
+        renderNotes(loadLocalNotes());
+        return;
+      }
+      try {
+        var sep = sheetUrl.indexOf('?') >= 0 ? '&' : '?';
+        var res = await fetch(sheetUrl + sep + 'action=board_list&room=' + encodeURIComponent(getRoomId()) + '&_t=' + Date.now());
+        var data = await res.json();
+        if (data && data.success && Array.isArray(data.notes)) {
+          renderNotes(data.notes);
+          return;
+        }
+      } catch (err) {}
+      renderNotes(loadLocalNotes());
+    }
+
+    async function addNote(author, text) {
+      var cleanText = (text || '').trim();
+      if (!cleanText) return;
+      var cleanAuthor = (author || '').trim() || '선생님';
+      var sheetUrl = getStoredSheetUrl();
+      var note = {
+        id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        room: getRoomId(),
+        author: cleanAuthor,
+        color: selectedColor,
+        text: cleanText,
+        likes: 0,
+        createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
+      };
+
+      if (!sheetUrl) {
+        var local = loadLocalNotes();
+        local.push(note);
+        saveLocalNotes(local);
+        renderNotes(local);
+        return;
+      }
+
+      try {
+        var res = await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'board_add',
+            id: note.id,
+            room: note.room,
+            author: note.author,
+            color: note.color,
+            text: note.text
+          })
+        });
+        var data = await res.json();
+        if (data && data.success) {
+          await fetchNotes();
+          return;
+        }
+      } catch (err) {}
+      var fallback = loadLocalNotes();
+      fallback.push(note);
+      saveLocalNotes(fallback);
+      renderNotes(fallback);
+    }
+
+    async function likeNote(id) {
+      var sheetUrl = getStoredSheetUrl();
+      if (!sheetUrl) {
+        var local = loadLocalNotes().map(function (n) {
+          if (n.id === id) n.likes = (Number(n.likes) || 0) + 1;
+          return n;
+        });
+        saveLocalNotes(local);
+        renderNotes(local);
+        return;
+      }
+      try {
+        await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'board_like', id: id, room: getRoomId() })
+        });
+        await fetchNotes();
+      } catch (err) {}
+    }
+
+    async function deleteNote(id) {
+      var sheetUrl = getStoredSheetUrl();
+      if (!sheetUrl) {
+        var local = loadLocalNotes().filter(function (n) { return n.id !== id; });
+        saveLocalNotes(local);
+        renderNotes(local);
+        return;
+      }
+      try {
+        await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'board_delete', id: id, room: getRoomId() })
+        });
+        await fetchNotes();
+      } catch (err) {}
+    }
+
+    async function clearAllNotes() {
+      if (!confirm('현재 수업 메모보드의 모든 포스트잇을 비울까요?')) return;
+      saveLocalNotes([]);
+      var sheetUrl = getStoredSheetUrl();
+      if (sheetUrl) {
+        try {
+          await fetch(sheetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'board_clear', room: getRoomId() })
+          });
+        } catch (err) {}
+      }
+      renderNotes([]);
+    }
+
+    function openStudentQr() {
+      var sheetUrl = getStoredSheetUrl();
+      if (!sheetUrl) {
+        alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 Google 시트 연동]에서 마스터 시트 웹앱 URL을 연결해 주세요.');
+        return;
+      }
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      var topic = (topicEl && topicEl.value.trim()) || '수업 아이디어 모으기';
+      var base = new URL('./board.html', window.location.href).href;
+      var studentUrl = base + '?api=' + encodeURIComponent(sheetUrl) + '&room=' + encodeURIComponent(getRoomId()) + '&title=' + encodeURIComponent(topic);
+      showQrModal('수업 메모보드 학생 참여', studentUrl, {
+        kicker: '수업 메모보드 QR 참여',
+        desc: '학생들이 스마트폰 카메라로 스캔해 메모를 올리면 이 보드에 4초 간격으로 자동 표시됩니다.'
+      });
+    }
+
+    function bindEvents() {
+      var modal = document.getElementById('memoBoardModal');
+      if (!modal || modal.dataset.bound === '1') return;
+      modal.dataset.bound = '1';
+
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      try {
+        var savedTopic = localStorage.getItem(LOCAL_TOPIC_KEY);
+        if (savedTopic && topicEl) topicEl.value = savedTopic;
+      } catch (e) {}
+
+      var topicSaveBtn = document.getElementById('memoBoardTopicSaveBtn');
+      if (topicSaveBtn && topicEl) {
+        topicSaveBtn.addEventListener('click', function () {
+          try { localStorage.setItem(LOCAL_TOPIC_KEY, topicEl.value.trim()); } catch (e) {}
+          topicSaveBtn.textContent = '적용됨';
+          setTimeout(function () { topicSaveBtn.textContent = '주제 적용'; }, 1200);
+        });
+      }
+
+      document.querySelectorAll('#memoBoardColorPicker .mb-color').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('#memoBoardColorPicker .mb-color').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          selectedColor = btn.getAttribute('data-color') || '#fef3c7';
+        });
+      });
+
+      var addBtn = document.getElementById('memoBoardAddBtn');
+      var authorEl = document.getElementById('memoBoardAuthorInput');
+      var textEl = document.getElementById('memoBoardTextInput');
+      var submitHandler = function () {
+        if (!textEl || !textEl.value.trim()) return;
+        addNote(authorEl ? authorEl.value : '선생님', textEl.value);
+        textEl.value = '';
+        textEl.focus();
+      };
+      if (addBtn) addBtn.addEventListener('click', submitHandler);
+      if (textEl) {
+        textEl.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); submitHandler(); }
+        });
+      }
+
+      var qrBtn = document.getElementById('memoBoardQrBtn');
+      if (qrBtn) qrBtn.addEventListener('click', openStudentQr);
+
+      var refreshBtn = document.getElementById('memoBoardRefreshBtn');
+      if (refreshBtn) refreshBtn.addEventListener('click', fetchNotes);
+
+      var clearBtn = document.getElementById('memoBoardClearBtn');
+      if (clearBtn) clearBtn.addEventListener('click', clearAllNotes);
+
+      var fsBtn = document.getElementById('memoBoardFullscreenBtn');
+      var dialog = modal.querySelector('.memo-board-dialog');
+      if (fsBtn && dialog) {
+        fsBtn.addEventListener('click', function () {
+          var fs = dialog.classList.toggle('is-fullscreen');
+          fsBtn.textContent = fs ? '기본 창' : '전체화면';
+        });
+      }
+
+      var openSyncBtn = document.getElementById('memoBoardOpenSyncBtn');
+      if (openSyncBtn) {
+        openSyncBtn.addEventListener('click', function () {
+          modal.classList.remove('show');
+          var syncBtn = document.getElementById('headerSyncBtn');
+          if (syncBtn) syncBtn.click();
+        });
+      }
+
+      modal.querySelectorAll('.close-btn[data-modal="memoBoardModal"]').forEach(function (cb) {
+        cb.addEventListener('click', function () {
+          modal.classList.remove('show');
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        });
+      });
+    }
+
+    function open() {
+      var modal = document.getElementById('memoBoardModal');
+      if (!modal) return;
+      bindEvents();
+      updateSyncUi();
+      modal.classList.add('show');
+      fetchNotes();
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(function () {
+        if (!modal.classList.contains('show')) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          return;
+        }
+        fetchNotes();
+      }, 4000);
+    }
+
+    return { open: open };
+  })();
+
+  function initQrAndMemoBoard() {
+    enhanceExtraMenuWithQrButtons();
+    var qrModal = document.getElementById('qrShareModal');
+    if (qrModal) {
+      qrModal.querySelectorAll('.close-btn[data-modal="qrShareModal"]').forEach(function (cb) {
+        cb.addEventListener('click', function () { qrModal.classList.remove('show'); });
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initQrAndMemoBoard);
+  } else {
+    initQrAndMemoBoard();
+  }
+
+  window.openQrShareModal = showQrModal;
+  window.MemoBoardModule = MemoBoardModule;
 })();

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>T-ong 수업 메모보드 - 학생 참여</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(160deg, #f0f9ff 0%, #f8fafc 55%, #fefce8 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      padding: 18px 14px 40px;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .header-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      margin-bottom: 14px;
+    }
+    .kicker {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #1d4ed8;
+      background: #dbeafe;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      line-height: 1.35;
+      color: #0f172a;
+    }
+    .sub {
+      margin: 0;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .form-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #334155;
+      margin: 0 0 6px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 11px 13px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #0f172a;
+      background: #f8fafc;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: #2563eb;
+      background: #ffffff;
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+    .field { margin-bottom: 14px; }
+    .colors {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .color-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid #cbd5e1;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+    .color-btn.active {
+      border-color: #1d4ed8;
+      transform: scale(1.12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    .submit-btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+      background: #1d4ed8;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(29, 78, 216, 0.28);
+    }
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .status-msg {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: none;
+    }
+    .status-msg.ok {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+    .status-msg.err {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+    .my-notes {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .my-note-card {
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    .my-note-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .my-note-body {
+      font-size: 14.5px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header-card">
+      <span class="kicker">T-ong 수업 메모보드</span>
+      <h1 id="boardTitle">수업 아이디어 모으기</h1>
+      <p class="sub" id="boardSub">메모를 작성해 올리면 교실 화면 보드에 실시간으로 나타납니다.</p>
+    </div>
+
+    <div class="form-card">
+      <div class="field">
+        <label for="authorInput">이름 또는 모둠 (비워두면 익명)</label>
+        <input type="text" id="authorInput" maxlength="20" placeholder="예: 20312 김민수 또는 익명">
+      </div>
+
+      <div class="field">
+        <label>포스트잇 색상</label>
+        <div class="colors" id="colorPicker">
+          <button type="button" class="color-btn active" data-color="#fef3c7" style="background:#fef3c7" aria-label="노랑"></button>
+          <button type="button" class="color-btn" data-color="#fce7f3" style="background:#fce7f3" aria-label="분홍"></button>
+          <button type="button" class="color-btn" data-color="#d1fae5" style="background:#d1fae5" aria-label="민트"></button>
+          <button type="button" class="color-btn" data-color="#e0f2fe" style="background:#e0f2fe" aria-label="하늘"></button>
+          <button type="button" class="color-btn" data-color="#ede9fe" style="background:#ede9fe" aria-label="보라"></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="memoInput">생각 · 아이디어 입력</label>
+        <textarea id="memoInput" maxlength="500" placeholder="여기에 수업 아이디어나 답변을 적어 주세요..."></textarea>
+      </div>
+
+      <button type="button" class="submit-btn" id="submitBtn">메모 보드에 올리기</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <div class="my-notes" id="myNotes"></div>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var apiUrl = (params.get('api') || '').trim();
+      var roomId = (params.get('room') || 'default').trim();
+      var title = (params.get('title') || '수업 아이디어 모으기').trim();
+
+      var titleEl = document.getElementById('boardTitle');
+      var subEl = document.getElementById('boardSub');
+      var authorEl = document.getElementById('authorInput');
+      var memoEl = document.getElementById('memoInput');
+      var submitBtn = document.getElementById('submitBtn');
+      var statusEl = document.getElementById('statusMsg');
+      var myNotesEl = document.getElementById('myNotes');
+      var selectedColor = '#fef3c7';
+
+      titleEl.textContent = title;
+      if (!apiUrl) {
+        subEl.textContent = '연결된 보드 주소(api)가 없습니다. 선생님이 띄운 QR 코드로 다시 접속해 주세요.';
+        submitBtn.disabled = true;
+      }
+
+      document.querySelectorAll('#colorPicker .color-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('#colorPicker .color-btn').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          selectedColor = btn.getAttribute('data-color') || '#fef3c7';
+        });
+      });
+
+      function showStatus(msg, ok) {
+        statusEl.textContent = msg;
+        statusEl.className = 'status-msg ' + (ok ? 'ok' : 'err');
+      }
+
+      function addLocalPreview(author, color, text) {
+        var card = document.createElement('div');
+        card.className = 'my-note-card';
+        card.style.background = color;
+        var head = document.createElement('div');
+        head.className = 'my-note-head';
+        var s1 = document.createElement('span');
+        s1.textContent = author;
+        var s2 = document.createElement('span');
+        s2.textContent = '방금 제출됨';
+        head.appendChild(s1);
+        head.appendChild(s2);
+        var body = document.createElement('div');
+        body.className = 'my-note-body';
+        body.textContent = text;
+        card.appendChild(head);
+        card.appendChild(body);
+        myNotesEl.insertBefore(card, myNotesEl.firstChild);
+      }
+
+      submitBtn.addEventListener('click', async function () {
+        var text = (memoEl.value || '').trim();
+        var author = (authorEl.value || '').trim() || '익명';
+        if (!text) {
+          showStatus('메모 내용을 입력해 주세요.', false);
+          memoEl.focus();
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = '올리는 중...';
+        try {
+          var res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'board_add',
+              room: roomId,
+              author: author,
+              color: selectedColor,
+              text: text
+            })
+          });
+          var data = await res.json();
+          if (data && data.success) {
+            showStatus('보드에 올라갔습니다! 교실 화면에서 확인해 보세요.', true);
+            addLocalPreview(author, selectedColor, text);
+            memoEl.value = '';
+          } else {
+            showStatus('저장에 실패했습니다. 선생님께 시트 연결 상태를 확인해 달라고 요청하세요.', false);
+          }
+        } catch (err) {
+          showStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 눌러 주세요.', false);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '메모 보드에 올리기';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

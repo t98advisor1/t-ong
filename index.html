@@ -77,8 +77,9 @@
                 </div>
               </details>
               <details class="fav-category" open>
-                <summary>수업·학급 운영 <small>4개</small></summary>
+                <summary>수업·학급 운영 <small>5개</small></summary>
                 <div class="fav-category-grid">
+                  <button type="button" data-open="memoBoard">수업 메모보드</button>
                   <button type="button" data-open="timer">간편 타이머</button>
                   <button type="button" data-open="praise">칭찬 포인트</button>
                   <button type="button" data-open="duty">1인 1역</button>
@@ -2636,6 +2637,73 @@
     </div>
   </div>
 
+  <!-- 학생 접속용 QR 공유 모달 -->
+  <div id="qrShareModal" class="modal">
+    <div class="modal-content qr-share-dialog">
+      <div class="modal-header">
+        <div>
+          <span class="qr-share-kicker" id="qrShareKicker">학생 참여 QR 링크</span>
+          <h3 id="qrShareTitle" style="margin:2px 0 0;">QR 코드</h3>
+        </div>
+        <button class="close-btn" data-modal="qrShareModal">&times;</button>
+      </div>
+      <div class="modal-body qr-share-body">
+        <p class="qr-share-desc" id="qrShareDesc">학생들이 스마트폰·태블릿 카메라로 아래 QR 코드를 스캔하면 바로 접속합니다.</p>
+        <div id="qrShareSvgBox" class="qr-share-svg-box"></div>
+        <div id="qrShareUrlText" class="qr-share-url"></div>
+        <div class="qr-share-actions">
+          <button type="button" class="btn-primary" id="qrShareCopyBtn">주소 복사</button>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-outline" id="qrShareOpenBtn">새 창으로 열기</a>
+          <button type="button" class="btn-outline" id="qrShareFullscreenBtn">크게 보기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 패들렛 스타일 수업 메모보드 모달 -->
+  <div id="memoBoardModal" class="modal">
+    <div class="modal-content memo-board-dialog">
+      <div class="modal-header memo-board-header">
+        <div class="memo-board-title-wrap">
+          <span class="memo-board-badge" id="memoBoardSyncBadge">로컬 보드 모드</span>
+          <h3 style="margin:2px 0 0;">수업 메모보드 (아이디어 모으기)</h3>
+        </div>
+        <div class="memo-board-top-actions">
+          <button type="button" class="btn-primary" id="memoBoardQrBtn">QR 학생 참여</button>
+          <button type="button" class="btn-outline" id="memoBoardRefreshBtn">새로고침</button>
+          <button type="button" class="btn-outline" id="memoBoardFullscreenBtn">전체화면</button>
+          <button type="button" class="btn-outline" id="memoBoardClearBtn">모두 비우기</button>
+          <button class="close-btn" data-modal="memoBoardModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body memo-board-body">
+        <div class="memo-board-question-bar">
+          <label for="memoBoardTopicInput">수업 질문 · 주제</label>
+          <input type="text" id="memoBoardTopicInput" maxlength="100" value="오늘 수업에서 가장 기억에 남는 생각이나 질문을 자유롭게 적어 보세요!">
+          <button type="button" class="btn-outline" id="memoBoardTopicSaveBtn">주제 적용</button>
+        </div>
+        <div id="memoBoardGuideBanner" class="memo-board-guide-banner" style="display:none;">
+          <span>실시간 학생 QR 참여는 상단 <b>[1 Google 시트 연동]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모 작성은 바로 가능합니다.)</span>
+          <button type="button" class="btn-outline" id="memoBoardOpenSyncBtn">시트 연동 열기</button>
+        </div>
+        <div class="memo-board-compose">
+          <input type="text" id="memoBoardAuthorInput" maxlength="20" placeholder="작성자 (예: 선생님)" value="선생님">
+          <div class="memo-board-colors" id="memoBoardColorPicker">
+            <button type="button" class="mb-color active" data-color="#fef3c7" style="background:#fef3c7" title="노랑"></button>
+            <button type="button" class="mb-color" data-color="#fce7f3" style="background:#fce7f3" title="분홍"></button>
+            <button type="button" class="mb-color" data-color="#d1fae5" style="background:#d1fae5" title="민트"></button>
+            <button type="button" class="mb-color" data-color="#e0f2fe" style="background:#e0f2fe" title="하늘"></button>
+            <button type="button" class="mb-color" data-color="#ede9fe" style="background:#ede9fe" title="보라"></button>
+          </div>
+          <input type="text" id="memoBoardTextInput" maxlength="300" placeholder="포스트잇 내용을 입력하고 Enter 또는 [붙이기]를 누르세요...">
+          <button type="button" class="btn-primary" id="memoBoardAddBtn">포스트잇 붙이기</button>
+        </div>
+        <div id="memoBoardGrid" class="memo-board-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./qr-lib.js"></script>
   <script src="/app.js?v=5.17.0-preview.73"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.

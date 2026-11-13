@@ -1236,6 +1236,33 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "board_list") {
+    var room = String((e && e.parameter && e.parameter.room) || "default").trim();
+    var bSh = ss.getSheetByName("_수업메모보드");
+    var notes = [];
+    if (bSh && bSh.getLastRow() >= 2) {
+      var bVals = bSh.getDataRange().getValues();
+      for (var bi = 1; bi < bVals.length; bi++) {
+        var rId = String(bVals[bi][1] || "").trim();
+        if (rId !== room) continue;
+        notes.push({
+          id: String(bVals[bi][0] || ""),
+          room: rId,
+          author: String(bVals[bi][2] || "익명"),
+          color: String(bVals[bi][3] || "#fef3c7"),
+          text: String(bVals[bi][4] || ""),
+          likes: Number(bVals[bi][5] || 0),
+          createdAt: String(bVals[bi][6] || "")
+        });
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      room: room,
+      notes: notes
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ success: false, error: "알 수 없는 action" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -1325,6 +1352,61 @@ function doPost(e) {
     var action = body.action || "saveRecord";
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
+
+    if (action === "board_add" || action === "board_like" || action === "board_delete" || action === "board_clear") {
+      var bSheet = ss.getSheetByName("_수업메모보드");
+      if (!bSheet) {
+        bSheet = ss.insertSheet("_수업메모보드");
+        bSheet.appendRow(["ID", "보드방", "작성자", "색상", "메모내용", "좋아요", "작성일시"]);
+        try { bSheet.setTabColor("#0284c7"); } catch (err) {}
+      }
+      var roomId = String(body.room || "default").trim();
+      var nowTs = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
+      if (action === "board_add") {
+        var noteId = String(body.id || ("m_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000)));
+        var author = String(body.author || "익명").trim() || "익명";
+        var color = String(body.color || "#fef3c7").trim();
+        var text = String(body.text || "").trim();
+        if (text) {
+          bSheet.appendRow([noteId, roomId, author, color, text, 0, nowTs]);
+        }
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          note: { id: noteId, room: roomId, author: author, color: color, text: text, likes: 0, createdAt: nowTs }
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var rows = bSheet.getDataRange().getValues();
+      if (action === "board_like" && body.id) {
+        for (var rIdx = 1; rIdx < rows.length; rIdx++) {
+          if (String(rows[rIdx][0]) === String(body.id)) {
+            var nextLikes = Number(rows[rIdx][5] || 0) + 1;
+            bSheet.getRange(rIdx + 1, 6).setValue(nextLikes);
+            return ContentService.createTextOutput(JSON.stringify({ success: true, likes: nextLikes }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+      if (action === "board_delete" && body.id) {
+        for (var dIdx = rows.length - 1; dIdx >= 1; dIdx--) {
+          if (String(rows[dIdx][0]) === String(body.id)) {
+            bSheet.deleteRow(dIdx + 1);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ success: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      if (action === "board_clear") {
+        for (var cIdx = rows.length - 1; cIdx >= 1; cIdx--) {
+          if (String(rows[cIdx][1] || "").trim() === roomId) {
+            bSheet.deleteRow(cIdx + 1);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ success: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     if (action === "saveRecord" || action === "saveCounsel" || action === "sync_relational") {
       var updatedRow = upsertSingleStudentRecord(ss, body, today);
