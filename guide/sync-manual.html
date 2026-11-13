@@ -1262,6 +1262,26 @@ body.all-units-mode .unit-pager {
     .num-dot.c3 { background:#d97706; }
     .num-dot.c4 { background:#7c3aed; }
 
+  
+    .track-hub { background:#ffffff; border:2px solid #cbd5e1; border-radius:16px; padding:18px 20px; margin:0 0 22px; box-shadow:0 6px 20px rgba(15,23,42,0.05); }
+    .track-hub-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .track-hub-title { font-size:16px; font-weight:900; color:#0f172a; margin:0; }
+    .track-hub-sub { font-size:13px; color:#475569; margin:3px 0 0; }
+    .track-tabs { display:flex; gap:8px; flex-wrap:wrap; }
+    .track-tab-btn { border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; font-size:13px; font-weight:800; padding:9px 14px; border-radius:10px; cursor:pointer; transition:all 0.15s ease; }
+    .track-tab-btn.active { background:#1e40af; border-color:#1e40af; color:#ffffff; box-shadow:0 4px 12px rgba(30,64,175,0.25); }
+    .track-panel { display:none; }
+    .track-panel.active { display:block; }
+    .track-steps { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-top:10px; }
+    .track-step-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:13px 14px; display:flex; flex-direction:column; gap:6px; }
+    .track-step-card .t-badge { display:inline-block; align-self:flex-start; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:999px; background:#dbeafe; color:#1e40af; }
+    .track-step-card.opt .t-badge { background:#fef3c7; color:#92400e; }
+    .track-step-card b { font-size:14px; color:#0f172a; line-height:1.4; }
+    .track-step-card p { margin:0; font-size:12.8px; color:#475569; line-height:1.55; }
+    .track-jump-btn { margin-top:auto; align-self:flex-start; background:#ffffff; border:1px solid #93c5fd; color:#1d4ed8; font-size:12px; font-weight:800; padding:5px 10px; border-radius:7px; cursor:pointer; }
+    .track-jump-btn:hover { background:#eff6ff; }
+    .opt-skip-banner { background:#fffbeb; border:1.5px solid #fcd34d; border-radius:12px; padding:11px 14px; margin:0 0 14px; font-size:13px; color:#78350f; line-height:1.55; }
+
   </style>
 </head>
 <body data-p="p0">
@@ -1446,6 +1466,98 @@ body.all-units-mode .unit-pager {
     <!-- PAGE 0: Intro & 0_사용안내 Tab -->
     <!-- ================================================================= -->
     <section id="p0_intro" class="page on">
+      <div class="track-hub" id="dualTrackHub">
+        <div class="track-hub-head">
+          <div>
+            <h3 class="track-hub-title">나에게 맞는 권장 시작 순서 고르기 (초보자 맞춤 경로)</h3>
+            <p class="track-hub-sub">먼저 쓰려는 앱에 따라 버튼 하나만 누르면 권장 1~4단계와 바로가기가 바뀝니다.</p>
+          </div>
+          <div class="track-tabs" role="tablist">
+            <button type="button" class="track-tab-btn active" data-track="tong">트랙 A · 디지털 교무수첩(T-ong)부터 시작</button>
+            <button type="button" class="track-tab-btn" data-track="neis">트랙 B · 나이스 헬프(생기부·상담)부터 시작</button>
+          </div>
+        </div>
+
+        <div class="track-panel active" id="trackPanelTong">
+          <div style="font-size:13px; color:#0f766e; background:#f0fdfa; border:1px solid #99f6e4; border-radius:9px; padding:8px 12px; font-weight:700;">
+            대상: 자리배치 · 시간표 · 출결 · 수업관찰부터 바로 쓰고 싶은 선생님 (초·중등, 고1·2, 교과전담, 대입 상담 미사용 포함)
+          </div>
+          <div class="track-steps">
+            <div class="track-step-card">
+              <span class="t-badge">1단계 · 공통 출발점</span>
+              <b>구글 마스터 시트 &amp; URL 연결</b>
+              <p>마스터 시트 사본을 만들고 <code>15단원</code> 안내대로 웹앱 URL을 복사해, T-ong 홈 대시보드 <b>STEP 1 [Google 시트 연동]</b>에 붙여넣고 <b>[연결]</b>을 누릅니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_layout], #p2_layout'); if(window.goPage){goPage('p2_layout');}else if(el){el.scrollIntoView({behavior:'smooth'});}">07단원(시트 연결) 보기 →</button>
+            </div>
+            <div class="track-step-card">
+              <span class="t-badge">2단계 · 학교·시간표·명렬</span>
+              <b>학교 · 비담임/담임 · 시간표 · 명렬표</b>
+              <p><code>2 학교·수업시간표</code>에서 학교·과목·동아리를 고르고, <code>명렬표 등록</code>에서 학생 명단을 올립니다. (시트 <code>2번</code>·<code>9번</code> 탭에 자동 저장)</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_roster], #p2_roster'); if(window.goPage){goPage('p2_roster');}else if(el){el.scrollIntoView({behavior:'smooth'});}">08단원(명렬표 등록) 보기 →</button>
+            </div>
+            <div class="track-step-card">
+              <span class="t-badge">3단계 · 매일 교실 현장</span>
+              <b>자리배치 · 출결 · 수업관찰 · 교실도구</b>
+              <p>수업 중 좌석을 터치해 출결·칭찬·1인1역·수업관찰을 남기면 구글 시트 <code>6_수업관찰_기록</code>과 <code>8_출결_칭찬_기록</code>에 실시간 누적됩니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_seating], #p2_seating'); if(window.goPage){goPage('p2_seating');}else if(el){el.scrollIntoView({behavior:'smooth'});}">09~10단원(자리·출결) 보기 →</button>
+            </div>
+            <div class="track-step-card opt">
+              <span class="t-badge">4단계 · 선택 (학기 말만)</span>
+              <b>필요할 때만 NEIS-Help 세특 생성</b>
+              <p>학기 말 세특 작성이 필요할 때만 <code>NEIS-Help</code>에서 같은 시트 URL을 연결해 <code>6·7번</code> 탭 관찰 메모를 불러와 AI 세특·바이트 점검만 사용합니다. (<b>대입 상담은 건너뛰어도 됩니다.</b>)</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_draft], #p1_draft'); if(window.goPage){goPage('p1_draft');}else if(el){el.scrollIntoView({behavior:'smooth'});}">03단원(세특 초안) 보기 →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="track-panel" id="trackPanelNeis">
+          <div style="font-size:13px; color:#1e40af; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; padding:8px 12px; font-weight:700;">
+            대상: 나이스 세특·행특 일괄 작성과 2027 수시 진학상담이 주 목적인 선생님 (고3 담임 및 입시 지도 교사)
+          </div>
+          <div class="track-steps">
+            <div class="track-step-card">
+              <span class="t-badge">1단계 · 시트 준비</span>
+              <b>마스터 시트 연결 &amp; 명렬표·상담 세팅</b>
+              <p>마스터 시트 사본에 Apps Script URL을 배포한 뒤, <code>NEIS-Help</code>에 URL을 연결하고 <code>2_학생명렬표</code>와 <code>4_대입상담</code> 기초 자료를 입력합니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p0_intro], #p0_intro'); if(window.goPage){goPage('p0_intro');}else if(el){el.scrollIntoView({behavior:'smooth'});}">01단원(전체 흐름) 보기 →</button>
+            </div>
+            <div class="track-step-card">
+              <span class="t-badge">2단계 · 교무수첩 동기화</span>
+              <b>T-ong에서 [불러오기]로 즉시 연동</b>
+              <p><code>T-ong</code>을 열어 같은 시트 URL을 입력하고 <b>[불러오기]</b>를 누르면 <code>NEIS-Help</code>와 동일한 명렬표가 그대로 복원됩니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p2_layout], #p2_layout'); if(window.goPage){goPage('p2_layout');}else if(el){el.scrollIntoView({behavior:'smooth'});}">07단원(교무수첩 연동) 보기 →</button>
+            </div>
+            <div class="track-step-card">
+              <span class="t-badge">3단계 · 세특·OCR·점검</span>
+              <b>AI 세특 초안 &amp; 바이트·금지어 자동 점검</b>
+              <p>수업관찰(<code>6·7번</code> 탭)과 학생 보고서 OCR 텍스트를 합쳐 나이스 규격에 맞는 세특·창체·행특 초안을 생성하고 바이트·금지어를 자동 검증합니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_draft], #p1_draft'); if(window.goPage){goPage('p1_draft');}else if(el){el.scrollIntoView({behavior:'smooth'});}">03~05단원(세특·점검) 보기 →</button>
+            </div>
+            <div class="track-step-card">
+              <span class="t-badge">4단계 · 진학 상담</span>
+              <b>2027 대입 진학 상담 &amp; 133개 대학 조회</b>
+              <p>9등급·5등급 환산 내신과 모의고사 성적으로 안정·적정·소신 대학을 찾고 상담 결과를 <code>4·5번</code> 탭에 저장합니다.</p>
+              <button type="button" class="track-jump-btn" onclick="var el=document.querySelector('[data-page=p1_counsel], #p1_counsel'); if(window.goPage){goPage('p1_counsel');}else if(el){el.scrollIntoView({behavior:'smooth'});}">06단원(대입 상담) 보기 →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        (function(){
+          var btns = document.querySelectorAll('#dualTrackHub .track-tab-btn');
+          btns.forEach(function(b){
+            b.addEventListener('click', function(){
+              btns.forEach(function(x){ x.classList.remove('active'); });
+              b.classList.add('active');
+              var t = b.getAttribute('data-track');
+              var pT = document.getElementById('trackPanelTong');
+              var pN = document.getElementById('trackPanelNeis');
+              if(pT) pT.classList.toggle('active', t === 'tong');
+              if(pN) pN.classList.toggle('active', t === 'neis');
+            });
+          });
+        })();
+      </script>
 
       <div class="qd-unit-banner">
         <div class="qd-unit-left">
@@ -2067,7 +2179,7 @@ body.all-units-mode .unit-pager {
         </div>
         <div class="qd-unit-right">
           <div class="qd-kicker">파트 2 · 나이스 생기부 · 진학 상담</div>
-          <h2>2027 대입 진학 상담 & 대학 찾기</h2>
+          <h2>2027 대입 진학 상담 &amp; 대학 찾기 <span style="font-size:12px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:999px; vertical-align:middle; font-weight:800; margin-left:6px;">선택 · 고3/진학상담용</span></h2>
           <p>학생 내신 등급(9등급·5등급 자동 변환)에 맞는 대학·학과를 찾고 상담 내용을 시트에 기록</p>
         </div>
       </div>
