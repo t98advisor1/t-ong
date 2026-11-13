@@ -4502,45 +4502,62 @@ body.header-page-open .app-footer { visibility: hidden; }
   color: #ffffff;
 }
 
-/* 우측 하단 플로팅 [오늘 브리핑] 버튼 — 누르면 [오늘] 사이드바가 열립니다 */
+/* 우측 하단 플로팅 [오늘] 버튼 (커스터마이징 가능한 프로필 아이콘 + 오늘 배지) */
 .floating-today-btn {
   position: fixed;
   right: 18px;
   bottom: 18px;
   z-index: 1200;
-  height: 44px;
-  padding: 0 16px 0 13px;
-  border: 2px solid #c8a26d;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #213d30 0%, #2c4c3d 100%);
-  color: #ffffff;
+  border: none;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.28));
+  transition: transform 0.18s ease;
 }
 .floating-today-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.34);
+  transform: translateY(-3px) scale(1.04);
 }
 .floating-today-btn:focus-visible {
   outline: 3px solid var(--tong-primary, #667eea);
-  outline-offset: 3px;
+  outline-offset: 4px;
+  border-radius: 999px;
 }
-.floating-today-btn .ft-badge-icon {
-  display: inline-flex;
+.floating-today-btn .ft-avatar-ring {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  padding: 2.5px;
+  background: linear-gradient(135deg, #e7c686 0%, #2c5242 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
-  color: #f3d59b;
+}
+.floating-today-btn .ft-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  display: block;
 }
 .floating-today-btn .ft-board {
-  font-size: 0.88rem;
+  margin-top: -9px;
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: #213d30;
+  border: 1.5px solid #e7c686;
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #ffffff;
   white-space: nowrap;
+  z-index: 2;
 }
 /* 사이드바가 열려 있는 동안에는 버튼을 감춥니다 (닫기는 사이드바의 ✕ · 바깥 클릭 · Esc) */
 body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; }

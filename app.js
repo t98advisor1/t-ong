@@ -11532,9 +11532,9 @@ var SheetMemoPad = (function () {
 // 교사 캐릭터 아이콘 이미지 붙여넣기(Ctrl+V) 및 업로드 모듈 (AvatarManager)
 // ===================================================================
 var AvatarManager = (function () {
-  // 캐릭터 아이콘은 [오늘] 사이드바 머리에서만 씁니다. (헤더·대시보드는 기존 T-ong 디자인 유지)
+  // 캐릭터 아이콘은 [오늘] 사이드바 머리와 우측 하단 플로팅 버튼에서 함께 씁니다.
   var AVATAR_KEY = 'tongCustomAvatar_v1';
-  var DEFAULT_SRC = '/assets/teacher-icon.svg';
+  var DEFAULT_SRC = '/assets/teacher-avatar-default.png';
 
   function el(id) { return document.getElementById(id); }
 
@@ -11547,8 +11547,11 @@ var AvatarManager = (function () {
 
   function render() {
     var custom = readCustom();
+    var src = custom || DEFAULT_SRC;
     var img = el('todayAvatarImg');
-    if (img) img.src = custom || DEFAULT_SRC;
+    if (img) img.src = src;
+    var floatImg = el('floatingTodayAvatarImg');
+    if (floatImg) floatImg.src = src;
     var resetBtn = el('todayAvatarResetBtn');
     if (resetBtn) resetBtn.hidden = !custom;
   }
@@ -11556,7 +11559,7 @@ var AvatarManager = (function () {
   function saveCustomAvatar(dataUrl) {
     try { localStorage.setItem(AVATAR_KEY, dataUrl); } catch (e) {}
     render();
-    if (typeof showToast === 'function') showToast('사이드바 캐릭터 아이콘을 바꿨습니다.');
+    if (typeof showToast === 'function') showToast('우측 하단 및 사이드바 아이콘을 내 사진으로 변경했습니다.');
   }
 
   function resetAvatar() {
