@@ -377,31 +377,30 @@
               <span class="dash-school-chip" id="dashCurrentSchoolText">신천고등학교 · 2-2 담임</span>
               <button type="button" class="dash-paste-icon-btn" id="introGuideBtn">사용법 가이드</button>
             </div>
-            <h2 class="dash-main-title">T-ong 디지털 교무수첩 통합 대시보드</h2>
-            <p class="dash-main-sub">선생님의 하루 업무를 <b>[수업 관리]</b>와 <b>[학급 관리]</b>, 그리고 <b>[자주 쓰는 구글 시트 메모장]</b>으로 한 화면에 통합했습니다.</p>
+            <div class="dash-title-inline">
+              <h2 class="dash-main-title">T-ong 교무수첩</h2>
+              <span class="dash-sub-pill">기능 한눈에 보기</span>
+            </div>
+            <p class="dash-main-sub">수업 · 학급 · 구글 시트를 한 화면에서 바로 실행하세요.</p>
           </div>
         </div>
 
-        <!-- 1-1. STEP 1 출발점: Google 계정 및 마스터 시트 기기간 통합 연동 허브 -->
-        <section class="dash-sync-hub-card" id="dashSyncHubCard">
+        <!-- 1-1. STEP 1 출발점: 초슬림 Google 시트 연동 바 + ? 도움말 팝업 -->
+        <section class="dash-sync-hub-card slim" id="dashSyncHubCard">
           <div class="dash-sync-hub-top">
             <div class="dash-sync-hub-title">
-              <span class="dash-sync-step-pill">STEP 1 · 기기간 공통 출발점</span>
-              <strong>Google 시트 통합 연동 (PC · 모바일 · NEIS-Help 실시간 동기화)</strong>
+              <span class="dash-sync-step-pill">STEP 1</span>
+              <strong>Google 시트 연동</strong>
+              <span class="dash-sync-badge offline" id="dashSyncStatusBadge">로컬 모드</span>
+              <button type="button" class="dash-help-q-btn" id="dashSyncHelpBtn" title="기존 데이터 보호 및 기기간 동기화 방법 보기">?</button>
             </div>
-            <span class="dash-sync-badge offline" id="dashSyncStatusBadge">로컬 저장 모드 (시트 미연결)</span>
+            <button type="button" class="btn small" id="dashOpenGoogleSyncBtn" style="background:#ffffff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700; padding:3px 9px; font-size:0.72rem;">로그인·시트 사본</button>
           </div>
-          <p class="dash-sync-hub-desc" id="dashSyncStatusDesc">
-            어느 기기에서든 내 시간표·명렬표·관찰기록을 똑같이 보려면 <b>먼저 내 구글 시트 웹앱 URL을 연결</b>하세요. 연결 즉시 시트에서 기존 시간표를 불러오거나 현재 설정을 저장합니다.
-          </p>
           <div class="dash-sync-url-row">
-            <input type="url" id="dashQuickSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec (마스터 시트 웹앱 URL)" autocomplete="off" spellcheck="false">
-            <button type="button" class="btn small primary" id="dashQuickSheetSaveBtn">URL 연결 및 저장</button>
-          </div>
-          <div class="dash-sync-btn-row">
-            <button type="button" class="btn small" id="dashOpenGoogleSyncBtn" style="background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:700;">Google 로그인 · 시트 사본 만들기</button>
-            <button type="button" class="btn small" id="dashPullFromSheetBtn" style="background:#0f766e; color:#fff; border:none; font-weight:700;">시트에서 시간표·명렬 불러오기 (Pull)</button>
-            <button type="button" class="btn small" id="dashPushToSheetBtn" style="background:#1e293b; color:#fff; border:none; font-weight:700;">지금 내 시간표·기록 시트로 저장 (Push)</button>
+            <input type="url" id="dashQuickSheetUrlInput" placeholder="마스터 시트 웹앱 URL (https://script.google.com/macros/s/.../exec)" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn small primary" id="dashQuickSheetSaveBtn" title="URL 저장 및 시트 데이터 자동 감지">연결</button>
+            <button type="button" class="btn small" id="dashPullFromSheetBtn" style="background:#0f766e; color:#fff; border:none; font-weight:700;" title="시트에 저장된 시간표·명렬을 이 기기로 가져오기">불러오기</button>
+            <button type="button" class="btn small" id="dashPushToSheetBtn" style="background:#1e293b; color:#fff; border:none; font-weight:700;" title="현재 기기의 시간표·기록을 시트로 올리기">시트 저장</button>
           </div>
         </section>
 
@@ -410,34 +409,37 @@
           <!-- 기둥 A: 수업 관리 (교과·시간표·관찰·세특) -->
           <section class="dash-pillar-card pillar-lesson">
             <div class="dash-pillar-head">
-              <div>
-                <span class="dash-pillar-tag tag-lesson">LESSON MANAGEMENT</span>
-                <h3>수업 관리 통합</h3>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div>
+                  <span class="dash-pillar-tag tag-lesson">LESSON</span>
+                  <h3>수업 관리</h3>
+                </div>
+                <button type="button" class="dash-help-q-btn" id="dashLessonHelpBtn" title="수업 관리 사용법 보기">?</button>
               </div>
-              <small>시간표 · 이동수업 · 수업관찰</small>
+              <small>시간표 · 이동수업 · 세특</small>
             </div>
             <div class="dash-pillar-actions">
               <button type="button" class="dash-action-btn primary-action" id="heroOpenScheduleBtn">
                 <span class="dab-step">2</span>
                 <div class="dab-text">
-                  <strong>학교 검색 · 비담임/담임 · 과목/동아리 시간표</strong>
-                  <small>예: 2-2 선택 후 내 수업 과목 클릭 → 시간표 완성</small>
+                  <strong>학교 · 시간표 · 동아리 설정</strong>
+                  <small>NEIS 반별 과목 및 동아리 원클릭</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
               <button type="button" class="dash-action-btn" id="heroOpenStuTtBtn">
                 <span class="dab-step">3</span>
                 <div class="dab-text">
-                  <strong>학생별 이동수업 시간표 업로드</strong>
-                  <small>NEIS 학생별 시간표 엑셀(.xlsx) 등록 및 동선 조회</small>
+                  <strong>학생별 이동수업 시간표</strong>
+                  <small>NEIS 엑셀(.xlsx) 일괄 업로드</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
               <button type="button" class="dash-action-btn" id="heroOpenAttendBtn">
                 <span class="dab-step">4</span>
                 <div class="dab-text">
-                  <strong>교과 출결 · 수업관찰 · 세특 기록</strong>
-                  <small>수업 중 관찰 내용 기록 및 구글 시트(6·7번 탭) 연동</small>
+                  <strong>수업관찰 · 출결 · 세특 기록</strong>
+                  <small>시트 6·7·8번 탭 실시간 연동</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
@@ -447,34 +449,37 @@
           <!-- 기둥 B: 학급 관리 (담임·명렬·자리·일정·상담) -->
           <section class="dash-pillar-card pillar-homeroom">
             <div class="dash-pillar-head">
-              <div>
-                <span class="dash-pillar-tag tag-homeroom">HOMEROOM MANAGEMENT</span>
-                <h3>학급 관리 통합</h3>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div>
+                  <span class="dash-pillar-tag tag-homeroom">HOMEROOM</span>
+                  <h3>학급 관리</h3>
+                </div>
+                <button type="button" class="dash-help-q-btn" id="dashHomeroomHelpBtn" title="학급 관리 사용법 보기">?</button>
               </div>
-              <small>명렬표 · 자리배치 · 학사달력</small>
+              <small>명렬표 · 자리 · 학사달력</small>
             </div>
             <div class="dash-pillar-actions">
               <button type="button" class="dash-action-btn primary-action-green" id="heroOpenRosterBtn">
                 <span class="dab-step">1</span>
                 <div class="dab-text">
-                  <strong>우리 반 명렬표 등록 · 시트 연동</strong>
-                  <small>학급 학생 명단 등록 및 올인원 마스터 시트 연결</small>
+                  <strong>명렬표 등록 · 시트 연동</strong>
+                  <small>학생 명단 등록 및 마스터 시트 연결</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
               <button type="button" class="dash-action-btn" id="heroOpenSeatBtn">
                 <span class="dab-step">2</span>
                 <div class="dab-text">
-                  <strong>우리 반 자리배치 · 모둠 추첨</strong>
-                  <small>관계·고정석 조건 반영 좌석표 배치 및 인쇄</small>
+                  <strong>자리배치 · 모둠 추첨</strong>
+                  <small>관계·고정석 반영 배치 및 인쇄</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
               <button type="button" class="dash-action-btn" id="heroOpenCalendarBtn">
                 <span class="dab-step">3</span>
                 <div class="dab-text">
-                  <strong>전체화면 학사일정 · 상담 달력</strong>
-                  <small>NEIS 학사일정 자동 입력 및 학생·학부모 상담 관리</small>
+                  <strong>학사일정 · 상담 달력</strong>
+                  <small>NEIS 학사일정 자동 입력 및 상담</small>
                 </div>
                 <span class="dab-arrow">&gt;</span>
               </button>
@@ -2536,6 +2541,21 @@
 
         <div id="smModalList" class="sm-modal-list"></div>
       </div>
+    </div>
+  </div>
+
+
+  <!-- 핵심 기능 & 동기화 안심 ? 도움말 팝업 모달 -->
+  <div id="dashHelpModal" class="modal">
+    <div class="modal-content wide" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <span id="dashHelpBadge" style="font-size:0.72rem; color:#4f46e5; font-weight:800;">GUIDE</span>
+          <h3 id="dashHelpTitle" style="margin:2px 0 0;">사용법 안내</h3>
+        </div>
+        <button class="close-btn" data-modal="dashHelpModal">&times;</button>
+      </div>
+      <div class="modal-body" id="dashHelpBody" style="padding:16px 20px; font-size:0.86rem; line-height:1.6; color:#334155;"></div>
     </div>
   </div>
 

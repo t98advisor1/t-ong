@@ -928,21 +928,46 @@ var CloudSheetSync = (function () {
     if (dashPushBtn) {
       dashPushBtn.addEventListener('click', function () { syncNow(true); });
     }
+    async function connectSheetUrlSafely(url) {
+      if (url && !/^https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_\-]+\/exec/.test(url)) {
+        alert('구글 Apps Script 웹앱 배포 URL 형식이 아닙니다.\nhttps://script.google.com/macros/s/.../exec 주소를 입력해 주세요.');
+        return;
+      }
+      setSheetUrl(url);
+      updateUI();
+      if (!url) {
+        showToast('시트 URL 연결을 해제했습니다 (로컬 데이터는 안전하게 유지됩니다).', 'info');
+        return;
+      }
+      showToast('구글 시트에 기존 데이터가 있는지 확인하는 중입니다...', 'info');
+      try {
+        var res = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'action=pull_tong_notebook&_t=' + Date.now());
+        var data = await res.json();
+        var hasSheetData = Boolean(data && data.success && (data.teacherProfile || (Array.isArray(data.students) && data.students.length > 0)));
+        if (hasSheetData) {
+          var shouldPull = confirm(
+            '연결한 구글 시트에 이미 저장된 시간표·명렬 데이터가 있습니다.\n\n' +
+            '• [확인]: 시트 데이터를 이 기기로 불러옵니다 (Pull · 권장)\n' +
+            '• [취소]: 현재 이 기기의 로컬 데이터를 시트로 올립니다 (Push)'
+          );
+          if (shouldPull) {
+            await pullFromSheet(true);
+          } else {
+            await syncNow(true);
+          }
+        } else {
+          await syncNow(true);
+        }
+      } catch (err) {
+        await syncNow(true);
+      }
+    }
+
     var dashQuickSaveBtn = el('dashQuickSheetSaveBtn');
     if (dashQuickSaveBtn) {
       dashQuickSaveBtn.addEventListener('click', function () {
         var qInput = el('dashQuickSheetUrlInput');
-        var url = qInput ? qInput.value.trim() : '';
-        if (url && !/^https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_\-]+\/exec/.test(url)) {
-          alert('구글 Apps Script 웹앱 배포 URL 형식이 아닙니다.\nhttps://script.google.com/macros/s/.../exec 주소를 입력해 주세요.');
-          return;
-        }
-        setSheetUrl(url);
-        showToast('구글 시트 웹앱 URL이 연결되었습니다. 시트와 동기화를 진행합니다.', 'success');
-        updateUI();
-        if (url) {
-          syncNow(true);
-        }
+        connectSheetUrlSafely(qInput ? qInput.value.trim() : '');
       });
     }
 
@@ -1290,10 +1315,10 @@ var CloudSheetSync = (function () {
     if (badge) {
       if (url) {
         badge.className = 'dash-sync-badge connected';
-        badge.textContent = auth ? ('연결됨 · ' + auth.email) : '시트 URL 연결됨 (자동 동기화)';
+        badge.textContent = auth ? ('연결됨 · ' + auth.email) : '시트 연결됨';
       } else {
         badge.className = 'dash-sync-badge offline';
-        badge.textContent = '로컬 저장 모드 (시트 미연결)';
+        badge.textContent = '로컬 모드';
       }
     }
     if (desc) {
@@ -12380,12 +12405,52 @@ var StudentTimetable = (function () {
 })();
 
 // 모듈 초기화 호출
+function openDashHelpPopup(topic) {
+  var badge = document.getElementById('dashHelpBadge');
+  var title = document.getElementById('dashHelpTitle');
+  var body = document.getElementById('dashHelpBody');
+  if (!title || !body) return;
+
+  if (topic === 'sync') {
+    if (badge) badge.textContent = 'STEP 1 · 기기간 동기화 & 기존 데이터 안심 안내';
+    title.textContent = '구글 시트 연동 및 기존 태블릿·PC 데이터 보호 안내';
+    body.innerHTML =
+      '<div class="dash-help-box safe"><b>1. 기존에 로컬로 쓰던 데이터는 안전합니다</b><br>시트 URL을 연결하더라도 태블릿이나 PC에 이미 저장된 명렬표·출결·관찰 기록은 삭제되지 않습니다.</div>' +
+      '<div class="dash-help-box"><b>2. 상황별 올바른 연동 순서</b><br>' +
+      '• <b>상황 A (태블릿/PC에 이미 기록이 있고, 시트는 새 사본인 경우)</b>: 기록이 있는 기기에서 먼저 URL을 입력하고 <b>[연결]</b>을 누르면 현재 데이터가 시트로 안전하게 업로드(Push)됩니다.<br>' +
+      '• <b>상황 B (이미 시트에 데이터가 있고, 새 폰/PC를 연결하는 경우)</b>: URL 입력 후 <b>[불러오기]</b>를 누르면 시트의 시간표·명렬이 그대로 복원됩니다.</div>' +
+      '<div class="dash-help-box warn"><b>3. 덮어쓰기 방지 자동 보호</b><br>URL을 연결할 때 시트에 이미 다른 기기에서 올려둔 데이터가 있으면 자동으로 감지해 <b>불러올지(Pull) 덮어쓸지(Push)</b> 먼저 확인합니다.</div>';
+  } else if (topic === 'lesson') {
+    if (badge) badge.textContent = 'LESSON MANAGEMENT';
+    title.textContent = '수업 관리 사용법 한눈에 보기';
+    body.innerHTML =
+      '<div class="dash-help-box"><b>2단계 · 학교 · 시간표 · 동아리 설정</b><br>NEIS에서 우리 학교를 검색하고 담임 반(또는 <b>담임 없음·비담임</b>)과 수업 학급을 고른 뒤, 반별 개설 과목과 창체 동아리를 클릭해 내 시간표를 10초 만에 완성합니다.</div>' +
+      '<div class="dash-help-box"><b>3단계 · 학생별 이동수업 시간표</b><br>NEIS에서 내려받은 학생별 시간표 엑셀(.xlsx)을 끌어다 놓으면 학생마다 다른 고교학점제 이동수업 동선을 조회할 수 있습니다.</div>' +
+      '<div class="dash-help-box"><b>4단계 · 수업관찰 · 출결 · 세특</b><br>교실 현장에서 입력한 관찰 메모가 구글 시트(6·7·8번 탭)와 <b>NEIS-Help</b> AI 세특 생성기로 바로 연결됩니다.</div>';
+  } else {
+    if (badge) badge.textContent = 'HOMEROOM MANAGEMENT';
+    title.textContent = '학급 관리 사용법 한눈에 보기';
+    body.innerHTML =
+      '<div class="dash-help-box"><b>1단계 · 명렬표 등록 · 시트 연동</b><br>우리 반 및 담당 수업 반 학생 명단을 등록하거나 엑셀에서 붙여넣습니다.</div>' +
+      '<div class="dash-help-box"><b>2단계 · 자리배치 · 모둠 추첨</b><br>친한/피할 관계, 고정석 조건을 반영해 좌석을 배치하고 교탁용·학생용으로 인쇄합니다.</div>' +
+      '<div class="dash-help-box"><b>3단계 · 학사일정 · 상담 달력</b><br>NEIS 학사일정을 버튼 한 번으로 달력에 자동 입력하고 Google 캘린더와도 동기화합니다.</div>';
+  }
+  if (typeof openModal === 'function') openModal('dashHelpModal');
+}
+
 function initTong2026Modules() {
   AvatarManager.init();
   SheetMemoPad.init();
   TeacherSchedule.init();
   StudentTimetable.init();
   TodayBriefing.init();
+
+  var sBtn = document.getElementById('dashSyncHelpBtn');
+  if (sBtn) sBtn.addEventListener('click', function () { openDashHelpPopup('sync'); });
+  var lBtn = document.getElementById('dashLessonHelpBtn');
+  if (lBtn) lBtn.addEventListener('click', function () { openDashHelpPopup('lesson'); });
+  var hBtn = document.getElementById('dashHomeroomHelpBtn');
+  if (hBtn) hBtn.addEventListener('click', function () { openDashHelpPopup('homeroom'); });
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initTong2026Modules);
