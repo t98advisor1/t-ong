@@ -5235,25 +5235,30 @@ function initGuide() {
 
   GUIDE_SLIDES.forEach(function(slide, i) {
     var el = document.createElement('div');
-    if (Array.isArray(slide.spots) && slide.spots.length) {
-      el.className = 'guide-slide is-stage';
-      var spotsHtml = slide.spots.map(function (sp, idx) {
-        var t = sp.target; // [x, y, w, h] in %
+    el.className = 'guide-slide is-stage';
+    var hasSpots = Array.isArray(slide.spots) && slide.spots.length > 0;
+    var spotsHtml = '';
+    var cardsHtml = '';
+    var linesHtml = '';
+    var dimHtml = hasSpots ? '<div class="guide-stage-dim"></div>' : '';
+
+    if (hasSpots) {
+      spotsHtml = slide.spots.map(function (sp, idx) {
+        var t = sp.target;
         return '<div class="guide-spot" style="left:' + t[0] + '%;top:' + t[1] + '%;width:' + t[2] + '%;height:' + t[3] + '%;">' +
           '<span class="guide-spot-num">' + (sp.num || (idx + 1)) + '</span></div>';
       }).join('');
-      var cardsHtml = slide.spots.map(function (sp, idx) {
-        var c = sp.card; // [cx, cy] in %
+      cardsHtml = slide.spots.map(function (sp, idx) {
+        var c = sp.card;
         var whenHtml = sp.when ? '<span class="guide-call-when">' + escapeHtml(sp.when) + '</span>' : '';
         return '<div class="guide-call-card" style="left:' + c[0] + '%;top:' + c[1] + '%;">' +
           '<div class="guide-call-head"><span class="guide-call-num">' + (sp.num || (idx + 1)) + '</span><strong>' + escapeHtml(sp.title) + '</strong></div>' +
           '<p>' + sp.text + '</p>' + whenHtml +
         '</div>';
       }).join('');
-      var linesHtml = slide.spots.map(function (sp) {
+      linesHtml = slide.spots.map(function (sp) {
         var t = sp.target;
         var c = sp.card;
-        // Start from card center-top or center-right toward target center (in 0..1000 viewBox)
         var sx = Math.round((c[0] + 13) * 10);
         var sy = Math.round((c[1] + (c[1] > t[1] ? 1 : 9)) * 10);
         var tx = Math.round((t[0] + t[2] / 2) * 10);
@@ -5262,37 +5267,23 @@ function initGuide() {
         else if (c[0] > t[0] + t[2]) { sx = Math.round(c[0] * 10); sy = Math.round((c[1] + 7) * 10); tx = Math.round((t[0] + t[2]) * 10); ty = Math.round((t[1] + t[3] / 2) * 10); }
         return '<line x1="' + sx + '" y1="' + sy + '" x2="' + tx + '" y2="' + ty + '" stroke="#ef4444" stroke-width="3.2" stroke-linecap="round" marker-end="url(#guideArrowHead)" />';
       }).join('');
-      var tipBadge = slide.callout ? '<span class="guide-stage-tip">' + escapeHtml(slide.callout.text) + '</span>' : '';
-      el.innerHTML =
-        '<div class="guide-stage-banner">' +
-          '<div><span class="guide-stage-sub">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</span><h4>' + slide.title + '</h4></div>' +
-          tipBadge +
-        '</div>' +
-        '<div class="guide-stage">' +
-          '<img class="guide-stage-img" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + '" loading="lazy">' +
-          '<div class="guide-stage-dim"></div>' +
-          spotsHtml +
-          '<svg class="guide-stage-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">' +
-            '<defs><marker id="guideArrowHead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444" /></marker></defs>' +
-            linesHtml +
-          '</svg>' +
-          cardsHtml +
-        '</div>';
-    } else {
-      el.className = 'guide-slide';
-      var callout = '';
-      if (slide.callout) {
-        callout = '<div class="guide-callout ' + (slide.callout.type || '') + '">' + slide.callout.text + '</div>';
-      }
-      el.innerHTML =
-        '<div class="guide-step">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</div>' +
-        '<h4>' + slide.title + '</h4>' +
-        '<img class="guide-shot" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + ' 화면" loading="lazy">' +
-        '<div class="guide-side">' +
-          '<div class="guide-desc">' + slide.desc + '</div>' +
-          callout +
-        '</div>';
+    } else if (slide.desc) {
+      cardsHtml = '<div class="guide-stage-float-desc">' + slide.desc + '</div>';
     }
+
+    var tipBadge = slide.callout ? '<span class="guide-stage-tip">' + escapeHtml(slide.callout.text) + '</span>' : '';
+    el.innerHTML =
+      '<div class="guide-stage-banner">' +
+        '<div><span class="guide-stage-sub">' + guideSectionLabel(slide) + ' · STEP ' + (i + 1) + ' / ' + GUIDE_SLIDES.length + '</span><h4>' + slide.title + '</h4></div>' +
+        tipBadge +
+      '</div>' +
+      '<div class="guide-stage">' +
+        '<img class="guide-stage-img" src="' + slide.img + '?v=' + encodeURIComponent(APP_VERSION) + '" alt="' + escapeHtml(slide.title) + '" loading="lazy">' +
+        dimHtml +
+        spotsHtml +
+        (hasSpots ? '<svg class="guide-stage-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none"><defs><marker id="guideArrowHead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444" /></marker></defs>' + linesHtml + '</svg>' : '') +
+        cardsHtml +
+      '</div>';
     track.appendChild(el);
 
     var dot = document.createElement('button');
