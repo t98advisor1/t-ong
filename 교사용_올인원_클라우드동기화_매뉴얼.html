@@ -1284,7 +1284,9 @@ body.all-units-mode .unit-pager {
 
   
 .track-flow-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
-.track-flow-node { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #1e293b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 11px; }
+.track-flow-node { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #1e293b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 11px; cursor: pointer; transition: all 0.15s ease; }
+.track-flow-node:hover { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+.track-step-card.highlight { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18); background: #ffffff; }
 .track-flow-node em { font-style: normal; width: 20px; height: 20px; border-radius: 50%; background: #2563eb; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; }
 .track-flow-node.opt em { background: #d97706; }
 .track-flow-arrow { color: #64748b; font-weight: 900; font-size: 14px; }
@@ -1493,13 +1495,13 @@ body.all-units-mode .unit-pager {
 
         <div class="track-panel active" id="trackPanelTong">
           <div class="track-flow-bar" aria-label="트랙 A 전체 흐름">
-            <span class="track-flow-node"><em>1</em> 시트 사본·URL 연결</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelTong', 0)"><em>1</em> 시트 사본·URL 연결</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node"><em>2</em> 학교·시간표·명렬표 등록</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelTong', 1)"><em>2</em> 학교·시간표·명렬표 등록</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node"><em>3</em> 매일 자리·출결·관찰</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelTong', 2)"><em>3</em> 매일 자리·출결·관찰</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node opt"><em>4</em> (선택) 학기말 세특만 연동</span>
+            <button type="button" class="track-flow-node opt" onclick="openTrackStep('trackPanelTong', 3)"><em>4</em> (선택) 학기말 세특만 연동</button>
           </div>
           <div style="font-size:12.5px; color:#0f766e; background:#f0fdfa; border:1px solid #99f6e4; border-radius:9px; padding:7px 12px; font-weight:700; margin-bottom:10px;">
             대상: 자리배치 · 시간표 · 출결 · 수업관찰부터 바로 쓰고 싶은 선생님 (초·중등, 고1·2, 교과전담, 대입 상담 미사용 포함)
@@ -1513,7 +1515,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>15단원 안내대로 마스터 시트 사본의 Apps Script 웹앱 URL(<code>.../exec</code>)을 복사한 뒤, T-ong 홈 대시보드 <b>STEP 1 [Google 시트 연동]</b>에 붙여넣고 <b>[연결]</b>을 누릅니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_layout');}">07단원(시트 연결) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p2_layout')">07단원: 시트 연결 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">2단계 · 학교·시간표·명렬</span>
@@ -1523,7 +1525,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>상단 <code>2 학교·수업시간표</code>에서 학교와 담당 수업을 추가하고, <code>학급 명렬표 등록</code>에서 명단을 올리면 시트 <code>2번(명렬표)</code>·<code>9번(기본설정)</code> 탭에 자동 저장됩니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_roster');}">08단원(명렬표 등록) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p2_roster')">08단원: 명렬표 등록 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">3단계 · 매일 교실 현장</span>
@@ -1533,7 +1535,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>좌석표에서 학생을 클릭해 출결·칭찬·1인1역·수업관찰을 남기면 구글 시트 <code>6_수업관찰_기록</code>과 <code>8_출결_칭찬_기록</code> 탭에 실시간 누적됩니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_seating');}">09~10단원(자리·출결) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p2_seat')">09단원: 자리·출결 보기 →</button>
             </div>
             <div class="track-step-card opt">
               <span class="t-badge">4단계 · 선택 (학기 말만)</span>
@@ -1543,20 +1545,20 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 건너뛰기 안내 ▾</summary>
                 <p><code>NEIS-Help</code>에 같은 시트 URL을 연결하면 <code>6·7번</code> 탭 관찰 메모를 불러와 AI 세특·바이트 점검만 쓸 수 있습니다. <b>대입 진학 상담(06단원)은 건너뛰어도 됩니다.</b></p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_draft');}">03단원(세특 초안) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p1_workbench')">03단원: 세특 초안 보기 →</button>
             </div>
           </div>
         </div>
 
         <div class="track-panel" id="trackPanelNeis">
           <div class="track-flow-bar" aria-label="트랙 B 전체 흐름">
-            <span class="track-flow-node"><em>1</em> 시트 연결·명렬/상담 입력</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelNeis', 0)"><em>1</em> 시트 연결·명렬/상담 입력</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node"><em>2</em> T-ong [불러오기] 동기화</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelNeis', 1)"><em>2</em> T-ong [불러오기] 동기화</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node"><em>3</em> AI 세특·OCR·바이트 점검</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelNeis', 2)"><em>3</em> AI 세특·OCR·바이트 점검</button>
             <span class="track-flow-arrow">→</span>
-            <span class="track-flow-node"><em>4</em> 2027 대입 진학 상담</span>
+            <button type="button" class="track-flow-node" onclick="openTrackStep('trackPanelNeis', 3)"><em>4</em> 2027 대입 진학 상담</button>
           </div>
           <div style="font-size:12.5px; color:#1e40af; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; padding:7px 12px; font-weight:700; margin-bottom:10px;">
             대상: 나이스 세특·행특 일괄 작성과 2027 수시 진학상담이 주 목적인 선생님 (고3 담임 및 입시 지도 교사)
@@ -1570,7 +1572,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>마스터 시트 사본에 Apps Script 웹앱 URL을 배포한 뒤, <code>NEIS-Help</code>에 URL을 연결해 <code>2_학생명렬표</code>와 <code>4_대입상담</code> 기초 자료를 저장합니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p0_intro');}">01단원(전체 흐름) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p3_gas')">15단원: 시트 URL 만들기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">2단계 · 교무수첩 동기화</span>
@@ -1580,7 +1582,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p><code>T-ong</code>을 열어 같은 시트 URL을 입력하고 <b>[불러오기]</b>를 누르면 <code>NEIS-Help</code>와 동일한 명렬표가 자동으로 채워져 자리배치·출결을 바로 쓸 수 있습니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p2_layout');}">07단원(교무수첩 연동) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p2_layout')">07단원: 교무수첩 연동 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">3단계 · 세특·OCR·점검</span>
@@ -1590,7 +1592,7 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>수업관찰(<code>6·7번</code> 탭)과 학생 탐구보고서 OCR 텍스트를 합쳐 세특·창체·행특 초안을 생성하고 바이트·금지어를 자동 검증합니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_draft');}">03~05단원(세특·점검) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p1_workbench')">03단원: 세특·점검 보기 →</button>
             </div>
             <div class="track-step-card">
               <span class="t-badge">4단계 · 진학 상담</span>
@@ -1600,12 +1602,23 @@ body.all-units-mode .unit-pager {
                 <summary>구체적 방법 · 저장 탭 보기 ▾</summary>
                 <p>9등급·5등급 환산 내신과 모의고사 성적으로 133개 대학 배치표를 조회하고 상담 결과를 <code>4·5번</code> 탭에 저장합니다.</p>
               </details>
-              <button type="button" class="track-jump-btn" onclick="if(window.goUnit){goUnit('p1_counsel');}">06단원(대입 상담) 보기 →</button>
+              <button type="button" class="track-jump-btn" onclick="goUnit('p1_counsel')">06단원: 대입 상담 보기 →</button>
             </div>
           </div>
         </div>
       </div>
       <script>
+        function openTrackStep(panelId, idx) {
+          var panel = document.getElementById(panelId);
+          if (!panel) return;
+          var cards = panel.querySelectorAll('.track-step-card');
+          cards.forEach(function(c, i) {
+            c.classList.toggle('highlight', i === idx);
+            var fold = c.querySelector('details.track-fold');
+            if (fold) fold.open = (i === idx);
+          });
+          if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         (function(){
           var btns = document.querySelectorAll('#dualTrackHub .track-tab-btn');
           btns.forEach(function(b){
@@ -3376,22 +3389,73 @@ body.all-units-mode .unit-pager {
       </div>
 
 
-      <div class="shot-grid-2">
-        <div class="shot-card">
-          <span class="shot-badge">STEP 1~2: 마스터 시트 사본 생성 &amp; Apps Script 열기</span>
-          <img src="./assets/gas-step2.svg" alt="확장 프로그램 Apps Script 열기">
-          <div class="shot-cap">
-            <b>확장 프로그램 &gt; Apps Script 클릭:</b> 사본으로 저장한 마스터 구글 시트 상단 메뉴에서 [확장 프로그램] &rarr; [Apps Script]를 클릭합니다.
+      <details class="fold" id="p3_gas_step1" open>
+        <summary>
+          <span class="num">STEP 1</span>
+          마스터 구글 시트 사본 만들기 (전체 화면 보기)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">STEP 1 · 내 Google 드라이브에 마스터 시트 사본 저장</span>
+            <img src="./assets/gas-step1.svg" alt="마스터 구글 시트 사본 만들기">
+            <div class="shot-cap">
+              <b>사본 만들기 클릭:</b> 마스터 시트 링크를 연 뒤 파란색 <b>[사본 만들기]</b> 버튼을 누르면 선생님 개인 Google 드라이브에 전용 시트가 복사됩니다.
+            </div>
           </div>
         </div>
-        <div class="shot-card">
-          <span class="shot-badge">STEP 3~4: 웹 앱 배포 완료 후 URL 복사</span>
-          <img src="./assets/gas-step6.svg" alt="웹 앱 URL 복사">
-          <div class="shot-cap">
-            <b>웹 앱 URL 복사 &amp; 붙여넣기:</b> [배포] &gt; [새 배포] &rarr; 유형: [웹 앱] &rarr; 액세스 권한: [모든 사용자]로 배포 후 발급된 URL을 T-ong과 나이스 웹앱에 붙여넣습니다.
+      </details>
+
+      <details class="fold" id="p3_gas_step2">
+        <summary>
+          <span class="num">STEP 2</span>
+          상단 메뉴 [확장 프로그램] &rarr; [Apps Script] 열기 (펼쳐 보기)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">STEP 2 · 사본 시트 상단 메뉴에서 Apps Script 클릭</span>
+            <img src="./assets/gas-step2.svg" alt="확장 프로그램 Apps Script 열기">
+            <div class="shot-cap">
+              <b>확장 프로그램 &gt; Apps Script 클릭:</b> 사본으로 저장한 마스터 구글 시트 상단 메뉴에서 <b>[확장 프로그램]</b> &rarr; <b>[Apps Script]</b>를 클릭합니다.
+            </div>
           </div>
         </div>
-      </div>
+      </details>
+
+      <details class="fold" id="p3_gas_step3">
+        <summary>
+          <span class="num">STEP 3</span>
+          [새 배포] &rarr; 웹 앱 배포 완료 후 [웹 앱 URL] 복사 (펼쳐 보기)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">STEP 3 · 웹 앱 배포 완료 후 URL 복사</span>
+            <img src="./assets/gas-step6.svg" alt="웹 앱 URL 복사">
+            <div class="shot-cap">
+              <b>웹 앱 URL 복사:</b> 오른쪽 위 <b>[배포]</b> &gt; <b>[새 배포]</b> &rarr; 유형: <b>[웹 앱]</b> &rarr; 액세스 권한: <b>[모든 사용자]</b>로 배포한 뒤 발급된 URL(<code>https://script.google.com/macros/s/.../exec</code>)을 복사합니다.
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold" id="p3_gas_step4">
+        <summary>
+          <span class="num">STEP 4</span>
+          T-ong &amp; NEIS-Help에 복사한 URL 붙여넣기 &amp; 연결 완료 (펼쳐 보기)
+          <i></i>
+        </summary>
+        <div class="fbody">
+          <div class="shot-card">
+            <span class="shot-badge">STEP 4 · T-ong Google 시트 연동 창에 URL 저장</span>
+            <img src="./guide/v11_01_sync_modal.png" alt="T-ong Google 시트 연동 창">
+            <div class="shot-cap">
+              <b>URL 붙여넣기 &amp; 연결:</b> 복사한 웹 앱 URL을 T-ong 홈 대시보드 <b>STEP 1 [Google 시트 연동]</b> 칸(또는 상단 1번 메뉴)에 붙여넣고 <b>[연결]</b>을 누르면 즉시 연동됩니다.
+            </div>
+          </div>
+        </div>
+      </details>
 
       <details class="fold" id="p3_gas_sub1" open>
         <summary>
