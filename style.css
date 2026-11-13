@@ -5362,3 +5362,47 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 .ts-panel-primary:hover {
   background: #4338ca;
 }
+
+/* 6 교실 도구 하위 드롭다운 내 버튼 및 웹툰 제작중 배지 */
+.extra-cat-menu .fav-category-grid button {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  line-height: 1.25;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.extra-cat-menu .fav-category-grid button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+.fav-coming-soon {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.fav-coming-soon small {
+  font-size: 0.66rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 800;
+}
