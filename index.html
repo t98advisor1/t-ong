@@ -2071,10 +2071,16 @@
 
   
   <!-- 우측 하단 플로팅 [오늘] 버튼: 누르면 오른쪽 [오늘] 사이드바가 열립니다 -->
-  <button type="button" id="floatingTodayBtn" class="floating-today-btn" title="오늘 사이드바 열기" aria-controls="todaySidebar" aria-expanded="false">
-    <span class="ft-sprout" aria-hidden="true"></span>
-    <span class="ft-face" aria-hidden="true"></span>
-    <span class="ft-board">오늘</span>
+  <button type="button" id="floatingTodayBtn" class="floating-today-btn" title="오늘 브리핑 사이드바 열기" aria-controls="todaySidebar" aria-expanded="false">
+    <span class="ft-badge-icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="4"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </span>
+    <span class="ft-board">오늘 브리핑</span>
   </button>
 
   <!-- [오늘] 사이드바: 오늘 브리핑 위젯 + 위젯 구성 (어느 화면에서나 [오늘] 버튼으로 열기) -->

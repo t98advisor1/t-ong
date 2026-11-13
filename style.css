@@ -4502,77 +4502,45 @@ body.header-page-open .app-footer { visibility: hidden; }
   color: #ffffff;
 }
 
-/* 우측 하단 플로팅 [오늘] 버튼 (새싹 캐릭터 + 칠판) — 누르면 [오늘] 사이드바가 열립니다 */
+/* 우측 하단 플로팅 [오늘 브리핑] 버튼 — 누르면 [오늘] 사이드바가 열립니다 */
 .floating-today-btn {
   position: fixed;
   right: 18px;
   bottom: 18px;
   z-index: 1200;
-  width: 62px;
-  height: 68px;
-  border: none;
-  background: transparent;
+  height: 44px;
+  padding: 0 16px 0 13px;
+  border: 2px solid #c8a26d;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #213d30 0%, #2c4c3d 100%);
+  color: #ffffff;
   cursor: pointer;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.28));
-  transition: transform 0.18s ease;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .floating-today-btn:hover {
-  transform: translateY(-3px) scale(1.04);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.34);
 }
 .floating-today-btn:focus-visible {
   outline: 3px solid var(--tong-primary, #667eea);
   outline-offset: 3px;
-  border-radius: 12px;
 }
-.floating-today-btn .ft-sprout {
-  width: 18px;
-  height: 10px;
-  background: #65a30d;
-  border-radius: 10px 10px 2px 10px;
-  margin-bottom: -3px;
-  z-index: 3;
-}
-.floating-today-btn .ft-face {
-  width: 46px;
-  height: 26px;
-  background: #fde68a;
-  border: 3px solid #b45309;
-  border-radius: 18px 18px 6px 6px;
-  margin-bottom: -5px;
-  z-index: 2;
-  position: relative;
-}
-.floating-today-btn .ft-face::before,
-.floating-today-btn .ft-face::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  width: 5px;
-  height: 5px;
-  background: #451a03;
-  border-radius: 50%;
-}
-.floating-today-btn .ft-face::before { left: 11px; }
-.floating-today-btn .ft-face::after { right: 11px; }
-.floating-today-btn .ft-board {
-  width: 56px;
-  height: 34px;
-  background: #2c4033;
-  border: 3px solid #c8a26d;
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 0.92rem;
-  font-weight: 900;
-  display: flex;
+.floating-today-btn .ft-badge-icon {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 3;
+  color: #f3d59b;
+}
+.floating-today-btn .ft-board {
+  font-size: 0.88rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  color: #ffffff;
+  white-space: nowrap;
 }
 /* 사이드바가 열려 있는 동안에는 버튼을 감춥니다 (닫기는 사이드바의 ✕ · 바깥 클릭 · Esc) */
 body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; }
