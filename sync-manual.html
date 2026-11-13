@@ -1251,7 +1251,18 @@ body.all-units-mode .unit-pager {
   }
 }
 
-</style>
+
+    .num-guide-box { background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:14px; padding:16px 18px; margin:14px 0 22px; }
+    .num-guide-title { font-size:15px; font-weight:800; color:#0f172a; margin:0 0 12px; }
+    .num-step-list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+    .num-step-list li { display:flex; align-items:flex-start; gap:11px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:11px 13px; font-size:13.5px; line-height:1.65; color:#1e293b; }
+    .num-dot { flex:0 0 24px; width:24px; height:24px; border-radius:999px; color:#ffffff; font-weight:800; font-size:13px; display:inline-flex; align-items:center; justify-content:center; margin-top:2px; }
+    .num-dot.c1 { background:#2563eb; }
+    .num-dot.c2 { background:#059669; }
+    .num-dot.c3 { background:#d97706; }
+    .num-dot.c4 { background:#7c3aed; }
+
+  </style>
 </head>
 <body data-p="p0">
 
@@ -2163,12 +2174,17 @@ body.all-units-mode .unit-pager {
 
 
       <div class="shot-card">
-        <span class="shot-badge">T-ong 디지털 교무수첩 전체 화면 레이아웃</span>
-        <img src="./guide/00-layout.png" alt="T-ong 전체 화면 구성">
-        <div class="shot-cap">
-          <b>4대 영역 한눈에 보기:</b> ① 상단 메뉴(홈·자리배치·출결관리·교실운영·일정관리·즐겨찾기·게임·학급선택·Google연동·도움말) / 
-          ② 좌측 메뉴(설정·사용법·데이터·기록) / ③ 중앙 좌석표(복도·창가 표시) / ④ 우측 패널(명렬표·좌석 설정·추첨·저장·출력)
-        </div>
+        <span class="shot-badge">T-ong 교무수첩 최신 통합 대시보드 (번호별 기능 안내)</span>
+        <img src="./guide/tong_dashboard_numbered.png" alt="T-ong 교무수첩 최신 통합 대시보드 번호 안내">
+      </div>
+      <div class="num-guide-box">
+        <div class="num-guide-title">번호 순서대로 따라 하는 T-ong 교무수첩 핵심 영역 안내</div>
+        <ol class="num-step-list">
+          <li><span class="num-dot c1">1</span><div><b>STEP 1 · Google 시트 연동 (가장 먼저 실행):</b> 내 마스터 구글 시트 웹앱 URL을 입력하고 <b>[연결]</b>을 누릅니다. 새 기기에서는 <b>[불러오기]</b>로 시트의 시간표·명렬을 바로 복원하고, 수정 후에는 <b>[시트 저장]</b>으로 올립니다. 옆의 <b>[?]</b> 버튼을 누르면 기존 데이터 보호 안내 팝업이 열립니다.</div></li>
+          <li><span class="num-dot c2">2</span><div><b>수업 관리 (교과·시간표·세특):</b> <b>[학교 · 시간표 · 동아리 설정]</b>에서 NEIS 학교를 검색하고 담임/비담임, 과목, 동아리를 고르면 주간 시간표가 완성됩니다. 이동수업 엑셀 업로드와 수업관찰·출결·세특 기록(시트 6·7·8번 탭 연동)도 이 카드에서 바로 엽니다.</div></li>
+          <li><span class="num-dot c3">3</span><div><b>학급 관리 (명렬·자리·학사달력):</b> <b>[명렬표 등록 · 시트 연동]</b>으로 우리 반 명단을 올리고, <b>[자리배치 · 모둠 추첨]</b>과 <b>[학사일정 · 상담 달력]</b>을 실행합니다.</div></li>
+          <li><span class="num-dot c4">4</span><div><b>실시간 오늘 브리핑 (우측 칠판):</b> 오늘 내가 들어가는 수업 교시와 담당 반(또는 비담임 교과전담) 시간표, 급식, 학사일정이 자동으로 표시됩니다.</div></li>
+        </ol>
       </div>
 
       <details class="fold" id="p2_layout_sub1" open>
@@ -2179,12 +2195,16 @@ body.all-units-mode .unit-pager {
         </summary>
         <div class="fbody">
           <div class="shot-card">
-            <span class="shot-badge">T-ong 상단 [Google 연동] 실제 드롭다운 화면</span>
-            <img src="./screenshots/screen_1_tong_sync_menu.png" alt="T-ong Google 연동 드롭다운 메뉴">
-            <div class="shot-cap">
-              <b>Google 통합 연동 패널:</b> Google 로그인 한 번으로 교무수첩 시트와 캘린더가 동시에 연결되며, 
-              마스터 시트 사본 복사·표준 엑셀(.xlsx) 다운로드·Apps Script 웹앱 URL 등록을 이 패널에서 바로 수행합니다.
-            </div>
+            <span class="shot-badge">STEP 1 · [?] 기존 데이터 보호 &amp; 상황별 연동 안내 팝업</span>
+            <img src="./screenshots/tong_sync_step1_numbered.png" alt="T-ong STEP 1 기존 데이터 보호 안내 팝업">
+          </div>
+          <div class="num-guide-box">
+            <div class="num-guide-title">연동 전 반드시 확인하는 3가지 안전 수칙 ([?] 버튼 팝업 내용)</div>
+            <ol class="num-step-list">
+              <li><span class="num-dot c1">1</span><div><b>기존 로컬 데이터 안전 보장:</b> 이미 태블릿·PC 브라우저에 저장해 둔 명렬표·출결·관찰 기록은 구글 시트 URL을 연결해도 절대 삭제되지 않습니다.</div></li>
+              <li><span class="num-dot c2">2</span><div><b>상황별 올바른 순서 선택:</b> 기존 기기 내용을 처음 올릴 때는 <b>상황 A(원본 기기에서 [연결] 후 시트 저장)</b>, 이미 시트에 자료가 있을 때 새 기기에서 받을 때는 <b>상황 B(새 기기에서 [불러오기])</b> 순서로 진행합니다.</div></li>
+              <li><span class="num-dot c3">3</span><div><b>덮어쓰기 방지 자동 보호:</b> URL을 연결할 때 시트에 이미 다른 기기에서 올려둔 시간표나 명렬 데이터가 있으면 자동으로 감지해 <b>불러올지(Pull)</b> 먼저 확인창을 띄웁니다.</div></li>
+            </ol>
           </div>
           <ul>
             <li><b>Google 통합 로그인:</b> 버튼 한 번으로 교무수첩과 Google 기본 캘린더 권한을 함께 연결합니다.</li>
@@ -4214,8 +4234,21 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // === [모바일 교무수첩(T-ong) 양방향 불러오기 API: 명렬표·수업관찰·출결·칭찬·1인1역 조회] ===
+  // === [모바일 교무수첩(T-ong) 양방향 불러오기 API: 시간표·학교·동아리·명렬표·수업관찰·출결·칭찬·1인1역 조회] ===
   if (action === "pull_tong_notebook") {
+    var profileSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
+    var teacherProfile = null;
+    if (profileSheet && profileSheet.getLastRow() &gt;= 2) {
+      var jsonRaw = String(profileSheet.getRange("J9").getValue() || "").trim();
+      if (!jsonRaw) {
+        var legacyRaw = String(profileSheet.getRange("J2").getValue() || "").trim();
+        if (legacyRaw &amp;&amp; legacyRaw.charAt(0) === "{") jsonRaw = legacyRaw;
+      }
+      if (jsonRaw) {
+        try { teacherProfile = JSON.parse(jsonRaw); } catch (errParse) {}
+      }
+    }
+
     var rosterSh = ss.getSheetByName("2_학생명렬표");
     var obsSh = ss.getSheetByName("6_수업관찰_기록");
     var attSh = ss.getSheetByName("8_출결_칭찬_기록");
@@ -4272,6 +4305,7 @@ function doGet(e) {
 
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
+      teacherProfile: teacherProfile,
       students: students,
       observations: observations,
       attPraise: attPraise
@@ -4528,10 +4562,33 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // === [모바일 교무수첩(T-ong) ↔ 교사용 올인원 마스터 통합 시트(수업관찰·세특·출결·칭찬·역할) 실시간 동기화 API] ===
+    // === [모바일 교무수첩(T-ong) ↔ 교사용 올인원 마스터 통합 시트(시간표·명렬·수업관찰·세특·출결·칭찬·역할) 실시간 동기화 API] ===
     if (action === "save_notebook" || action === "sync_tong_notebook" || action === "save_attendance") {
       var now = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
-      var items = (body.items &amp;&amp; Array.isArray(body.items) &amp;&amp; body.items.length &gt; 0) ? body.items : [body];
+
+      if (body.teacherProfile) {
+        var pSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
+        if (!pSheet) { pSheet = ss.insertSheet("9_교무수첩_시간표_동기화"); }
+        pSheet.clear();
+        pSheet.getRange("A1:J1").setValues([["최종동기화일시", "교사계정", "소속학교", "담임구분", "교시", "월", "화", "수", "목", "금"]]).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+        var tp = body.teacherProfile;
+        var schoolName = (tp.school &amp;&amp; tp.school.schoolName) || "";
+        var homeroomLabel = tp.isNonHomeroom ? "비담임(교과전담)" : ((tp.homeroom &amp;&amp; tp.homeroom.label) || "미설정");
+        var days = ["월", "화", "수", "목", "금"];
+        var tt = tp.timetable || {};
+        for (var p = 1; p &lt;= 7; p++) {
+          var rowVals = [p === 1 ? now : "", p === 1 ? (body.userEmail || "") : "", p === 1 ? schoolName : "", p === 1 ? homeroomLabel : "", p + "교시"];
+          for (var di = 0; di &lt; days.length; di++) {
+            var cell = (tt[days[di]] &amp;&amp; tt[days[di]][p]) || {};
+            rowVals.push(cell.subject ? ((cell.className ? "[" + cell.className + "] " : "") + cell.subject) : "-");
+          }
+          pSheet.getRange(p + 1, 1, 1, 10).setValues([rowVals]);
+        }
+        pSheet.getRange("I9").setValue("SYNC_SNAPSHOT_JSON");
+        pSheet.getRange("J9").setValue(JSON.stringify(tp));
+      }
+
+      var items = Array.isArray(body.items) ? body.items : ((body.studentId || body.content || body.detail) ? [body] : []);
 
       var rosterSheet = ss.getSheetByName("2_학생명렬표");
       var obsSheet = ss.getSheetByName("6_수업관찰_기록") || ss.getSheetByName("3_수업관찰_기록");

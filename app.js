@@ -700,14 +700,22 @@ var CloudSheetSync = (function () {
         }
       }
 
-      // 보낼 기록이 없는 빈 요청은 Apps Script 가 [6_수업관찰_기록] 탭에 빈 줄을 만들기 때문에 되도록 보내지 않습니다.
+      var profileObj = collectTeacherProfile();
+      var profileSig = hashKey(JSON.stringify({
+        school: profileObj.school,
+        isNonHomeroom: profileObj.isNonHomeroom,
+        homeroom: profileObj.homeroom,
+        subjectClasses: profileObj.subjectClasses,
+        timetable: profileObj.timetable,
+        customClubs: profileObj.customClubs,
+        sheetMemos: profileObj.sheetMemos
+      }));
+      var profileChanged = (state.profile !== profileSig);
       var rosterList = Array.isArray(students) ? students : [];
       var rosterSig = hashKey(currentClassIndex + ':' + rosterList.map(function (st) { return st.id + '=' + st.name; }).join(','));
-      if (!uniqueItems.length) {
-        if (state.roster === rosterSig || !rosterList.length) return 0;  // 명렬표도 그대로 → 요청하지 않음
-        var ping = knownRowAsItem(state);
-        if (ping) uniqueItems.push(ping);       // 이미 있는 줄을 함께 보내 명렬표만 갱신
-        else if (!rosterOnly) return 0;
+      var rosterChanged = (rosterList.length > 0 && state.roster !== rosterSig);
+      if (!uniqueItems.length && !profileChanged && !rosterChanged) {
+        return 0;  // 기록·명렬표·시간표 설정 모두 변동 없음 → 요청하지 않음
       }
 
       var curClass = allClassData[currentClassIndex] || {};
@@ -716,8 +724,8 @@ var CloudSheetSync = (function () {
         userEmail: auth ? auth.email : '',
         userName: auth ? auth.name : '',
         className: curClass.className || ((currentClassIndex + 1) + '반'),
-        students: Array.isArray(students) ? students : [],
-        teacherProfile: collectTeacherProfile(),
+        students: rosterList,
+        teacherProfile: profileObj,
         items: uniqueItems
       };
 
@@ -737,10 +745,11 @@ var CloudSheetSync = (function () {
         state.rows[commit.key].push(commit.entry);
       });
       state.roster = rosterSig;
+      state.profile = profileSig;
       saveSyncState(state);
       savePending([]);
       localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
-      return uniqueItems.length;
+      return uniqueItems.length || ((profileChanged || rosterChanged) ? 1 : 0);
     })();
     var settle = function () { pushInFlight = null; };
     pushInFlight.then(settle, settle);
@@ -4850,15 +4859,15 @@ var Confetti = (function() {
 // ===================================================================
 var GUIDE_SLIDES = [
   {
-    img: 'guide/00-layout.png',
-    title: '한 화면에서 수업과 학급 운영을 관리합니다',
-    desc: '<ul>' +
-      '<li><strong>① 상단 메뉴</strong> — 의자 홈·자리배치·출결관리·교실운영·일정관리·즐겨찾기·게임을 전환합니다.</li>' +
-      '<li><strong>② 좌측 메뉴</strong> — 설정·사용법·저장 기록·백업처럼 가끔 쓰는 기능을 모았습니다.</li>' +
-      '<li><strong>③ 좌석표</strong> — 교탁을 기준으로 복도(왼쪽)와 창가(오른쪽)가 표시됩니다.</li>' +
-      '<li><strong>④ 우측 패널</strong> — 명렬표·좌석 설정·추첨·저장·출력을 바로 실행합니다.</li>' +
-      '</ul>',
-    callout: { type: 'good', text: '페이지 스크롤을 열어 두었습니다. 화면이 작거나 좌석이 많아도 아래로 내려가며 확인할 수 있습니다.' }
+    img: 'guide/tong_dashboard_numbered.png',
+    title: '한 화면에서 Google 시트 연동과 수업·학급 관리를 시작합니다',
+    desc: '<ol style="padding-left:18px; line-height:1.7;">' +
+      '<li><strong>① STEP 1 · Google 시트 연동</strong> — 가장 먼저 내 마스터 시트 웹앱 URL을 연결해 PC·모바일·NEIS-Help를 실시간 동기화합니다. (<code>?</code> 버튼으로 기존 데이터 보호 안내 확인)</li>' +
+      '<li><strong>② 수업 관리</strong> — NEIS 학교·과목·동아리 시간표 설정, 이동수업 엑셀 업로드, 수업관찰·출결·세특 기록을 실행합니다.</li>' +
+      '<li><strong>③ 학급 관리</strong> — 우리 반 명렬표 등록, 자리배치·모둠 추첨, 전체화면 학사일정·상담 달력을 엽니다.</li>' +
+      '<li><strong>④ 오늘 브리핑</strong> — 오늘 내 수업 교시, 담당 학급 시간표, 급식, 학사일정을 실시간으로 확인합니다.</li>' +
+      '</ol>',
+    callout: { type: 'good', text: '각 영역의 ? 버튼을 누르면 상세 안내 팝업이 열려 대시보드를 복잡하지 않게 사용할 수 있습니다.' }
   },
   {
     section: 'start',

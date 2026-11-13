@@ -1021,8 +1021,21 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // === [모바일 교무수첩(T-ong) 양방향 불러오기 API: 명렬표·수업관찰·출결·칭찬·1인1역 조회] ===
+  // === [모바일 교무수첩(T-ong) 양방향 불러오기 API: 시간표·학교·동아리·명렬표·수업관찰·출결·칭찬·1인1역 조회] ===
   if (action === "pull_tong_notebook") {
+    var profileSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
+    var teacherProfile = null;
+    if (profileSheet && profileSheet.getLastRow() >= 2) {
+      var jsonRaw = String(profileSheet.getRange("J9").getValue() || "").trim();
+      if (!jsonRaw) {
+        var legacyRaw = String(profileSheet.getRange("J2").getValue() || "").trim();
+        if (legacyRaw && legacyRaw.charAt(0) === "{") jsonRaw = legacyRaw;
+      }
+      if (jsonRaw) {
+        try { teacherProfile = JSON.parse(jsonRaw); } catch (errParse) {}
+      }
+    }
+
     var rosterSh = ss.getSheetByName("2_학생명렬표");
     var obsSh = ss.getSheetByName("6_수업관찰_기록");
     var attSh = ss.getSheetByName("8_출결_칭찬_기록");
@@ -1079,6 +1092,7 @@ function doGet(e) {
 
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
+      teacherProfile: teacherProfile,
       students: students,
       observations: observations,
       attPraise: attPraise
@@ -1335,10 +1349,41 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // === [모바일 교무수첩(T-ong) ↔ 교사용 올인원 마스터 통합 시트(수업관찰·세특·출결·칭찬·역할) 실시간 동기화 API] ===
+    // === [모바일 교무수첩(T-ong) ↔ 교사용 올인원 마스터 통합 시트(시간표·명렬·수업관찰·세특·출결·칭찬·역할) 실시간 동기화 API] ===
     if (action === "save_notebook" || action === "sync_tong_notebook" || action === "save_attendance") {
       var now = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
-      var items = (body.items && Array.isArray(body.items) && body.items.length > 0) ? body.items : [body];
+
+      // 0-1) 교사 환경설정 & 주간 시간표 & 동아리 & 시트 메모장 저장 (9_교무수첩_시간표_동기화)
+      if (body.teacherProfile) {
+        var pSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
+        if (!pSheet) {
+          pSheet = ss.insertSheet("9_교무수첩_시간표_동기화");
+        }
+        pSheet.clear();
+        pSheet.getRange("A1:J1").setValues([[
+          "최종동기화일시", "교사계정", "소속학교", "담임구분", "교시", "월", "화", "수", "목", "금"
+        ]]).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+
+        var tp = body.teacherProfile;
+        var schoolName = (tp.school && tp.school.schoolName) || "";
+        var homeroomLabel = tp.isNonHomeroom ? "비담임(교과전담)" : ((tp.homeroom && tp.homeroom.label) || "미설정");
+        var days = ["월", "화", "수", "목", "금"];
+        var tt = tp.timetable || {};
+        for (var p = 1; p <= 7; p++) {
+          var rowVals = [p === 1 ? now : "", p === 1 ? (body.userEmail || "") : "", p === 1 ? schoolName : "", p === 1 ? homeroomLabel : "", p + "교시"];
+          for (var di = 0; di < days.length; di++) {
+            var cell = (tt[days[di]] && tt[days[di]][p]) || {};
+            var txt = cell.subject ? ((cell.className ? "[" + cell.className + "] " : "") + cell.subject) : "-";
+            rowVals.push(txt);
+          }
+          pSheet.getRange(p + 1, 1, 1, 10).setValues([rowVals]);
+        }
+        pSheet.getRange("I9").setValue("SYNC_SNAPSHOT_JSON");
+        pSheet.getRange("J9").setNote("T-ong 기기간 시간표 복원용 스냅샷");
+        pSheet.getRange("J9").setValue(JSON.stringify(tp));
+      }
+
+      var items = Array.isArray(body.items) ? body.items : ((body.studentId || body.content || body.detail) ? [body] : []);
 
       var rosterSheet = ss.getSheetByName("2_학생명렬표");
       var obsSheet = ss.getSheetByName("6_수업관찰_기록") || ss.getSheetByName("3_수업관찰_기록");
