@@ -268,6 +268,7 @@ var CloudSheetSync = (function () {
     }
 
     updateCalendarSyncSubUI(auth);
+    updateDashSyncHubUI();
   }
 
   function updateCalendarSyncSubUI(auth) {
@@ -601,6 +602,7 @@ var CloudSheetSync = (function () {
         userName: auth ? auth.name : '',
         className: curClass.className || ((currentClassIndex + 1) + '반'),
         students: Array.isArray(students) ? students : [],
+        teacherProfile: collectTeacherProfile(),
         items: uniqueItems
       };
 
@@ -764,6 +766,46 @@ var CloudSheetSync = (function () {
       logoutBtn.addEventListener('click', logout);
     }
 
+    var topSyncBtn = el('topSyncBtn');
+    if (topSyncBtn) {
+      topSyncBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMenu(true);
+      });
+    }
+    var dashOpenSyncBtn = el('dashOpenGoogleSyncBtn');
+    if (dashOpenSyncBtn) {
+      dashOpenSyncBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMenu(true);
+      });
+    }
+    var dashPullBtn = el('dashPullFromSheetBtn');
+    if (dashPullBtn) {
+      dashPullBtn.addEventListener('click', function () { pullFromSheet(true); });
+    }
+    var dashPushBtn = el('dashPushToSheetBtn');
+    if (dashPushBtn) {
+      dashPushBtn.addEventListener('click', function () { syncNow(true); });
+    }
+    var dashQuickSaveBtn = el('dashQuickSheetSaveBtn');
+    if (dashQuickSaveBtn) {
+      dashQuickSaveBtn.addEventListener('click', function () {
+        var qInput = el('dashQuickSheetUrlInput');
+        var url = qInput ? qInput.value.trim() : '';
+        if (url && !/^https:\/\/script\.google\.com\/macros\/s\/[a-zA-Z0-9_\-]+\/exec/.test(url)) {
+          alert('구글 Apps Script 웹앱 배포 URL 형식이 아닙니다.\nhttps://script.google.com/macros/s/.../exec 주소를 입력해 주세요.');
+          return;
+        }
+        setSheetUrl(url);
+        showToast('구글 시트 웹앱 URL이 연결되었습니다. 시트와 동기화를 진행합니다.', 'success');
+        updateUI();
+        if (url) {
+          syncNow(true);
+        }
+      });
+    }
+
     updateUI();
     initGIS();
 
@@ -794,6 +836,12 @@ var CloudSheetSync = (function () {
       if (data && data.success) {
         var d = allClassData[currentClassIndex];
         var updatedCount = 0;
+        if (data.teacherProfile && applyTeacherProfile(data.teacherProfile)) {
+          updatedCount++;
+          if (typeof SheetMemoPad !== 'undefined' && SheetMemoPad.reload) SheetMemoPad.reload();
+          if (typeof TeacherSchedule !== 'undefined' && TeacherSchedule.reloadFromStorage) TeacherSchedule.reloadFromStorage();
+          if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) TodayBriefing.refreshAll();
+        }
         if (d && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
           students = data.students.map(function (s) {
             return { id: String(s.id), name: String(s.name), gender: s.gender || '' };
@@ -848,6 +896,76 @@ var CloudSheetSync = (function () {
     }
   }
 
+  function collectTeacherProfile() {
+    function rj(k, d) {
+      try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; }
+    }
+    return {
+      version: 2,
+      updatedAt: Date.now(),
+      school: rj('tongNeisSchool_v1', null),
+      isNonHomeroom: Boolean(rj('tongIsNonHomeroom_v1', false)),
+      homeroom: rj('tongHomeroomClass_v1', null),
+      subjectClasses: rj('tongSubjectClasses_v1', []),
+      timetable: rj('tongTeacherTimetable_v1', null),
+      customClubs: rj('tongCustomClubs_v1', []),
+      sheetMemos: rj('tongSheetMemoPad_v1', [])
+    };
+  }
+
+  function applyTeacherProfile(tp) {
+    if (!tp || typeof tp !== 'object') return false;
+    try {
+      if (tp.school) localStorage.setItem('tongNeisSchool_v1', JSON.stringify(tp.school));
+      if (typeof tp.isNonHomeroom === 'boolean') localStorage.setItem('tongIsNonHomeroom_v1', JSON.stringify(tp.isNonHomeroom));
+      if (tp.homeroom !== undefined) localStorage.setItem('tongHomeroomClass_v1', JSON.stringify(tp.homeroom));
+      if (Array.isArray(tp.subjectClasses)) localStorage.setItem('tongSubjectClasses_v1', JSON.stringify(tp.subjectClasses));
+      if (tp.timetable && typeof tp.timetable === 'object') localStorage.setItem('tongTeacherTimetable_v1', JSON.stringify(tp.timetable));
+      if (Array.isArray(tp.customClubs)) localStorage.setItem('tongCustomClubs_v1', JSON.stringify(tp.customClubs));
+      if (Array.isArray(tp.sheetMemos) && tp.sheetMemos.length) localStorage.setItem('tongSheetMemoPad_v1', JSON.stringify(tp.sheetMemos));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function queueProfileSync() {
+    if (!getSheetUrl()) return;
+    if (autoSyncTimer) clearTimeout(autoSyncTimer);
+    autoSyncTimer = setTimeout(function () {
+      syncNow(false);
+    }, 2500);
+  }
+
+  function updateDashSyncHubUI() {
+    var url = getSheetUrl();
+    var auth = getAuth();
+    var badge = el('dashSyncStatusBadge');
+    var desc = el('dashSyncStatusDesc');
+    var quickInput = el('dashQuickSheetUrlInput');
+    if (quickInput && document.activeElement !== quickInput) {
+      quickInput.value = url || '';
+    }
+    if (badge) {
+      if (url) {
+        badge.className = 'dash-sync-badge connected';
+        badge.textContent = auth ? ('연결됨 · ' + auth.email) : '시트 URL 연결됨 (자동 동기화)';
+      } else {
+        badge.className = 'dash-sync-badge offline';
+        badge.textContent = '로컬 저장 모드 (시트 미연결)';
+      }
+    }
+    if (desc) {
+      if (url) {
+        var lastTs = Number(localStorage.getItem(LAST_SYNC_KEY) || 0);
+        var timeTxt = lastTs ? new Date(lastTs).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '방금 연결';
+        desc.innerHTML = '내 구글 마스터 시트와 연결되어 있습니다 (마지막 동기화: <b>' + timeTxt + '</b>). 다른 기기에서 이어서 쓸 때는 <b>[불러오기 (Pull)]</b>를 누르세요.';
+      } else {
+        desc.innerHTML = '어느 기기에서든 내 시간표·명렬표·관찰기록을 똑같이 보려면 <b>먼저 내 구글 시트 웹앱 URL을 연결</b>하세요. 연결 즉시 시트에서 기존 시간표를 불러오거나 현재 설정을 저장합니다.';
+      }
+    }
+  }
+
   return {
     init: init,
     getAuth: getAuth,
@@ -855,9 +973,12 @@ var CloudSheetSync = (function () {
     getSheetUrl: getSheetUrl,
     setSheetUrl: setSheetUrl,
     queueRecord: queueRecord,
+    queueProfileSync: queueProfileSync,
+    collectTeacherProfile: collectTeacherProfile,
     syncNow: syncNow,
     pullFromSheet: pullFromSheet,
-    updateUI: updateUI
+    updateUI: updateUI,
+    toggleMenu: toggleMenu
   };
 })();
 
@@ -8689,6 +8810,11 @@ var TeacherSchedule = (function () {
   }
   function writeJson(key, val) {
     try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    if (typeof CloudSheetSync !== "undefined" && CloudSheetSync.queueProfileSync) {
+      if (key === SCHOOL_KEY || key === HOMEROOM_KEY || key === NON_HOMEROOM_KEY || key === SUBJECT_CLASSES_KEY || key === TIMETABLE_KEY || key === CUSTOM_CLUBS_KEY) {
+        CloudSheetSync.queueProfileSync();
+      }
+    }
   }
 
   function ensureDefaultSchool() {
@@ -10164,9 +10290,19 @@ var TeacherSchedule = (function () {
     });
   }
 
+  function reloadFromStorage() {
+    ensureDefaultSchool();
+    renderSelectedSchool();
+    renderClassPills();
+    renderWeeklyTimetable();
+    renderClassSubjectPicker(activePickerClass || selectedHomeroom || selectedSubjects[0]);
+    renderClubPicker();
+  }
+
   return {
     init: init,
     open: open,
+    reloadFromStorage: reloadFromStorage,
     getTimetable: getTimetable,
     getSelectedSchool: function () { ensureDefaultSchool(); return selectedSchool; },
     getSelectedHomeroom: function () { ensureDefaultSchool(); return isNonHomeroom ? null : selectedHomeroom; },
@@ -10232,6 +10368,7 @@ var SheetMemoPad = (function () {
 
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+    if (typeof CloudSheetSync !== "undefined" && CloudSheetSync.queueProfileSync) CloudSheetSync.queueProfileSync();
   }
 
   function normalizeUrl(u) {
@@ -10392,7 +10529,8 @@ var SheetMemoPad = (function () {
   return {
     init: init,
     open: function () { openModalForEdit(''); },
-    render: render
+    render: render,
+    reload: function () { load(); render(); }
   };
 })();
 
