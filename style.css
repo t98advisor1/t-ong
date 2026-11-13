@@ -398,9 +398,11 @@ hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
 .guide-stage {
   position: relative;
   display: inline-block;
+  flex-shrink: 0;
   width: auto;
+  height: auto;
   max-width: calc(100vw - 110px);
-  max-height: calc(100vh - 185px);
+  max-height: calc(100vh - 195px);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 16px 40px rgba(0,0,0,0.45);
@@ -410,7 +412,7 @@ hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
   width: auto;
   height: auto;
   max-width: calc(100vw - 110px);
-  max-height: calc(100vh - 185px);
+  max-height: calc(100vh - 195px);
   display: block;
 }
 .guide-stage-dim {
