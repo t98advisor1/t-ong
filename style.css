@@ -5912,6 +5912,39 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   border-radius: 9px;
 }
 
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  padding: 7px 13px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1.25;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary:hover {
+  background: #1d4ed8;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+}
+.btn-outline {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.25;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-outline:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
 .memo-board-dialog {
   width: 96vw;
   max-width: 1180px;
@@ -5919,6 +5952,7 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   max-height: 88vh;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
 }
 .memo-board-dialog.is-fullscreen {
   width: 100vw;
@@ -5933,6 +5967,68 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.ladder-roster-picker {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.ladder-roster-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.ladder-roster-head label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+.ladder-roster-head select {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 0.83rem;
+  background: #ffffff;
+}
+.ladder-roster-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 145px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+.ladder-stu-chip {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  margin: 0 !important;
+  padding: 4px 9px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #1e293b;
+  cursor: pointer;
+}
+.ladder-stu-chip:has(input:checked) {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+.ladder-roster-empty {
+  font-size: 0.82rem;
+  color: #64748b;
+  padding: 6px 4px;
 }
 .memo-board-badge {
   display: inline-block;

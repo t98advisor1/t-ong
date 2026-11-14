@@ -8409,7 +8409,7 @@ var Ladder = (function () {
   }
 
   function build() {
-    cols = Math.max(2, Math.min(8, parseInt(el('ladderCount').value, 10) || 4));
+    cols = Math.max(2, Math.min(12, parseInt(el('ladderCount').value, 10) || 4));
     names = readLines('ladderNames', cols, '참여자');
     prizes = readLines('ladderPrizes', cols, '결과');
 
@@ -8508,10 +8508,126 @@ var Ladder = (function () {
 
   function pickFromStudents() {
     if (!students.length) { showToast('명렬표를 먼저 등록해 주세요', 'error'); return; }
-    var n = Math.max(2, Math.min(8, parseInt(el('ladderCount').value, 10) || 4));
+    var n = Math.max(2, Math.min(12, parseInt(el('ladderCount').value, 10) || 4));
     var pool = students.slice();
     shuffleArray(pool);
     el('ladderNames').value = pool.slice(0, n).map(function (s) { return s.name; }).join('\n');
+    build();
+  }
+
+  function getSavedClassOptions() {
+    var list = [];
+    var seen = {};
+    if (allClassData && typeof allClassData === 'object') {
+      Object.keys(allClassData).forEach(function (k) {
+        var idx = parseInt(k, 10);
+        var cls = allClassData[k];
+        var stuList = (idx === currentClassIndex && Array.isArray(students) && students.length)
+          ? students
+          : (cls && Array.isArray(cls.students) ? cls.students : []);
+        if (!stuList.length) return;
+        seen[k] = true;
+        list.push({
+          key: k,
+          label: ((cls && cls.className) || ((idx + 1) + '반')) + ' (' + stuList.length + '명)',
+          students: stuList
+        });
+      });
+    }
+    var curKey = String(currentClassIndex);
+    if (!seen[curKey] && Array.isArray(students) && students.length) {
+      list.unshift({
+        key: curKey,
+        label: ((allClassData[curKey] && allClassData[curKey].className) || ((currentClassIndex + 1) + '반')) + ' (' + students.length + '명)',
+        students: students
+      });
+    }
+    return list;
+  }
+
+  function updateApplyCountLabel() {
+    var btn = el('ladderApplySelectedBtn');
+    var box = el('ladderRosterList');
+    if (!btn || !box) return;
+    var checked = box.querySelectorAll('input[type="checkbox"]:checked').length;
+    btn.textContent = '선택 적용 (' + checked + '명)';
+  }
+
+  function renderRosterStudents(classList, selectedKey) {
+    var box = el('ladderRosterList');
+    if (!box) return;
+    box.innerHTML = '';
+    var target = classList.find(function (c) { return c.key === String(selectedKey); }) || classList[0];
+    if (!target || !target.students.length) {
+      box.innerHTML = '<div class="ladder-roster-empty">저장된 학생 명렬표가 없습니다. 상단 [학급 명렬표 등록]에서 먼저 학생을 등록해 주세요.</div>';
+      updateApplyCountLabel();
+      return;
+    }
+    target.students.forEach(function (stu, idx) {
+      var lbl = document.createElement('label');
+      lbl.className = 'ladder-stu-chip';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = stu.name || '';
+      cb.checked = idx < 4;
+      cb.addEventListener('change', updateApplyCountLabel);
+      var txt = document.createElement('span');
+      txt.textContent = (stu.num ? stu.num + ' ' : '') + (stu.name || '');
+      lbl.appendChild(cb);
+      lbl.appendChild(txt);
+      box.appendChild(lbl);
+    });
+    updateApplyCountLabel();
+  }
+
+  function openRosterPicker() {
+    var picker = el('ladderRosterPicker');
+    var sel = el('ladderClassSelect');
+    if (!picker || !sel) return;
+    var isHidden = picker.style.display === 'none';
+    if (!isHidden) {
+      picker.style.display = 'none';
+      return;
+    }
+    var classList = getSavedClassOptions();
+    sel.innerHTML = '';
+    if (!classList.length) {
+      var opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '저장된 명렬표 없음';
+      sel.appendChild(opt);
+    } else {
+      classList.forEach(function (c) {
+        var opt = document.createElement('option');
+        opt.value = c.key;
+        opt.textContent = c.label;
+        sel.appendChild(opt);
+      });
+      sel.value = String(currentClassIndex);
+      if (!sel.value && classList[0]) sel.value = classList[0].key;
+    }
+    sel.onchange = function () { renderRosterStudents(classList, sel.value); };
+    renderRosterStudents(classList, sel.value);
+    picker.style.display = 'block';
+  }
+
+  function applySelectedRoster() {
+    var box = el('ladderRosterList');
+    if (!box) return;
+    var chosen = Array.from(box.querySelectorAll('input[type="checkbox"]:checked'))
+      .map(function (cb) { return cb.value; })
+      .filter(Boolean);
+    if (chosen.length < 2) {
+      showToast('사다리타기는 최소 2명 이상 선택해 주세요', 'error');
+      return;
+    }
+    if (chosen.length > 12) {
+      showToast('최대 12명까지 적용됩니다 (앞 12명 반영)', 'info');
+      chosen = chosen.slice(0, 12);
+    }
+    el('ladderCount').value = chosen.length;
+    el('ladderNames').value = chosen.join('\n');
+    el('ladderRosterPicker').style.display = 'none';
     build();
   }
 
@@ -8539,11 +8655,23 @@ var Ladder = (function () {
     var b = el('ladderBtn'); if (b) b.addEventListener('click', open);
     var mk = el('ladderMakeBtn'); if (mk) mk.addEventListener('click', build);
     var pk = el('ladderPickBtn'); if (pk) pk.addEventListener('click', pickFromStudents);
+    var sr = el('ladderSelectRosterBtn'); if (sr) sr.addEventListener('click', openRosterPicker);
+    var sa = el('ladderSelectAllBtn'); if (sa) sa.addEventListener('click', function () {
+      var box = el('ladderRosterList');
+      if (box) box.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.checked = true; });
+      updateApplyCountLabel();
+    });
+    var sc = el('ladderClearSelectBtn'); if (sc) sc.addEventListener('click', function () {
+      var box = el('ladderRosterList');
+      if (box) box.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.checked = false; });
+      updateApplyCountLabel();
+    });
+    var ap = el('ladderApplySelectedBtn'); if (ap) ap.addEventListener('click', applySelectedRoster);
     var mi = el('ladderMinus'); if (mi) mi.addEventListener('click', function () {
       el('ladderCount').value = Math.max(2, (parseInt(el('ladderCount').value, 10) || 4) - 1); build();
     });
     var pl = el('ladderPlus'); if (pl) pl.addEventListener('click', function () {
-      el('ladderCount').value = Math.min(8, (parseInt(el('ladderCount').value, 10) || 4) + 1); build();
+      el('ladderCount').value = Math.min(12, (parseInt(el('ladderCount').value, 10) || 4) + 1); build();
     });
     var cv = el('ladderCanvas'); if (cv) cv.addEventListener('click', onCanvasClick);
     var lk = el('linksBtn'); if (lk) lk.addEventListener('click', function () { openModal('linksModal'); });

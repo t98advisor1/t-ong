@@ -40,7 +40,7 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.74">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.75">
 </head>
 <body>
 
@@ -1243,11 +1243,22 @@
           <label>참여 인원</label>
           <div class="lp-count">
             <button type="button" id="ladderMinus" class="count-btn">−</button>
-            <input type="number" id="ladderCount" value="4" min="2" max="8">
+            <input type="number" id="ladderCount" value="4" min="2" max="12">
             <button type="button" id="ladderPlus" class="count-btn">+</button>
           </div>
           <button type="button" id="ladderPickBtn" class="btn">🎲 학생에서 뽑기</button>
+          <button type="button" id="ladderSelectRosterBtn" class="btn">명렬표에서 선택</button>
           <button type="button" id="ladderMakeBtn" class="btn primary">🪜 사다리 만들기</button>
+        </div>
+        <div id="ladderRosterPicker" class="ladder-roster-picker" style="display:none;">
+          <div class="ladder-roster-head">
+            <label for="ladderClassSelect">저장된 학급 명렬표</label>
+            <select id="ladderClassSelect"></select>
+            <button type="button" id="ladderSelectAllBtn" class="btn-outline">전체 선택</button>
+            <button type="button" id="ladderClearSelectBtn" class="btn-outline">전체 해제</button>
+            <button type="button" id="ladderApplySelectedBtn" class="btn-primary">선택 적용 (0명)</button>
+          </div>
+          <div id="ladderRosterList" class="ladder-roster-chips"></div>
         </div>
         <div class="lp-cols">
           <div>
@@ -2704,7 +2715,7 @@
   </div>
 
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.73"></script>
+  <script src="/app.js?v=5.17.0-preview.75"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;
