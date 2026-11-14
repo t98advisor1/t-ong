@@ -2,14 +2,14 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.1.0-30';
+var CACHE_VERSION = 'v3.1.0-31';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
   '/',
   '/index.html',
-  '/style.css?v=5.17.0-preview.75',
-  '/app.js?v=5.17.0-preview.75',
+  '/style.css?v=5.17.0-preview.76',
+  '/app.js?v=5.17.0-preview.76',
   '/qr-lib.js',
   '/board.html',
   '/icon.svg',

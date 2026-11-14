@@ -12498,17 +12498,30 @@ window.TodayBriefing = TodayBriefing;
 
     if (svgBox) {
       svgBox.innerHTML = '';
+      var rendered = false;
       if (typeof window.qrcode === 'function' && url) {
         try {
-          var qr = window.qrcode(0, 'M');
+          if (window.qrcode.stringToBytesFuncs && window.qrcode.stringToBytesFuncs['UTF-8']) {
+            window.qrcode.stringToBytes = window.qrcode.stringToBytesFuncs['UTF-8'];
+          }
+          var qr = window.qrcode(0, 'L');
           qr.addData(url);
           qr.make();
           svgBox.innerHTML = qr.createSvgTag(6, 2);
+          rendered = true;
         } catch (err) {
-          svgBox.textContent = 'QR 생성 오류: 주소 길이를 확인해 주세요.';
+          rendered = false;
         }
-      } else {
-        svgBox.textContent = 'QR 라이브러리를 불러오지 못했습니다.';
+      }
+      if (!rendered && url) {
+        var img = document.createElement('img');
+        img.alt = (title || 'QR') + ' QR 코드';
+        img.width = 240;
+        img.height = 240;
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' + encodeURIComponent(url);
+        svgBox.appendChild(img);
+      } else if (!url) {
+        svgBox.textContent = '연결할 주소(URL)가 없습니다.';
       }
     }
 
@@ -12534,10 +12547,11 @@ window.TodayBriefing = TodayBriefing;
     modal.classList.add('show');
   }
 
-  function enhanceExtraMenuWithQrButtons() {
-    var menu = document.getElementById('extraMenu');
-    if (!menu) return;
-    menu.querySelectorAll('a[href^="http"]').forEach(function (link) {
+  function enhanceContainerWithQrButtons(containerId, kickerText) {
+    var box = document.getElementById(containerId);
+    if (!box) return;
+    box.querySelectorAll('a[href^="http"]').forEach(function (link) {
+      if (link.classList.contains('btn-outline') || link.id === 'qrShareOpenBtn') return;
       if (link.parentElement && link.parentElement.classList.contains('extra-qr-row')) return;
       var row = document.createElement('div');
       row.className = 'extra-qr-row';
@@ -12552,14 +12566,20 @@ window.TodayBriefing = TodayBriefing;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        menu.classList.remove('open');
+        if (box.classList.contains('more-menu')) box.classList.remove('open');
         showQrModal(link.textContent.trim(), link.href, {
-          kicker: '게임·학습 도구 QR 공유',
+          kicker: kickerText || '앱·사이트 QR 공유',
           desc: '교실 TV나 화면에 띄워 학생들이 스마트폰·태블릿으로 스캔하면 바로 접속합니다.'
         });
       });
       row.appendChild(btn);
     });
+  }
+
+  function enhanceExtraMenuWithQrButtons() {
+    enhanceContainerWithQrButtons('extraMenu', '게임·학습 도구 QR 공유');
+    enhanceContainerWithQrButtons('favMenu', '추천 사이트·학습 앱 QR 공유');
+    enhanceContainerWithQrButtons('linksModal', '자주 가는 사이트·앱 QR 공유');
   }
 
   var MemoBoardModule = (function () {
@@ -12862,7 +12882,11 @@ window.TodayBriefing = TodayBriefing;
       if (fsBtn && dialog) {
         fsBtn.addEventListener('click', function () {
           var fs = dialog.classList.toggle('is-fullscreen');
+          modal.classList.toggle('is-fullscreen-modal', fs);
           fsBtn.textContent = fs ? '기본 창' : '전체화면';
+          if (!fs && document.fullscreenElement) {
+            try { document.exitFullscreen(); } catch (e) {}
+          }
         });
       }
 
@@ -12888,6 +12912,11 @@ window.TodayBriefing = TodayBriefing;
       if (!modal) return;
       bindEvents();
       updateSyncUi();
+      var dialog = modal.querySelector('.memo-board-dialog');
+      var fsBtn = document.getElementById('memoBoardFullscreenBtn');
+      if (dialog) dialog.classList.add('is-fullscreen');
+      modal.classList.add('is-fullscreen-modal');
+      if (fsBtn) fsBtn.textContent = '기본 창';
       modal.classList.add('show');
       fetchNotes();
       if (pollTimer) clearInterval(pollTimer);

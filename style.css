@@ -6205,3 +6205,5 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   border: 1.5px dashed #cbd5e1;
   border-radius: 14px;
 }
+
+#memoBoardModal.is-fullscreen-modal { padding: 0; }
