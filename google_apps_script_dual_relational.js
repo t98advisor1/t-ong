@@ -1353,6 +1353,99 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
 
+    if (action === "notion_archive") {
+      var props = PropertiesService.getScriptProperties();
+      var token = String(body.notionToken || props.getProperty("NOTION_TOKEN") || "").trim();
+      var rawDb = String(body.databaseId || props.getProperty("NOTION_DATABASE_ID") || "").trim();
+      var dbMatch = rawDb.match(/[0-9a-fA-F]{32}/);
+      var dbId = dbMatch ? dbMatch[0] : rawDb.replace(/-/g, "");
+      if (!token || !dbId) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: false,
+          error: "노션 API 토큰과 데이터베이스 ID가 필요합니다."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var headers = {
+        "Authorization": "Bearer " + token,
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json"
+      };
+
+      // 대상 DB의 title 속성명 자동 탐색 (이름/제목/Name 등 모두 호환)
+      var titlePropName = "Name";
+      try {
+        var dbRes = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + dbId, {
+          method: "get",
+          headers: headers,
+          muteHttpExceptions: true
+        });
+        if (dbRes.getResponseCode() === 200) {
+          var dbJson = JSON.parse(dbRes.getContentText());
+          var pMap = dbJson.properties || {};
+          for (var pKey in pMap) {
+            if (pMap[pKey] && pMap[pKey].type === "title") {
+              titlePropName = pKey;
+              break;
+            }
+          }
+        }
+      } catch (dbErr) {}
+
+      var pageTitle = String(body.title || ((body.date || today) + " " + (body.className || "") + " 출결 기록")).trim();
+      var lines = Array.isArray(body.lines) ? body.lines : [];
+      var children = [];
+      if (body.summary) {
+        children.push({
+          object: "block",
+          type: "callout",
+          callout: {
+            rich_text: [{ type: "text", text: { content: String(body.summary).slice(0, 1900) } }],
+            color: "blue_background"
+          }
+        });
+      }
+      lines.slice(0, 80).forEach(function (line) {
+        children.push({
+          object: "block",
+          type: "bulleted_list_item",
+          bulleted_list_item: {
+            rich_text: [{ type: "text", text: { content: String(line).slice(0, 1900) } }]
+          }
+        });
+      });
+
+      var pageProps = {};
+      pageProps[titlePropName] = {
+        title: [{ type: "text", text: { content: pageTitle.slice(0, 200) } }]
+      };
+
+      var createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+        method: "post",
+        headers: headers,
+        payload: JSON.stringify({
+          parent: { database_id: dbId },
+          properties: pageProps,
+          children: children
+        }),
+        muteHttpExceptions: true
+      });
+      var code = createRes.getResponseCode();
+      var createBody = createRes.getContentText();
+      if (code >= 200 && code < 300) {
+        var created = JSON.parse(createBody);
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          url: created.url || "",
+          pageId: created.id || ""
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: "노션 API 오류 (" + code + "): " + createBody.slice(0, 300)
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "board_add" || action === "board_like" || action === "board_delete" || action === "board_clear") {
       var bSheet = ss.getSheetByName("_수업메모보드");
       if (!bSheet) {

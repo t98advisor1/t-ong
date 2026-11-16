@@ -6207,3 +6207,91 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 }
 
 #memoBoardModal.is-fullscreen-modal { padding: 0; }
+
+/* ================================================================= */
+/* 노션으로 보내기 모달 */
+/* ================================================================= */
+.notion-export-dialog {
+  max-width: 620px;
+  width: 94vw;
+}
+.notion-export-body {
+  padding: 16px 20px 20px;
+}
+.notion-mode-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.notion-scope-btn {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.83rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.notion-scope-btn.active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+#notionPreviewText {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  resize: vertical;
+}
+.notion-quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.notion-send-status {
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.notion-send-status.ok {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+.notion-send-status.err {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+.notion-api-fold {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 9px 12px;
+}
+.notion-api-fold summary {
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 800;
+  color: #334155;
+}
+.notion-api-fields {
+  margin-top: 10px;
+}
+.notion-api-fields label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+.notion-api-fields input {
+  margin-bottom: 10px !important;
+}

@@ -7843,9 +7843,42 @@ var Attend = (function () {
     var vpd = document.getElementById('avPeriod'); if (vpd) vpd.addEventListener('change', render);
   }
 
+  function getNotionExportData() {
+    var d = allClassData[currentClassIndex] || {};
+    var className = d.className || ((currentClassIndex + 1) + '반');
+    var dateInput = document.getElementById('avDate');
+    var dateKey = (dateInput && dateInput.value) || curDate;
+    var dayMap = bag(dateKey);
+    var rMap = reasonBag(dateKey);
+    var mMap = memoBag(dateKey);
+    var counts = { '출석': 0, '결석': 0, '지각': 0, '조퇴': 0, '결과': 0 };
+    var dayLines = [];
+    students.forEach(function (s) {
+      var st = dayMap[s.id] || '출석';
+      if (counts[st] !== undefined) counts[st]++;
+      if (st !== '출석') {
+        var rz = rMap[s.id] ? ' (' + rMap[s.id] + ')' : '';
+        var mm = mMap[s.id] ? ' - ' + mMap[s.id] : '';
+        dayLines.push((s.num ? s.num + '번 ' : '') + s.name + ': ' + st + rz + mm);
+      }
+    });
+    if (!dayLines.length && students.length) dayLines.push('특이사항 없음 (전원 출석)');
+    var daySummary = '총 ' + students.length + '명 · 출석 ' + counts['출석'] + ' / 결석 ' + counts['결석'] + ' / 지각 ' + counts['지각'] + ' / 조퇴 ' + counts['조퇴'] + ' / 결과 ' + counts['결과'];
+    return {
+      date: dateKey,
+      className: className,
+      daySummary: daySummary,
+      dayLines: dayLines,
+      periodName: periodLabel(),
+      table: buildTable()
+    };
+  }
+  window.getTongAttendExportData = getNotionExportData;
+
   return { init: init, mark: mark, get: get, render: render,
            getReason: getReason, getMemo: getMemo,
-           setState: setState, setReason: setReason, setMemo: setMemo };
+           setState: setState, setReason: setReason, setMemo: setMemo,
+           getNotionExportData: getNotionExportData };
 })();
 
 // ===================================================================
@@ -12951,4 +12984,197 @@ window.TodayBriefing = TodayBriefing;
 
   window.openQrShareModal = showQrModal;
   window.MemoBoardModule = MemoBoardModule;
+})();
+
+// ===================================================================
+// 출결 기록 노션(Notion) 내보내기 / 아카이빙 모듈
+// ===================================================================
+(function () {
+  'use strict';
+  var CFG_KEY = 'tong_notion_export_cfg_v1';
+  var currentScope = 'day';
+
+  function getStoredSheetUrl() {
+    var keys = ['tong_gsheet_webapp_url', 'tong_sheet_url', 'SR_GAS_MASTER_URL', 'swk_gsheet_url', 'swk_gsheet_homeroom_url', 'swk_gsheet_subject_url'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var v = localStorage.getItem(keys[i]);
+        if (v && /^https:\/\/script\.google\.com\/macros\/s\//.test(v.trim())) return v.trim();
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  function loadCfg() {
+    try {
+      var raw = localStorage.getItem(CFG_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveCfg(cfg) {
+    try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+
+  function buildMarkdownPayload(scope) {
+    var data = typeof window.getTongAttendExportData === 'function' ? window.getTongAttendExportData() : null;
+    if (!data) return { title: '출결 기록', summary: '', lines: [], markdown: '출결 데이터를 불러올 수 없습니다.' };
+    if (scope === 'period') {
+      var tbl = data.table || { head: [], rows: [] };
+      var title = data.className + ' ' + data.periodName + ' 출결표';
+      var mdLines = ['### ' + title, ''];
+      if (tbl.head.length) {
+        mdLines.push('| ' + tbl.head.join(' | ') + ' |');
+        mdLines.push('| ' + tbl.head.map(function () { return '---'; }).join(' | ') + ' |');
+        tbl.rows.forEach(function (r) {
+          mdLines.push('| ' + r.map(function (v) { return String(v == null ? '' : v).replace(/\|/g, '/'); }).join(' | ') + ' |');
+        });
+      }
+      var plainLines = tbl.rows.map(function (r) {
+        return (r[0] ? r[0] + ' ' : '') + r[1] + ' — 결석:' + r[r.length - 5] + ' 지각:' + r[r.length - 4] + ' 조퇴:' + r[r.length - 3] + ' 결과:' + r[r.length - 2] + (r[r.length - 1] ? ' (' + r[r.length - 1] + ')' : '');
+      });
+      return { title: title, date: data.date, className: data.className, summary: data.periodName + ' 누적 출결 요약', lines: plainLines, markdown: mdLines.join('\n') };
+    }
+    var dayTitle = data.date + ' ' + data.className + ' 출결 현황';
+    var md = ['### ' + dayTitle, '> ' + data.daySummary, ''].concat(data.dayLines.map(function (l) { return '- ' + l; })).join('\n');
+    return { title: dayTitle, date: data.date, className: data.className, summary: data.daySummary, lines: data.dayLines, markdown: md };
+  }
+
+  function refreshPreview() {
+    var ta = document.getElementById('notionPreviewText');
+    if (!ta) return;
+    ta.value = buildMarkdownPayload(currentScope).markdown;
+  }
+
+  function setStatus(msg, ok) {
+    var el = document.getElementById('notionSendStatus');
+    if (!el) return;
+    if (!msg) { el.style.display = 'none'; return; }
+    el.textContent = msg;
+    el.className = 'notion-send-status ' + (ok ? 'ok' : 'err');
+    el.style.display = 'block';
+  }
+
+  function openNotionModal() {
+    var modal = document.getElementById('notionExportModal');
+    if (!modal) return;
+    var cfg = loadCfg();
+    var pageEl = document.getElementById('notionPageUrlInput');
+    var tokEl = document.getElementById('notionTokenInput');
+    var dbEl = document.getElementById('notionDbIdInput');
+    if (pageEl) pageEl.value = cfg.pageUrl || '';
+    if (tokEl) tokEl.value = cfg.token || '';
+    if (dbEl) dbEl.value = cfg.dbId || '';
+    setStatus('');
+    refreshPreview();
+    modal.classList.add('show');
+  }
+
+  function initNotionExport() {
+    var btn = document.getElementById('avNotionBtn');
+    if (btn) btn.addEventListener('click', openNotionModal);
+    var modal = document.getElementById('notionExportModal');
+    if (!modal) return;
+
+    modal.querySelectorAll('.close-btn[data-modal="notionExportModal"]').forEach(function (cb) {
+      cb.addEventListener('click', function () { modal.classList.remove('show'); });
+    });
+
+    modal.querySelectorAll('.notion-scope-btn').forEach(function (sb) {
+      sb.addEventListener('click', function () {
+        modal.querySelectorAll('.notion-scope-btn').forEach(function (x) { x.classList.remove('active'); });
+        sb.classList.add('active');
+        currentScope = sb.getAttribute('data-scope') || 'day';
+        refreshPreview();
+      });
+    });
+
+    var copyBtn = document.getElementById('notionCopyMdBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var text = (document.getElementById('notionPreviewText') || {}).value || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            setStatus('노션용 마크다운 표를 복사했습니다. 노션 페이지에서 Ctrl+V로 붙여넣으세요.', true);
+          }, function () { setStatus('클립보드 복사에 실패했습니다.', false); });
+        }
+      });
+    }
+
+    var openPageBtn = document.getElementById('notionOpenPageBtn');
+    if (openPageBtn) {
+      openPageBtn.addEventListener('click', function () {
+        var url = ((document.getElementById('notionPageUrlInput') || {}).value || '').trim() || 'https://www.notion.so/';
+        window.open(url, '_blank', 'noopener');
+      });
+    }
+
+    var saveCfgBtn = document.getElementById('notionSaveCfgBtn');
+    if (saveCfgBtn) {
+      saveCfgBtn.addEventListener('click', function () {
+        saveCfg({
+          pageUrl: ((document.getElementById('notionPageUrlInput') || {}).value || '').trim(),
+          token: ((document.getElementById('notionTokenInput') || {}).value || '').trim(),
+          dbId: ((document.getElementById('notionDbIdInput') || {}).value || '').trim()
+        });
+        setStatus('노션 설정을 저장했습니다.', true);
+      });
+    }
+
+    var apiSendBtn = document.getElementById('notionApiSendBtn');
+    if (apiSendBtn) {
+      apiSendBtn.addEventListener('click', async function () {
+        var sheetUrl = getStoredSheetUrl();
+        var token = ((document.getElementById('notionTokenInput') || {}).value || '').trim();
+        var dbId = ((document.getElementById('notionDbIdInput') || {}).value || '').trim();
+        if (!sheetUrl) {
+          setStatus('자동 전송은 상단 [1 Google 시트 연동] 후 사용할 수 있습니다. 위 [노션용 표 복사]는 바로 사용 가능합니다.', false);
+          return;
+        }
+        if (!token || !dbId) {
+          var fold = document.getElementById('notionApiSettingsFold');
+          if (fold) fold.open = true;
+          setStatus('아래 설정에서 노션 API 통합 토큰과 데이터베이스 ID를 먼저 입력해 주세요.', false);
+          return;
+        }
+        saveCfg({ pageUrl: ((document.getElementById('notionPageUrlInput') || {}).value || '').trim(), token: token, dbId: dbId });
+        var payload = buildMarkdownPayload(currentScope);
+        apiSendBtn.disabled = true;
+        apiSendBtn.textContent = '노션으로 전송 중...';
+        try {
+          var res = await fetch(sheetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'notion_archive',
+              notionToken: token,
+              databaseId: dbId,
+              title: payload.title,
+              date: payload.date,
+              className: payload.className,
+              summary: payload.summary,
+              lines: payload.lines
+            })
+          });
+          var json = await res.json();
+          if (json && json.success) {
+            setStatus('노션 데이터베이스에 아카이빙을 완료했습니다!' + (json.url ? ' (' + json.url + ')' : ''), true);
+          } else {
+            setStatus((json && json.error) || '노션 전송에 실패했습니다. 최신 Apps Script 재배포 여부를 확인해 주세요.', false);
+          }
+        } catch (err) {
+          setStatus('네트워크 또는 스크립트 오류가 발생했습니다.', false);
+        } finally {
+          apiSendBtn.disabled = false;
+          apiSendBtn.textContent = '노션 DB로 자동 전송';
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotionExport);
+  } else {
+    initNotionExport();
+  }
 })();
