@@ -6297,20 +6297,20 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 }
 
 /* ================================================================= */
-/* 수업 도구: 총점에 딱 맞는 문항별 배점 설계 (SCORE PLANNER) */
+/* 수업 도구: 스무고개형 단계별 문항 배점 설계 (밝은 교무수첩 테마) */
 /* ================================================================= */
 html[data-theme] #scorePlannerModal .sp-modal-dialog,
 .sp-modal-dialog {
-  max-width: 980px;
-  width: 95vw;
-  background: #130b20 !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(217, 70, 239, 0.35);
-  box-shadow: 0 24px 64px rgba(10, 4, 24, 0.65);
+  max-width: 1040px;
+  width: 96vw;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
 }
 .sp-modal-header {
-  background: linear-gradient(135deg, #1b0f30 0%, #241342 100%);
-  border-bottom: 1px solid rgba(217, 70, 239, 0.25);
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6318,18 +6318,14 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
   flex-wrap: wrap;
 }
 .sp-modal-header h3 {
-  color: #ffffff;
-  font-size: 1.15rem;
-}
-.sp-modal-header .close-btn {
-  color: #cbd5e1;
+  color: #0f172a;
+  font-size: 1.12rem;
 }
 .sp-kicker {
   display: inline-block;
   font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  color: #f472b6;
+  font-weight: 800;
+  color: #4f46e5;
 }
 .sp-head-actions {
   display: flex;
@@ -6337,184 +6333,219 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
   gap: 7px;
   flex-wrap: wrap;
 }
-.sp-btn-magenta {
-  background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 9px;
-  padding: 8px 14px;
-  font-size: 0.84rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(217, 70, 239, 0.35);
-}
-.sp-btn-magenta:hover {
-  filter: brightness(1.08);
-}
-.sp-btn-dark {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 9px;
-  padding: 7px 12px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.sp-btn-dark:hover {
-  background: rgba(255, 255, 255, 0.16);
-}
 .sp-modal-body {
   padding: 16px 20px 22px;
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
-.sp-cond-card {
-  background: rgba(29, 17, 48, 0.9);
-  border: 1px solid rgba(217, 70, 239, 0.25);
-  border-radius: 14px;
-  padding: 15px 16px;
-}
-.sp-cond-top {
+.sp-step-progress {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.sp-cond-top h4 {
-  margin: 0;
-  font-size: 0.98rem;
-  color: #ffffff;
-}
-.sp-cond-top p {
-  margin: 2px 0 0;
-  font-size: 0.78rem;
-  color: #cbd5e1;
-}
-.sp-cond-btns {
-  display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 9px 14px;
 }
-.sp-input-grid {
+.sp-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.81rem;
+  font-weight: 800;
+  color: #1e293b;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+.sp-step-pill em {
+  font-style: normal;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sp-step-arrow {
+  color: #94a3b8;
+  font-weight: 900;
+}
+.sp-quiz-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  align-items: end;
+  gap: 12px;
 }
+.sp-q-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+}
+.sp-q-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.sp-q-head b {
+  font-size: 0.86rem;
+  color: #0f172a;
+  line-height: 1.35;
+}
+.sp-q-num {
+  font-size: 0.71rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.sp-q-num.q1 { background: #2563eb; }
+.sp-q-num.q2 { background: #059669; }
+.sp-q-num.q3 { background: #7c3aed; }
+.sp-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sp-preset-chip,
+.sp-step-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.sp-preset-chip.active,
+.sp-step-chip.active {
+  background: #dbeafe;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+.sp-q-inputs {
+  display: grid;
+  gap: 8px;
+}
+.sp-q-inputs.cols-2 { grid-template-columns: 1fr 1fr; }
+.sp-q-inputs.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .sp-field label {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: #cbd5e1;
-  margin-bottom: 5px;
+  color: #475569;
+  margin-bottom: 4px;
 }
 .sp-field input {
   width: 100%;
-  background: #0d0718 !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  border-radius: 9px;
-  padding: 9px 12px;
-  font-size: 0.95rem;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 0.9rem;
   font-weight: 700;
   margin-bottom: 0 !important;
 }
 .sp-field input:focus {
   outline: none;
-  border-color: #e879f9;
-}
-.sp-opt-wrap {
-  display: flex;
-  align-items: flex-end;
+  border-color: #2563eb !important;
+  background: #ffffff !important;
 }
 .sp-opt-btn {
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 9px;
-  background: rgba(250, 204, 21, 0.12);
-  color: #fde047;
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  font-size: 0.85rem;
+  margin-left: auto;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+  font-size: 0.73rem;
   font-weight: 800;
   cursor: pointer;
 }
 .sp-opt-btn:hover {
-  background: rgba(250, 204, 21, 0.22);
-}
-.sp-sort-row {
-  margin-top: 12px;
-}
-.sp-sort-row > label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #cbd5e1;
-  margin-bottom: 6px;
+  background: #d1fae5;
 }
 .sp-sort-toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #0d0718;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  padding: 4px;
-  gap: 4px;
+  grid-template-columns: 1fr;
+  gap: 5px;
 }
 .sp-sort-btn {
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 0.85rem;
-  font-weight: 800;
-  padding: 8px 10px;
-  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.79rem;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 8px;
   cursor: pointer;
+  text-align: left;
 }
 .sp-sort-btn.active {
-  background: rgba(217, 70, 239, 0.22);
-  color: #f0abfc;
-  border: 1px solid rgba(232, 121, 249, 0.45);
+  background: #ede9fe;
+  color: #5b21b6;
+  border-color: #8b5cf6;
+  font-weight: 800;
+}
+.sp-q-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+.sp-calc-main {
+  flex: 1 1 auto;
 }
 .sp-status-bar {
-  padding: 9px 12px;
+  padding: 9px 13px;
   border-radius: 9px;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
   font-weight: 700;
 }
 .sp-status-bar.ok {
-  background: #064e3b !important;
-  color: #d1fae5 !important;
-  border: 1px solid rgba(52, 211, 153, 0.5);
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 .sp-status-bar.err {
-  background: #7f1d1d !important;
-  color: #fee2e2 !important;
-  border: 1px solid rgba(248, 113, 113, 0.5);
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 .sp-result-card {
-  background: rgba(22, 13, 38, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 14px 16px;
-  color: #f8fafc;
+  color: #0f172a;
 }
 .sp-dist-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   margin-bottom: 12px;
 }
 .sp-dist-chip {
-  background: rgba(217, 70, 239, 0.14);
-  border: 1px solid rgba(232, 121, 249, 0.35);
-  color: #f5d0fe;
-  padding: 5px 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 .sp-sum-banner {
@@ -6523,22 +6554,22 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  background: #0d0718;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 9px 13px;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
   font-size: 0.86rem;
-  color: #e2e8f0;
+  color: #334155;
 }
 .sp-sum-banner strong {
-  color: #f472b6;
+  color: #2563eb;
   font-size: 1rem;
 }
 .sp-table-wrap {
-  max-height: 310px;
+  max-height: 290px;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
 }
 .sp-result-table {
@@ -6549,23 +6580,23 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
 .sp-result-table th {
   position: sticky;
   top: 0;
-  background: #1f1235;
-  color: #e2e8f0;
+  background: #f1f5f9;
+  color: #1e293b;
   font-weight: 800;
-  padding: 9px 10px;
+  padding: 8px 10px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid #cbd5e1;
 }
 .sp-result-table td {
   padding: 7px 10px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  color: #0f172a;
 }
 .sp-nudge-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
   width: 24px;
   height: 24px;
@@ -6573,22 +6604,21 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
   cursor: pointer;
 }
 .sp-nudge-btn:hover {
-  background: rgba(217, 70, 239, 0.35);
+  background: #dbeafe;
+  border-color: #93c5fd;
 }
 .sp-note-input {
   width: 100%;
-  background: #0d0718 !important;
-  color: #e2e8f0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 0.8rem;
   margin-bottom: 0 !important;
 }
-@media (max-width: 720px) {
-  .sp-input-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+@media (max-width: 860px) {
+  .sp-quiz-grid { grid-template-columns: 1fr; }
 }
 
 /* ================================================================= */
@@ -6718,3 +6748,41 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
 .lt-card-actions .lt-open-main {
   flex: 1 1 auto;
 }
+
+/* 6·7 도구 허브 접기/펼치기 섹션 */
+#classroomToolsHubModal.is-fullscreen-modal { padding: 0; }
+.lt-hub-fold {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+summary.lt-fold-sum {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+  padding: 4px 2px;
+}
+summary.lt-fold-sum::-webkit-details-marker { display: none; }
+.lt-fold-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+}
+.lt-fold-arrow {
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+.lt-hub-fold[open] .lt-fold-arrow { transform: rotate(180deg); }
+.lt-hub-fold[open] summary.lt-fold-sum { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; }
+.lt-hub-fold .lt-hub-grid { margin-bottom: 4px; }

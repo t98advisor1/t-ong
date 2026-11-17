@@ -40,7 +40,7 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.82">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.83">
 </head>
 <body>
 
@@ -65,7 +65,7 @@
         <button type="button" class="mode-tab" id="calendarBtn" title="5단계: 전체화면 NEIS 학사일정 및 상담 달력"><span class="tab-step-badge">5</span>일정·학사달력</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="extraBtn"><span class="tab-step-badge">6</span>교실 도구 ▾</button>
+          <button type="button" class="mode-tab" id="extraBtn" title="6단계: 교실 운영·발표 복불복·신체활동 게임 허브"><span class="tab-step-badge">6</span>교실 도구</button>
           <div class="more-menu fav-menu extra-cat-menu" id="extraMenu">
             <div class="fav-category-list">
               <details class="fav-category" open>
@@ -2765,7 +2765,25 @@
     </div>
   </div>
 
-  <!-- 7 수업 도구 허브 모달 (썸네일 + 설명 카드) -->
+  <!-- 6 교실 도구 허브 모달 (썸네일 + 접기/펼치기 카드) -->
+  <div id="classroomToolsHubModal" class="modal">
+    <div class="modal-content lt-hub-dialog">
+      <div class="modal-header lt-hub-header">
+        <div>
+          <span class="qr-share-kicker">6 · 교실 운영 &amp; 학급 활동 도구</span>
+          <h3 style="margin:2px 0 0;">교실 도구 한눈에 보기</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-outline" id="ctHubFoldAllBtn">모두 접기</button>
+          <button type="button" class="btn-outline" id="ctHubFullscreenBtn">전체화면</button>
+          <button class="close-btn" data-modal="classroomToolsHubModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body lt-hub-body" id="ctHubBody"></div>
+    </div>
+  </div>
+
+  <!-- 7 수업 도구 허브 모달 (썸네일 + 접기/펼치기 카드) -->
   <div id="lessonToolsHubModal" class="modal">
     <div class="modal-content lt-hub-dialog">
       <div class="modal-header lt-hub-header">
@@ -2774,6 +2792,7 @@
           <h3 style="margin:2px 0 0;">수업 도구 한눈에 보기</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-outline" id="ltHubFoldAllBtn">모두 접기</button>
           <button type="button" class="btn-outline" id="ltHubFullscreenBtn">전체화면</button>
           <button class="close-btn" data-modal="lessonToolsHubModal">&times;</button>
         </div>
@@ -2782,63 +2801,87 @@
     </div>
   </div>
 
-  <!-- 수업 도구: 총점에 딱 맞는 문항별 배점 설계 모달 -->
+  <!-- 수업 도구: 스무고개형 단계별 문항 배점 설계 모달 -->
   <div id="scorePlannerModal" class="modal">
     <div class="modal-content sp-modal-dialog">
       <div class="modal-header sp-modal-header">
         <div>
-          <span class="sp-kicker">SCORE PLANNER</span>
-          <h3 style="margin:2px 0 0;">총점에 딱 맞는 문항별 배점 설계</h3>
+          <span class="sp-kicker">출제 도우미 · 스무고개 배점 설계</span>
+          <h3 style="margin:2px 0 0;">단계별 문항 배점 설계기</h3>
         </div>
         <div class="sp-head-actions">
-          <button type="button" class="sp-btn-magenta" id="spSendGsBtn">구글 시트 자동 생성</button>
-          <button type="button" class="sp-btn-dark" id="spCopyGsFormulaBtn">수식 포함 시트 복사</button>
-          <button type="button" class="sp-btn-dark" id="spExcelBtn">엑셀(.xlsx) 복사/저장</button>
+          <button type="button" class="btn-primary" id="spSendGsBtn">구글 시트 자동 생성</button>
+          <button type="button" class="btn-outline" id="spCopyGsFormulaBtn">수식 포함 시트 복사</button>
+          <button type="button" class="btn-outline" id="spExcelBtn">엑셀(.xlsx) 저장</button>
           <button class="close-btn" data-modal="scorePlannerModal">&times;</button>
         </div>
       </div>
       <div class="modal-body sp-modal-body">
-        <div class="sp-cond-card">
-          <div class="sp-cond-top">
-            <div>
-              <h4>배점 조건</h4>
-              <p>문제 수와 배점 범위를 정하면 총점에 딱 맞는 문항별 배점과 구글 시트 수식을 즉시 만듭니다.</p>
+        <div class="sp-step-progress" aria-label="배점 설계 3단계">
+          <span class="sp-step-pill active"><em>1</em> 만점과 문항 수 정하기</span>
+          <span class="sp-step-arrow">→</span>
+          <span class="sp-step-pill active"><em>2</em> 최저·최고·간격 고르기</span>
+          <span class="sp-step-arrow">→</span>
+          <span class="sp-step-pill active"><em>3</em> 순서·조합 완성</span>
+        </div>
+
+        <div class="sp-quiz-grid">
+          <div class="sp-q-card">
+            <div class="sp-q-head"><span class="sp-q-num q1">질문 1</span><b>시험의 총점과 문제 수는 몇 개인가요?</b></div>
+            <div class="sp-chip-row">
+              <button type="button" class="sp-preset-chip active" data-total="100" data-count="25">100점 · 25문항</button>
+              <button type="button" class="sp-preset-chip" data-total="100" data-count="20">100점 · 20문항</button>
+              <button type="button" class="sp-preset-chip" data-total="100" data-count="30">100점 · 30문항</button>
+              <button type="button" class="sp-preset-chip" data-total="50" data-count="20">50점 · 20문항</button>
             </div>
-            <div class="sp-cond-btns">
-              <button type="button" class="sp-btn-magenta" id="spCalcBtn">조회</button>
-              <button type="button" class="sp-btn-dark" id="spOtherBtn">다른 조합</button>
-            </div>
-          </div>
-          <div class="sp-input-grid">
-            <div class="sp-field">
-              <label for="spTotalInput">총점</label>
-              <input type="number" id="spTotalInput" value="100" step="0.1" min="1">
-            </div>
-            <div class="sp-field">
-              <label for="spCountInput">문제 수</label>
-              <input type="number" id="spCountInput" value="25" step="1" min="1" max="100">
-            </div>
-            <div class="sp-opt-wrap">
-              <button type="button" class="sp-opt-btn" id="spOptimalBtn">최적 범위</button>
-            </div>
-            <div class="sp-field">
-              <label for="spMinInput">최저 점수</label>
-              <input type="number" id="spMinInput" value="3" step="0.1" min="0.1">
-            </div>
-            <div class="sp-field">
-              <label for="spMaxInput">최고 점수</label>
-              <input type="number" id="spMaxInput" value="5" step="0.1" min="0.1">
-            </div>
-            <div class="sp-field">
-              <label for="spStepInput">배점 간격</label>
-              <input type="number" id="spStepInput" value="0.1" step="0.1" min="0.1">
+            <div class="sp-q-inputs cols-2">
+              <div class="sp-field">
+                <label for="spTotalInput">목표 총점</label>
+                <input type="number" id="spTotalInput" value="100" step="0.1" min="1">
+              </div>
+              <div class="sp-field">
+                <label for="spCountInput">문제 수</label>
+                <input type="number" id="spCountInput" value="25" step="1" min="1" max="100">
+              </div>
             </div>
           </div>
-          <div class="sp-sort-row">
-            <label>정렬 순서</label>
+
+          <div class="sp-q-card">
+            <div class="sp-q-head">
+              <span class="sp-q-num q2">질문 2</span><b>가장 쉬운/어려운 문항의 점수 폭은?</b>
+              <button type="button" class="sp-opt-btn" id="spOptimalBtn">평균 기준 자동 추천</button>
+            </div>
+            <div class="sp-chip-row">
+              <button type="button" class="sp-step-chip active" data-step="0.1">0.1점 단위</button>
+              <button type="button" class="sp-step-chip" data-step="0.2">0.2점 단위</button>
+              <button type="button" class="sp-step-chip" data-step="0.5">0.5점 단위</button>
+              <button type="button" class="sp-step-chip" data-step="1">1점 단위</button>
+            </div>
+            <div class="sp-q-inputs cols-3">
+              <div class="sp-field">
+                <label for="spMinInput">최저 점수</label>
+                <input type="number" id="spMinInput" value="3" step="0.1" min="0.1">
+              </div>
+              <div class="sp-field">
+                <label for="spMaxInput">최고 점수</label>
+                <input type="number" id="spMaxInput" value="5" step="0.1" min="0.1">
+              </div>
+              <div class="sp-field">
+                <label for="spStepInput">배점 간격</label>
+                <input type="number" id="spStepInput" value="0.1" step="0.1" min="0.1">
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-q-card">
+            <div class="sp-q-head"><span class="sp-q-num q3">질문 3</span><b>배점 배치 순서와 조합을 정할까요?</b></div>
             <div class="sp-sort-toggle">
-              <button type="button" class="sp-sort-btn active" id="spSortAscBtn" data-sort="asc">오름차순</button>
-              <button type="button" class="sp-sort-btn" id="spSortDescBtn" data-sort="desc">내림차순</button>
+              <button type="button" class="sp-sort-btn active" id="spSortAscBtn" data-sort="asc">쉬운 문항부터 (오름차순)</button>
+              <button type="button" class="sp-sort-btn" id="spSortDescBtn" data-sort="desc">어려운 문항부터 (내림차순)</button>
+            </div>
+            <div class="sp-q-actions">
+              <button type="button" class="btn-primary sp-calc-main" id="spCalcBtn">배점표 산출하기</button>
+              <button type="button" class="btn-outline" id="spOtherBtn">다른 조합 뽑기</button>
             </div>
           </div>
         </div>
@@ -2847,12 +2890,12 @@
 
         <div class="sp-result-card" id="spResultContainer">
           <div class="sp-sum-banner" id="spSumBanner">
-            <span>조건을 확인하고 <b>[조회]</b>를 눌러 문항별 배점을 산출하세요.</span>
+            <span>위 질문에 답한 뒤 <b>[배점표 산출하기]</b>를 누르면 바로 완성됩니다.</span>
           </div>
           <div class="sp-dist-chips" id="spDistBar"></div>
           <div class="sp-table-wrap" id="spTableWrap">
-            <div style="padding:34px 14px;text-align:center;color:#94a3b8;font-size:0.86rem;">
-              산출된 문항별 배점과 누계가 여기에 표시됩니다.
+            <div style="padding:32px 14px;text-align:center;color:#64748b;font-size:0.86rem;">
+              산출된 문항별 배점과 누적 합계가 여기에 표시됩니다.
             </div>
           </div>
         </div>
@@ -2861,7 +2904,7 @@
   </div>
 
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.82"></script>
+  <script src="/app.js?v=5.17.0-preview.83"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

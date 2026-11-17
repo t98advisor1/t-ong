@@ -9260,9 +9260,8 @@ function initModeTabs() {
     }
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
-      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('extraMenu');
-      if (!menu.classList.contains('open')) positionMobileExtraMenu();
-      menu.classList.toggle('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus();
+      if (window.ClassroomToolsHubModule) window.ClassroomToolsHubModule.open();
     });
     document.addEventListener('click', function () { menu.classList.remove('open'); });
     menu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -13506,6 +13505,23 @@ window.TodayBriefing = TodayBriefing;
     var calcBtn = el('spCalcBtn'); if (calcBtn) calcBtn.addEventListener('click', function () { generateAndRender(seedCounter); });
     var otherBtn = el('spOtherBtn'); if (otherBtn) otherBtn.addEventListener('click', function () { seedCounter++; generateAndRender(seedCounter); });
     var optBtn = el('spOptimalBtn'); if (optBtn) optBtn.addEventListener('click', applyOptimalRange);
+    modal.querySelectorAll('.sp-preset-chip').forEach(function (ch) {
+      ch.addEventListener('click', function () {
+        modal.querySelectorAll('.sp-preset-chip').forEach(function (x) { x.classList.remove('active'); });
+        ch.classList.add('active');
+        if (el('spTotalInput')) el('spTotalInput').value = ch.getAttribute('data-total') || '100';
+        if (el('spCountInput')) el('spCountInput').value = ch.getAttribute('data-count') || '25';
+        applyOptimalRange();
+      });
+    });
+    modal.querySelectorAll('.sp-step-chip').forEach(function (sc) {
+      sc.addEventListener('click', function () {
+        modal.querySelectorAll('.sp-step-chip').forEach(function (x) { x.classList.remove('active'); });
+        sc.classList.add('active');
+        if (el('spStepInput')) el('spStepInput').value = sc.getAttribute('data-step') || '0.1';
+        generateAndRender(seedCounter);
+      });
+    });
     var ascBtn = el('spSortAscBtn');
     var descBtn = el('spSortDescBtn');
     [ascBtn, descBtn].forEach(function (sb) {
@@ -13537,7 +13553,7 @@ window.TodayBriefing = TodayBriefing;
   window.ScorePlannerModule = { open: open };
 })();
 // ===================================================================
-// 상단 드롭다운 겹침 방지 & 7 수업 도구 썸네일 허브 모듈
+// 상단 드롭다운 겹침 방지 & 6 교실 도구 · 7 수업 도구 썸네일 접기/펼치기 허브
 // ===================================================================
 (function () {
   'use strict';
@@ -13551,150 +13567,86 @@ window.TodayBriefing = TodayBriefing;
     });
   };
 
-  var DESIGN_TOOLS = [
-    {
-      openKey: 'scorePlanner',
-      tag: '출제 설계',
-      title: '문항별 배점 설계기',
-      desc: '총점·문제 수·최저/최고점을 넣으면 딱 맞는 문항 배점과 구글 시트 수식을 자동 산출합니다.',
-      bg: 'linear-gradient(135deg, #6d28d9 0%, #db2777 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>'
-    },
-    {
-      openKey: 'memoBoard',
-      tag: '실시간 참여',
-      title: '수업 메모보드 (패들렛형)',
-      desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.',
-      bg: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>'
-    },
-    {
-      openKey: 'timer',
-      tag: '시간 관리',
-      title: '간편 타이머',
-      desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.',
-      bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>'
-    }
-  ];
+  var ITEMS = {
+    scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
+    memoBoard: { openKey: 'memoBoard', tag: '실시간 참여', title: '수업 메모보드 (패들렛형)', desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
+    timer: { openKey: 'timer', tag: '시간 관리', title: '간편 타이머', desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.', bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
+    praise: { openKey: 'praise', tag: '생활 지도', title: '칭찬 포인트', desc: '알·병아리·닭 4단계 성장 배지로 학생별 칭찬 점수를 기록하고 시트에 동기화합니다.', bg: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M32 10l6.5 13.5L53 25.5 42.5 36l2.5 14.5L32 43.5l-13 7 2.5-14.5L11 25.5l14.5-2z" fill="#fef08a" stroke="#fff" stroke-width="2.5"/></svg>' },
+    duty: { openKey: 'duty', tag: '학급 역할', title: '1인 1역', desc: '학급 역할을 직접 또는 무작위로 배정하고 엑셀 명단 및 시트 8번 탭과 연동합니다.', bg: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="24" cy="22" r="7" fill="#fff"/><circle cx="42" cy="24" r="6" fill="rgba(255,255,255,0.7)"/><path d="M12 48c0-7 5-12 12-12s12 5 12 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M36 48c0-5 4-9 9-9s8 4 8 9" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round"/></svg>' },
+    notice: { openKey: 'notice', tag: '전달 사항', title: '오늘의 알림장', desc: '준비물·과제·공지를 학급별로 저장하고 교실 TV 화면 가득 크게 띄워 보여줍니다.', bg: 'linear-gradient(135deg, #2563eb 0%, #6366f1 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="10" width="40" height="44" rx="6" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M20 22h24M20 32h24M20 42h16" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
+    pick: { openKey: 'pick', tag: '발표 선정', title: '룰렛 뽑기', desc: '저장된 우리 반 명단으로 회전 룰렛을 돌려 공정하게 발표자를 추첨합니다.', bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M32 12v20l14 14M32 32L14 40" stroke="#fff" stroke-width="2.5"/><circle cx="32" cy="32" r="4" fill="#fde047"/></svg>' },
+    ladder: { openKey: 'ladder', tag: '역할·팀 정하기', title: '사다리타기', desc: '우리 반 명렬표에서 참여 학생을 골라 사다리를 타고 당번과 모둠 결과를 뽑습니다.', bg: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M16 12v40M32 12v40M48 12v40M16 24h16M32 34h16M16 42h16" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
+    marble: { title: '마블룰렛 (3D)', url: 'https://t98advisor1.github.io/marble-roulette-3d/', tag: '복불복 3D', desc: '구슬이 3D 장애물을 통과해 결승선에 도달하는 박진감 넘치는 발표·당번 선정 룰렛입니다.', bg: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="22" cy="22" r="7" fill="#fde047"/><circle cx="42" cy="30" r="7" fill="#a5f3fc"/><circle cx="28" cy="44" r="7" fill="#fbcfe8"/><path d="M12 52h40" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
+    lucky7: { title: '딱 7.000초를 잡아라!', url: 'https://lucky7-classroom-app.onrender.com/', tag: 'QR 실시간 대항전', desc: '학생들이 스마트폰으로 동시에 7.000초 정지에 도전하는 우리 반 실시간 손가락 게임입니다.', bg: 'linear-gradient(135deg, #ea580c 0%, #dc2626 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="44" height="32" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><text x="32" y="38" text-anchor="middle" fill="#fde047" font-size="17" font-weight="900">7.000</text></svg>' },
+    rouletteExt: { title: '랜덤게임', url: 'https://lazygyu.github.io/roulette/', tag: '웹 룰렛', desc: '이름과 인원을 자유롭게 붙여 돌리는 가볍고 빠른 웹 기반 랜덤 뽑기 룰렛입니다.', bg: 'linear-gradient(135deg, #475569 0%, #334155 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="18" stroke="#fff" stroke-width="3" stroke-dasharray="8 5"/><polygon points="32,8 27,18 37,18" fill="#fde047"/></svg>' },
+    geomVec: { title: '기하 벡터', url: 'https://go.geomath.workers.dev/', tag: '기하 탐구', desc: '평면·공간 벡터의 합, 내적, 위치 벡터를 직접 움직여 보며 직관적으로 이해합니다.', bg: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M12 50L50 18M12 50h38M12 50V14" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="18" r="4" fill="#fde047"/></svg>' },
+    aiMath: { title: '인공지능 수학', url: 'https://ai-math-practice.vercel.app/', tag: 'AI 수학', desc: '행렬 연산, 손실함수, 경사하강법 등 인공지능의 수학 원리를 단계별로 실습합니다.', bg: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="16" cy="20" r="5" fill="#fff"/><circle cx="16" cy="44" r="5" fill="#fff"/><circle cx="48" cy="32" r="6" fill="#fde047"/><path d="M21 21l21 9M21 43l21-9" stroke="#fff" stroke-width="2.5"/></svg>' },
+    setGame: { title: 'SET(셋)', url: 'https://mathset.vercel.app/', tag: '사고력', desc: '모양·색·개수·무늬 4가지 속성의 규칙을 찾는 논리·집합 사고력 활동 게임입니다.', bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="12" height="32" rx="6" fill="#fff"/><rect x="26" y="16" width="12" height="32" rx="6" fill="rgba(255,255,255,0.55)"/><rect x="42" y="16" width="12" height="32" rx="6" stroke="#fff" stroke-width="2.5"/></svg>' },
+    stockArena: { title: 'Stock Arena v3 (모의주식투자)', url: 'https://stock-arena-v3.vercel.app/', tag: '경제·확률', desc: '뉴스와 차트 데이터를 분석하며 교실에서 함께 즐기는 실시간 모의주식투자 앱입니다.', bg: 'linear-gradient(135deg, #059669 0%, #10b981 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 46l14-14 10 8 20-22" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 18h10v10" stroke="#fde047" stroke-width="3" stroke-linecap="round"/></svg>' },
+    geogebra: { title: '지오지브라 (GeoGebra)', url: 'https://www.geogebra.org/?lang=ko', tag: '그래프·기하', desc: '함수, 도형, 3D 입체, 통계 작도를 한 화면에서 조작할 수 있는 대표 수학 도구입니다.', bg: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="32" rx="20" ry="12" transform="rotate(-25 32 32)" stroke="#fff" stroke-width="2.8"/><circle cx="20" cy="26" r="4" fill="#fde047"/><circle cx="44" cy="38" r="4" fill="#fde047"/></svg>' },
+    desmos: { title: '데스모스 (Desmos)', url: 'https://www.desmos.com/?lang=ko', tag: '함수 그래프', desc: '수식을 입력하면 그래프가 즉시 그려지고 슬라이더로 매개변수 변화를 실험합니다.', bg: 'linear-gradient(135deg, #0d9488 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 44c8-26 16-26 22 0s14 26 22 0" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>' },
+    tongrami: { title: '통그라미', url: 'https://tong.mods.go.kr/front/main/main.do', tag: '통계 시각화', desc: '통계청에서 제공하는 초·중·고 교실용 통계 표·그래프·자료 분석 웹 도구입니다.', bg: 'linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="32" width="10" height="20" rx="2" fill="#fff"/><rect x="27" y="20" width="10" height="32" rx="2" fill="#fff"/><rect x="42" y="12" width="10" height="40" rx="2" fill="#fef08a"/></svg>' },
+    askMath: { title: 'ASK MATH', url: 'https://askmath.kosac.re.kr/main.do', tag: '수학 탐구', desc: '한국과학창의재단의 수학 개념 탐구, 생활 속 수학, 교수학습 자료 포털입니다.', bg: 'linear-gradient(135deg, #475569 0%, #1e293b 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M14 14h36v28H26l-10 8v-8h-2V14z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.8"/><text x="32" y="34" text-anchor="middle" fill="#fde047" font-size="18" font-weight="800">?</text></svg>' },
+    handRush: { title: '핸드러시', url: 'https://mathlove22.github.io/hand-rush-car/', tag: '웹캠 모션 게임', desc: '손동작으로 자동차를 조종해 쉬는시간에 다 함께 즐기는 AI 모션 레이싱 게임입니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="26" width="40" height="18" rx="6" fill="rgba(255,255,255,0.25)" stroke="#fff" stroke-width="2.5"/><circle cx="22" cy="46" r="5" fill="#fde047"/><circle cx="42" cy="46" r="5" fill="#fde047"/></svg>' },
+    handKart: { title: '핸드 카트라이더', url: 'https://handcar26.netlify.app/', tag: '스피드 모션', desc: '두 손 핸들 조작으로 교실 TV 앞에서 박진감 있게 즐기는 모션 카트 게임입니다.', bg: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="18" stroke="#fff" stroke-width="3.5"/><circle cx="32" cy="32" r="6" fill="#fde047"/><path d="M14 32h12M38 32h12M32 38v12" stroke="#fff" stroke-width="3"/></svg>' },
+    poseChallenge: { title: '온몸으로 찰칵! 포즈 챌린지', url: 'https://t98advisor1.github.io/pose-mission-training/', tag: '신체 협동', desc: '화면 속 미션 포즈를 몸으로 따라 하며 점수를 겨루는 교실 스트레칭·게임입니다.', bg: 'linear-gradient(135deg, #db2777 0%, #e11d48 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="16" r="6" fill="#fde047"/><path d="M16 28l16-4 16 4M32 24v16l-10 14M32 40l10 14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
+    yutnori: { title: '윷놀이', url: 'https://yutnori-seven.vercel.app/', tag: '전통 협동', desc: '모둠 대항전으로 교실 대형 화면에 띄워 즐기는 디지털 전통 윷놀이 보드게임입니다.', bg: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="12" width="40" height="40" rx="6" stroke="#fff" stroke-width="2.5" fill="rgba(255,255,255,0.16)"/><path d="M14 14l36 36M50 14L14 50" stroke="#fde047" stroke-width="2.2"/></svg>' },
+    pangpang: { title: '기지개팡팡', url: 'https://pangpang-six.vercel.app/', tag: '스트레칭', desc: '수업 사이 1분 동안 기지개와 팔 뻗기로 교실 공기를 환기하는 활력 게임입니다.', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M32 10v16M14 22l12 10M50 22L38 32M22 50h20" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="34" r="5" fill="#fde047"/></svg>' },
+    turtleNeck: { title: '거북목탈출', url: 'https://stretching-zeta.vercel.app/', tag: '건강 체조', desc: '웹캠 자세 인식으로 고개·어깨 스트레칭 동작을 따라 하며 피로를 푸는 앱입니다.', bg: 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="22" r="9" fill="rgba(255,255,255,0.25)" stroke="#fff" stroke-width="2.8"/><path d="M18 48c3-9 25-9 28 0" stroke="#fde047" stroke-width="3" stroke-linecap="round"/></svg>' },
+    singer: { title: '나는 가수다', url: 'https://iamsinger.vercel.app/', tag: '음악·참여', desc: '학생들과 가볍게 음정·리듬 대결을 펼치며 교실 분위기를 띄우는 노래 게임입니다.', bg: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M26 44V18l20-4v26" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="21" cy="45" r="5" fill="#fde047"/><circle cx="41" cy="41" r="5" fill="#fde047"/></svg>' },
+    faceMuscle: { title: '안면근육훈련', url: 'https://joker-nine-pink.vercel.app/', tag: '웃음 활동', desc: '표정 인식으로 웃음과 얼굴 근육 운동을 겨루며 어색한 분위기를 깨는 활동입니다.', bg: 'linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.8"/><path d="M22 36c3 6 17 6 20 0" stroke="#fde047" stroke-width="3" stroke-linecap="round"/></svg>' },
+    toonAi: { title: '인공지능 수학 웹툰', url: 'https://blog.naver.com/math-tong/224445777366', tag: '웹툰 연재', desc: '인공지능 속에 숨어 있는 수학 개념을 학생 눈높이의 스토리텔링 웹툰으로 읽습니다.', bg: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="12" width="40" height="40" rx="6" stroke="#fff" stroke-width="2.5" fill="rgba(255,255,255,0.18)"/><path d="M32 12v40M12 32h40" stroke="#fff" stroke-width="2"/></svg>' },
+    toonEcon: { title: '경제수학 웹툰', url: 'https://blog.naver.com/math-tong/224444187292', tag: '웹툰 연재', desc: '복리·환율·의사결정 등 실생활 경제 수학 이야기를 웹툰으로 쉽게 접합니다.', bg: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="18" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.8"/><text x="32" y="38" text-anchor="middle" fill="#fde047" font-size="18" font-weight="900">W</text></svg>' },
+    tarot: { title: '별빛 청춘 3D 타로', url: 'https://starlight-tarot-3d.vercel.app/', tag: '체험 활용 앱', desc: '진로·학업 고민 상담 도입이나 아이스브레이킹에 활용할 수 있는 3D 타로 체험입니다.', bg: 'linear-gradient(135deg, #6d28d9 0%, #312e81 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="20" y="10" width="24" height="44" rx="4" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><circle cx="32" cy="32" r="6" fill="#fde047"/></svg>' },
+    kwansang: { title: '관상 연구소', url: 'https://kwansang.vercel.app/', tag: '체험 활용 앱', desc: '사진 인식을 바탕으로 재치 있는 성향 메시지를 보여주는 쉬는시간 체험 앱입니다.', bg: 'linear-gradient(135deg, #be185d 0%, #9d174d 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="30" r="16" stroke="#fff" stroke-width="2.8" fill="rgba(255,255,255,0.16)"/><circle cx="26" cy="27" r="2.5" fill="#fde047"/><circle cx="38" cy="27" r="2.5" fill="#fde047"/><path d="M26 36c3 3 9 3 12 0" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>' }
+  };
 
-  var LEARNING_APPS = [
-    {
-      title: '기하 벡터',
-      url: 'https://go.geomath.workers.dev/',
-      tag: '기하 탐구',
-      desc: '평면·공간 벡터의 합, 내적, 위치 벡터를 직접 움직여 보며 직관적으로 이해합니다.',
-      bg: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M12 50L50 18M12 50h38M12 50V14" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="18" r="4" fill="#fde047"/></svg>'
-    },
-    {
-      title: '인공지능 수학',
-      url: 'https://ai-math-practice.vercel.app/',
-      tag: 'AI 수학',
-      desc: '행렬 연산, 손실함수, 경사하강법 등 인공지능의 수학 원리를 단계별로 실습합니다.',
-      bg: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="16" cy="20" r="5" fill="#fff"/><circle cx="16" cy="44" r="5" fill="#fff"/><circle cx="48" cy="32" r="6" fill="#fde047"/><path d="M21 21l21 9M21 43l21-9" stroke="#fff" stroke-width="2.5"/></svg>'
-    },
-    {
-      title: 'SET(셋)',
-      url: 'https://mathset.vercel.app/',
-      tag: '사고력',
-      desc: '모양·색·개수·무늬 4가지 속성의 규칙을 찾는 논리·집합 사고력 활동 게임입니다.',
-      bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="12" height="32" rx="6" fill="#fff"/><rect x="26" y="16" width="12" height="32" rx="6" fill="rgba(255,255,255,0.55)"/><rect x="42" y="16" width="12" height="32" rx="6" stroke="#fff" stroke-width="2.5"/></svg>'
-    },
-    {
-      title: 'Stock Arena v3 (모의주식투자)',
-      url: 'https://stock-arena-v3.vercel.app/',
-      tag: '경제·확률',
-      desc: '뉴스와 차트 데이터를 분석하며 교실에서 함께 즐기는 실시간 모의주식투자 앱입니다.',
-      bg: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 46l14-14 10 8 20-22" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 18h10v10" stroke="#fde047" stroke-width="3" stroke-linecap="round"/></svg>'
-    },
-    {
-      title: '지오지브라 (GeoGebra)',
-      url: 'https://www.geogebra.org/?lang=ko',
-      tag: '그래프·기하',
-      desc: '함수, 도형, 3D 입체, 통계 작도를 한 화면에서 조작할 수 있는 대표 수학 도구입니다.',
-      bg: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="32" rx="20" ry="12" transform="rotate(-25 32 32)" stroke="#fff" stroke-width="2.8"/><circle cx="20" cy="26" r="4" fill="#fde047"/><circle cx="44" cy="38" r="4" fill="#fde047"/></svg>'
-    },
-    {
-      title: '데스모스 (Desmos)',
-      url: 'https://www.desmos.com/?lang=ko',
-      tag: '함수 그래프',
-      desc: '수식을 입력하면 그래프가 즉시 그려지고 슬라이더로 매개변수 변화를 실험합니다.',
-      bg: 'linear-gradient(135deg, #0d9488 0%, #0284c7 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 44c8-26 16-26 22 0s14 26 22 0" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>'
-    },
-    {
-      title: '통그라미',
-      url: 'https://tong.mods.go.kr/front/main/main.do',
-      tag: '통계 시각화',
-      desc: '통계청에서 제공하는 초·중·고 교실용 통계 표·그래프·자료 분석 웹 도구입니다.',
-      bg: 'linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="32" width="10" height="20" rx="2" fill="#fff"/><rect x="27" y="20" width="10" height="32" rx="2" fill="#fff"/><rect x="42" y="12" width="10" height="40" rx="2" fill="#fef08a"/></svg>'
-    },
-    {
-      title: 'ASK MATH',
-      url: 'https://askmath.kosac.re.kr/main.do',
-      tag: '수학 탐구',
-      desc: '한국과학창의재단의 수학 개념 탐구, 생활 속 수학, 교수학습 자료 포털입니다.',
-      bg: 'linear-gradient(135deg, #475569 0%, #1e293b 100%)',
-      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M14 14h36v28H26l-10 8v-8h-2V14z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.8"/><text x="32" y="34" text-anchor="middle" fill="#fde047" font-size="18" font-weight="800">?</text></svg>'
-    }
-  ];
-
-  function renderHub() {
-    var body = document.getElementById('ltHubBody');
-    if (!body || body.dataset.rendered === '1') return;
-    body.dataset.rendered = '1';
-
-    var html = '<div class="lt-sec-title"><span>출제 · 수업 설계 도구</span><small>3개</small></div><div class="lt-hub-grid">';
-    DESIGN_TOOLS.forEach(function (t) {
-      html += '<div class="lt-card">' +
-        '<div class="lt-thumb" style="background:' + t.bg + '"><span class="lt-thumb-tag">' + t.tag + '</span>' + t.svg + '</div>' +
-        '<div class="lt-card-body">' +
-          '<h4 class="lt-card-title">' + t.title + '</h4>' +
-          '<p class="lt-card-desc">' + t.desc + '</p>' +
-          '<div class="lt-card-actions"><button type="button" class="btn-primary lt-open-main" data-hub-open="' + t.openKey + '">바로 실행</button></div>' +
-        '</div>' +
-      '</div>';
-    });
-    html += '</div>';
-
-    html += '<div class="lt-sec-title"><span>교과 · 학습용 앱</span><small>8개 · QR 학생 접속 지원</small></div><div class="lt-hub-grid">';
-    LEARNING_APPS.forEach(function (a, idx) {
-      html += '<div class="lt-card">' +
-        '<div class="lt-thumb" style="background:' + a.bg + '"><span class="lt-thumb-tag">' + a.tag + '</span>' + a.svg + '</div>' +
-        '<div class="lt-card-body">' +
-          '<h4 class="lt-card-title">' + a.title + '</h4>' +
-          '<p class="lt-card-desc">' + a.desc + '</p>' +
-          '<div class="lt-card-actions">' +
-            '<a class="btn-primary lt-open-main" href="' + a.url + '" target="_blank" rel="noopener noreferrer">앱 열기</a>' +
-            '<button type="button" class="btn-outline lt-hub-qr" data-app-idx="' + idx + '">QR</button>' +
+  function renderCategoryHub(bodyEl, modalId, categories) {
+    if (!bodyEl || bodyEl.dataset.rendered === '1') return;
+    bodyEl.dataset.rendered = '1';
+    var html = '';
+    categories.forEach(function (cat) {
+      html += '<details class="lt-hub-fold" open>' +
+        '<summary class="lt-fold-sum">' +
+          '<span>' + cat.title + '</span>' +
+          '<span class="lt-fold-right"><span>' + cat.keys.length + '개' + (cat.note ? ' · ' + cat.note : '') + '</span><span class="lt-fold-arrow">▾</span></span>' +
+        '</summary>' +
+        '<div class="lt-hub-grid">';
+      cat.keys.forEach(function (key) {
+        var it = ITEMS[key];
+        if (!it) return;
+        var actionsHtml = it.openKey
+          ? '<button type="button" class="btn-primary lt-open-main" data-hub-open="' + it.openKey + '">바로 실행</button>'
+          : '<a class="btn-primary lt-open-main" href="' + it.url + '" target="_blank" rel="noopener noreferrer">앱 열기</a>' +
+            '<button type="button" class="btn-outline lt-hub-qr" data-item-key="' + key + '">QR</button>';
+        html += '<div class="lt-card">' +
+          '<div class="lt-thumb" style="background:' + it.bg + '"><span class="lt-thumb-tag">' + it.tag + '</span>' + it.svg + '</div>' +
+          '<div class="lt-card-body">' +
+            '<h4 class="lt-card-title">' + it.title + '</h4>' +
+            '<p class="lt-card-desc">' + it.desc + '</p>' +
+            '<div class="lt-card-actions">' + actionsHtml + '</div>' +
           '</div>' +
-        '</div>' +
-      '</div>';
+        '</div>';
+      });
+      html += '</div></details>';
     });
-    html += '</div>';
-    body.innerHTML = html;
+    bodyEl.innerHTML = html;
 
-    body.querySelectorAll('[data-hub-open]').forEach(function (b) {
+    bodyEl.querySelectorAll('[data-hub-open]').forEach(function (b) {
       b.addEventListener('click', function () {
-        var modal = document.getElementById('lessonToolsHubModal');
+        var modal = document.getElementById(modalId);
         if (modal) modal.classList.remove('show');
         var key = b.getAttribute('data-hub-open');
         var openMap = window.TongHeaderOpenMap || {};
         if (openMap[key]) openMap[key]();
       });
     });
-    body.querySelectorAll('.lt-hub-qr').forEach(function (qb) {
+    bodyEl.querySelectorAll('.lt-hub-qr').forEach(function (qb) {
       qb.addEventListener('click', function () {
-        var app = LEARNING_APPS[parseInt(qb.getAttribute('data-app-idx'), 10)];
-        if (app && typeof window.openQrShareModal === 'function') {
-          window.openQrShareModal(app.title, app.url, {
-            kicker: '학습용 앱 QR 공유',
+        var it = ITEMS[qb.getAttribute('data-item-key')];
+        if (it && it.url && typeof window.openQrShareModal === 'function') {
+          window.openQrShareModal(it.title, it.url, {
+            kicker: '학생 접속용 QR 공유',
             desc: '교실 TV나 화면에 띄워 학생들이 스마트폰·태블릿으로 스캔하면 바로 접속합니다.'
           });
         }
@@ -13702,27 +13654,57 @@ window.TodayBriefing = TodayBriefing;
     });
   }
 
-  function open() {
-    var modal = document.getElementById('lessonToolsHubModal');
-    if (!modal) return;
-    renderHub();
-    var dialog = modal.querySelector('.lt-hub-dialog');
-    var fsBtn = document.getElementById('ltHubFullscreenBtn');
-    if (modal.dataset.bound !== '1') {
-      modal.dataset.bound = '1';
-      modal.querySelectorAll('.close-btn[data-modal="lessonToolsHubModal"]').forEach(function (cb) {
-        cb.addEventListener('click', function () { modal.classList.remove('show'); });
-      });
-      if (fsBtn && dialog) {
-        fsBtn.addEventListener('click', function () {
-          var fs = dialog.classList.toggle('is-fullscreen');
-          modal.classList.toggle('is-fullscreen-modal', fs);
-          fsBtn.textContent = fs ? '기본 창' : '전체화면';
+  function createHubController(modalId, bodyId, foldAllId, fsBtnId, categories) {
+    function open() {
+      var modal = document.getElementById(modalId);
+      var body = document.getElementById(bodyId);
+      if (!modal || !body) return;
+      renderCategoryHub(body, modalId, categories);
+      if (modal.dataset.bound !== '1') {
+        modal.dataset.bound = '1';
+        modal.querySelectorAll('.close-btn[data-modal="' + modalId + '"]').forEach(function (cb) {
+          cb.addEventListener('click', function () { modal.classList.remove('show'); });
         });
+        var foldBtn = document.getElementById(foldAllId);
+        if (foldBtn) {
+          foldBtn.addEventListener('click', function () {
+            var folds = body.querySelectorAll('details.lt-hub-fold');
+            var anyOpen = Array.from(folds).some(function (f) { return f.open; });
+            folds.forEach(function (f) { f.open = !anyOpen; });
+            foldBtn.textContent = anyOpen ? '모두 펼치기' : '모두 접기';
+          });
+        }
+        var fsBtn = document.getElementById(fsBtnId);
+        var dialog = modal.querySelector('.lt-hub-dialog');
+        if (fsBtn && dialog) {
+          fsBtn.addEventListener('click', function () {
+            var fs = dialog.classList.toggle('is-fullscreen');
+            modal.classList.toggle('is-fullscreen-modal', fs);
+            fsBtn.textContent = fs ? '기본 창' : '전체화면';
+          });
+        }
       }
+      modal.classList.add('show');
     }
-    modal.classList.add('show');
+    return { open: open };
   }
 
-  window.LessonToolsHubModule = { open: open };
+  window.ClassroomToolsHubModule = createHubController(
+    'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn',
+    [
+      { title: '학급 운영 · 생활 지도', keys: ['praise', 'duty', 'notice', 'memoBoard', 'timer'] },
+      { title: '발표 · 뽑기 복불복', note: 'QR 참여 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
+      { title: '쉬는시간 · 신체활동 게임', note: 'QR 학생 공유 지원', keys: ['handRush', 'handKart', 'poseChallenge', 'yutnori', 'pangpang', 'turtleNeck', 'singer', 'faceMuscle'] },
+      { title: '웹툰 연재 · 체험 활용 앱', note: 'QR 지원', keys: ['toonAi', 'toonEcon', 'tarot', 'kwansang'] }
+    ]
+  );
+
+  window.LessonToolsHubModule = createHubController(
+    'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn',
+    [
+      { title: '출제 · 수업 설계 도구', keys: ['scorePlanner', 'memoBoard', 'timer'] },
+      { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
+      { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
+    ]
+  );
 })();
