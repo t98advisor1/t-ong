@@ -6413,9 +6413,9 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 }
 .sp-field input {
   width: 100%;
-  background: #0d0718;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #0d0718 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
   border-radius: 9px;
   padding: 9px 12px;
   font-size: 0.95rem;
@@ -6481,24 +6481,25 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 .sp-status-bar {
   padding: 9px 12px;
   border-radius: 9px;
-  font-size: 0.83rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 .sp-status-bar.ok {
-  background: rgba(16, 185, 129, 0.16);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.22);
+  color: #a7f3d0;
+  border: 1px solid rgba(52, 211, 153, 0.45);
 }
 .sp-status-bar.err {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.22);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.45);
 }
 .sp-result-card {
-  background: rgba(22, 13, 38, 0.92);
+  background: rgba(22, 13, 38, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 14px;
   padding: 14px 16px;
+  color: #f8fafc;
 }
 .sp-dist-chips {
   display: flex;
@@ -6522,11 +6523,12 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   gap: 10px;
   flex-wrap: wrap;
   background: #0d0718;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   padding: 9px 13px;
   margin-bottom: 12px;
   font-size: 0.86rem;
+  color: #e2e8f0;
 }
 .sp-sum-banner strong {
   color: #f472b6;
@@ -6574,9 +6576,9 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 }
 .sp-note-input {
   width: 100%;
-  background: #0d0718;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #0d0718 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 0.8rem;
