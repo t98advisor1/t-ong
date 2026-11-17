@@ -6299,11 +6299,12 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 /* ================================================================= */
 /* 수업 도구: 총점에 딱 맞는 문항별 배점 설계 (SCORE PLANNER) */
 /* ================================================================= */
+html[data-theme] #scorePlannerModal .sp-modal-dialog,
 .sp-modal-dialog {
   max-width: 980px;
   width: 95vw;
-  background: #130b20;
-  color: #f8fafc;
+  background: #130b20 !important;
+  color: #f8fafc !important;
   border: 1px solid rgba(217, 70, 239, 0.35);
   box-shadow: 0 24px 64px rgba(10, 4, 24, 0.65);
 }
@@ -6485,14 +6486,14 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
   font-weight: 700;
 }
 .sp-status-bar.ok {
-  background: rgba(16, 185, 129, 0.22);
-  color: #a7f3d0;
-  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: #064e3b !important;
+  color: #d1fae5 !important;
+  border: 1px solid rgba(52, 211, 153, 0.5);
 }
 .sp-status-bar.err {
-  background: rgba(239, 68, 68, 0.22);
-  color: #fecaca;
-  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: #7f1d1d !important;
+  color: #fee2e2 !important;
+  border: 1px solid rgba(248, 113, 113, 0.5);
 }
 .sp-result-card {
   background: rgba(22, 13, 38, 0.96);
