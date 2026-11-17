@@ -62,7 +62,7 @@
       color: #334155;
       margin: 0 0 6px;
     }
-    input[type="text"], textarea {
+    input[type="text"], textarea, select {
       width: 100%;
       border: 1.5px solid #cbd5e1;
       border-radius: 12px;
@@ -74,7 +74,7 @@
       outline: none;
       transition: border-color 0.15s ease, background 0.15s ease;
     }
-    input[type="text"]:focus, textarea:focus {
+    input[type="text"]:focus, textarea:focus, select:focus {
       border-color: #2563eb;
       background: #ffffff;
     }
@@ -176,9 +176,14 @@
     </div>
 
     <div class="form-card">
+      <div class="field" id="groupField" style="display:none;">
+        <label for="groupSelect">모둠 선택</label>
+        <select id="groupSelect"></select>
+      </div>
+
       <div class="field">
-        <label for="authorInput">이름 또는 모둠 (비워두면 익명)</label>
-        <input type="text" id="authorInput" maxlength="20" placeholder="예: 20312 김민수 또는 익명">
+        <label for="authorInput">이름 (비워두면 익명)</label>
+        <input type="text" id="authorInput" maxlength="20" placeholder="예: 김민수 또는 익명">
       </div>
 
       <div class="field">
@@ -210,9 +215,12 @@
       var apiUrl = (params.get('api') || '').trim();
       var roomId = (params.get('room') || 'default').trim();
       var title = (params.get('title') || '수업 아이디어 모으기').trim();
+      var groupsCount = parseInt(params.get('groups') || '0', 10) || 0;
 
       var titleEl = document.getElementById('boardTitle');
       var subEl = document.getElementById('boardSub');
+      var groupField = document.getElementById('groupField');
+      var groupEl = document.getElementById('groupSelect');
       var authorEl = document.getElementById('authorInput');
       var memoEl = document.getElementById('memoInput');
       var submitBtn = document.getElementById('submitBtn');
@@ -221,6 +229,20 @@
       var selectedColor = '#fef3c7';
 
       titleEl.textContent = title;
+      if (groupsCount >= 2 && groupField && groupEl) {
+        groupField.style.display = 'block';
+        for (var g = 1; g <= groupsCount; g++) {
+          var opt = document.createElement('option');
+          opt.value = g + '모둠';
+          opt.textContent = g + '모둠';
+          groupEl.appendChild(opt);
+        }
+        var optCommon = document.createElement('option');
+        optCommon.value = '공통';
+        optCommon.textContent = '공통 / 모둠 미지정';
+        groupEl.appendChild(optCommon);
+      }
+
       if (!apiUrl) {
         subEl.textContent = '연결된 보드 주소(api)가 없습니다. 선생님이 띄운 QR 코드로 다시 접속해 주세요.';
         submitBtn.disabled = true;
@@ -261,7 +283,9 @@
 
       submitBtn.addEventListener('click', async function () {
         var text = (memoEl.value || '').trim();
-        var author = (authorEl.value || '').trim() || '익명';
+        var rawAuthor = (authorEl.value || '').trim() || '익명';
+        var chosenGroup = (groupsCount >= 2 && groupEl) ? groupEl.value : '';
+        var fullAuthor = (chosenGroup && chosenGroup !== '공통') ? ('[' + chosenGroup + '] ' + rawAuthor) : rawAuthor;
         if (!text) {
           showStatus('메모 내용을 입력해 주세요.', false);
           memoEl.focus();
@@ -276,7 +300,8 @@
             body: JSON.stringify({
               action: 'board_add',
               room: roomId,
-              author: author,
+              group: chosenGroup,
+              author: fullAuthor,
               color: selectedColor,
               text: text
             })
@@ -284,7 +309,7 @@
           var data = await res.json();
           if (data && data.success) {
             showStatus('보드에 올라갔습니다! 교실 화면에서 확인해 보세요.', true);
-            addLocalPreview(author, selectedColor, text);
+            addLocalPreview(fullAuthor, selectedColor, text);
             memoEl.value = '';
           } else {
             showStatus('저장에 실패했습니다. 선생님께 시트 연결 상태를 확인해 달라고 요청하세요.', false);

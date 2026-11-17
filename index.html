@@ -40,7 +40,7 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.83">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.84">
 </head>
 <body>
 
@@ -142,7 +142,7 @@
         <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">8</span>구글 시트 모음</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="favBtn">추천 사이트 ▾</button>
+          <button type="button" class="mode-tab" id="favBtn" title="수업·업무 추천 사이트 홈페이지 스크린샷 허브">추천 사이트</button>
           <div class="more-menu fav-menu" id="favMenu">
             <div class="fav-category-list">
               <details class="fav-category math-favorites" open>
@@ -1242,7 +1242,11 @@
     <div class="modal-content wide ladder-content">
       <div class="modal-header">
         <h3>🪜 사다리타기</h3>
-        <button class="close-btn" data-modal="ladderModal">&times;</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-outline" id="ladderRunAllBtn">전체 결과 보기</button>
+          <button type="button" class="btn-outline" id="ladderFullscreenBtn">전체화면</button>
+          <button class="close-btn" data-modal="ladderModal">&times;</button>
+        </div>
       </div>
       <div class="modal-body">
         <div class="lp-row">
@@ -1276,7 +1280,7 @@
             <textarea id="ladderPrizes" rows="3" placeholder="칠판 담당&#10;분리수거&#10;꽝&#10;우유 담당"></textarea>
           </div>
         </div>
-        <canvas id="ladderCanvas" class="ladder-canvas" width="720" height="240"></canvas>
+        <canvas id="ladderCanvas" class="ladder-canvas" width="1160" height="440"></canvas>
         <div id="ladderResult" class="ladder-result"><p class="hint">사다리를 만든 뒤 위쪽 이름을 누르면 길을 따라갑니다.</p></div>
       </div>
     </div>
@@ -1650,10 +1654,13 @@
   </div>
   <!-- 랜덤 뽑기 -->
   <div id="pickModal" class="modal">
-    <div class="modal-content small pick-content">
+    <div class="modal-content pick-content">
       <div class="modal-header">
         <h3>🎯 룰렛 뽑기</h3>
-        <button class="close-btn" data-modal="pickModal">&times;</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-outline" id="pickFullscreenBtn">전체화면</button>
+          <button class="close-btn" data-modal="pickModal">&times;</button>
+        </div>
       </div>
       <div class="modal-body">
         <div id="pickResult" class="pick-result">
@@ -2588,16 +2595,21 @@
   
   <!-- 자주 쓰는 구글 시트 & 즐겨찾는 사이트 메모장 모달 -->
   <div id="sheetMemoModal" class="modal">
-    <div class="modal-content wide" style="max-width: 720px;">
+    <div class="modal-content wide sm-hub-dialog" style="max-width: 980px;">
       <div class="modal-header">
         <div>
-          <span style="font-size:0.75rem; color:#059669; font-weight:800;">QUICK SHEET &amp; SITE MEMO PAD</span>
-          <h3 style="margin:2px 0 0;">자주 쓰는 구글 시트 &amp; 즐겨찾는 사이트 메모장</h3>
+          <span style="font-size:0.75rem; color:#059669; font-weight:800;">8 · 구글 시트 폴더 정리</span>
+          <h3 style="margin:2px 0 0;">구글 시트 &amp; 업무 링크 폴더 모음</h3>
         </div>
-        <button class="close-btn" data-modal="sheetMemoModal">&times;</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" id="smAddFolderBtn" class="btn-outline">+ 새 폴더</button>
+          <button type="button" id="smToggleFormBtn" class="btn-primary">+ 새 시트·링크 등록</button>
+          <button class="close-btn" data-modal="sheetMemoModal">&times;</button>
+        </div>
       </div>
       <div class="modal-body" style="padding:16px 20px;">
-        <form id="sheetMemoForm" class="tt-section-box" style="background:#f8fafc; margin-bottom:14px;">
+        <div id="smFolderTabs" class="sm-folder-bar"></div>
+        <form id="sheetMemoForm" class="tt-section-box" style="background:#f8fafc; margin-bottom:14px;" hidden>
           <input type="hidden" id="smEditId" value="">
           <div class="tt-section-head">
             <h4 id="smFormTitle">새 구글 시트 / 즐겨찾는 사이트 등록</h4>
@@ -2694,16 +2706,32 @@
         </div>
       </div>
       <div class="modal-body memo-board-body">
+        <div class="memo-board-mode-bar">
+          <div class="mb-mode-group">
+            <span class="mb-bar-label">보드 방식</span>
+            <button type="button" class="mb-seg-btn active" data-mb-mode="columns">모둠 기둥 보드</button>
+            <button type="button" class="mb-seg-btn" data-mb-mode="sandbox">자유 샌드박스 (드래그)</button>
+          </div>
+          <div class="mb-mode-group" id="mbGroupCountBar">
+            <span class="mb-bar-label">모둠 수</span>
+            <button type="button" class="mb-grp-btn" data-mb-groups="0">전체(1열)</button>
+            <button type="button" class="mb-grp-btn active" data-mb-groups="4">4모둠</button>
+            <button type="button" class="mb-grp-btn" data-mb-groups="5">5모둠</button>
+            <button type="button" class="mb-grp-btn" data-mb-groups="6">6모둠</button>
+            <button type="button" class="mb-grp-btn" data-mb-groups="8">8모둠</button>
+          </div>
+        </div>
         <div class="memo-board-question-bar">
           <label for="memoBoardTopicInput">수업 질문 · 주제</label>
           <input type="text" id="memoBoardTopicInput" maxlength="100" value="오늘 수업에서 가장 기억에 남는 생각이나 질문을 자유롭게 적어 보세요!">
           <button type="button" class="btn-outline" id="memoBoardTopicSaveBtn">주제 적용</button>
         </div>
         <div id="memoBoardGuideBanner" class="memo-board-guide-banner" style="display:none;">
-          <span>실시간 학생 QR 참여는 상단 <b>[1 Google 시트 연동]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모 작성은 바로 가능합니다.)</span>
+          <span>실시간 학생 QR 참여는 상단 <b>[1 Google 시트 연동]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모·스티커·샌드박스는 바로 사용 가능합니다.)</span>
           <button type="button" class="btn-outline" id="memoBoardOpenSyncBtn">시트 연동 열기</button>
         </div>
         <div class="memo-board-compose">
+          <select id="memoBoardGroupSelect" aria-label="모둠 선택"></select>
           <input type="text" id="memoBoardAuthorInput" maxlength="20" placeholder="작성자 (예: 선생님)" value="선생님">
           <div class="memo-board-colors" id="memoBoardColorPicker">
             <button type="button" class="mb-color active" data-color="#fef3c7" style="background:#fef3c7" title="노랑"></button>
@@ -2784,6 +2812,24 @@
   </div>
 
   <!-- 7 수업 도구 허브 모달 (썸네일 + 접기/펼치기 카드) -->
+  <!-- 추천 사이트 허브 모달 (홈페이지 스크린샷 썸네일 + 접기/펼치기) -->
+  <div id="favSitesHubModal" class="modal">
+    <div class="modal-content lt-hub-dialog">
+      <div class="modal-header lt-hub-header">
+        <div>
+          <span class="qr-share-kicker">수업 · 교무 추천 사이트</span>
+          <h3 style="margin:2px 0 0;">추천 사이트 한눈에 보기 (홈페이지 미리보기)</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-outline" id="fsHubFoldAllBtn">모두 접기</button>
+          <button type="button" class="btn-outline" id="fsHubFullscreenBtn">전체화면</button>
+          <button class="close-btn" data-modal="favSitesHubModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body lt-hub-body" id="fsHubBody"></div>
+    </div>
+  </div>
+
   <div id="lessonToolsHubModal" class="modal">
     <div class="modal-content lt-hub-dialog">
       <div class="modal-header lt-hub-header">
@@ -2904,7 +2950,7 @@
   </div>
 
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.83"></script>
+  <script src="/app.js?v=5.17.0-preview.84"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

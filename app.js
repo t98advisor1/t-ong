@@ -7360,6 +7360,17 @@ var Picker = (function () {
     if (noEl) noEl.textContent = '';
     if (nameEl) nameEl.textContent = '준비!';
     document.getElementById('pickResult').classList.remove('settled');
+    var modal = document.getElementById('pickModal');
+    var dlg = modal && modal.querySelector('.pick-content');
+    var fsBtn = document.getElementById('pickFullscreenBtn');
+    if (dlg && fsBtn && !dlg.dataset.initedFs) {
+      dlg.dataset.initedFs = '1';
+      fsBtn.addEventListener('click', function () {
+        var fs = dlg.classList.toggle('is-fullscreen');
+        modal.classList.toggle('is-fullscreen-modal', fs);
+        fsBtn.textContent = fs ? '기본 창' : '전체화면';
+      });
+    }
     render();
     openModal('pickModal');
   }
@@ -8433,7 +8444,7 @@ var Records = (function () {
 // ===================================================================
 var Ladder = (function () {
   var names = [], prizes = [], rungs = [], cols = 4;
-  var W = 720, H = 240, TOP = 34, BOT = 206;
+  var W = 1160, H = 440, TOP = 46, BOT = 392;
 
   function el(id) { return document.getElementById(id); }
   function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -8487,10 +8498,10 @@ var Ladder = (function () {
       g.stroke();
     }
 
-    g.font = '600 13px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#2f3550';
+    g.font = '700 16px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#1e293b';
     for (var n = 0; n < cols; n++) {
-      g.fillText(names[n] || '', colX(n), TOP - 12);
-      g.fillText(prizes[n] || '', colX(n), BOT + 22);
+      g.fillText(names[n] || '', colX(n), TOP - 16);
+      g.fillText(prizes[n] || '', colX(n), BOT + 28);
     }
   }
 
@@ -8691,6 +8702,16 @@ var Ladder = (function () {
 
   function init() {
     var b = el('ladderBtn'); if (b) b.addEventListener('click', open);
+    var ra = el('ladderRunAllBtn'); if (ra) ra.addEventListener('click', runAll);
+    var lf = el('ladderFullscreenBtn');
+    if (lf) lf.addEventListener('click', function () {
+      var lm = el('ladderModal');
+      var ld = lm && lm.querySelector('.ladder-content');
+      if (!lm || !ld) return;
+      var fs = ld.classList.toggle('is-fullscreen');
+      lm.classList.toggle('is-fullscreen-modal', fs);
+      lf.textContent = fs ? '기본 창' : '전체화면';
+    });
     var mk = el('ladderMakeBtn'); if (mk) mk.addEventListener('click', build);
     var pk = el('ladderPickBtn'); if (pk) pk.addEventListener('click', pickFromStudents);
     var sr = el('ladderSelectRosterBtn'); if (sr) sr.addEventListener('click', openRosterPicker);
@@ -9195,14 +9216,13 @@ function initModeTabs() {
   // 즐겨찾기 드롭다운
   var favBtn = document.getElementById('favBtn');
   var favMenu = document.getElementById('favMenu');
-  if (favBtn && favMenu) {
+  if (favBtn) {
     favBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('favMenu');
-      favMenu.classList.toggle('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus();
+      if (window.FavSitesHubModule) window.FavSitesHubModule.open();
+      else if (favMenu) favMenu.classList.toggle('open');
     });
-    favMenu.addEventListener('click', function (e) { e.stopPropagation(); });
-    document.addEventListener('click', function () { favMenu.classList.remove('open'); });
   }
 
   // 교실 게임 드롭다운
@@ -11319,47 +11339,31 @@ var TeacherSchedule = (function () {
 // ===================================================================
 var SheetMemoPad = (function () {
   var STORAGE_KEY = 'tongSheetMemoPad_v1';
+  var FOLDERS_KEY = 'tongSheetFolders_v1';
+  var DEFAULT_FOLDERS = ['구글시트', '수업관리', '학급관리', '행정업무'];
   var items = [];
+  var folders = [];
+  var activeFolder = 'ALL';
 
   function el(id) { return document.getElementById(id); }
   function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function defaultItems() {
     return [
-      {
-        id: 'sm-default-1',
-        category: '구글시트',
-        title: '2026 교사용 올인원 마스터 통합 시트 (10개 탭)',
-        url: 'https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy',
-        memo: '0번 안내 탭 확인 · 6번 수업관찰 / 7번 AI세특 / 8번 출결·칭찬 실시간 연동 시트',
-        updatedAt: Date.now()
-      },
-      {
-        id: 'sm-default-2',
-        category: '학급관리',
-        title: '우리 반(2-2) 담임 학급 운영 & 상담 시트',
-        url: 'https://docs.google.com/spreadsheets/',
-        memo: '학부모 상담 일정, 1인 1역 배정표, 아침 조회 전달사항 기록용 시트',
-        updatedAt: Date.now()
-      },
-      {
-        id: 'sm-default-3',
-        category: '수업관리',
-        title: '교과 수행평가 채점 & 과목별 세특 점검표',
-        url: 'https://docs.google.com/spreadsheets/',
-        memo: '2-2 경제 수학Y · 2-8 기하V 수행평가 점수 및 미제출자 체크',
-        updatedAt: Date.now()
-      }
+      { id: 'sm-default-1', category: '구글시트', title: '2026 교사용 올인원 마스터 통합 시트 (10개 탭)', url: 'https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy', memo: '0번 안내 탭 확인 · 6번 수업관찰 / 7번 AI세특 / 8번 출결·칭찬 실시간 연동 시트', updatedAt: Date.now() },
+      { id: 'sm-default-2', category: '학급관리', title: '우리 반(2-2) 담임 학급 운영 & 상담 시트', url: 'https://docs.google.com/spreadsheets/', memo: '학부모 상담 일정, 1인 1역 배정표, 아침 조회 전달사항 기록용 시트', updatedAt: Date.now() },
+      { id: 'sm-default-3', category: '수업관리', title: '교과 수행평가 채점 & 과목별 세특 점검표', url: 'https://docs.google.com/spreadsheets/', memo: '2-2 경제 수학Y · 2-8 기하V 수행평가 점수 및 미제출자 체크', updatedAt: Date.now() }
     ];
   }
 
   function load() {
     try {
+      var fRaw = JSON.parse(localStorage.getItem(FOLDERS_KEY) || 'null');
+      folders = (Array.isArray(fRaw) && fRaw.length) ? fRaw : DEFAULT_FOLDERS.slice();
+    } catch (e) { folders = DEFAULT_FOLDERS.slice(); }
+    try {
       var raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      if (Array.isArray(raw) && raw.length) {
-        items = raw;
-        return;
-      }
+      if (Array.isArray(raw) && raw.length) { items = raw; return; }
     } catch (e) {}
     items = defaultItems();
     save();
@@ -11367,7 +11371,8 @@ var SheetMemoPad = (function () {
 
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
-    if (typeof CloudSheetSync !== "undefined" && CloudSheetSync.queueProfileSync) CloudSheetSync.queueProfileSync();
+    try { localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders)); } catch (e) {}
+    if (typeof CloudSheetSync !== 'undefined' && CloudSheetSync.queueProfileSync) CloudSheetSync.queueProfileSync();
   }
 
   function normalizeUrl(u) {
@@ -11377,7 +11382,44 @@ var SheetMemoPad = (function () {
     return s;
   }
 
+  function syncFolderSelect() {
+    var sel = el('smCategoryInput');
+    if (!sel) return;
+    var prev = sel.value;
+    var allFolders = folders.slice();
+    items.forEach(function (it) { if (it.category && allFolders.indexOf(it.category) < 0) allFolders.push(it.category); });
+    sel.innerHTML = allFolders.map(function (fn) {
+      return '<option value="' + escAttr(fn) + '">' + escapeHtml(fn) + '</option>';
+    }).join('');
+    if (prev && allFolders.indexOf(prev) >= 0) sel.value = prev;
+  }
+
+  function renderFolders() {
+    var bar = el('smFolderTabs');
+    if (!bar) return;
+    var counts = { ALL: items.length };
+    var listFolders = folders.slice();
+    items.forEach(function (it) {
+      var cat = it.category || '구글시트';
+      counts[cat] = (counts[cat] || 0) + 1;
+      if (listFolders.indexOf(cat) < 0) listFolders.push(cat);
+    });
+    var html = '<button type="button" class="sm-folder-tab' + (activeFolder === 'ALL' ? ' active' : '') + '" data-folder="ALL">전체 (' + counts.ALL + ')</button>';
+    listFolders.forEach(function (fn) {
+      html += '<button type="button" class="sm-folder-tab' + (activeFolder === fn ? ' active' : '') + '" data-folder="' + escAttr(fn) + '">' + escapeHtml(fn) + ' (' + (counts[fn] || 0) + ')</button>';
+    });
+    bar.innerHTML = html;
+    bar.querySelectorAll('.sm-folder-tab').forEach(function (tb) {
+      tb.addEventListener('click', function () {
+        activeFolder = tb.getAttribute('data-folder') || 'ALL';
+        render();
+      });
+    });
+  }
+
   function render() {
+    syncFolderSelect();
+    renderFolders();
     var dashList = el('dashSheetMemoList');
     var modalList = el('smModalList');
 
@@ -11394,42 +11436,52 @@ var SheetMemoPad = (function () {
           '</div>' +
           '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="dash-sm-title" style="margin-top:5px;">' + escapeHtml(item.title) + '</a>' +
         '</div>' +
-        '<div class="dash-sm-memo">' + escapeHtml(item.memo || '메모 없음 (메모 수정을 눌러 기록하세요)') + '</div>' +
+        '<div class="dash-sm-memo">' + escapeHtml(item.memo || '메모 없음') + '</div>' +
       '</div>';
     }).join('');
 
     if (dashList) {
       dashList.innerHTML = cardHtml;
       dashList.querySelectorAll('[data-sm-edit]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          openModalForEdit(this.getAttribute('data-sm-edit'));
-        });
+        btn.addEventListener('click', function () { openModalForEdit(this.getAttribute('data-sm-edit')); });
       });
     }
 
     if (modalList) {
-      modalList.innerHTML = items.map(function (item) {
+      var filtered = activeFolder === 'ALL' ? items : items.filter(function (x) { return (x.category || '구글시트') === activeFolder; });
+      if (!filtered.length) {
+        modalList.innerHTML = '<div style="padding:28px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;">이 폴더에 저장된 시트가 없습니다. 오른쪽 위 <b>[+ 새 시트·링크 등록]</b>으로 추가해 보세요.</div>';
+        return;
+      }
+      modalList.innerHTML = '<div class="sm-card-grid">' + filtered.map(function (item) {
         var cat = item.category || '구글시트';
-        return '<div class="dash-sm-item" style="flex-direction:row; align-items:center; justify-content:space-between; gap:12px;">' +
-          '<div style="flex:1; min-width:0;">' +
-            '<div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">' +
+        return '<div class="dash-sm-item">' +
+          '<div>' +
+            '<div class="dash-sm-top">' +
               '<span class="dash-sm-badge cat-' + escapeHtml(cat) + '">' + escapeHtml(cat) + '</span>' +
-              '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="dash-sm-title">' + escapeHtml(item.title) + '</a>' +
+              '<div class="dash-sm-actions">' +
+                '<button type="button" data-sm-qr="' + escapeHtml(item.id) + '">QR</button>' +
+                '<button type="button" data-sm-modal-edit="' + escapeHtml(item.id) + '">수정</button>' +
+                '<button type="button" data-sm-modal-del="' + escapeHtml(item.id) + '" style="color:#b91c1c;">삭제</button>' +
+              '</div>' +
             '</div>' +
-            '<div style="font-size:0.76rem; color:#475569;">메모: <b>' + escapeHtml(item.memo || '-') + '</b></div>' +
+            '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="dash-sm-title" style="margin-top:6px;">' + escapeHtml(item.title) + '</a>' +
           '</div>' +
-          '<div class="dash-sm-actions" style="flex-shrink:0;">' +
-            '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="sm-open-btn">시트·사이트 열기 ↗</a>' +
-            '<button type="button" data-sm-modal-edit="' + escapeHtml(item.id) + '">수정</button>' +
-            '<button type="button" data-sm-modal-del="' + escapeHtml(item.id) + '" style="color:#b91c1c;">삭제</button>' +
-          '</div>' +
+          '<div class="dash-sm-memo">' + escapeHtml(item.memo || '-') + '</div>' +
+          '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align:center;text-decoration:none;margin-top:6px;">시트·링크 열기 ↗</a>' +
         '</div>';
-      }).join('');
+      }).join('') + '</div>';
 
-      modalList.querySelectorAll('[data-sm-modal-edit]').forEach(function (btn) {
+      modalList.querySelectorAll('[data-sm-qr]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          populateForm(this.getAttribute('data-sm-modal-edit'));
+          var found = items.find(function (x) { return x.id === btn.getAttribute('data-sm-qr'); });
+          if (found && typeof window.openQrShareModal === 'function') {
+            window.openQrShareModal(found.title, found.url, { kicker: '구글 시트 · 업무 링크 QR' });
+          }
         });
+      });
+      modalList.querySelectorAll('[data-sm-modal-edit]').forEach(function (btn) {
+        btn.addEventListener('click', function () { populateForm(this.getAttribute('data-sm-modal-edit')); });
       });
       modalList.querySelectorAll('[data-sm-modal-del]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -11446,6 +11498,8 @@ var SheetMemoPad = (function () {
   function populateForm(id) {
     var found = items.find(function (x) { return x.id === id; });
     if (!found) return;
+    syncFolderSelect();
+    var form = el('sheetMemoForm'); if (form) form.hidden = false;
     if (el('smEditId')) el('smEditId').value = found.id;
     if (el('smCategoryInput')) el('smCategoryInput').value = found.category || '구글시트';
     if (el('smTitleInput')) el('smTitleInput').value = found.title || '';
@@ -11458,7 +11512,8 @@ var SheetMemoPad = (function () {
 
   function resetForm() {
     if (el('smEditId')) el('smEditId').value = '';
-    if (el('smCategoryInput')) el('smCategoryInput').value = '구글시트';
+    syncFolderSelect();
+    if (el('smCategoryInput') && activeFolder !== 'ALL') el('smCategoryInput').value = activeFolder;
     if (el('smTitleInput')) el('smTitleInput').value = '';
     if (el('smUrlInput')) el('smUrlInput').value = '';
     if (el('smMemoInput')) el('smMemoInput').value = '';
@@ -11468,13 +11523,42 @@ var SheetMemoPad = (function () {
 
   function openModalForEdit(id) {
     openModal('sheetMemoModal');
-    if (id) populateForm(id);
-    else resetForm();
+    var form = el('sheetMemoForm');
+    if (id) {
+      populateForm(id);
+    } else {
+      resetForm();
+      if (form) form.hidden = true;
+    }
   }
 
   function init() {
     load();
     render();
+
+    var toggleBtn = el('smToggleFormBtn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        var form = el('sheetMemoForm');
+        if (!form) return;
+        resetForm();
+        form.hidden = !form.hidden;
+        if (!form.hidden && el('smTitleInput')) el('smTitleInput').focus();
+      });
+    }
+
+    var addFolderBtn = el('smAddFolderBtn');
+    if (addFolderBtn) {
+      addFolderBtn.addEventListener('click', function () {
+        var name = prompt('새 폴더 이름을 입력하세요 (예: 2학년 수학, 동아리, 수행평가)');
+        if (!name || !name.trim()) return;
+        var clean = name.trim();
+        if (folders.indexOf(clean) < 0) folders.push(clean);
+        activeFolder = clean;
+        save();
+        render();
+      });
+    }
 
     var form = el('sheetMemoForm');
     if (form) {
@@ -11482,58 +11566,35 @@ var SheetMemoPad = (function () {
         e.preventDefault();
         var editId = (el('smEditId') ? el('smEditId').value : '').trim();
         var cat = el('smCategoryInput') ? el('smCategoryInput').value : '구글시트';
+        if (cat && folders.indexOf(cat) < 0) folders.push(cat);
         var title = (el('smTitleInput') ? el('smTitleInput').value : '').trim();
         var url = normalizeUrl(el('smUrlInput') ? el('smUrlInput').value : '');
         var memo = (el('smMemoInput') ? el('smMemoInput').value : '').trim();
         if (!title) return;
-
         if (editId) {
           var idx = items.findIndex(function (x) { return x.id === editId; });
-          if (idx >= 0) {
-            items[idx] = { id: editId, category: cat, title: title, url: url, memo: memo, updatedAt: Date.now() };
-          }
+          if (idx >= 0) items[idx] = { id: editId, category: cat, title: title, url: url, memo: memo, updatedAt: Date.now() };
         } else {
-          items.unshift({
-            id: 'sm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-            category: cat,
-            title: title,
-            url: url,
-            memo: memo,
-            updatedAt: Date.now()
-          });
+          items.unshift({ id: 'sm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), category: cat, title: title, url: url, memo: memo, updatedAt: Date.now() });
         }
         save();
         render();
         resetForm();
-        if (typeof showToast === 'function') showToast('구글 시트·사이트 메모가 저장되었습니다.');
+        form.hidden = true;
+        if (typeof showToast === 'function') showToast('저장되었습니다.');
       });
     }
 
     var cancelBtn = el('smCancelEditBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', resetForm);
-
-    var dashAddBtn = el('dashAddSheetMemoBtn');
-    if (dashAddBtn) dashAddBtn.addEventListener('click', function () { openModalForEdit(''); });
-
-    var dashOpenBtn = el('dashOpenSheetMemoModalBtn');
-    if (dashOpenBtn) dashOpenBtn.addEventListener('click', function () { openModalForEdit(''); });
-
-    var topBtn = el('topSheetMemoBtn');
-    if (topBtn) topBtn.addEventListener('click', function () { openModalForEdit(''); });
-
-    var menuBtn = el('menuSheetMemoBtn');
-    if (menuBtn) menuBtn.addEventListener('click', function () { openModalForEdit(''); });
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { resetForm(); var f = el('sheetMemoForm'); if (f) f.hidden = true; });
+    var dashAddBtn = el('dashAddSheetMemoBtn'); if (dashAddBtn) dashAddBtn.addEventListener('click', function () { openModalForEdit(''); var f = el('sheetMemoForm'); if (f) f.hidden = false; });
+    var dashOpenBtn = el('dashOpenSheetMemoModalBtn'); if (dashOpenBtn) dashOpenBtn.addEventListener('click', function () { openModalForEdit(''); });
+    var topBtn = el('topSheetMemoBtn'); if (topBtn) topBtn.addEventListener('click', function () { openModalForEdit(''); });
+    var menuBtn = el('menuSheetMemoBtn'); if (menuBtn) menuBtn.addEventListener('click', function () { openModalForEdit(''); });
   }
 
-  return {
-    init: init,
-    open: function () { openModalForEdit(''); },
-    render: render,
-    reload: function () { load(); render(); }
-  };
+  return { init: init, open: function () { openModalForEdit(''); }, render: render, reload: function () { load(); render(); } };
 })();
-
-// ===================================================================
 // 교사 캐릭터 아이콘 이미지 붙여넣기(Ctrl+V) 및 업로드 모듈 (AvatarManager)
 // ===================================================================
 var AvatarManager = (function () {
@@ -12629,50 +12690,165 @@ window.TodayBriefing = TodayBriefing;
     var LOCAL_NOTES_KEY = 'tong_memo_board_notes_v1';
     var LOCAL_TOPIC_KEY = 'tong_memo_board_topic_v1';
     var LOCAL_ROOM_KEY = 'tong_memo_board_room_v1';
+    var LOCAL_CFG_KEY = 'tong_memo_board_cfg_v1';
+    var LOCAL_POS_KEY = 'tong_memo_board_pos_v1';
+    var LOCAL_STK_KEY = 'tong_memo_board_stickers_v1';
+    var STICKERS = [
+      { key: 'up', label: '👍' },
+      { key: 'idea', label: '💡' },
+      { key: 'heart', label: '❤️' },
+      { key: 'star', label: '⭐' },
+      { key: 'q', label: '❓' }
+    ];
     var selectedColor = '#fef3c7';
     var pollTimer = null;
     var notesCache = [];
+    var boardMode = 'columns';
+    var groupCount = 4;
+    try {
+      var savedCfg = JSON.parse(localStorage.getItem(LOCAL_CFG_KEY) || 'null');
+      if (savedCfg) {
+        if (savedCfg.boardMode) boardMode = savedCfg.boardMode;
+        if (typeof savedCfg.groupCount === 'number') groupCount = savedCfg.groupCount;
+      }
+    } catch (e) {}
+
+    function saveBoardCfg() {
+      try { localStorage.setItem(LOCAL_CFG_KEY, JSON.stringify({ boardMode: boardMode, groupCount: groupCount })); } catch (e) {}
+    }
+    function loadMap(key) { try { return JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { return {}; } }
+    function saveMap(key, obj) { try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {} }
 
     function getRoomId() {
       try {
         var r = localStorage.getItem(LOCAL_ROOM_KEY);
-        if (!r) {
-          r = 'room_' + Math.random().toString(36).slice(2, 8);
-          localStorage.setItem(LOCAL_ROOM_KEY, r);
-        }
+        if (!r) { r = 'room_' + Math.random().toString(36).slice(2, 8); localStorage.setItem(LOCAL_ROOM_KEY, r); }
         return r;
-      } catch (e) {
-        return 'room_default';
-      }
+      } catch (e) { return 'room_default'; }
     }
+    function loadLocalNotes() { try { var arr = JSON.parse(localStorage.getItem(LOCAL_NOTES_KEY) || '[]'); return Array.isArray(arr) ? arr : []; } catch (e) { return []; } }
+    function saveLocalNotes(arr) { try { localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(arr)); } catch (e) {} }
 
-    function loadLocalNotes() {
-      try {
-        var raw = localStorage.getItem(LOCAL_NOTES_KEY);
-        var arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-      } catch (e) {
-        return [];
+    function syncGroupDropdown() {
+      var sel = document.getElementById('memoBoardGroupSelect');
+      if (!sel) return;
+      var prev = sel.value;
+      var opts = '';
+      if (groupCount >= 2) {
+        for (var g = 1; g <= groupCount; g++) opts += '<option value="' + g + '모둠">' + g + '모둠</option>';
+        opts += '<option value="공통">공통</option>';
+        sel.style.display = 'inline-block';
+      } else {
+        opts = '<option value="공통">전체 보드</option>';
+        sel.style.display = 'none';
       }
-    }
-
-    function saveLocalNotes(arr) {
-      try {
-        localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(arr));
-      } catch (e) {}
+      sel.innerHTML = opts;
+      if (prev && sel.querySelector('option[value="' + prev + '"]')) sel.value = prev;
     }
 
     function updateSyncUi() {
       var sheetUrl = getStoredSheetUrl();
       var badge = document.getElementById('memoBoardSyncBadge');
       var banner = document.getElementById('memoBoardGuideBanner');
-      if (badge) {
-        badge.textContent = sheetUrl ? '구글 시트 실시간 연동' : '로컬 보드 모드';
-        badge.classList.toggle('is-live', !!sheetUrl);
+      if (badge) { badge.textContent = sheetUrl ? '구글 시트 실시간 연동' : '로컬 보드 모드'; badge.classList.toggle('is-live', !!sheetUrl); }
+      if (banner) banner.style.display = sheetUrl ? 'none' : 'flex';
+    }
+
+    function addSticker(noteId, stkKey) {
+      var map = loadMap(LOCAL_STK_KEY);
+      if (!map[noteId]) map[noteId] = {};
+      map[noteId][stkKey] = (Number(map[noteId][stkKey]) || 0) + 1;
+      saveMap(LOCAL_STK_KEY, map);
+      renderNotes(notesCache);
+    }
+
+    function extractGroup(item) {
+      if (item.group && item.group !== '공통') return item.group;
+      var m = String(item.author || '').match(/^\[(\d+모둠)\]/);
+      if (m) return m[1];
+      return '공통';
+    }
+
+    function buildStickyCard(item, isSandbox, idx) {
+      var card = document.createElement('div');
+      card.className = 'memo-sticky-card' + (isSandbox ? ' is-sandbox' : '');
+      card.style.background = item.color || '#fef3c7';
+      if (isSandbox) {
+        var posMap = loadMap(LOCAL_POS_KEY);
+        var p = posMap[item.id] || { x: 16 + (idx % 4) * 260, y: 16 + Math.floor(idx / 4) * 190 };
+        card.style.left = p.x + 'px';
+        card.style.top = p.y + 'px';
+        card.addEventListener('pointerdown', function (ev) {
+          if (ev.target.closest('button')) return;
+          var startX = ev.clientX - parseFloat(card.style.left || 0);
+          var startY = ev.clientY - parseFloat(card.style.top || 0);
+          function onMove(mv) {
+            var nx = Math.max(8, Math.round(mv.clientX - startX));
+            var ny = Math.max(8, Math.round(mv.clientY - startY));
+            card.style.left = nx + 'px';
+            card.style.top = ny + 'px';
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            var pm = loadMap(LOCAL_POS_KEY);
+            pm[item.id] = { x: parseFloat(card.style.left || 16), y: parseFloat(card.style.top || 16) };
+            saveMap(LOCAL_POS_KEY, pm);
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
       }
-      if (banner) {
-        banner.style.display = sheetUrl ? 'none' : 'flex';
-      }
+
+      var head = document.createElement('div');
+      head.className = 'memo-sticky-head';
+      var authorSpan = document.createElement('span');
+      authorSpan.textContent = item.author || '익명';
+      var timeSpan = document.createElement('span');
+      timeSpan.className = 'memo-sticky-time';
+      timeSpan.textContent = (item.createdAt || '').slice(11, 16) || '';
+      head.appendChild(authorSpan);
+      head.appendChild(timeSpan);
+
+      var body = document.createElement('div');
+      body.className = 'memo-sticky-body';
+      body.textContent = item.text || '';
+
+      var stkBar = document.createElement('div');
+      stkBar.className = 'memo-sticker-bar';
+      var stkMap = loadMap(LOCAL_STK_KEY)[item.id] || {};
+      STICKERS.forEach(function (st) {
+        var cnt = Number(stkMap[st.key]) || 0;
+        var sb = document.createElement('button');
+        sb.type = 'button';
+        sb.className = 'memo-sticker-chip' + (cnt > 0 ? ' has-count' : '');
+        sb.textContent = st.label + (cnt > 0 ? ' ' + cnt : '');
+        sb.addEventListener('click', function () { addSticker(item.id, st.key); });
+        stkBar.appendChild(sb);
+      });
+
+      var foot = document.createElement('div');
+      foot.className = 'memo-sticky-foot';
+      var likeBtn = document.createElement('button');
+      likeBtn.type = 'button';
+      likeBtn.className = 'memo-sticky-btn';
+      likeBtn.textContent = '공감 ' + (Number(item.likes) || 0);
+      likeBtn.addEventListener('click', function () { likeNote(item.id); });
+
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'memo-sticky-btn';
+      delBtn.textContent = '삭제';
+      delBtn.addEventListener('click', function () { deleteNote(item.id); });
+
+      foot.appendChild(likeBtn);
+      foot.appendChild(delBtn);
+
+      card.appendChild(head);
+      card.appendChild(body);
+      card.appendChild(stkBar);
+      card.appendChild(foot);
+      return card;
     }
 
     function renderNotes(list) {
@@ -12680,191 +12856,119 @@ window.TodayBriefing = TodayBriefing;
       var grid = document.getElementById('memoBoardGrid');
       if (!grid) return;
       grid.innerHTML = '';
-      if (notesCache.length === 0) {
-        var empty = document.createElement('div');
-        empty.className = 'memo-board-empty';
-        empty.textContent = '아직 올라온 메모가 없습니다. 위 입력칸에서 직접 붙이거나 [QR 학생 참여]를 눌러 학생들에게 화면을 공유해 보세요.';
-        grid.appendChild(empty);
+      grid.className = boardMode === 'sandbox' ? 'memo-sandbox-stage' : (groupCount >= 2 ? 'memo-columns-wrap' : 'memo-board-grid');
+
+      if (boardMode === 'sandbox') {
+        if (!notesCache.length) {
+          grid.innerHTML = '<div class="memo-board-empty">자유 샌드박스 보드입니다. 포스트잇을 올린 뒤 드래그해서 자유롭게 배치해 보세요.</div>';
+          return;
+        }
+        notesCache.forEach(function (item, i) { grid.appendChild(buildStickyCard(item, true, i)); });
         return;
       }
-      notesCache.slice().reverse().forEach(function (item) {
-        var card = document.createElement('div');
-        card.className = 'memo-sticky-card';
-        card.style.background = item.color || '#fef3c7';
 
-        var head = document.createElement('div');
-        head.className = 'memo-sticky-head';
-        var authorSpan = document.createElement('span');
-        authorSpan.textContent = item.author || '익명';
-        var timeSpan = document.createElement('span');
-        timeSpan.className = 'memo-sticky-time';
-        timeSpan.textContent = (item.createdAt || '').slice(11, 16) || '';
-        head.appendChild(authorSpan);
-        head.appendChild(timeSpan);
+      if (groupCount >= 2) {
+        var colNames = [];
+        for (var g = 1; g <= groupCount; g++) colNames.push(g + '모둠');
+        var hasCommon = notesCache.some(function (n) { return colNames.indexOf(extractGroup(n)) < 0; });
+        if (hasCommon) colNames.push('공통');
+        colNames.forEach(function (cn) {
+          var col = document.createElement('div');
+          col.className = 'memo-group-col';
+          var head = document.createElement('div');
+          head.className = 'memo-col-head';
+          var title = document.createElement('span');
+          title.textContent = cn;
+          var addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.className = 'memo-col-add';
+          addBtn.textContent = '+ 추가';
+          addBtn.addEventListener('click', function () {
+            var sel = document.getElementById('memoBoardGroupSelect');
+            if (sel && sel.querySelector('option[value="' + cn + '"]')) sel.value = cn;
+            var inp = document.getElementById('memoBoardTextInput');
+            if (inp) inp.focus();
+          });
+          head.appendChild(title);
+          head.appendChild(addBtn);
+          var colCards = document.createElement('div');
+          colCards.className = 'memo-col-cards';
+          var matching = notesCache.filter(function (n) {
+            var gName = extractGroup(n);
+            return cn === '공통' ? colNames.indexOf(gName) < 0 || gName === '공통' : gName === cn;
+          });
+          matching.slice().reverse().forEach(function (item, idx) { colCards.appendChild(buildStickyCard(item, false, idx)); });
+          col.appendChild(head);
+          col.appendChild(colCards);
+          grid.appendChild(col);
+        });
+        return;
+      }
 
-        var body = document.createElement('div');
-        body.className = 'memo-sticky-body';
-        body.textContent = item.text || '';
-
-        var foot = document.createElement('div');
-        foot.className = 'memo-sticky-foot';
-        var likeBtn = document.createElement('button');
-        likeBtn.type = 'button';
-        likeBtn.className = 'memo-sticky-btn';
-        likeBtn.textContent = '공감 ' + (Number(item.likes) || 0);
-        likeBtn.addEventListener('click', function () { likeNote(item.id); });
-
-        var delBtn = document.createElement('button');
-        delBtn.type = 'button';
-        delBtn.className = 'memo-sticky-btn';
-        delBtn.textContent = '삭제';
-        delBtn.addEventListener('click', function () { deleteNote(item.id); });
-
-        foot.appendChild(likeBtn);
-        foot.appendChild(delBtn);
-
-        card.appendChild(head);
-        card.appendChild(body);
-        card.appendChild(foot);
-        grid.appendChild(card);
-      });
+      if (notesCache.length === 0) {
+        grid.innerHTML = '<div class="memo-board-empty">아직 올라온 메모가 없습니다. 위 입력칸에서 직접 붙이거나 [QR 학생 참여]를 눌러 학생들에게 화면을 공유해 보세요.</div>';
+        return;
+      }
+      notesCache.slice().reverse().forEach(function (item, idx) { grid.appendChild(buildStickyCard(item, false, idx)); });
     }
 
     async function fetchNotes() {
       var sheetUrl = getStoredSheetUrl();
-      if (!sheetUrl) {
-        renderNotes(loadLocalNotes());
-        return;
-      }
+      if (!sheetUrl) { renderNotes(loadLocalNotes()); return; }
       try {
         var sep = sheetUrl.indexOf('?') >= 0 ? '&' : '?';
         var res = await fetch(sheetUrl + sep + 'action=board_list&room=' + encodeURIComponent(getRoomId()) + '&_t=' + Date.now());
         var data = await res.json();
-        if (data && data.success && Array.isArray(data.notes)) {
-          renderNotes(data.notes);
-          return;
-        }
+        if (data && data.success && Array.isArray(data.notes)) { renderNotes(data.notes); return; }
       } catch (err) {}
       renderNotes(loadLocalNotes());
     }
 
-    async function addNote(author, text) {
+    async function addNote(author, text, chosenGroup) {
       var cleanText = (text || '').trim();
       if (!cleanText) return;
-      var cleanAuthor = (author || '').trim() || '선생님';
+      var rawAuthor = (author || '').trim() || '선생님';
+      var grp = chosenGroup || '공통';
+      var cleanAuthor = (groupCount >= 2 && grp !== '공통' && rawAuthor.indexOf('[' + grp + ']') !== 0) ? ('[' + grp + '] ' + rawAuthor) : rawAuthor;
       var sheetUrl = getStoredSheetUrl();
-      var note = {
-        id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-        room: getRoomId(),
-        author: cleanAuthor,
-        color: selectedColor,
-        text: cleanText,
-        likes: 0,
-        createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19)
-      };
-
-      if (!sheetUrl) {
-        var local = loadLocalNotes();
-        local.push(note);
-        saveLocalNotes(local);
-        renderNotes(local);
-        return;
-      }
-
+      var note = { id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000), room: getRoomId(), group: grp, author: cleanAuthor, color: selectedColor, text: cleanText, likes: 0, createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19) };
+      if (!sheetUrl) { var local = loadLocalNotes(); local.push(note); saveLocalNotes(local); renderNotes(local); return; }
       try {
-        var res = await fetch(sheetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'board_add',
-            id: note.id,
-            room: note.room,
-            author: note.author,
-            color: note.color,
-            text: note.text
-          })
-        });
+        var res = await fetch(sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'board_add', id: note.id, room: note.room, author: note.author, color: note.color, text: note.text }) });
         var data = await res.json();
-        if (data && data.success) {
-          await fetchNotes();
-          return;
-        }
+        if (data && data.success) { await fetchNotes(); return; }
       } catch (err) {}
-      var fallback = loadLocalNotes();
-      fallback.push(note);
-      saveLocalNotes(fallback);
-      renderNotes(fallback);
+      var fallback = loadLocalNotes(); fallback.push(note); saveLocalNotes(fallback); renderNotes(fallback);
     }
 
     async function likeNote(id) {
       var sheetUrl = getStoredSheetUrl();
-      if (!sheetUrl) {
-        var local = loadLocalNotes().map(function (n) {
-          if (n.id === id) n.likes = (Number(n.likes) || 0) + 1;
-          return n;
-        });
-        saveLocalNotes(local);
-        renderNotes(local);
-        return;
-      }
-      try {
-        await fetch(sheetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'board_like', id: id, room: getRoomId() })
-        });
-        await fetchNotes();
-      } catch (err) {}
+      if (!sheetUrl) { var local = loadLocalNotes().map(function (n) { if (n.id === id) n.likes = (Number(n.likes) || 0) + 1; return n; }); saveLocalNotes(local); renderNotes(local); return; }
+      try { await fetch(sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'board_like', id: id, room: getRoomId() }) }); await fetchNotes(); } catch (err) {}
     }
 
     async function deleteNote(id) {
       var sheetUrl = getStoredSheetUrl();
-      if (!sheetUrl) {
-        var local = loadLocalNotes().filter(function (n) { return n.id !== id; });
-        saveLocalNotes(local);
-        renderNotes(local);
-        return;
-      }
-      try {
-        await fetch(sheetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'board_delete', id: id, room: getRoomId() })
-        });
-        await fetchNotes();
-      } catch (err) {}
+      if (!sheetUrl) { var local = loadLocalNotes().filter(function (n) { return n.id !== id; }); saveLocalNotes(local); renderNotes(local); return; }
+      try { await fetch(sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'board_delete', id: id, room: getRoomId() }) }); await fetchNotes(); } catch (err) {}
     }
 
     async function clearAllNotes() {
       if (!confirm('현재 수업 메모보드의 모든 포스트잇을 비울까요?')) return;
       saveLocalNotes([]);
       var sheetUrl = getStoredSheetUrl();
-      if (sheetUrl) {
-        try {
-          await fetch(sheetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'board_clear', room: getRoomId() })
-          });
-        } catch (err) {}
-      }
+      if (sheetUrl) { try { await fetch(sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'board_clear', room: getRoomId() }) }); } catch (err) {} }
       renderNotes([]);
     }
 
     function openStudentQr() {
       var sheetUrl = getStoredSheetUrl();
-      if (!sheetUrl) {
-        alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 Google 시트 연동]에서 마스터 시트 웹앱 URL을 연결해 주세요.');
-        return;
-      }
+      if (!sheetUrl) { alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 Google 시트 연동]에서 마스터 시트 웹앱 URL을 연결해 주세요.'); return; }
       var topicEl = document.getElementById('memoBoardTopicInput');
       var topic = (topicEl && topicEl.value.trim()) || '수업 아이디어 모으기';
       var base = new URL('./board.html', window.location.href).href;
-      var studentUrl = base + '?api=' + encodeURIComponent(sheetUrl) + '&room=' + encodeURIComponent(getRoomId()) + '&title=' + encodeURIComponent(topic);
-      showQrModal('수업 메모보드 학생 참여', studentUrl, {
-        kicker: '수업 메모보드 QR 참여',
-        desc: '학생들이 스마트폰 카메라로 스캔해 메모를 올리면 이 보드에 4초 간격으로 자동 표시됩니다.'
-      });
+      var studentUrl = base + '?api=' + encodeURIComponent(sheetUrl) + '&room=' + encodeURIComponent(getRoomId()) + '&title=' + encodeURIComponent(topic) + (groupCount >= 2 ? '&groups=' + groupCount : '');
+      showQrModal('수업 메모보드 학생 참여', studentUrl, { kicker: '수업 메모보드 QR 참여', desc: '학생들이 스마트폰 카메라로 스캔해 모둠을 고르고 메모를 올리면 보드에 실시간 표시됩니다.' });
     }
 
     function bindEvents() {
@@ -12872,20 +12976,30 @@ window.TodayBriefing = TodayBriefing;
       if (!modal || modal.dataset.bound === '1') return;
       modal.dataset.bound = '1';
 
-      var topicEl = document.getElementById('memoBoardTopicInput');
-      try {
-        var savedTopic = localStorage.getItem(LOCAL_TOPIC_KEY);
-        if (savedTopic && topicEl) topicEl.value = savedTopic;
-      } catch (e) {}
-
-      var topicSaveBtn = document.getElementById('memoBoardTopicSaveBtn');
-      if (topicSaveBtn && topicEl) {
-        topicSaveBtn.addEventListener('click', function () {
-          try { localStorage.setItem(LOCAL_TOPIC_KEY, topicEl.value.trim()); } catch (e) {}
-          topicSaveBtn.textContent = '적용됨';
-          setTimeout(function () { topicSaveBtn.textContent = '주제 적용'; }, 1200);
+      modal.querySelectorAll('[data-mb-mode]').forEach(function (mb) {
+        mb.classList.toggle('active', mb.getAttribute('data-mb-mode') === boardMode);
+        mb.addEventListener('click', function () {
+          boardMode = mb.getAttribute('data-mb-mode') || 'columns';
+          modal.querySelectorAll('[data-mb-mode]').forEach(function (x) { x.classList.toggle('active', x === mb); });
+          saveBoardCfg();
+          renderNotes(notesCache);
         });
-      }
+      });
+      modal.querySelectorAll('[data-mb-groups]').forEach(function (gb) {
+        gb.classList.toggle('active', parseInt(gb.getAttribute('data-mb-groups'), 10) === groupCount);
+        gb.addEventListener('click', function () {
+          groupCount = parseInt(gb.getAttribute('data-mb-groups'), 10) || 0;
+          modal.querySelectorAll('[data-mb-groups]').forEach(function (x) { x.classList.toggle('active', x === gb); });
+          saveBoardCfg();
+          syncGroupDropdown();
+          renderNotes(notesCache);
+        });
+      });
+
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      try { var savedTopic = localStorage.getItem(LOCAL_TOPIC_KEY); if (savedTopic && topicEl) topicEl.value = savedTopic; } catch (e) {}
+      var topicSaveBtn = document.getElementById('memoBoardTopicSaveBtn');
+      if (topicSaveBtn && topicEl) { topicSaveBtn.addEventListener('click', function () { try { localStorage.setItem(LOCAL_TOPIC_KEY, topicEl.value.trim()); } catch (e) {} topicSaveBtn.textContent = '적용됨'; setTimeout(function () { topicSaveBtn.textContent = '주제 적용'; }, 1200); }); }
 
       document.querySelectorAll('#memoBoardColorPicker .mb-color').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -12898,62 +13012,29 @@ window.TodayBriefing = TodayBriefing;
       var addBtn = document.getElementById('memoBoardAddBtn');
       var authorEl = document.getElementById('memoBoardAuthorInput');
       var textEl = document.getElementById('memoBoardTextInput');
-      var submitHandler = function () {
-        if (!textEl || !textEl.value.trim()) return;
-        addNote(authorEl ? authorEl.value : '선생님', textEl.value);
-        textEl.value = '';
-        textEl.focus();
-      };
+      var grpSel = document.getElementById('memoBoardGroupSelect');
+      var submitHandler = function () { if (!textEl || !textEl.value.trim()) return; addNote(authorEl ? authorEl.value : '선생님', textEl.value, grpSel ? grpSel.value : '공통'); textEl.value = ''; textEl.focus(); };
       if (addBtn) addBtn.addEventListener('click', submitHandler);
-      if (textEl) {
-        textEl.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') { e.preventDefault(); submitHandler(); }
-        });
-      }
+      if (textEl) textEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submitHandler(); } });
 
-      var qrBtn = document.getElementById('memoBoardQrBtn');
-      if (qrBtn) qrBtn.addEventListener('click', openStudentQr);
-
-      var refreshBtn = document.getElementById('memoBoardRefreshBtn');
-      if (refreshBtn) refreshBtn.addEventListener('click', fetchNotes);
-
-      var clearBtn = document.getElementById('memoBoardClearBtn');
-      if (clearBtn) clearBtn.addEventListener('click', clearAllNotes);
+      var qrBtn = document.getElementById('memoBoardQrBtn'); if (qrBtn) qrBtn.addEventListener('click', openStudentQr);
+      var refreshBtn = document.getElementById('memoBoardRefreshBtn'); if (refreshBtn) refreshBtn.addEventListener('click', fetchNotes);
+      var clearBtn = document.getElementById('memoBoardClearBtn'); if (clearBtn) clearBtn.addEventListener('click', clearAllNotes);
 
       var fsBtn = document.getElementById('memoBoardFullscreenBtn');
       var dialog = modal.querySelector('.memo-board-dialog');
-      if (fsBtn && dialog) {
-        fsBtn.addEventListener('click', function () {
-          var fs = dialog.classList.toggle('is-fullscreen');
-          modal.classList.toggle('is-fullscreen-modal', fs);
-          fsBtn.textContent = fs ? '기본 창' : '전체화면';
-          if (!fs && document.fullscreenElement) {
-            try { document.exitFullscreen(); } catch (e) {}
-          }
-        });
-      }
+      if (fsBtn && dialog) { fsBtn.addEventListener('click', function () { var fs = dialog.classList.toggle('is-fullscreen'); modal.classList.toggle('is-fullscreen-modal', fs); fsBtn.textContent = fs ? '기본 창' : '전체화면'; }); }
 
       var openSyncBtn = document.getElementById('memoBoardOpenSyncBtn');
-      if (openSyncBtn) {
-        openSyncBtn.addEventListener('click', function () {
-          modal.classList.remove('show');
-          var syncBtn = document.getElementById('headerSyncBtn');
-          if (syncBtn) syncBtn.click();
-        });
-      }
-
-      modal.querySelectorAll('.close-btn[data-modal="memoBoardModal"]').forEach(function (cb) {
-        cb.addEventListener('click', function () {
-          modal.classList.remove('show');
-          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-        });
-      });
+      if (openSyncBtn) openSyncBtn.addEventListener('click', function () { modal.classList.remove('show'); var syncBtn = document.getElementById('headerSyncBtn'); if (syncBtn) syncBtn.click(); });
+      modal.querySelectorAll('.close-btn[data-modal="memoBoardModal"]').forEach(function (cb) { cb.addEventListener('click', function () { modal.classList.remove('show'); if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }); });
     }
 
     function open() {
       var modal = document.getElementById('memoBoardModal');
       if (!modal) return;
       bindEvents();
+      syncGroupDropdown();
       updateSyncUi();
       var dialog = modal.querySelector('.memo-board-dialog');
       var fsBtn = document.getElementById('memoBoardFullscreenBtn');
@@ -12964,18 +13045,13 @@ window.TodayBriefing = TodayBriefing;
       fetchNotes();
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(function () {
-        if (!modal.classList.contains('show')) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-          return;
-        }
+        if (!modal.classList.contains('show')) { clearInterval(pollTimer); pollTimer = null; return; }
         fetchNotes();
       }, 4000);
     }
 
     return { open: open };
   })();
-
   function initQrAndMemoBoard() {
     enhanceExtraMenuWithQrButtons();
     var qrModal = document.getElementById('qrShareModal');
@@ -13707,4 +13783,114 @@ window.TodayBriefing = TodayBriefing;
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]
   );
+})();
+// ===================================================================
+// 추천 사이트 홈페이지 스크린샷 썸네일 허브 모듈 (FavSitesHubModule)
+// ===================================================================
+(function () {
+  'use strict';
+
+  function getDomain(url) {
+    try { return new URL(url).hostname; } catch (e) { return ''; }
+  }
+
+  function renderFavHub() {
+    var body = document.getElementById('fsHubBody');
+    var srcMenu = document.getElementById('favMenu');
+    if (!body || !srcMenu) return;
+    var html = '';
+    var linksForQr = [];
+    srcMenu.querySelectorAll('details.fav-category').forEach(function (det) {
+      var sumEl = det.querySelector('summary');
+      var catTitle = sumEl ? sumEl.childNodes[0].textContent.trim() : '추천 사이트';
+      var links = Array.from(det.querySelectorAll('a[href^="http"]'));
+      var addBtn = det.querySelector('.custom-fav-add');
+      html += '<details class="lt-hub-fold" open>' +
+        '<summary class="lt-fold-sum">' +
+          '<span>' + catTitle + '</span>' +
+          '<span class="lt-fold-right"><span>' + links.length + '개</span><span class="lt-fold-arrow">▾</span></span>' +
+        '</summary>' +
+        '<div class="lt-hub-grid">';
+      links.forEach(function (a) {
+        var idx = linksForQr.length;
+        var title = a.textContent.trim();
+        var href = a.href;
+        linksForQr.push({ title: title, url: href });
+        var host = getDomain(href);
+        var shotUrl = 'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(href) + '?w=600&h=360';
+        var favIconUrl = 'https://www.google.com/s2/favicons?sz=64&domain_url=' + encodeURIComponent(href);
+        html += '<div class="lt-card">' +
+          '<div class="lt-thumb-shot">' +
+            '<span class="lt-shot-badge">' + (host || catTitle) + '</span>' +
+            '<img class="lt-shot-img" loading="lazy" src="' + shotUrl + '" alt="' + title + '" onerror="this.style.display=\'none\'">' +
+            '<div class="lt-thumb-fallback"><img src="' + favIconUrl + '" alt=""><span>' + (host || title) + '</span></div>' +
+          '</div>' +
+          '<div class="lt-card-body">' +
+            '<h4 class="lt-card-title">' + title + '</h4>' +
+            '<p class="lt-card-desc">' + (host ? host + ' 바로가기' : catTitle) + '</p>' +
+            '<div class="lt-card-actions">' +
+              '<a class="btn-primary lt-open-main" href="' + href + '" target="_blank" rel="noopener noreferrer">사이트 열기</a>' +
+              '<button type="button" class="btn-outline fs-hub-qr" data-fs-idx="' + idx + '">QR</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+      if (addBtn) {
+        html += '<div style="margin-top:8px;"><button type="button" class="btn-outline fs-custom-trigger" data-add-id="' + addBtn.id + '">' + addBtn.textContent.trim() + '</button></div>';
+      }
+      html += '</details>';
+    });
+    body.innerHTML = html;
+
+    body.querySelectorAll('.fs-hub-qr').forEach(function (qb) {
+      qb.addEventListener('click', function () {
+        var it = linksForQr[parseInt(qb.getAttribute('data-fs-idx'), 10)];
+        if (it && typeof window.openQrShareModal === 'function') {
+          window.openQrShareModal(it.title, it.url, { kicker: '추천 사이트 QR 공유' });
+        }
+      });
+    });
+    body.querySelectorAll('.fs-custom-trigger').forEach(function (tb) {
+      tb.addEventListener('click', function () {
+        var orig = document.getElementById(tb.getAttribute('data-add-id'));
+        if (orig) orig.click();
+        setTimeout(renderFavHub, 150);
+      });
+    });
+  }
+
+  function open() {
+    var modal = document.getElementById('favSitesHubModal');
+    if (!modal) return;
+    renderFavHub();
+    if (modal.dataset.bound !== '1') {
+      modal.dataset.bound = '1';
+      modal.querySelectorAll('.close-btn[data-modal="favSitesHubModal"]').forEach(function (cb) {
+        cb.addEventListener('click', function () { modal.classList.remove('show'); });
+      });
+      var foldBtn = document.getElementById('fsHubFoldAllBtn');
+      if (foldBtn) {
+        foldBtn.addEventListener('click', function () {
+          var body = document.getElementById('fsHubBody');
+          var folds = body ? body.querySelectorAll('details.lt-hub-fold') : [];
+          var anyOpen = Array.from(folds).some(function (f) { return f.open; });
+          folds.forEach(function (f) { f.open = !anyOpen; });
+          foldBtn.textContent = anyOpen ? '모두 펼치기' : '모두 접기';
+        });
+      }
+      var fsBtn = document.getElementById('fsHubFullscreenBtn');
+      var dialog = modal.querySelector('.lt-hub-dialog');
+      if (fsBtn && dialog) {
+        fsBtn.addEventListener('click', function () {
+          var fs = dialog.classList.toggle('is-fullscreen');
+          modal.classList.toggle('is-fullscreen-modal', fs);
+          fsBtn.textContent = fs ? '기본 창' : '전체화면';
+        });
+      }
+    }
+    modal.classList.add('show');
+  }
+
+  window.FavSitesHubModule = { open: open };
 })();
