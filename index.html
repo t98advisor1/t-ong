@@ -40,7 +40,7 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.81">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.82">
 </head>
 <body>
 
@@ -137,36 +137,9 @@
           </div>
         </div>
 
-        <div class="more-wrap">
-          <button type="button" class="mode-tab" id="lessonToolBtn">수업 도구 ▾</button>
-          <div class="more-menu fav-menu extra-cat-menu" id="lessonToolMenu">
-            <div class="fav-category-list">
-              <details class="fav-category" open>
-                <summary>출제 · 수업 설계 도구 <small>3개</small></summary>
-                <div class="fav-category-grid">
-                  <button type="button" data-open="scorePlanner">문항별 배점 설계기</button>
-                  <button type="button" data-open="memoBoard">수업 메모보드</button>
-                  <button type="button" data-open="timer">간편 타이머</button>
-                </div>
-              </details>
-              <details class="fav-category" open>
-                <summary>교과 · 학습용 앱 <small>8개</small></summary>
-                <div class="fav-category-grid">
-                  <a href="https://go.geomath.workers.dev/" target="_blank" rel="noopener noreferrer">기하 벡터</a>
-                  <a href="https://ai-math-practice.vercel.app/" target="_blank" rel="noopener noreferrer">인공지능 수학</a>
-                  <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">SET(셋)</a>
-                  <a href="https://stock-arena-v3.vercel.app/" target="_blank" rel="noopener noreferrer">Stock Arena v3 (모의주식투자)</a>
-                  <a href="https://www.geogebra.org/?lang=ko" target="_blank" rel="noopener noreferrer">지오지브라</a>
-                  <a href="https://www.desmos.com/?lang=ko" target="_blank" rel="noopener noreferrer">데스모스</a>
-                  <a href="https://tong.mods.go.kr/front/main/main.do" target="_blank" rel="noopener noreferrer">통그라미</a>
-                  <a href="https://askmath.kosac.re.kr/main.do" target="_blank" rel="noopener noreferrer">ASK MATH</a>
-                </div>
-              </details>
-            </div>
-          </div>
-        </div>
+        <button type="button" class="mode-tab" id="lessonToolBtn" title="7단계: 출제·수업 설계 도구 및 교과 학습용 앱"><span class="tab-step-badge">7</span>수업 도구</button>
 
-        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">7</span>구글 시트 모음</button>
+        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">8</span>구글 시트 모음</button>
 
         <div class="more-wrap">
           <button type="button" class="mode-tab" id="favBtn">추천 사이트 ▾</button>
@@ -2792,6 +2765,23 @@
     </div>
   </div>
 
+  <!-- 7 수업 도구 허브 모달 (썸네일 + 설명 카드) -->
+  <div id="lessonToolsHubModal" class="modal">
+    <div class="modal-content lt-hub-dialog">
+      <div class="modal-header lt-hub-header">
+        <div>
+          <span class="qr-share-kicker">7 · 수업 도구 &amp; 교과 학습용 앱</span>
+          <h3 style="margin:2px 0 0;">수업 도구 한눈에 보기</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-outline" id="ltHubFullscreenBtn">전체화면</button>
+          <button class="close-btn" data-modal="lessonToolsHubModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body lt-hub-body" id="ltHubBody"></div>
+    </div>
+  </div>
+
   <!-- 수업 도구: 총점에 딱 맞는 문항별 배점 설계 모달 -->
   <div id="scorePlannerModal" class="modal">
     <div class="modal-content sp-modal-dialog">
@@ -2871,7 +2861,7 @@
   </div>
 
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.78"></script>
+  <script src="/app.js?v=5.17.0-preview.82"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

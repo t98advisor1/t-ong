@@ -5690,10 +5690,7 @@ var HelpMenu = (function () {
     if (!button || !menu) return;
     button.addEventListener('click', function (e) {
       e.stopPropagation();
-      var extra = el('extraMenu'), fav = el('favMenu'), game = el('gameMenu'), ai = el('aiMenu');
-      if (extra) extra.classList.remove('open');
-      if (ai) ai.classList.remove('open');
-      if (fav) fav.classList.remove('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('helpMenu');
       menu.classList.toggle('open');
       if (menu.classList.contains('open')) positionMobileMenu();
     });
@@ -9177,7 +9174,7 @@ function initModeTabs() {
   if (home && homeMenu) {
     home.addEventListener('click', function (e) {
       e.stopPropagation();
-      ['extraMenu','lessonToolMenu','favMenu','gameMenu','helpMenu','aiMenu'].forEach(function (id) { var menu=document.getElementById(id); if(menu)menu.classList.remove('open'); });
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('homeMenu');
       homeMenu.classList.toggle('open');
     });
     homeMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9201,11 +9198,7 @@ function initModeTabs() {
   if (favBtn && favMenu) {
     favBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      var em = document.getElementById('extraMenu');
-      var hm = document.getElementById('helpMenu');
-      if (em) em.classList.remove('open');
-      if (hm) hm.classList.remove('open');
-      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open'); var lm = document.getElementById('lessonToolMenu'); if (lm) lm.classList.remove('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('favMenu');
       favMenu.classList.toggle('open');
     });
     favMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9218,12 +9211,7 @@ function initModeTabs() {
   if (gameBtn && gameMenu) {
     gameBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      var em = document.getElementById('extraMenu');
-      var hm = document.getElementById('helpMenu');
-      if (em) em.classList.remove('open');
-      if (favMenu) favMenu.classList.remove('open');
-      if (hm) hm.classList.remove('open');
-      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open'); var lm = document.getElementById('lessonToolMenu'); if (lm) lm.classList.remove('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('gameMenu');
       gameMenu.classList.toggle('open');
     });
     gameMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9235,7 +9223,7 @@ function initModeTabs() {
   if (aiBtn && aiMenu) {
     aiBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      ['extraMenu','lessonToolMenu','favMenu','gameMenu','helpMenu','homeMenu'].forEach(function (id) { var m = document.getElementById(id); if (m) m.classList.remove('open'); });
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('aiMenu');
       var open = !aiMenu.classList.contains('open');
       aiMenu.classList.toggle('open', open);
       aiBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -9272,8 +9260,7 @@ function initModeTabs() {
     }
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
-      if (favMenu) favMenu.classList.remove('open');
-      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
+      if (window.closeAllHeaderMenus) window.closeAllHeaderMenus('extraMenu');
       if (!menu.classList.contains('open')) positionMobileExtraMenu();
       menu.classList.toggle('open');
     });
@@ -9305,24 +9292,13 @@ function initModeTabs() {
       });
     });
 
+    window.TongHeaderOpenMap = OPEN;
     var lessonBtn = document.getElementById('lessonToolBtn');
-    var lessonMenu = document.getElementById('lessonToolMenu');
-    if (lessonBtn && lessonMenu) {
+    if (lessonBtn) {
       lessonBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        ['extraMenu','favMenu','gameMenu','helpMenu','homeMenu','aiMenu'].forEach(function (id) {
-          var m = document.getElementById(id); if (m) m.classList.remove('open');
-        });
-        lessonMenu.classList.toggle('open');
-      });
-      document.addEventListener('click', function () { lessonMenu.classList.remove('open'); });
-      lessonMenu.addEventListener('click', function (e) { e.stopPropagation(); });
-      lessonMenu.querySelectorAll('button[data-open]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          lessonMenu.classList.remove('open');
-          var fn = OPEN[this.dataset.open];
-          if (fn) fn();
-        });
+        if (window.closeAllHeaderMenus) window.closeAllHeaderMenus();
+        if (window.LessonToolsHubModule) window.LessonToolsHubModule.open();
       });
     }
   }
@@ -12646,7 +12622,6 @@ window.TodayBriefing = TodayBriefing;
 
   function enhanceExtraMenuWithQrButtons() {
     enhanceContainerWithQrButtons('extraMenu', '게임·학습 도구 QR 공유');
-    enhanceContainerWithQrButtons('lessonToolMenu', '수업 도구·학습 앱 QR 공유');
     enhanceContainerWithQrButtons('favMenu', '추천 사이트·학습 앱 QR 공유');
     enhanceContainerWithQrButtons('linksModal', '자주 가는 사이트·앱 QR 공유');
   }
@@ -13560,4 +13535,194 @@ window.TodayBriefing = TodayBriefing;
   }
 
   window.ScorePlannerModule = { open: open };
+})();
+// ===================================================================
+// 상단 드롭다운 겹침 방지 & 7 수업 도구 썸네일 허브 모듈
+// ===================================================================
+(function () {
+  'use strict';
+  var HEADER_MENU_IDS = ['homeMenu', 'extraMenu', 'favMenu', 'gameMenu', 'aiMenu', 'helpMenu'];
+
+  window.closeAllHeaderMenus = function (exceptId) {
+    HEADER_MENU_IDS.forEach(function (id) {
+      if (id === exceptId) return;
+      var m = document.getElementById(id);
+      if (m) m.classList.remove('open');
+    });
+  };
+
+  var DESIGN_TOOLS = [
+    {
+      openKey: 'scorePlanner',
+      tag: '출제 설계',
+      title: '문항별 배점 설계기',
+      desc: '총점·문제 수·최저/최고점을 넣으면 딱 맞는 문항 배점과 구글 시트 수식을 자동 산출합니다.',
+      bg: 'linear-gradient(135deg, #6d28d9 0%, #db2777 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>'
+    },
+    {
+      openKey: 'memoBoard',
+      tag: '실시간 참여',
+      title: '수업 메모보드 (패들렛형)',
+      desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.',
+      bg: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>'
+    },
+    {
+      openKey: 'timer',
+      tag: '시간 관리',
+      title: '간편 타이머',
+      desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.',
+      bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>'
+    }
+  ];
+
+  var LEARNING_APPS = [
+    {
+      title: '기하 벡터',
+      url: 'https://go.geomath.workers.dev/',
+      tag: '기하 탐구',
+      desc: '평면·공간 벡터의 합, 내적, 위치 벡터를 직접 움직여 보며 직관적으로 이해합니다.',
+      bg: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M12 50L50 18M12 50h38M12 50V14" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="18" r="4" fill="#fde047"/></svg>'
+    },
+    {
+      title: '인공지능 수학',
+      url: 'https://ai-math-practice.vercel.app/',
+      tag: 'AI 수학',
+      desc: '행렬 연산, 손실함수, 경사하강법 등 인공지능의 수학 원리를 단계별로 실습합니다.',
+      bg: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="16" cy="20" r="5" fill="#fff"/><circle cx="16" cy="44" r="5" fill="#fff"/><circle cx="48" cy="32" r="6" fill="#fde047"/><path d="M21 21l21 9M21 43l21-9" stroke="#fff" stroke-width="2.5"/></svg>'
+    },
+    {
+      title: 'SET(셋)',
+      url: 'https://mathset.vercel.app/',
+      tag: '사고력',
+      desc: '모양·색·개수·무늬 4가지 속성의 규칙을 찾는 논리·집합 사고력 활동 게임입니다.',
+      bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="12" height="32" rx="6" fill="#fff"/><rect x="26" y="16" width="12" height="32" rx="6" fill="rgba(255,255,255,0.55)"/><rect x="42" y="16" width="12" height="32" rx="6" stroke="#fff" stroke-width="2.5"/></svg>'
+    },
+    {
+      title: 'Stock Arena v3 (모의주식투자)',
+      url: 'https://stock-arena-v3.vercel.app/',
+      tag: '경제·확률',
+      desc: '뉴스와 차트 데이터를 분석하며 교실에서 함께 즐기는 실시간 모의주식투자 앱입니다.',
+      bg: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 46l14-14 10 8 20-22" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 18h10v10" stroke="#fde047" stroke-width="3" stroke-linecap="round"/></svg>'
+    },
+    {
+      title: '지오지브라 (GeoGebra)',
+      url: 'https://www.geogebra.org/?lang=ko',
+      tag: '그래프·기하',
+      desc: '함수, 도형, 3D 입체, 통계 작도를 한 화면에서 조작할 수 있는 대표 수학 도구입니다.',
+      bg: 'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="32" rx="20" ry="12" transform="rotate(-25 32 32)" stroke="#fff" stroke-width="2.8"/><circle cx="20" cy="26" r="4" fill="#fde047"/><circle cx="44" cy="38" r="4" fill="#fde047"/></svg>'
+    },
+    {
+      title: '데스모스 (Desmos)',
+      url: 'https://www.desmos.com/?lang=ko',
+      tag: '함수 그래프',
+      desc: '수식을 입력하면 그래프가 즉시 그려지고 슬라이더로 매개변수 변화를 실험합니다.',
+      bg: 'linear-gradient(135deg, #0d9488 0%, #0284c7 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M10 44c8-26 16-26 22 0s14 26 22 0" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>'
+    },
+    {
+      title: '통그라미',
+      url: 'https://tong.mods.go.kr/front/main/main.do',
+      tag: '통계 시각화',
+      desc: '통계청에서 제공하는 초·중·고 교실용 통계 표·그래프·자료 분석 웹 도구입니다.',
+      bg: 'linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="32" width="10" height="20" rx="2" fill="#fff"/><rect x="27" y="20" width="10" height="32" rx="2" fill="#fff"/><rect x="42" y="12" width="10" height="40" rx="2" fill="#fef08a"/></svg>'
+    },
+    {
+      title: 'ASK MATH',
+      url: 'https://askmath.kosac.re.kr/main.do',
+      tag: '수학 탐구',
+      desc: '한국과학창의재단의 수학 개념 탐구, 생활 속 수학, 교수학습 자료 포털입니다.',
+      bg: 'linear-gradient(135deg, #475569 0%, #1e293b 100%)',
+      svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M14 14h36v28H26l-10 8v-8h-2V14z" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.8"/><text x="32" y="34" text-anchor="middle" fill="#fde047" font-size="18" font-weight="800">?</text></svg>'
+    }
+  ];
+
+  function renderHub() {
+    var body = document.getElementById('ltHubBody');
+    if (!body || body.dataset.rendered === '1') return;
+    body.dataset.rendered = '1';
+
+    var html = '<div class="lt-sec-title"><span>출제 · 수업 설계 도구</span><small>3개</small></div><div class="lt-hub-grid">';
+    DESIGN_TOOLS.forEach(function (t) {
+      html += '<div class="lt-card">' +
+        '<div class="lt-thumb" style="background:' + t.bg + '"><span class="lt-thumb-tag">' + t.tag + '</span>' + t.svg + '</div>' +
+        '<div class="lt-card-body">' +
+          '<h4 class="lt-card-title">' + t.title + '</h4>' +
+          '<p class="lt-card-desc">' + t.desc + '</p>' +
+          '<div class="lt-card-actions"><button type="button" class="btn-primary lt-open-main" data-hub-open="' + t.openKey + '">바로 실행</button></div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="lt-sec-title"><span>교과 · 학습용 앱</span><small>8개 · QR 학생 접속 지원</small></div><div class="lt-hub-grid">';
+    LEARNING_APPS.forEach(function (a, idx) {
+      html += '<div class="lt-card">' +
+        '<div class="lt-thumb" style="background:' + a.bg + '"><span class="lt-thumb-tag">' + a.tag + '</span>' + a.svg + '</div>' +
+        '<div class="lt-card-body">' +
+          '<h4 class="lt-card-title">' + a.title + '</h4>' +
+          '<p class="lt-card-desc">' + a.desc + '</p>' +
+          '<div class="lt-card-actions">' +
+            '<a class="btn-primary lt-open-main" href="' + a.url + '" target="_blank" rel="noopener noreferrer">앱 열기</a>' +
+            '<button type="button" class="btn-outline lt-hub-qr" data-app-idx="' + idx + '">QR</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    body.innerHTML = html;
+
+    body.querySelectorAll('[data-hub-open]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var modal = document.getElementById('lessonToolsHubModal');
+        if (modal) modal.classList.remove('show');
+        var key = b.getAttribute('data-hub-open');
+        var openMap = window.TongHeaderOpenMap || {};
+        if (openMap[key]) openMap[key]();
+      });
+    });
+    body.querySelectorAll('.lt-hub-qr').forEach(function (qb) {
+      qb.addEventListener('click', function () {
+        var app = LEARNING_APPS[parseInt(qb.getAttribute('data-app-idx'), 10)];
+        if (app && typeof window.openQrShareModal === 'function') {
+          window.openQrShareModal(app.title, app.url, {
+            kicker: '학습용 앱 QR 공유',
+            desc: '교실 TV나 화면에 띄워 학생들이 스마트폰·태블릿으로 스캔하면 바로 접속합니다.'
+          });
+        }
+      });
+    });
+  }
+
+  function open() {
+    var modal = document.getElementById('lessonToolsHubModal');
+    if (!modal) return;
+    renderHub();
+    var dialog = modal.querySelector('.lt-hub-dialog');
+    var fsBtn = document.getElementById('ltHubFullscreenBtn');
+    if (modal.dataset.bound !== '1') {
+      modal.dataset.bound = '1';
+      modal.querySelectorAll('.close-btn[data-modal="lessonToolsHubModal"]').forEach(function (cb) {
+        cb.addEventListener('click', function () { modal.classList.remove('show'); });
+      });
+      if (fsBtn && dialog) {
+        fsBtn.addEventListener('click', function () {
+          var fs = dialog.classList.toggle('is-fullscreen');
+          modal.classList.toggle('is-fullscreen-modal', fs);
+          fsBtn.textContent = fs ? '기본 창' : '전체화면';
+        });
+      }
+    }
+    modal.classList.add('show');
+  }
+
+  window.LessonToolsHubModule = { open: open };
 })();

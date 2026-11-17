@@ -6590,3 +6590,131 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ================================================================= */
+/* 7 수업 도구 허브 모달 (썸네일 카드 + 설명) */
+/* ================================================================= */
+.lt-hub-dialog {
+  max-width: 1080px;
+  width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+.lt-hub-dialog.is-fullscreen {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+}
+#lessonToolsHubModal.is-fullscreen-modal {
+  padding: 0;
+}
+.lt-hub-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.lt-hub-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: #f8fafc;
+  padding: 18px 22px 26px;
+}
+.lt-sec-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 12px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.lt-sec-title small {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+}
+.lt-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.lt-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.lt-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.09);
+  border-color: #93c5fd;
+}
+.lt-thumb {
+  height: 104px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  color: #ffffff;
+}
+.lt-thumb-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 3px 9px;
+  border-radius: 999px;
+  align-self: flex-start;
+  backdrop-filter: blur(4px);
+}
+.lt-thumb svg {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+.lt-card-body {
+  padding: 13px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+}
+.lt-card-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.lt-card-desc {
+  margin: 0;
+  font-size: 0.81rem;
+  color: #475569;
+  line-height: 1.48;
+  flex: 1 1 auto;
+}
+.lt-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.lt-card-actions .btn-primary,
+.lt-card-actions .btn-outline {
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 6px 11px;
+}
+.lt-card-actions .lt-open-main {
+  flex: 1 1 auto;
+}
