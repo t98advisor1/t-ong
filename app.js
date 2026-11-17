@@ -103,6 +103,7 @@ var CloudSheetSync = (function () {
   var isSyncing = false;
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function getAuth() {
     try {
@@ -5407,6 +5408,7 @@ var CustomFavorites = (function () {
   var KEY = 'seatCustomFavorites_v1';
   var items = [];
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function kindOf(item) { var kind=item&&item.kind; return ['math','classroom','textbook','admission'].indexOf(kind)>=0?kind:'general'; }
   function kindTitle(kind) { return {math:'📐 내 수학관련 사이트',classroom:'🏫 내 수업 및 클래스 사이트',textbook:'📚 내 교과서 사이트',admission:'🎓 내 진로진학 사이트'}[kind]||'🔖 나만의 즐겨찾기'; }
   function kindIcon(kind) { return {math:'📐 ',classroom:'🏫 ',textbook:'📖 ',admission:'🎓 '}[kind]||'🌐 '; }
@@ -5639,6 +5641,7 @@ var UsageStats = (function () {
 
 var HelpMenu = (function () {
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function showInfo(kind) {
     var title = el('helpInfoTitle'), body = el('helpInfoBody');
     if (!title || !body) return;
@@ -5961,6 +5964,7 @@ var ScheduleCalendar = (function () {
   var calendarDragGhost = null;
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function todayKey() { return formatDate(new Date()); }
   function dateFromKey(key) {
     var p = String(key || '').split('-').map(Number);
@@ -6777,6 +6781,7 @@ var AiAssistant = (function () {
   ].map(function (tool) { tool.eager_input_streaming = true; return tool; });
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function todayKey() { return formatDate(new Date()); }
 
   // ---- 설정·키 저장 -------------------------------------------------
@@ -7103,6 +7108,7 @@ var Timer = (function () {
   var RING = 2 * Math.PI * 88;
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function fmt(s) {
     var m = Math.floor(Math.max(0, s) / 60);
@@ -8092,6 +8098,7 @@ var SpecialNotes = (function () {
   var editingId = '';
   var LAST_SUBJECT_KEY = 'notetongLastSpecialSubject_v1';
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function cls() { return allClassData[currentClassIndex] || {}; }
   function data() {
     var d = cls();
@@ -8432,6 +8439,7 @@ var Ladder = (function () {
   var W = 720, H = 240, TOP = 34, BOT = 206;
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function colX(i) { return 46 + i * ((W - 92) / Math.max(1, cols - 1)); }
 
   function readLines(id, n, fallback) {
@@ -9169,7 +9177,7 @@ function initModeTabs() {
   if (home && homeMenu) {
     home.addEventListener('click', function (e) {
       e.stopPropagation();
-      ['extraMenu','favMenu','gameMenu','helpMenu','aiMenu'].forEach(function (id) { var menu=document.getElementById(id); if(menu)menu.classList.remove('open'); });
+      ['extraMenu','lessonToolMenu','favMenu','gameMenu','helpMenu','aiMenu'].forEach(function (id) { var menu=document.getElementById(id); if(menu)menu.classList.remove('open'); });
       homeMenu.classList.toggle('open');
     });
     homeMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9197,7 +9205,7 @@ function initModeTabs() {
       var hm = document.getElementById('helpMenu');
       if (em) em.classList.remove('open');
       if (hm) hm.classList.remove('open');
-      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
+      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open'); var lm = document.getElementById('lessonToolMenu'); if (lm) lm.classList.remove('open');
       favMenu.classList.toggle('open');
     });
     favMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9215,7 +9223,7 @@ function initModeTabs() {
       if (em) em.classList.remove('open');
       if (favMenu) favMenu.classList.remove('open');
       if (hm) hm.classList.remove('open');
-      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open');
+      var am = document.getElementById('aiMenu'); if (am) am.classList.remove('open'); var lm = document.getElementById('lessonToolMenu'); if (lm) lm.classList.remove('open');
       gameMenu.classList.toggle('open');
     });
     gameMenu.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -9227,7 +9235,7 @@ function initModeTabs() {
   if (aiBtn && aiMenu) {
     aiBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      ['extraMenu','favMenu','gameMenu','helpMenu','homeMenu'].forEach(function (id) { var m = document.getElementById(id); if (m) m.classList.remove('open'); });
+      ['extraMenu','lessonToolMenu','favMenu','gameMenu','helpMenu','homeMenu'].forEach(function (id) { var m = document.getElementById(id); if (m) m.classList.remove('open'); });
       var open = !aiMenu.classList.contains('open');
       aiMenu.classList.toggle('open', open);
       aiBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -9286,7 +9294,8 @@ function initModeTabs() {
       ladder: function () { document.getElementById('ladderBtn').click(); },
       links: function () { document.getElementById('linksBtn').click(); },
       calendar: function () { ScheduleCalendar.open(); },
-      memoBoard: function () { if (window.MemoBoardModule) window.MemoBoardModule.open(); }
+      memoBoard: function () { if (window.MemoBoardModule) window.MemoBoardModule.open(); },
+      scorePlanner: function () { if (window.ScorePlannerModule) window.ScorePlannerModule.open(); }
     };
     menu.querySelectorAll('button[data-open]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -9295,6 +9304,27 @@ function initModeTabs() {
         if (fn) fn();
       });
     });
+
+    var lessonBtn = document.getElementById('lessonToolBtn');
+    var lessonMenu = document.getElementById('lessonToolMenu');
+    if (lessonBtn && lessonMenu) {
+      lessonBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        ['extraMenu','favMenu','gameMenu','helpMenu','homeMenu','aiMenu'].forEach(function (id) {
+          var m = document.getElementById(id); if (m) m.classList.remove('open');
+        });
+        lessonMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', function () { lessonMenu.classList.remove('open'); });
+      lessonMenu.addEventListener('click', function (e) { e.stopPropagation(); });
+      lessonMenu.querySelectorAll('button[data-open]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          lessonMenu.classList.remove('open');
+          var fn = OPEN[this.dataset.open];
+          if (fn) fn();
+        });
+      });
+    }
   }
 
   var edit = document.getElementById('spEditBtn');
@@ -9413,6 +9443,7 @@ var TeacherSchedule = (function () {
   var currentPickerData = null;  // ③단계에 표시 중인 학급 시간표
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function readJson(key, fallback) {
     try {
@@ -11316,6 +11347,7 @@ var SheetMemoPad = (function () {
   var items = [];
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function defaultItems() {
     return [
@@ -11535,6 +11567,7 @@ var AvatarManager = (function () {
   var DEFAULT_SRC = '/assets/teacher-avatar-default.png';
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function readCustom() {
     try {
@@ -11634,6 +11667,7 @@ var TodayBriefing = (function () {
   var cachedWeather = { loc: '날씨', text: '날씨를 불러오는 중...' };
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function getFilters() {
     try {
@@ -12088,6 +12122,7 @@ var StudentTimetable = (function () {
   var parsedStudents = {};
 
   function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
   function readJson(key, fallback) {
     try {
@@ -12611,6 +12646,7 @@ window.TodayBriefing = TodayBriefing;
 
   function enhanceExtraMenuWithQrButtons() {
     enhanceContainerWithQrButtons('extraMenu', '게임·학습 도구 QR 공유');
+    enhanceContainerWithQrButtons('lessonToolMenu', '수업 도구·학습 앱 QR 공유');
     enhanceContainerWithQrButtons('favMenu', '추천 사이트·학습 앱 QR 공유');
     enhanceContainerWithQrButtons('linksModal', '자주 가는 사이트·앱 QR 공유');
   }
@@ -13177,4 +13213,351 @@ window.TodayBriefing = TodayBriefing;
   } else {
     initNotionExport();
   }
+})();
+// ===================================================================
+// 수업 도구: 문항별 배점 설계기 (SCORE PLANNER) & 구글 시트 수식 생성
+// ===================================================================
+(function () {
+  'use strict';
+  var SCALE = 1000;
+  var seedCounter = 0;
+  var currentItems = [];
+  var sortOrder = 'asc';
+
+  function el(id) { return document.getElementById(id); }
+  function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function fmtScore(num) {
+    return (Math.round(num * 100) / 100).toFixed(1).replace(/\.0$/, '') === String(Math.round(num * 100) / 100)
+      ? String(Math.round(num * 100) / 100)
+      : (Math.round(num * 100) / 100).toFixed(1);
+  }
+
+  function mulberry32(a) {
+    return function () {
+      var t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function readConditions() {
+    var total = parseFloat((el('spTotalInput') || {}).value);
+    var count = parseInt((el('spCountInput') || {}).value, 10);
+    var minV = parseFloat((el('spMinInput') || {}).value);
+    var maxV = parseFloat((el('spMaxInput') || {}).value);
+    var step = parseFloat((el('spStepInput') || {}).value);
+    if (!(total > 0)) total = 100;
+    if (!(count >= 1)) count = 25;
+    if (count > 100) count = 100;
+    if (!(step > 0)) step = 0.1;
+    if (!(minV > 0)) minV = step;
+    if (maxV < minV) maxV = minV;
+    return { total: total, count: count, min: minV, max: maxV, step: step };
+  }
+
+  function setStatus(msg, ok) {
+    var bar = el('spStatusBar');
+    if (!bar) return;
+    if (!msg) { bar.style.display = 'none'; return; }
+    bar.textContent = msg;
+    bar.className = 'sp-status-bar ' + (ok ? 'ok' : 'err');
+    bar.style.display = 'block';
+  }
+
+  function applyOptimalRange() {
+    var total = parseFloat((el('spTotalInput') || {}).value) || 100;
+    var count = Math.max(1, parseInt((el('spCountInput') || {}).value, 10) || 25);
+    var step = parseFloat((el('spStepInput') || {}).value) || 0.1;
+    var avg = total / count;
+    var minV = Math.max(step, Math.floor((avg - 1) * 10) / 10);
+    var maxV = Math.ceil((avg + 1) * 10) / 10;
+    if (el('spMinInput')) el('spMinInput').value = Math.round(minV * 10) / 10;
+    if (el('spMaxInput')) el('spMaxInput').value = Math.round(maxV * 10) / 10;
+    setStatus('평균 배점(' + fmtScore(avg) + '점)을 기준으로 최적 범위(' + fmtScore(minV) + ' ~ ' + fmtScore(maxV) + '점)를 추천했습니다.', true);
+    generateAndRender(seedCounter);
+  }
+
+  function generateAndRender(seedOffset) {
+    var c = readConditions();
+    var minS = Math.round(c.min * SCALE);
+    var maxS = Math.round(c.max * SCALE);
+    var stepS = Math.round(c.step * SCALE);
+    var totalS = Math.round(c.total * SCALE);
+    var minSumS = c.count * minS;
+    var maxSumS = c.count * maxS;
+
+    if (totalS < minSumS || totalS > maxSumS) {
+      setStatus('선택한 범위(' + fmtScore(minSumS / SCALE) + ' ~ ' + fmtScore(maxSumS / SCALE) + '점)로는 총점 ' + fmtScore(c.total) + '점을 만들 수 없습니다. [최적 범위]를 눌러 보세요.', false);
+      return;
+    }
+
+    var remS = totalS - minSumS;
+    if (remS % stepS !== 0) {
+      setStatus('총점과 (최저점×문제수) 차이가 배점 간격(' + c.step + ')으로 나누어떨어지지 않습니다. [최적 범위]를 누르거나 간격을 0.1로 맞춰 보세요.', false);
+      return;
+    }
+
+    var totalSteps = Math.round(remS / stepS);
+    var maxStepPerItem = Math.floor((maxS - minS) / stepS);
+    var steps = [];
+    var q = Math.floor(totalSteps / c.count);
+    var r = totalSteps % c.count;
+    for (var i = 0; i < c.count; i++) steps.push(q + (i < r ? 1 : 0));
+
+    // 다양한 배점이 고르게 분포하도록 유효 범위 내 스텝 재분배
+    var rng = mulberry32(104729 + (seedOffset * 7919) + totalS + c.count * 31);
+    var spreadPasses = Math.max(40, c.count * 8);
+    if (maxStepPerItem > 0 && c.count > 1) {
+      for (var pass = 0; pass < spreadPasses; pass++) {
+        var a = Math.floor(rng() * c.count);
+        var b = Math.floor(rng() * c.count);
+        if (a === b) continue;
+        var maxGive = Math.min(steps[a], maxStepPerItem - steps[b]);
+        if (maxGive <= 0) continue;
+        var delta = 1 + Math.floor(rng() * Math.min(maxGive, Math.max(1, Math.floor(maxStepPerItem / 2))));
+        steps[a] -= delta;
+        steps[b] += delta;
+      }
+    }
+
+    var rawScores = steps.map(function (st) { return Math.round((minS + st * stepS) / SCALE * 1000) / 1000; });
+    rawScores.sort(function (x, y) { return sortOrder === 'desc' ? (y - x) : (x - y); });
+
+    var prevNotes = currentItems.map(function (it) { return it.note || ''; });
+    currentItems = rawScores.map(function (sc, idx) {
+      return { no: idx + 1, score: sc, note: prevNotes[idx] || '' };
+    });
+
+    setStatus('총 ' + c.count + '문항 합계 ' + fmtScore(c.total) + '점에 딱 맞는 배점을 산출했습니다.', true);
+    renderResult();
+  }
+
+  function getDistList() {
+    var map = {};
+    currentItems.forEach(function (it) {
+      var key = String(Math.round(it.score * 1000) / 1000);
+      map[key] = (map[key] || 0) + 1;
+    });
+    var keys = Object.keys(map).sort(function (a, b) {
+      return sortOrder === 'desc' ? (parseFloat(b) - parseFloat(a)) : (parseFloat(a) - parseFloat(b));
+    });
+    return keys.map(function (k) {
+      var s = parseFloat(k);
+      var cnt = map[k];
+      return { score: s, count: cnt, subtotal: Math.round(s * cnt * 1000) / 1000 };
+    });
+  }
+
+  function renderResult() {
+    var c = readConditions();
+    var sumBanner = el('spSumBanner');
+    var distBar = el('spDistBar');
+    var tableWrap = el('spTableWrap');
+    if (!tableWrap) return;
+
+    if (!currentItems.length) return;
+    var sumScaled = currentItems.reduce(function (acc, it) { return acc + Math.round(it.score * SCALE); }, 0);
+    var totalNow = sumScaled / SCALE;
+    var diff = Math.round((totalNow - c.total) * SCALE) / SCALE;
+    var diffText = diff === 0 ? '목표 총점과 정확히 일치' : ('목표 대비 ' + (diff > 0 ? '+' : '') + fmtScore(diff) + '점 차이');
+
+    if (sumBanner) {
+      sumBanner.innerHTML = '<span>전체 <b>' + currentItems.length + '</b>문항</span>' +
+        '<span>산출 합계: <strong>' + fmtScore(totalNow) + '점</strong> (목표 ' + fmtScore(c.total) + '점 · ' + diffText + ')</span>';
+    }
+
+    if (distBar) {
+      var dist = getDistList();
+      distBar.innerHTML = dist.map(function (d) {
+        return '<span class="sp-dist-chip">' + fmtScore(d.score) + '점 × ' + d.count + '문항 = ' + fmtScore(d.subtotal) + '점</span>';
+      }).join('');
+    }
+
+    var cumScaled = 0;
+    var rowsHtml = currentItems.map(function (it, idx) {
+      cumScaled += Math.round(it.score * SCALE);
+      var cum = cumScaled / SCALE;
+      return '<tr>' +
+        '<td>' + it.no + '번</td>' +
+        '<td><div style="display:inline-flex;align-items:center;gap:6px;">' +
+          '<button type="button" class="sp-nudge-btn" data-idx="' + idx + '" data-dir="-1" title="배점 낮추기">−</button>' +
+          '<b>' + fmtScore(it.score) + '</b>' +
+          '<button type="button" class="sp-nudge-btn" data-idx="' + idx + '" data-dir="1" title="배점 높이기">+</button>' +
+        '</div></td>' +
+        '<td>' + fmtScore(cum) + '점</td>' +
+        '<td><input type="text" class="sp-note-input" data-note-idx="' + idx + '" placeholder="단원·성취기준 메모" value="' + escAttr(it.note || '') + '"></td>' +
+      '</tr>';
+    }).join('');
+
+    tableWrap.innerHTML = '<table class="sp-result-table">' +
+      '<thead><tr><th>문항</th><th>배점 (조절)</th><th>누적 합계</th><th>비고 · 단원 메모</th></tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody></table>';
+
+    tableWrap.querySelectorAll('.sp-nudge-btn').forEach(function (nb) {
+      nb.addEventListener('click', function () {
+        var idx = parseInt(nb.getAttribute('data-idx'), 10);
+        var dir = parseInt(nb.getAttribute('data-dir'), 10);
+        var cond = readConditions();
+        if (!currentItems[idx]) return;
+        var next = Math.round((currentItems[idx].score + dir * cond.step) * SCALE) / SCALE;
+        if (next < 0.1) next = 0.1;
+        currentItems[idx].score = next;
+        renderResult();
+      });
+    });
+    tableWrap.querySelectorAll('.sp-note-input').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var idx = parseInt(inp.getAttribute('data-note-idx'), 10);
+        if (currentItems[idx]) currentItems[idx].note = inp.value;
+      });
+    });
+  }
+
+  function buildFormulaTsv() {
+    if (!currentItems.length) return '';
+    var lines = [['문항 번호', '문항 배점', '누적 합계(수식)', '비고 · 메모', '', '구분', '자동 계산'].join('\t')];
+    var endRow = 1 + currentItems.length;
+    currentItems.forEach(function (it, idx) {
+      var r = 2 + idx;
+      var sumCol = '=SUM($B$2:B' + r + ')';
+      var extra = '';
+      if (idx === 0) extra = '\t\t총점 합계\t=SUM(B2:B' + endRow + ')';
+      else if (idx === 1) extra = '\t\t평균 배점\t=AVERAGE(B2:B' + endRow + ')';
+      else if (idx === 2) extra = '\t\t문항 수\t=COUNTA(B2:B' + endRow + ')';
+      lines.push([it.no + '번', it.score, sumCol, (it.note || '').replace(/[\t\n\r]/g, ' ')].join('\t') + extra);
+    });
+    return lines.join('\n');
+  }
+
+  function copyFormulaTsvForGoogleSheet(openNewSheet) {
+    if (!currentItems.length) generateAndRender(seedCounter);
+    if (!currentItems.length) return;
+    var tsv = buildFormulaTsv();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(tsv).then(function () {
+        setStatus('구글 시트 수식(=SUM) 포함 전체 문항 배점표를 복사했습니다! ' + (openNewSheet ? '새 구글 시트에서 Ctrl+V로 붙여넣으세요.' : '구글 시트 A1 셀에 붙여넣으세요.'), true);
+        if (openNewSheet) window.open('https://sheets.new', '_blank', 'noopener');
+      }, function () { setStatus('클립보드 복사에 실패했습니다.', false); });
+    }
+  }
+
+  async function sendToGoogleSheet() {
+    if (!currentItems.length) generateAndRender(seedCounter);
+    if (!currentItems.length) return;
+    var c = readConditions();
+    var dist = getDistList();
+    var keys = ['tong_gsheet_webapp_url', 'tong_sheet_url', 'SR_GAS_MASTER_URL', 'swk_gsheet_url', 'swk_gsheet_homeroom_url', 'swk_gsheet_subject_url'];
+    var sheetUrl = '';
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var v = localStorage.getItem(keys[i]);
+        if (v && /^https:\/\/script\.google\.com\/macros\/s\//.test(v.trim())) { sheetUrl = v.trim(); break; }
+      } catch (e) {}
+    }
+    if (!sheetUrl) {
+      copyFormulaTsvForGoogleSheet(true);
+      return;
+    }
+    var btn = el('spSendGsBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '구글 시트 생성 중...'; }
+    try {
+      var res = await fetch(sheetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'create_score_planner_sheet',
+          totalScore: c.total,
+          itemCount: c.count,
+          minScore: c.min,
+          maxScore: c.max,
+          stepScore: c.step,
+          sortOrder: sortOrder,
+          items: currentItems,
+          dist: dist
+        })
+      });
+      var json = await res.json();
+      if (json && json.success) {
+        setStatus('마스터 구글 시트 [문항배점설계] 탭에 자동 산출 수식과 함께 저장했습니다!', true);
+        if (json.sheetUrl) window.open(json.sheetUrl, '_blank', 'noopener');
+      } else {
+        copyFormulaTsvForGoogleSheet(true);
+      }
+    } catch (err) {
+      copyFormulaTsvForGoogleSheet(true);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '구글 시트 자동 생성'; }
+    }
+  }
+
+  function exportToExcel() {
+    if (!currentItems.length) generateAndRender(seedCounter);
+    if (!currentItems.length) return;
+    var c = readConditions();
+    var aoa = [['문항 번호', '문항 배점', '누적 합계', '비고 · 메모']];
+    var cumS = 0;
+    currentItems.forEach(function (it) {
+      cumS += Math.round(it.score * SCALE);
+      aoa.push([it.no + '번', it.score, cumS / SCALE, it.note || '']);
+    });
+    aoa.push(['합계', c.total, '', '']);
+    if (typeof XLSX !== 'undefined' && XLSX.utils) {
+      var ws = XLSX.utils.aoa_to_sheet(aoa);
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '문항배점설계');
+      XLSX.writeFile(wb, '문항별_배점설계_' + c.count + '문항_' + fmtScore(c.total) + '점.xlsx');
+      setStatus('엑셀 파일(.xlsx)을 다운로드했습니다.', true);
+    } else {
+      var csv = '\ufeff' + aoa.map(function (r) { return r.join(','); }).join('\n');
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '문항별_배점설계.csv';
+      a.click();
+      setStatus('CSV 파일을 다운로드했습니다.', true);
+    }
+  }
+
+  function bindEvents() {
+    var modal = el('scorePlannerModal');
+    if (!modal || modal.dataset.bound === '1') return;
+    modal.dataset.bound = '1';
+
+    modal.querySelectorAll('.close-btn[data-modal="scorePlannerModal"]').forEach(function (cb) {
+      cb.addEventListener('click', function () { modal.classList.remove('show'); });
+    });
+    var calcBtn = el('spCalcBtn'); if (calcBtn) calcBtn.addEventListener('click', function () { generateAndRender(seedCounter); });
+    var otherBtn = el('spOtherBtn'); if (otherBtn) otherBtn.addEventListener('click', function () { seedCounter++; generateAndRender(seedCounter); });
+    var optBtn = el('spOptimalBtn'); if (optBtn) optBtn.addEventListener('click', applyOptimalRange);
+    var ascBtn = el('spSortAscBtn');
+    var descBtn = el('spSortDescBtn');
+    [ascBtn, descBtn].forEach(function (sb) {
+      if (!sb) return;
+      sb.addEventListener('click', function () {
+        sortOrder = sb.getAttribute('data-sort') || 'asc';
+        if (ascBtn) ascBtn.classList.toggle('active', sortOrder === 'asc');
+        if (descBtn) descBtn.classList.toggle('active', sortOrder === 'desc');
+        if (currentItems.length) {
+          currentItems.sort(function (a, b) { return sortOrder === 'desc' ? (b.score - a.score) : (a.score - b.score); });
+          currentItems.forEach(function (it, i) { it.no = i + 1; });
+          renderResult();
+        }
+      });
+    });
+    var sendGsBtn = el('spSendGsBtn'); if (sendGsBtn) sendGsBtn.addEventListener('click', sendToGoogleSheet);
+    var copyGsBtn = el('spCopyGsFormulaBtn'); if (copyGsBtn) copyGsBtn.addEventListener('click', function () { copyFormulaTsvForGoogleSheet(false); });
+    var excelBtn = el('spExcelBtn'); if (excelBtn) excelBtn.addEventListener('click', exportToExcel);
+  }
+
+  function open() {
+    var modal = el('scorePlannerModal');
+    if (!modal) return;
+    bindEvents();
+    modal.classList.add('show');
+    if (!currentItems.length) generateAndRender(seedCounter);
+  }
+
+  window.ScorePlannerModule = { open: open };
 })();

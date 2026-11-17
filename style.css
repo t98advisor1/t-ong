@@ -6295,3 +6295,295 @@ body.today-sidebar-open .floating-today-btn { opacity: 0; pointer-events: none; 
 .notion-api-fields input {
   margin-bottom: 10px !important;
 }
+
+/* ================================================================= */
+/* 수업 도구: 총점에 딱 맞는 문항별 배점 설계 (SCORE PLANNER) */
+/* ================================================================= */
+.sp-modal-dialog {
+  max-width: 980px;
+  width: 95vw;
+  background: #130b20;
+  color: #f8fafc;
+  border: 1px solid rgba(217, 70, 239, 0.35);
+  box-shadow: 0 24px 64px rgba(10, 4, 24, 0.65);
+}
+.sp-modal-header {
+  background: linear-gradient(135deg, #1b0f30 0%, #241342 100%);
+  border-bottom: 1px solid rgba(217, 70, 239, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sp-modal-header h3 {
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+.sp-modal-header .close-btn {
+  color: #cbd5e1;
+}
+.sp-kicker {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #f472b6;
+}
+.sp-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.sp-btn-magenta {
+  background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217, 70, 239, 0.35);
+}
+.sp-btn-magenta:hover {
+  filter: brightness(1.08);
+}
+.sp-btn-dark {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sp-btn-dark:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.sp-modal-body {
+  padding: 16px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sp-cond-card {
+  background: rgba(29, 17, 48, 0.9);
+  border: 1px solid rgba(217, 70, 239, 0.25);
+  border-radius: 14px;
+  padding: 15px 16px;
+}
+.sp-cond-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.sp-cond-top h4 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #ffffff;
+}
+.sp-cond-top p {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+.sp-cond-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sp-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.sp-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 5px;
+}
+.sp-field input {
+  width: 100%;
+  background: #0d0718;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0 !important;
+}
+.sp-field input:focus {
+  outline: none;
+  border-color: #e879f9;
+}
+.sp-opt-wrap {
+  display: flex;
+  align-items: flex-end;
+}
+.sp-opt-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.sp-opt-btn:hover {
+  background: rgba(250, 204, 21, 0.22);
+}
+.sp-sort-row {
+  margin-top: 12px;
+}
+.sp-sort-row > label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+.sp-sort-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #0d0718;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+.sp-sort-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.sp-sort-btn.active {
+  background: rgba(217, 70, 239, 0.22);
+  color: #f0abfc;
+  border: 1px solid rgba(232, 121, 249, 0.45);
+}
+.sp-status-bar {
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+.sp-status-bar.ok {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.sp-status-bar.err {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.sp-result-card {
+  background: rgba(22, 13, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.sp-dist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sp-dist-chip {
+  background: rgba(217, 70, 239, 0.14);
+  border: 1px solid rgba(232, 121, 249, 0.35);
+  color: #f5d0fe;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.sp-sum-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #0d0718;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 9px 13px;
+  margin-bottom: 12px;
+  font-size: 0.86rem;
+}
+.sp-sum-banner strong {
+  color: #f472b6;
+  font-size: 1rem;
+}
+.sp-table-wrap {
+  max-height: 310px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+.sp-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.sp-result-table th {
+  position: sticky;
+  top: 0;
+  background: #1f1235;
+  color: #e2e8f0;
+  font-weight: 800;
+  padding: 9px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+.sp-result-table td {
+  padding: 7px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+.sp-nudge-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.sp-nudge-btn:hover {
+  background: rgba(217, 70, 239, 0.35);
+}
+.sp-note-input {
+  width: 100%;
+  background: #0d0718;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  margin-bottom: 0 !important;
+}
+@media (max-width: 720px) {
+  .sp-input-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

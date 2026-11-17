@@ -1353,6 +1353,84 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
 
+    if (action === "create_score_planner_sheet") {
+      var shName = "문항배점설계";
+      var sh = ss.getSheetByName(shName);
+      if (!sh) {
+        sh = ss.insertSheet(shName);
+        try { sh.setTabColor("#a855f7"); } catch (err) {}
+      }
+      sh.clear();
+
+      var totalScore = Number(body.totalScore || 100);
+      var itemCount = Number(body.itemCount || 25);
+      var minScore = Number(body.minScore || 3);
+      var maxScore = Number(body.maxScore || 5);
+      var stepScore = Number(body.stepScore || 0.1);
+      var sortLabel = body.sortOrder === "desc" ? "내림차순" : "오름차순";
+      var items = Array.isArray(body.items) ? body.items : [];
+      var dist = Array.isArray(body.dist) ? body.dist : [];
+
+      sh.getRange("A1:H1").merge().setValue("총점에 딱 맞는 문항별 배점 설계 (SCORE PLANNER)")
+        .setBackground("#1e1b4b").setFontColor("#ffffff").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
+
+      sh.getRange("A2:H2").setValues([["목표 총점", totalScore, "문제 수", itemCount, "최저~최고", minScore + " ~ " + maxScore, "간격 / 정렬", stepScore + " / " + sortLabel]])
+        .setBackground("#f5f3ff").setFontWeight("bold");
+
+      var endRow = 6 + Math.max(1, items.length);
+      sh.getRange("A3:D3").setValues([["산출 총점 (자동계산)", "=SUM(B7:B" + endRow + ")", "목표와 차이", "=B3-B2"]])
+        .setBackground("#ede9fe").setFontWeight("bold");
+
+      sh.getRange("A6:D6").setValues([["문항 번호", "문항 배점", "누적 합계 (자동)", "문항 유형 · 메모"]])
+        .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
+      sh.getRange("F6:H6").setValues([["배점 단계", "문항 수 (자동)", "배점 소계 (자동)"]])
+        .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
+
+      for (var i = 0; i < items.length; i++) {
+        var r = 7 + i;
+        var it = items[i] || {};
+        sh.getRange(r, 1, 1, 4).setValues([[
+          (it.no || (i + 1)) + "번",
+          Number(it.score || 0),
+          "=SUM($B$7:B" + r + ")",
+          String(it.note || "")
+        ]]);
+      }
+
+      for (var d = 0; d < dist.length; d++) {
+        var dr = 7 + d;
+        var ds = dist[d] || {};
+        sh.getRange(dr, 6, 1, 3).setValues([[
+          Number(ds.score || 0),
+          "=COUNTIF($B$7:$B$" + endRow + ", F" + dr + ")",
+          "=F" + dr + "*G" + dr
+        ]]);
+      }
+
+      if (dist.length > 0) {
+        var distEnd = 6 + dist.length;
+        sh.getRange(distEnd + 1, 6, 1, 3).setValues([[
+          "합계",
+          "=SUM(G7:G" + distEnd + ")",
+          "=SUM(H7:H" + distEnd + ")"
+        ]]).setBackground("#f5f3ff").setFontWeight("bold");
+      }
+
+      sh.setColumnWidth(1, 110);
+      sh.setColumnWidth(2, 110);
+      sh.setColumnWidth(3, 140);
+      sh.setColumnWidth(4, 200);
+      sh.setColumnWidth(6, 110);
+      sh.setColumnWidth(7, 130);
+      sh.setColumnWidth(8, 130);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        sheetName: shName,
+        sheetUrl: ss.getUrl() + "#gid=" + sh.getSheetId()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "notion_archive") {
       var props = PropertiesService.getScriptProperties();
       var token = String(body.notionToken || props.getProperty("NOTION_TOKEN") || "").trim();

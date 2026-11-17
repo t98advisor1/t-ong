@@ -40,7 +40,7 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.77">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.78">
 </head>
 <body>
 
@@ -77,8 +77,9 @@
                 </div>
               </details>
               <details class="fav-category" open>
-                <summary>수업·학급 운영 <small>5개</small></summary>
+                <summary>수업·학급 운영 <small>6개</small></summary>
                 <div class="fav-category-grid">
+                  <button type="button" data-open="scorePlanner">문항별 배점 설계기</button>
                   <button type="button" data-open="memoBoard">수업 메모보드</button>
                   <button type="button" data-open="timer">간편 타이머</button>
                   <button type="button" data-open="praise">칭찬 포인트</button>
@@ -128,6 +129,35 @@
                 <div class="fav-category-grid">
                   <a href="https://starlight-tarot-3d.vercel.app/" target="_blank" rel="noopener noreferrer" title="타로 체험 (약 6분)">별빛 청춘 3D 타로</a>
                   <a href="https://kwansang.vercel.app/" target="_blank" rel="noopener noreferrer" title="관상 체험 (약 4분)">관상 연구소</a>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+
+        <div class="more-wrap">
+          <button type="button" class="mode-tab" id="lessonToolBtn">수업 도구 ▾</button>
+          <div class="more-menu fav-menu extra-cat-menu" id="lessonToolMenu">
+            <div class="fav-category-list">
+              <details class="fav-category" open>
+                <summary>출제 · 수업 설계 도구 <small>3개</small></summary>
+                <div class="fav-category-grid">
+                  <button type="button" data-open="scorePlanner">문항별 배점 설계기</button>
+                  <button type="button" data-open="memoBoard">수업 메모보드</button>
+                  <button type="button" data-open="timer">간편 타이머</button>
+                </div>
+              </details>
+              <details class="fav-category" open>
+                <summary>교과 · 학습용 앱 <small>8개</small></summary>
+                <div class="fav-category-grid">
+                  <a href="https://go.geomath.workers.dev/" target="_blank" rel="noopener noreferrer">기하 벡터</a>
+                  <a href="https://ai-math-practice.vercel.app/" target="_blank" rel="noopener noreferrer">인공지능 수학</a>
+                  <a href="https://mathset.vercel.app/" target="_blank" rel="noopener noreferrer">SET(셋)</a>
+                  <a href="https://stock-arena-v3.vercel.app/" target="_blank" rel="noopener noreferrer">Stock Arena v3 (모의주식투자)</a>
+                  <a href="https://www.geogebra.org/?lang=ko" target="_blank" rel="noopener noreferrer">지오지브라</a>
+                  <a href="https://www.desmos.com/?lang=ko" target="_blank" rel="noopener noreferrer">데스모스</a>
+                  <a href="https://tong.mods.go.kr/front/main/main.do" target="_blank" rel="noopener noreferrer">통그라미</a>
+                  <a href="https://askmath.kosac.re.kr/main.do" target="_blank" rel="noopener noreferrer">ASK MATH</a>
                 </div>
               </details>
             </div>
@@ -2760,8 +2790,86 @@
     </div>
   </div>
 
+  <!-- 수업 도구: 총점에 딱 맞는 문항별 배점 설계 모달 -->
+  <div id="scorePlannerModal" class="modal">
+    <div class="modal-content sp-modal-dialog">
+      <div class="modal-header sp-modal-header">
+        <div>
+          <span class="sp-kicker">SCORE PLANNER</span>
+          <h3 style="margin:2px 0 0;">총점에 딱 맞는 문항별 배점 설계</h3>
+        </div>
+        <div class="sp-head-actions">
+          <button type="button" class="sp-btn-magenta" id="spSendGsBtn">구글 시트 자동 생성</button>
+          <button type="button" class="sp-btn-dark" id="spCopyGsFormulaBtn">수식 포함 시트 복사</button>
+          <button type="button" class="sp-btn-dark" id="spExcelBtn">엑셀(.xlsx) 복사/저장</button>
+          <button class="close-btn" data-modal="scorePlannerModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body sp-modal-body">
+        <div class="sp-cond-card">
+          <div class="sp-cond-top">
+            <div>
+              <h4>배점 조건</h4>
+              <p>문제 수와 배점 범위를 정하면 총점에 딱 맞는 문항별 배점과 구글 시트 수식을 즉시 만듭니다.</p>
+            </div>
+            <div class="sp-cond-btns">
+              <button type="button" class="sp-btn-magenta" id="spCalcBtn">조회</button>
+              <button type="button" class="sp-btn-dark" id="spOtherBtn">다른 조합</button>
+            </div>
+          </div>
+          <div class="sp-input-grid">
+            <div class="sp-field">
+              <label for="spTotalInput">총점</label>
+              <input type="number" id="spTotalInput" value="100" step="0.1" min="1">
+            </div>
+            <div class="sp-field">
+              <label for="spCountInput">문제 수</label>
+              <input type="number" id="spCountInput" value="25" step="1" min="1" max="100">
+            </div>
+            <div class="sp-opt-wrap">
+              <button type="button" class="sp-opt-btn" id="spOptimalBtn">최적 범위</button>
+            </div>
+            <div class="sp-field">
+              <label for="spMinInput">최저 점수</label>
+              <input type="number" id="spMinInput" value="3" step="0.1" min="0.1">
+            </div>
+            <div class="sp-field">
+              <label for="spMaxInput">최고 점수</label>
+              <input type="number" id="spMaxInput" value="5" step="0.1" min="0.1">
+            </div>
+            <div class="sp-field">
+              <label for="spStepInput">배점 간격</label>
+              <input type="number" id="spStepInput" value="0.1" step="0.1" min="0.1">
+            </div>
+          </div>
+          <div class="sp-sort-row">
+            <label>정렬 순서</label>
+            <div class="sp-sort-toggle">
+              <button type="button" class="sp-sort-btn active" id="spSortAscBtn" data-sort="asc">오름차순</button>
+              <button type="button" class="sp-sort-btn" id="spSortDescBtn" data-sort="desc">내림차순</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="spStatusBar" class="sp-status-bar" style="display:none;"></div>
+
+        <div class="sp-result-card" id="spResultContainer">
+          <div class="sp-sum-banner" id="spSumBanner">
+            <span>조건을 확인하고 <b>[조회]</b>를 눌러 문항별 배점을 산출하세요.</span>
+          </div>
+          <div class="sp-dist-chips" id="spDistBar"></div>
+          <div class="sp-table-wrap" id="spTableWrap">
+            <div style="padding:34px 14px;text-align:center;color:#94a3b8;font-size:0.86rem;">
+              산출된 문항별 배점과 누계가 여기에 표시됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.77"></script>
+  <script src="/app.js?v=5.17.0-preview.78"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;
