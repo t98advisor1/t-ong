@@ -6538,6 +6538,7 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
   border-radius: 9px;
   font-size: 0.83rem;
   font-weight: 700;
+  flex-shrink: 0;
 }
 .sp-status-bar.ok {
   background: #dcfce7;
@@ -6845,6 +6846,391 @@ html[data-theme] #scorePlannerModal .sp-modal-dialog,
 }
 .sp-result-table tr.is-es-row {
   background: #faf8ff;
+}
+
+/* --- 인포그래픽 4단계 배점 설계 마법사 --- */
+.sp-infographic-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+.sp-flow-node {
+  flex: 1 1 0;
+  min-width: 175px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.sp-flow-node:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+.sp-flow-node.active {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
+}
+.sp-flow-node.done {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+.sp-flow-node.skipped {
+  opacity: 0.45;
+  background: #f1f5f9;
+  border-style: dashed;
+  cursor: default;
+}
+.sp-flow-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sp-flow-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.sp-flow-node.active .sp-flow-icon {
+  background: #2563eb;
+  color: #ffffff;
+}
+.sp-flow-node.done .sp-flow-icon {
+  background: #10b981;
+  color: #ffffff;
+}
+.sp-flow-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sp-flow-meta small {
+  font-size: 0.67rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+.sp-flow-node.active .sp-flow-meta small { color: #2563eb; }
+.sp-flow-meta b {
+  font-size: 0.83rem;
+  color: #0f172a;
+  white-space: nowrap;
+}
+.sp-flow-meta em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-flow-conn {
+  align-self: center;
+  color: #94a3b8;
+  font-weight: 900;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.sp-flow-conn.skipped { opacity: 0.3; }
+
+.sp-step-pane {
+  display: none;
+}
+.sp-step-pane.active {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-pane-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+.sp-pane-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-pane-title-row h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+.sp-pane-title-row p {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+.sp-sub-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #475569;
+  margin-bottom: 6px;
+}
+.sp-exam-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.sp-exam-card {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.sp-exam-card:hover {
+  border-color: #93c5fd;
+  background: #ffffff;
+}
+.sp-exam-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+}
+.sp-exam-card-top {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sp-exam-card strong {
+  font-size: 0.94rem;
+  color: #0f172a;
+}
+.sp-exam-card span {
+  font-size: 0.79rem;
+  color: #475569;
+  line-height: 1.4;
+}
+.sp-preset-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 11px 13px;
+}
+.sp-step1-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.sp-step1-inputs.mc-only {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 560px;
+}
+.sp-step-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+.sp-footer-hint {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #334155;
+}
+.sp-next-btn {
+  padding: 9px 18px !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+}
+
+/* STEP 2: 논술형 직접 입력 리스트 */
+.sp-essay-quick-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+.sp-essay-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.sp-essay-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid #ddd6fe;
+  background: #faf8ff;
+}
+.sp-essay-no {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #6d28d9;
+  min-width: 54px;
+}
+.sp-essay-score-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sp-essay-score-input {
+  width: 68px !important;
+  text-align: center;
+  padding: 5px 6px !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+  border: 1.5px solid #c4b5fd !important;
+  border-radius: 7px;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  margin-bottom: 0 !important;
+}
+.sp-essay-note-input {
+  flex: 1 1 auto;
+  min-width: 80px;
+  padding: 5px 8px !important;
+  font-size: 0.79rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 7px;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  margin-bottom: 0 !important;
+}
+.sp-essay-del-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.sp-essay-del-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.sp-essay-summary-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border-radius: 11px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  font-size: 0.86rem;
+  color: #334155;
+}
+.sp-essay-summary-box strong { color: #6d28d9; font-size: 0.96rem; }
+.sp-essay-summary-box strong.mc-color { color: #2563eb; }
+.sp-essay-summary-box.warn {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+.sp-flow-arrow-inline { font-weight: 900; color: #94a3b8; }
+
+/* STEP 3: 객관식 배점 방식 카드 4종 */
+.sp-dist-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.sp-dist-card {
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 11px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.14s ease;
+}
+.sp-dist-card:hover { border-color: #93c5fd; background: #ffffff; }
+.sp-dist-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.13);
+}
+.sp-dist-card strong { font-size: 0.84rem; color: #0f172a; }
+.sp-dist-card.active strong { color: #1d4ed8; }
+.sp-dist-card span { font-size: 0.74rem; color: #64748b; line-height: 1.38; }
+
+.sp-step3-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 11px 13px;
+}
+.sp-sort-toggle.inline {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* STEP 4: 결과 툴바 & 넓은 표 */
+.sp-result-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sp-result-toolbar-left,
+.sp-result-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.sp-table-tall {
+  max-height: 360px;
+}
+@media (max-width: 860px) {
+  .sp-exam-type-grid,
+  .sp-step1-inputs,
+  .sp-essay-list,
+  .sp-dist-card-grid,
+  .sp-step3-controls {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ================================================================= */

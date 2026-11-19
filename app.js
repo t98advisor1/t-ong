@@ -13269,18 +13269,27 @@ window.TodayBriefing = TodayBriefing;
   }
 })();
 // ===================================================================
-// 수업 도구: 총점에 딱 맞는 문항별 배점 설계기 (ScorePlannerModule v2)
-//  - 객관식(선택형) + 논술형(주관식) 분리 배분 및 단일 일괄 모드 지원
-//  - 전부 차등배점(중복 없음) / 고른 차등 / 단계 차등(하·중·상) / 동배점 우선
+// 수업 도구: 인포그래픽 단계별 문항 배점 설계 마법사 (ScorePlannerModule v3)
+//  - STEP 1: 시험 유형(객관식+논술형 혼합 / 100% 객관식 전용) · 총점 · 문항 수
+//  - STEP 2: 논술형(주관식) 배점 직접 입력 (혼합형 전용, 객관식 전용 시 자동 생략)
+//  - STEP 3: 객관식 배점 방식(전부 차등 / 고른 차등 / 단계 차등 / 동배점) · 구간
+//  - STEP 4: 완성된 배점표 확인 · 미세 조절 · 구글 시트/엑셀 내보내기
 // ===================================================================
 (function () {
   'use strict';
   var SCALE = 1000;
   var seedCounter = 0;
-  var currentItems = [];
+  var currentStep = 1;
+  var examMode = 'split'; // 'split' | 'mc_only'
+  var mcDistMode = 'all_diff'; // 'all_diff' | 'spread' | 'tiered' | 'equal'
   var sortOrder = 'asc';
-  var examMode = 'split'; // 'split' | 'single'
-  var distModes = { mc: 'all_diff', es: 'all_diff', single: 'all_diff' };
+  var essayRows = [
+    { score: 6, note: '' },
+    { score: 7, note: '' },
+    { score: 8, note: '' },
+    { score: 9, note: '' }
+  ];
+  var currentItems = [];
 
   var MODE_LABELS = {
     all_diff: '전부 차등(중복없음)',
@@ -13307,86 +13316,24 @@ window.TodayBriefing = TodayBriefing;
     };
   }
 
-  function readSection(prefix, fallback) {
-    var count = parseInt((el(prefix + 'CountInput') || {}).value, 10);
-    var total = parseFloat((el(prefix + 'TotalInput') || {}).value);
-    var minV = parseFloat((el(prefix + 'MinInput') || {}).value);
-    var maxV = parseFloat((el(prefix + 'MaxInput') || {}).value);
-    var step = parseFloat((el(prefix + 'StepInput') || {}).value);
-    if (!(count >= 1)) count = fallback.count;
-    if (count > 100) count = 100;
-    if (!(total > 0)) total = fallback.total;
-    if (!(step > 0)) step = fallback.step;
-    if (!(minV > 0)) minV = step;
-    if (maxV < minV) maxV = minV;
-    return { count: count, total: total, min: minV, max: maxV, step: step };
+  function getExamTotal() {
+    var v = parseFloat((el('spTotalInput') || {}).value);
+    return v > 0 ? Math.round(v * 100) / 100 : 100;
   }
-
-  function readConditions() {
-    if (examMode === 'split') {
-      var total = parseFloat((el('spTotalInput') || {}).value);
-      if (!(total > 0)) total = 100;
-      var mc = readSection('spMc', { count: 16, total: 70, step: 0.1 });
-      var es = readSection('spEs', { count: 4, total: 30, step: 1 });
-      mc.mode = distModes.mc || 'all_diff';
-      es.mode = distModes.es || 'all_diff';
-      return {
-        examMode: 'split',
-        total: total,
-        count: mc.count + es.count,
-        mc: mc,
-        es: es
-      };
-    }
-    var singleTotal = parseFloat((el('spSingleTotalInput') || {}).value);
-    var singleCount = parseInt((el('spCountInput') || {}).value, 10);
-    var minV = parseFloat((el('spMinInput') || {}).value);
-    var maxV = parseFloat((el('spMaxInput') || {}).value);
-    var step = parseFloat((el('spStepInput') || {}).value);
-    if (!(singleTotal > 0)) singleTotal = 100;
-    if (!(singleCount >= 1)) singleCount = 25;
-    if (singleCount > 100) singleCount = 100;
-    if (!(step > 0)) step = 0.1;
-    if (!(minV > 0)) minV = step;
-    if (maxV < minV) maxV = minV;
-    return {
-      examMode: 'single',
-      total: singleTotal,
-      count: singleCount,
-      single: {
-        count: singleCount,
-        total: singleTotal,
-        min: minV,
-        max: maxV,
-        step: step,
-        mode: distModes.single || 'all_diff'
-      }
-    };
+  function getMcCount() {
+    var v = parseInt((el('spMcCountInput') || {}).value, 10);
+    if (!(v >= 1)) v = 16;
+    return Math.min(100, v);
   }
-
-  function updateSplitHints() {
-    var total = parseFloat((el('spTotalInput') || {}).value) || 0;
-    var mcCnt = Math.max(1, parseInt((el('spMcCountInput') || {}).value, 10) || 1);
-    var mcTot = parseFloat((el('spMcTotalInput') || {}).value) || 0;
-    var esCnt = Math.max(1, parseInt((el('spEsCountInput') || {}).value, 10) || 1);
-    var esTot = parseFloat((el('spEsTotalInput') || {}).value) || 0;
-    var sumTot = Math.round((mcTot + esTot) * 100) / 100;
-    var diff = Math.round((sumTot - total) * 100) / 100;
-
-    var live = el('spSplitLiveCheck');
-    if (live) {
-      if (Math.abs(diff) < 0.001) {
-        live.textContent = '총 ' + (mcCnt + esCnt) + '문항 · 합계 ' + fmtScore(sumTot) + '점 (일치)';
-        live.classList.remove('warn');
-      } else {
-        live.textContent = '총 ' + (mcCnt + esCnt) + '문항 · 합계 ' + fmtScore(sumTot) + '점 (목표 ' + fmtScore(total) + '점과 ' + (diff > 0 ? '+' : '') + fmtScore(diff) + ')';
-        live.classList.add('warn');
-      }
-    }
-    var mcHint = el('spMcAvgHint');
-    if (mcHint) mcHint.textContent = mcCnt + '문항 · ' + fmtScore(mcTot) + '점 (평균 ' + fmtScore(mcTot / mcCnt) + '점)';
-    var esHint = el('spEsAvgHint');
-    if (esHint) esHint.textContent = esCnt + '문항 · ' + fmtScore(esTot) + '점 (평균 ' + fmtScore(esTot / esCnt) + '점)';
+  function getEssaySum() {
+    if (examMode === 'mc_only') return 0;
+    var s = essayRows.reduce(function (acc, r) { return acc + Math.round((Number(r.score) || 0) * SCALE); }, 0);
+    return s / SCALE;
+  }
+  function getMcTargetTotal() {
+    var totS = Math.round(getExamTotal() * SCALE);
+    var esS = Math.round(getEssaySum() * SCALE);
+    return Math.max(0, (totS - esS) / SCALE);
   }
 
   function setStatus(msg, ok) {
@@ -13396,6 +13343,153 @@ window.TodayBriefing = TodayBriefing;
     bar.textContent = msg;
     bar.className = 'sp-status-bar ' + (ok ? 'ok' : 'err');
     bar.style.display = 'block';
+  }
+
+  function syncEssayCountFromInput() {
+    if (examMode !== 'split') return;
+    var targetCnt = parseInt((el('spEsCountInput') || {}).value, 10);
+    if (!(targetCnt >= 1)) targetCnt = 1;
+    if (targetCnt > 40) targetCnt = 40;
+    while (essayRows.length < targetCnt) {
+      var lastSc = essayRows.length ? Number(essayRows[essayRows.length - 1].score || 5) : 5;
+      essayRows.push({ score: lastSc, note: '' });
+    }
+    if (essayRows.length > targetCnt) {
+      essayRows = essayRows.slice(0, targetCnt);
+    }
+  }
+
+  function updateInfographicFlow() {
+    var total = getExamTotal();
+    var mcCnt = getMcCount();
+    var esCnt = examMode === 'split' ? essayRows.length : 0;
+    var esSum = getEssaySum();
+    var mcTot = getMcTargetTotal();
+
+    if (el('spFlowSub1')) {
+      el('spFlowSub1').textContent = examMode === 'split'
+        ? ('객' + mcCnt + ' + 논' + esCnt + ' · ' + fmtScore(total) + '점')
+        : ('객관식 ' + mcCnt + '문항 · ' + fmtScore(total) + '점');
+    }
+    if (el('spFlowSub2')) {
+      el('spFlowSub2').textContent = examMode === 'split'
+        ? (esCnt + '문항 · ' + fmtScore(esSum) + '점')
+        : '논술형 없음 (생략)';
+    }
+    if (el('spFlowSub3')) {
+      el('spFlowSub3').textContent = mcCnt + '문항 · ' + fmtScore(mcTot) + '점';
+    }
+    if (el('spFlowSub4')) {
+      el('spFlowSub4').textContent = currentItems.length
+        ? ('총 ' + currentItems.length + '문항 완성')
+        : '산출 대기';
+    }
+
+    var node2 = el('spFlowNode2');
+    var conn2 = el('spFlowConn2');
+    if (node2) node2.classList.toggle('skipped', examMode === 'mc_only');
+    if (conn2) conn2.classList.toggle('skipped', examMode === 'mc_only');
+
+    document.querySelectorAll('#spInfographicFlow .sp-flow-node').forEach(function (btn) {
+      var st = parseInt(btn.getAttribute('data-go-step'), 10);
+      btn.classList.toggle('active', st === currentStep);
+      var isDone = (st < currentStep) && !(examMode === 'mc_only' && st === 2);
+      btn.classList.toggle('done', isDone);
+    });
+
+    // STEP 1 하단 요약 및 버튼 텍스트
+    if (el('spStep1Summary')) {
+      el('spStep1Summary').textContent = examMode === 'split'
+        ? ('총 ' + (mcCnt + esCnt) + '문항 (객관식 ' + mcCnt + ' + 논술형 ' + esCnt + ') · 시험 만점 ' + fmtScore(total) + '점')
+        : ('100% 객관식 ' + mcCnt + '문항 · 시험 만점 ' + fmtScore(total) + '점 (평균 ' + fmtScore(total / mcCnt) + '점)');
+    }
+    if (el('spStep1NextBtn')) {
+      el('spStep1NextBtn').textContent = examMode === 'split'
+        ? '다음: 논술형 배점 입력 →'
+        : '다음: 객관식 배점 규칙 →';
+    }
+    if (el('spStep3TargetInfo')) {
+      var avgStr = mcCnt > 0 ? fmtScore(mcTot / mcCnt) : '0';
+      el('spStep3TargetInfo').textContent = examMode === 'split'
+        ? ('논술형 ' + fmtScore(esSum) + '점을 제외한 객관식 ' + mcCnt + '문항에 총 ' + fmtScore(mcTot) + '점을 배분합니다. (문항당 평균 ' + avgStr + '점)')
+        : ('100% 객관식 ' + mcCnt + '문항에 총 ' + fmtScore(mcTot) + '점을 배분합니다. (문항당 평균 ' + avgStr + '점)');
+    }
+  }
+
+  function renderEssayEditor() {
+    var list = el('spEssayList');
+    if (!list) return;
+    list.innerHTML = essayRows.map(function (row, i) {
+      return '<div class="sp-essay-row">' +
+        '<span class="sp-essay-no">서술 ' + (i + 1) + '번</span>' +
+        '<div class="sp-essay-score-wrap">' +
+          '<button type="button" class="sp-nudge-btn sp-es-nudge" data-eidx="' + i + '" data-dir="-0.5" title="0.5점 낮추기">−</button>' +
+          '<input type="number" class="sp-essay-score-input" data-eidx="' + i + '" value="' + fmtScore(row.score) + '" step="0.5" min="0.5">' +
+          '<button type="button" class="sp-nudge-btn sp-es-nudge" data-eidx="' + i + '" data-dir="0.5" title="0.5점 높이기">+</button>' +
+          '<span style="font-size:0.78rem;font-weight:700;color:#475569;">점</span>' +
+        '</div>' +
+        '<input type="text" class="sp-essay-note-input" data-eidx="' + i + '" placeholder="문항 메모 (선택)" value="' + escAttr(row.note || '') + '">' +
+        (essayRows.length > 1 ? '<button type="button" class="sp-essay-del-btn" data-eidx="' + i + '" title="문항 삭제">&times;</button>' : '') +
+      '</div>';
+    }).join('');
+
+    list.querySelectorAll('.sp-essay-score-input').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var idx = parseInt(inp.getAttribute('data-eidx'), 10);
+        var val = parseFloat(inp.value);
+        if (essayRows[idx]) essayRows[idx].score = isNaN(val) ? 0 : Math.max(0, Math.round(val * 100) / 100);
+        updateEssaySummaryBox();
+        updateInfographicFlow();
+      });
+    });
+    list.querySelectorAll('.sp-es-nudge').forEach(function (nb) {
+      nb.addEventListener('click', function () {
+        var idx = parseInt(nb.getAttribute('data-eidx'), 10);
+        var d = parseFloat(nb.getAttribute('data-dir')) || 0;
+        if (!essayRows[idx]) return;
+        essayRows[idx].score = Math.max(0.5, Math.round((Number(essayRows[idx].score || 0) + d) * 100) / 100);
+        renderEssayEditor();
+        updateEssaySummaryBox();
+        updateInfographicFlow();
+      });
+    });
+    list.querySelectorAll('.sp-essay-note-input').forEach(function (ni) {
+      ni.addEventListener('input', function () {
+        var idx = parseInt(ni.getAttribute('data-eidx'), 10);
+        if (essayRows[idx]) essayRows[idx].note = ni.value;
+      });
+    });
+    list.querySelectorAll('.sp-essay-del-btn').forEach(function (db) {
+      db.addEventListener('click', function () {
+        var idx = parseInt(db.getAttribute('data-eidx'), 10);
+        if (essayRows.length <= 1) return;
+        essayRows.splice(idx, 1);
+        if (el('spEsCountInput')) el('spEsCountInput').value = essayRows.length;
+        renderEssayEditor();
+        updateEssaySummaryBox();
+        updateInfographicFlow();
+      });
+    });
+
+    updateEssaySummaryBox();
+  }
+
+  function updateEssaySummaryBox() {
+    var box = el('spEssaySummaryBox');
+    if (!box) return;
+    var total = getExamTotal();
+    var esSum = getEssaySum();
+    var mcCnt = getMcCount();
+    var mcTot = Math.round((total - esSum) * 100) / 100;
+    if (mcTot <= 0) {
+      box.className = 'sp-essay-summary-box warn';
+      box.innerHTML = '<span>논술형 합계(<strong>' + fmtScore(esSum) + '점</strong>)가 시험 만점(' + fmtScore(total) + '점) 이상입니다. 논술형 점수를 줄여 주세요.</span>';
+    } else {
+      box.className = 'sp-essay-summary-box';
+      box.innerHTML = '<span>논술형 <b>' + essayRows.length + '문항</b> 합계: <strong>' + fmtScore(esSum) + '점</strong></span>' +
+        '<span class="sp-flow-arrow-inline">→</span>' +
+        '<span>남은 객관식 <b>' + mcCnt + '문항</b> 목표 총점: <strong class="mc-color">' + fmtScore(mcTot) + '점</strong> (문항당 평균 ' + fmtScore(mcTot / mcCnt) + '점)</span>';
+    }
   }
 
   function calcOptimalBounds(total, count, step, mode) {
@@ -13419,15 +13513,9 @@ window.TodayBriefing = TodayBriefing;
 
     if (mode === 'all_diff' && count > 1) {
       var tri = (count * (count - 1)) / 2;
-      while (count * minS + tri * stepS > totalS && minS > stepS) {
-        minS -= stepS;
-      }
-      while (count * maxS - tri * stepS < totalS) {
-        maxS += stepS;
-      }
-      if ((maxS - minS) / stepS < count - 1) {
-        maxS = minS + (count - 1) * stepS;
-      }
+      while (count * minS + tri * stepS > totalS && minS > stepS) minS -= stepS;
+      while (count * maxS - tri * stepS < totalS) maxS += stepS;
+      if ((maxS - minS) / stepS < count - 1) maxS = minS + (count - 1) * stepS;
     } else {
       while (count * minS > totalS && minS > stepS) minS -= stepS;
       while (count * maxS < totalS) maxS += stepS;
@@ -13439,45 +13527,19 @@ window.TodayBriefing = TodayBriefing;
     };
   }
 
-  function applyOptimalForSection(secKey, silent) {
-    var total, count, step, minId, maxId, label;
-    if (secKey === 'mc') {
-      total = parseFloat((el('spMcTotalInput') || {}).value) || 70;
-      count = Math.max(1, parseInt((el('spMcCountInput') || {}).value, 10) || 16);
-      step = parseFloat((el('spMcStepInput') || {}).value) || 0.1;
-      minId = 'spMcMinInput'; maxId = 'spMcMaxInput'; label = '객관식';
-    } else if (secKey === 'es') {
-      total = parseFloat((el('spEsTotalInput') || {}).value) || 30;
-      count = Math.max(1, parseInt((el('spEsCountInput') || {}).value, 10) || 4);
-      step = parseFloat((el('spEsStepInput') || {}).value) || 1;
-      minId = 'spEsMinInput'; maxId = 'spEsMaxInput'; label = '논술형';
-    } else {
-      total = parseFloat((el('spSingleTotalInput') || {}).value) || 100;
-      count = Math.max(1, parseInt((el('spCountInput') || {}).value, 10) || 25);
-      step = parseFloat((el('spStepInput') || {}).value) || 0.1;
-      minId = 'spMinInput'; maxId = 'spMaxInput'; label = '전체 문항';
-    }
-    var mode = distModes[secKey] || 'all_diff';
-    var b = calcOptimalBounds(total, count, step, mode);
-    if (el(minId)) el(minId).value = b.min;
-    if (el(maxId)) el(maxId).value = b.max;
+  function applyOptimalMcRange(silent) {
+    var mcTot = getMcTargetTotal();
+    var mcCnt = getMcCount();
+    var step = parseFloat((el('spMcStepInput') || {}).value) || 0.1;
+    if (!(mcTot > 0)) return;
+    var b = calcOptimalBounds(mcTot, mcCnt, step, mcDistMode);
+    if (el('spMcMinInput')) el('spMcMinInput').value = b.min;
+    if (el('spMcMaxInput')) el('spMcMaxInput').value = b.max;
     if (!silent) {
-      setStatus(label + ' 평균(' + fmtScore(total / count) + '점) · ' + (MODE_LABELS[mode] || mode) + ' 기준 추천 범위(' + fmtScore(b.min) + ' ~ ' + fmtScore(b.max) + '점)를 적용했습니다.', true);
+      setStatus('객관식 평균(' + fmtScore(mcTot / mcCnt) + '점) · ' + (MODE_LABELS[mcDistMode] || '') + ' 기준 추천 범위(' + fmtScore(b.min) + ' ~ ' + fmtScore(b.max) + '점)를 적용했습니다.', true);
     }
   }
 
-  function applyOptimalAll() {
-    if (examMode === 'split') {
-      applyOptimalForSection('mc', true);
-      applyOptimalForSection('es', true);
-      setStatus('객관식·논술형 각각의 평균과 배점 방식에 맞춰 최적 점수 폭을 자동 추천했습니다.', true);
-    } else {
-      applyOptimalForSection('single', false);
-    }
-    generateAndRender(seedCounter);
-  }
-
-  // --- 핵심 배점 산출 엔진 (4종 배점 방식 지원) ---
   function generateSectionScores(sec, label, seedOffset) {
     var minS = Math.round(sec.min * SCALE);
     var maxS = Math.round(sec.max * SCALE);
@@ -13489,48 +13551,35 @@ window.TodayBriefing = TodayBriefing;
     var minSumS = count * minS;
     var maxSumS = count * maxS;
     if (totalS < minSumS || totalS > maxSumS) {
-      return {
-        error: '[' + label + '] 선택한 범위(' + fmtScore(minSumS / SCALE) + ' ~ ' + fmtScore(maxSumS / SCALE) + '점)로는 합계 ' + fmtScore(sec.total) + '점을 만들 수 없습니다. [자동 추천]을 눌러 보세요.'
-      };
+      return { error: '[' + label + '] 선택한 범위(' + fmtScore(minSumS / SCALE) + ' ~ ' + fmtScore(maxSumS / SCALE) + '점)로는 합계 ' + fmtScore(sec.total) + '점을 만들 수 없습니다. [평균 기준 자동 추천]을 눌러 보세요.' };
     }
-
     var remS = totalS - minSumS;
     if (remS % stepS !== 0) {
-      return {
-        error: '[' + label + '] 합계(' + fmtScore(sec.total) + ')와 최저점×문항수 차이가 간격(' + sec.step + ')으로 나누어떨어지지 않습니다. 간격을 0.1점으로 맞추거나 [자동 추천]을 눌러 보세요.'
-      };
+      return { error: '[' + label + '] 합계(' + fmtScore(sec.total) + ')와 최저점×문항수 차이가 간격(' + sec.step + ')으로 나누어떨어지지 않습니다. 간격을 0.1점으로 맞추거나 [평균 기준 자동 추천]을 눌러 보세요.' };
     }
 
     var totalSteps = Math.round(remS / stepS);
     var maxStepPerItem = Math.floor((maxS - minS) / stepS);
-    var rng = mulberry32(104729 + (seedOffset * 7919) + totalS + count * 37 + (label.charCodeAt(0) * 17));
+    var rng = mulberry32(104729 + (seedOffset * 7919) + totalS + count * 37);
     var steps = [];
 
     if (mode === 'all_diff') {
       if (maxStepPerItem + 1 < count) {
         var needSpan = Math.round((count - 1) * sec.step * 100) / 100;
-        return {
-          error: '[' + label + '] 전부 차등배점(' + count + '개 모두 다른 점수)을 하려면 최고-최저 폭이 최소 ' + fmtScore(needSpan) + '점 이상이어야 합니다. [자동 추천]을 눌러 보세요.'
-        };
+        return { error: '[' + label + '] 전부 차등배점(' + count + '문항 모두 다른 점수)을 하려면 최고-최저 폭이 최소 ' + fmtScore(needSpan) + '점 이상이어야 합니다. [평균 기준 자동 추천]을 눌러 보세요.' };
       }
       var tri = (count * (count - 1)) / 2;
       var minAllDiffSteps = tri;
       var maxAllDiffSteps = count * maxStepPerItem - tri;
       if (totalSteps < minAllDiffSteps || totalSteps > maxAllDiffSteps) {
-        var minPossible = (minSumS + minAllDiffSteps * stepS) / SCALE;
-        var maxPossible = (minSumS + maxAllDiffSteps * stepS) / SCALE;
-        return {
-          error: '[' + label + '] 현재 범위에서 중복 없이 만들 수 있는 합계는 ' + fmtScore(minPossible) + ' ~ ' + fmtScore(maxPossible) + '점입니다. [자동 추천]으로 범위를 넓혀 보세요.'
-        };
+        return { error: '[' + label + '] 현재 범위에서 중복 없이 만들 수 있는 합계는 ' + fmtScore((minSumS + minAllDiffSteps * stepS) / SCALE) + ' ~ ' + fmtScore((minSumS + maxAllDiffSteps * stepS) / SCALE) + '점입니다. [평균 기준 자동 추천]을 눌러 보세요.' };
       }
       var remU = totalSteps - tri;
       var maxU = maxStepPerItem - (count - 1);
       var qU = Math.floor(remU / count);
       var rU = remU % count;
       var u = [];
-      for (var ui = 0; ui < count; ui++) {
-        u.push(qU + (ui >= count - rU ? 1 : 0));
-      }
+      for (var ui = 0; ui < count; ui++) u.push(qU + (ui >= count - rU ? 1 : 0));
       if (maxU > 0 && count > 1) {
         var passes = Math.max(40, count * 10);
         for (var p = 0; p < passes; p++) {
@@ -13538,108 +13587,71 @@ window.TodayBriefing = TodayBriefing;
           var ib = Math.floor(rng() * count);
           if (ia === ib) continue;
           if (u[ia] > 0 && u[ib] < maxU) {
-            u[ia] -= 1;
-            u[ib] += 1;
+            u[ia] -= 1; u[ib] += 1;
             u.sort(function (x, y) { return x - y; });
           }
         }
       }
-      for (var si = 0; si < count; si++) {
-        steps.push(u[si] + si);
-      }
+      for (var si = 0; si < count; si++) steps.push(u[si] + si);
     } else if (mode === 'equal') {
       var qE = Math.floor(totalSteps / count);
       var rE = totalSteps % count;
-      for (var ei = 0; ei < count; ei++) {
-        steps.push(qE + (ei < rE ? 1 : 0));
-      }
+      for (var ei = 0; ei < count; ei++) steps.push(qE + (ei < rE ? 1 : 0));
     } else if (mode === 'tiered') {
       var k = Math.min(maxStepPerItem + 1, count <= 5 ? 3 : 4);
       if (k < 2) {
-        var qT = Math.floor(totalSteps / count);
-        var rT = totalSteps % count;
+        var qT = Math.floor(totalSteps / count), rT = totalSteps % count;
         for (var ti = 0; ti < count; ti++) steps.push(qT + (ti < rT ? 1 : 0));
       } else {
         var anchors = [];
-        for (var aj = 0; aj < k; aj++) {
-          anchors.push(Math.round((aj * maxStepPerItem) / (k - 1)));
-        }
-        var avgSt = totalSteps / count;
-        var baseIdx = 0;
-        var bestDist = Infinity;
+        for (var aj = 0; aj < k; aj++) anchors.push(Math.round((aj * maxStepPerItem) / (k - 1)));
+        var avgSt = totalSteps / count, baseIdx = 0, bestDist = Infinity;
         for (var bi = 0; bi < k; bi++) {
-          if (Math.abs(anchors[bi] - avgSt) < bestDist) {
-            bestDist = Math.abs(anchors[bi] - avgSt);
-            baseIdx = bi;
-          }
+          if (Math.abs(anchors[bi] - avgSt) < bestDist) { bestDist = Math.abs(anchors[bi] - avgSt); baseIdx = bi; }
         }
         var idxArr = [];
         for (var ii = 0; ii < count; ii++) idxArr.push(baseIdx);
         for (var sp = 0; sp < count * 4; sp++) {
-          var ra = Math.floor(rng() * count);
-          var rb = Math.floor(rng() * count);
-          if (ra === rb) continue;
-          if (idxArr[ra] > 0 && idxArr[rb] < k - 1) {
-            idxArr[ra] -= 1;
-            idxArr[rb] += 1;
-          }
+          var ra = Math.floor(rng() * count), rb = Math.floor(rng() * count);
+          if (ra !== rb && idxArr[ra] > 0 && idxArr[rb] < k - 1) { idxArr[ra] -= 1; idxArr[rb] += 1; }
         }
         steps = idxArr.map(function (ix) { return anchors[ix]; });
-        var curSum = steps.reduce(function (a, b) { return a + b; }, 0);
-        var guard = 0;
+        var curSum = steps.reduce(function (a, b) { return a + b; }, 0), guard = 0;
         while (curSum !== totalSteps && guard++ < count * k * 4) {
-          var need = totalSteps - curSum;
-          var bestItem = -1, bestNewIdx = -1, bestErr = Math.abs(need);
+          var need = totalSteps - curSum, bestItem = -1, bestNewIdx = -1, bestErr = Math.abs(need);
           for (var ci = 0; ci < count; ci++) {
             for (var cand = 0; cand < k; cand++) {
               var delta = anchors[cand] - steps[ci];
               if (delta === 0) continue;
               var err = Math.abs(need - delta);
-              if (err < bestErr) {
-                bestErr = err;
-                bestItem = ci;
-                bestNewIdx = cand;
-              }
+              if (err < bestErr) { bestErr = err; bestItem = ci; bestNewIdx = cand; }
             }
           }
-          if (bestItem >= 0) {
-            curSum += (anchors[bestNewIdx] - steps[bestItem]);
-            steps[bestItem] = anchors[bestNewIdx];
-          } else {
-            break;
-          }
+          if (bestItem >= 0) { curSum += (anchors[bestNewIdx] - steps[bestItem]); steps[bestItem] = anchors[bestNewIdx]; } else break;
         }
         var guard2 = 0;
         while (curSum !== totalSteps && guard2++ < 10000) {
-          var dir = totalSteps > curSum ? 1 : -1;
-          var picked = -1;
+          var dir = totalSteps > curSum ? 1 : -1, picked = -1;
           for (var j2 = 0; j2 < count; j2++) {
             var idx2 = (j2 + guard2) % count;
-            if ((dir > 0 && steps[idx2] < maxStepPerItem) || (dir < 0 && steps[idx2] > 0)) {
-              picked = idx2;
-              break;
-            }
+            if ((dir > 0 && steps[idx2] < maxStepPerItem) || (dir < 0 && steps[idx2] > 0)) { picked = idx2; break; }
           }
           if (picked < 0) break;
-          steps[picked] += dir;
-          curSum += dir;
+          steps[picked] += dir; curSum += dir;
         }
       }
     } else {
-      var qS = Math.floor(totalSteps / count);
-      var rS = totalSteps % count;
+      var qS = Math.floor(totalSteps / count), rS = totalSteps % count;
       for (var i = 0; i < count; i++) steps.push(qS + (i < rS ? 1 : 0));
       var spreadPasses = Math.max(40, count * 8);
       if (maxStepPerItem > 0 && count > 1) {
         for (var pass = 0; pass < spreadPasses; pass++) {
-          var a = Math.floor(rng() * count);
-          var b = Math.floor(rng() * count);
+          var a = Math.floor(rng() * count), b = Math.floor(rng() * count);
           if (a === b) continue;
           var maxGive = Math.min(steps[a], maxStepPerItem - steps[b]);
           if (maxGive <= 0) continue;
           var dlt = 1 + Math.floor(rng() * Math.min(maxGive, Math.max(1, Math.floor(maxStepPerItem / 2))));
-          steps[a] -= dlt;
-          steps[b] += dlt;
+          steps[a] -= dlt; steps[b] += dlt;
         }
       }
     }
@@ -13650,64 +13662,57 @@ window.TodayBriefing = TodayBriefing;
   }
 
   function generateAndRender(seedOffset) {
-    var c = readConditions();
-    var prevNotes = currentItems.map(function (it) { return it.note || ''; });
+    var examTot = getExamTotal();
+    var mcCnt = getMcCount();
+    var mcTot = getMcTargetTotal();
+    if (!(mcTot > 0)) {
+      setStatus('객관식에 배분할 남은 점수가 0점 이하입니다. STEP 2에서 논술형 점수를 조정해 주세요.', false);
+      return false;
+    }
+    var mcStep = parseFloat((el('spMcStepInput') || {}).value) || 0.1;
+    var mcMin = parseFloat((el('spMcMinInput') || {}).value) || mcStep;
+    var mcMax = parseFloat((el('spMcMaxInput') || {}).value) || mcMin;
+    if (mcMax < mcMin) mcMax = mcMin;
 
-    if (c.examMode === 'split') {
-      updateSplitHints();
-      var mcRes = generateSectionScores(c.mc, '객관식', seedOffset);
-      if (mcRes.error) { setStatus(mcRes.error, false); return; }
-      var esRes = generateSectionScores(c.es, '논술형', seedOffset + 13);
-      if (esRes.error) { setStatus(esRes.error, false); return; }
+    var res = generateSectionScores({ count: mcCnt, total: mcTot, min: mcMin, max: mcMax, step: mcStep, mode: mcDistMode }, '객관식', seedOffset);
+    if (res.error) { setStatus(res.error, false); return false; }
 
-      var merged = [];
-      mcRes.scores.forEach(function (sc, i) {
-        merged.push({
-          no: i + 1,
-          secNo: i + 1,
-          type: 'mc',
-          typeLabel: '객관식',
-          score: sc,
-          step: c.mc.step,
-          note: prevNotes[i] || ''
-        });
+    var prevMcNotes = currentItems.filter(function (x) { return x.type === 'mc'; }).map(function (x) { return x.note || ''; });
+    var merged = [];
+    res.scores.forEach(function (sc, i) {
+      merged.push({
+        no: i + 1,
+        secNo: i + 1,
+        type: 'mc',
+        typeLabel: '객관식',
+        score: sc,
+        step: mcStep,
+        note: prevMcNotes[i] || ''
       });
-      esRes.scores.forEach(function (sc, j) {
-        var idx = mcRes.scores.length + j;
+    });
+    if (examMode === 'split') {
+      essayRows.forEach(function (er, j) {
         merged.push({
-          no: idx + 1,
+          no: mcCnt + j + 1,
           secNo: j + 1,
           type: 'es',
           typeLabel: '논술형',
-          score: sc,
-          step: c.es.step,
-          note: prevNotes[idx] || ''
+          score: Math.round((Number(er.score) || 0) * 100) / 100,
+          step: 0.5,
+          note: er.note || ''
         });
       });
-      currentItems = merged;
-      setStatus(
-        '객관식 ' + c.mc.count + '문항(' + fmtScore(c.mc.total) + '점 · ' + (MODE_LABELS[c.mc.mode] || '') + ') + ' +
-        '논술형 ' + c.es.count + '문항(' + fmtScore(c.es.total) + '점 · ' + (MODE_LABELS[c.es.mode] || '') + ') 배점을 산출했습니다.',
-        true
-      );
-    } else {
-      var sRes = generateSectionScores(c.single, '전체 문항', seedOffset);
-      if (sRes.error) { setStatus(sRes.error, false); return; }
-      currentItems = sRes.scores.map(function (sc, idx) {
-        return {
-          no: idx + 1,
-          secNo: idx + 1,
-          type: 'single',
-          typeLabel: '전체',
-          score: sc,
-          step: c.single.step,
-          note: prevNotes[idx] || ''
-        };
-      });
-      setStatus('총 ' + c.single.count + '문항 합계 ' + fmtScore(c.single.total) + '점 (' + (MODE_LABELS[c.single.mode] || '') + ') 배점을 산출했습니다.', true);
     }
-
+    currentItems = merged;
+    setStatus(
+      examMode === 'split'
+        ? ('객관식 ' + mcCnt + '문항(' + fmtScore(mcTot) + '점 · ' + (MODE_LABELS[mcDistMode] || '') + ') + 논술형 ' + essayRows.length + '문항(' + fmtScore(getEssaySum()) + '점 · 직접 입력) = 총 ' + fmtScore(examTot) + '점 배점표를 완성했습니다.')
+        : ('100% 객관식 ' + mcCnt + '문항 합계 ' + fmtScore(examTot) + '점 (' + (MODE_LABELS[mcDistMode] || '') + ') 배점표를 완성했습니다.'),
+      true
+    );
     renderResult();
+    updateInfographicFlow();
+    return true;
   }
 
   function getDistListFor(items) {
@@ -13737,85 +13742,66 @@ window.TodayBriefing = TodayBriefing;
   }
 
   function renderResult() {
-    var c = readConditions();
     var sumBanner = el('spSumBanner');
     var distBar = el('spDistBar');
     var tableWrap = el('spTableWrap');
     if (!tableWrap || !currentItems.length) return;
 
+    var examTot = getExamTotal();
     var sumScaled = currentItems.reduce(function (acc, it) { return acc + Math.round(it.score * SCALE); }, 0);
     var totalNow = sumScaled / SCALE;
-    var diff = Math.round((totalNow - c.total) * SCALE) / SCALE;
-    var diffText = Math.abs(diff) < 0.001 ? '목표 총점과 정확히 일치' : ('목표 대비 ' + (diff > 0 ? '+' : '') + fmtScore(diff) + '점 차이');
+    var diff = Math.round((totalNow - examTot) * SCALE) / SCALE;
+    var diffText = Math.abs(diff) < 0.001 ? '목표 만점과 정확히 일치' : ('목표 대비 ' + (diff > 0 ? '+' : '') + fmtScore(diff) + '점 차이');
 
     var mcItems = currentItems.filter(function (it) { return it.type === 'mc'; });
     var esItems = currentItems.filter(function (it) { return it.type === 'es'; });
-    var isSplitResult = mcItems.length > 0 && esItems.length > 0;
+    var isSplitResult = esItems.length > 0;
 
     if (sumBanner) {
-      var badgesHtml = '';
+      var mcSum = mcItems.reduce(function (a, b) { return a + Math.round(b.score * SCALE); }, 0) / SCALE;
+      var badgesHtml = '<span class="sp-type-badge mc">객관식 ' + mcItems.length + '문항 (' + fmtScore(mcSum) + '점' + (isAllUnique(mcItems) ? ' · 전부 다름' : '') + ')</span>';
       if (isSplitResult) {
-        var mcSum = mcItems.reduce(function (a, b) { return a + Math.round(b.score * SCALE); }, 0) / SCALE;
         var esSum = esItems.reduce(function (a, b) { return a + Math.round(b.score * SCALE); }, 0) / SCALE;
-        badgesHtml =
-          '<span class="sp-type-badge mc">객관식 ' + mcItems.length + '문항 (' + fmtScore(mcSum) + '점' + (isAllUnique(mcItems) ? ' · 전부 다름' : '') + ')</span>' +
-          '<span class="sp-type-badge es">논술형 ' + esItems.length + '문항 (' + fmtScore(esSum) + '점' + (isAllUnique(esItems) ? ' · 전부 다름' : '') + ')</span>';
-      } else {
-        badgesHtml = '<span class="sp-type-badge single">전체 ' + currentItems.length + '문항' + (isAllUnique(currentItems) ? ' · 전부 차등배점' : '') + '</span>';
+        badgesHtml += '<span class="sp-type-badge es">논술형 ' + esItems.length + '문항 (' + fmtScore(esSum) + '점 · 직접 입력)</span>';
       }
       sumBanner.innerHTML =
         '<div class="sp-sum-badges">' + badgesHtml + '</div>' +
-        '<span>총 합계: <strong>' + fmtScore(totalNow) + '점</strong> (목표 ' + fmtScore(c.total) + '점 · ' + diffText + ')</span>';
+        '<span>총 합계: <strong>' + fmtScore(totalNow) + '점</strong> (목표 ' + fmtScore(examTot) + '점 · ' + diffText + ')</span>';
     }
 
     if (distBar) {
+      var mcDist = getDistListFor(mcItems);
+      var mcUniq = isAllUnique(mcItems);
+      var html = '<div class="sp-dist-group">' +
+        '<span class="sp-dist-group-title"><span class="sp-type-badge mc">객관식</span> ' + mcItems.length + '문항 (' + mcDist.length + '종 배점)</span>' +
+        '<div class="sp-dist-group-chips">' +
+          mcDist.map(function (d) {
+            return '<span class="sp-dist-chip' + (mcUniq ? ' uniq' : '') + '">' + fmtScore(d.score) + '점 × ' + d.count + '문항</span>';
+          }).join('') +
+        '</div></div>';
       if (isSplitResult) {
-        var mcDist = getDistListFor(mcItems);
         var esDist = getDistListFor(esItems);
-        var mcUniq = isAllUnique(mcItems);
-        distBar.innerHTML =
-          '<div class="sp-dist-group">' +
-            '<span class="sp-dist-group-title"><span class="sp-type-badge mc">객관식</span> ' + mcItems.length + '문항 (' + mcDist.length + '종 배점)</span>' +
-            '<div class="sp-dist-group-chips">' +
-              mcDist.map(function (d) {
-                return '<span class="sp-dist-chip' + (mcUniq ? ' uniq' : '') + '">' + fmtScore(d.score) + '점 × ' + d.count + '문항</span>';
-              }).join('') +
-            '</div>' +
-          '</div>' +
-          '<div class="sp-dist-group">' +
-            '<span class="sp-dist-group-title"><span class="sp-type-badge es">논술형</span> ' + esItems.length + '문항 (' + esDist.length + '종 배점)</span>' +
-            '<div class="sp-dist-group-chips">' +
-              esDist.map(function (d) {
-                return '<span class="sp-dist-chip es">' + fmtScore(d.score) + '점 × ' + d.count + '문항</span>';
-              }).join('') +
-            '</div>' +
-          '</div>';
-      } else {
-        var allDist = getDistListFor(currentItems);
-        var allUniq = isAllUnique(currentItems);
-        distBar.innerHTML =
-          '<div class="sp-dist-group">' +
-            '<span class="sp-dist-group-title">배점 분포 (' + allDist.length + '종)</span>' +
-            '<div class="sp-dist-group-chips">' +
-              allDist.map(function (d) {
-                return '<span class="sp-dist-chip' + (allUniq ? ' uniq' : '') + '">' + fmtScore(d.score) + '점 × ' + d.count + '문항 = ' + fmtScore(d.subtotal) + '점</span>';
-              }).join('') +
-            '</div>' +
-          '</div>';
+        html += '<div class="sp-dist-group">' +
+          '<span class="sp-dist-group-title"><span class="sp-type-badge es">논술형</span> ' + esItems.length + '문항 (직접 입력)</span>' +
+          '<div class="sp-dist-group-chips">' +
+            esDist.map(function (d) {
+              return '<span class="sp-dist-chip es">' + fmtScore(d.score) + '점 × ' + d.count + '문항</span>';
+            }).join('') +
+          '</div></div>';
       }
+      distBar.innerHTML = html;
     }
 
     var cumScaled = 0;
-    var secCumMap = { mc: 0, es: 0, single: 0 };
+    var secCumMap = { mc: 0, es: 0 };
     var rowsHtml = currentItems.map(function (it, idx) {
       var scS = Math.round(it.score * SCALE);
       cumScaled += scS;
       secCumMap[it.type] = (secCumMap[it.type] || 0) + scS;
       var secLabel = it.type === 'es' ? ('서술' + it.secNo + ' (' + it.no + '번)') : (it.no + '번');
-      var badgeCls = it.type === 'es' ? 'es' : (it.type === 'mc' ? 'mc' : 'single');
       return '<tr class="' + (it.type === 'es' ? 'is-es-row' : '') + '">' +
         '<td><b>' + secLabel + '</b></td>' +
-        '<td><span class="sp-type-badge ' + badgeCls + '">' + it.typeLabel + '</span></td>' +
+        '<td><span class="sp-type-badge ' + it.type + '">' + it.typeLabel + '</span></td>' +
         '<td><div style="display:inline-flex;align-items:center;gap:6px;">' +
           '<button type="button" class="sp-nudge-btn" data-idx="' + idx + '" data-dir="-1" title="배점 낮추기">−</button>' +
           '<b>' + fmtScore(it.score) + '</b>' +
@@ -13842,15 +13828,77 @@ window.TodayBriefing = TodayBriefing;
         var next = Math.round((currentItems[idx].score + dir * stepVal) * SCALE) / SCALE;
         if (next < 0.1) next = 0.1;
         currentItems[idx].score = next;
+        if (currentItems[idx].type === 'es' && essayRows[currentItems[idx].secNo - 1]) {
+          essayRows[currentItems[idx].secNo - 1].score = next;
+        }
         renderResult();
+        updateInfographicFlow();
       });
     });
     tableWrap.querySelectorAll('.sp-note-input').forEach(function (inp) {
       inp.addEventListener('input', function () {
         var idx = parseInt(inp.getAttribute('data-note-idx'), 10);
-        if (currentItems[idx]) currentItems[idx].note = inp.value;
+        if (currentItems[idx]) {
+          currentItems[idx].note = inp.value;
+          if (currentItems[idx].type === 'es' && essayRows[currentItems[idx].secNo - 1]) {
+            essayRows[currentItems[idx].secNo - 1].note = inp.value;
+          }
+        }
       });
     });
+  }
+
+  function goStep(stepNum) {
+    if (examMode === 'mc_only' && stepNum === 2) {
+      stepNum = currentStep < 2 ? 3 : 1;
+    }
+    if (stepNum === 2) {
+      syncEssayCountFromInput();
+      renderEssayEditor();
+    }
+    if (stepNum === 3) {
+      if (examMode === 'split') {
+        syncEssayCountFromInput();
+        if (getMcTargetTotal() <= 0) {
+          setStatus('논술형 합계가 시험 만점 이상입니다. 논술형 점수를 조정한 뒤 진행해 주세요.', false);
+          stepNum = 2;
+          renderEssayEditor();
+        } else {
+          setStatus('');
+          applyOptimalMcRange(true);
+        }
+      } else {
+        setStatus('');
+        applyOptimalMcRange(true);
+      }
+    }
+    if (stepNum === 4) {
+      if (!generateAndRender(seedCounter)) return;
+    } else if (stepNum === 1 || stepNum === 2) {
+      setStatus('');
+    }
+
+    currentStep = stepNum;
+    document.querySelectorAll('#scorePlannerModal .sp-step-pane').forEach(function (pane) {
+      pane.classList.toggle('active', parseInt(pane.getAttribute('data-step-pane'), 10) === currentStep);
+    });
+    updateInfographicFlow();
+    var bodyEl = document.querySelector('#scorePlannerModal .sp-modal-body');
+    if (bodyEl) bodyEl.scrollTop = 0;
+  }
+
+  function setExamMode(mode) {
+    examMode = (mode === 'mc_only') ? 'mc_only' : 'split';
+    if (el('spModeSplitBtn')) el('spModeSplitBtn').classList.toggle('active', examMode === 'split');
+    if (el('spModeMcOnlyBtn')) el('spModeMcOnlyBtn').classList.toggle('active', examMode === 'mc_only');
+    if (el('spPresetRowSplit')) el('spPresetRowSplit').style.display = examMode === 'split' ? '' : 'none';
+    if (el('spPresetRowMcOnly')) el('spPresetRowMcOnly').style.display = examMode === 'mc_only' ? '' : 'none';
+    if (el('spEsCountField')) el('spEsCountField').style.display = examMode === 'split' ? '' : 'none';
+    if (el('spStep1Inputs')) el('spStep1Inputs').classList.toggle('mc-only', examMode === 'mc_only');
+    if (examMode === 'mc_only' && getMcCount() === 16 && getExamTotal() === 100 && el('spMcCountInput')) {
+      el('spMcCountInput').value = '25';
+    }
+    updateInfographicFlow();
   }
 
   function buildFormulaTsv() {
@@ -13866,14 +13914,13 @@ window.TodayBriefing = TodayBriefing;
       else if (idx === 2) extra = '\t\t논술형 합계\t=SUMIF(B2:B' + endRow + ',"논술형",C2:C' + endRow + ')';
       else if (idx === 3) extra = '\t\t객관식 문항 수\t=COUNTIF(B2:B' + endRow + ',"객관식")';
       else if (idx === 4) extra = '\t\t논술형 문항 수\t=COUNTIF(B2:B' + endRow + ',"논술형")';
-      lines.push([it.no + '번', it.typeLabel || '전체', it.score, sumCol, (it.note || '').replace(/[\t\n\r]/g, ' ')].join('\t') + extra);
+      lines.push([it.no + '번', it.typeLabel || '객관식', it.score, sumCol, (it.note || '').replace(/[\t\n\r]/g, ' ')].join('\t') + extra);
     });
     return lines.join('\n');
   }
 
   function copyFormulaTsvForGoogleSheet(openNewSheet) {
-    if (!currentItems.length) generateAndRender(seedCounter);
-    if (!currentItems.length) return;
+    if (!currentItems.length && !generateAndRender(seedCounter)) return;
     var tsv = buildFormulaTsv();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(tsv).then(function () {
@@ -13884,9 +13931,7 @@ window.TodayBriefing = TodayBriefing;
   }
 
   async function sendToGoogleSheet() {
-    if (!currentItems.length) generateAndRender(seedCounter);
-    if (!currentItems.length) return;
-    var c = readConditions();
+    if (!currentItems.length && !generateAndRender(seedCounter)) return;
     var dist = getDistListFor(currentItems);
     var keys = ['tong_gsheet_webapp_url', 'tong_sheet_url', 'SR_GAS_MASTER_URL', 'swk_gsheet_url', 'swk_gsheet_homeroom_url', 'swk_gsheet_subject_url'];
     var sheetUrl = '';
@@ -13896,10 +13941,7 @@ window.TodayBriefing = TodayBriefing;
         if (v && /^https:\/\/script\.google\.com\/macros\/s\//.test(v.trim())) { sheetUrl = v.trim(); break; }
       } catch (e) {}
     }
-    if (!sheetUrl) {
-      copyFormulaTsvForGoogleSheet(true);
-      return;
-    }
+    if (!sheetUrl) { copyFormulaTsvForGoogleSheet(true); return; }
     var btn = el('spSendGsBtn');
     if (btn) { btn.disabled = true; btn.textContent = '구글 시트 생성 중...'; }
     try {
@@ -13908,12 +13950,12 @@ window.TodayBriefing = TodayBriefing;
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'create_score_planner_sheet',
-          examMode: c.examMode,
-          totalScore: c.total,
-          itemCount: c.count,
-          minScore: c.examMode === 'split' ? c.mc.min : c.single.min,
-          maxScore: c.examMode === 'split' ? c.es.max : c.single.max,
-          stepScore: c.examMode === 'split' ? (c.mc.step + '/' + c.es.step) : c.single.step,
+          examMode: examMode,
+          totalScore: getExamTotal(),
+          itemCount: currentItems.length,
+          minScore: parseFloat((el('spMcMinInput') || {}).value) || 3,
+          maxScore: parseFloat((el('spMcMaxInput') || {}).value) || 5,
+          stepScore: parseFloat((el('spMcStepInput') || {}).value) || 0.1,
           sortOrder: sortOrder,
           items: currentItems,
           dist: dist
@@ -13923,53 +13965,33 @@ window.TodayBriefing = TodayBriefing;
       if (json && json.success) {
         setStatus('마스터 구글 시트 [문항배점설계] 탭에 유형별 자동 산출 수식과 함께 저장했습니다!', true);
         if (json.sheetUrl) window.open(json.sheetUrl, '_blank', 'noopener');
-      } else {
-        copyFormulaTsvForGoogleSheet(true);
-      }
-    } catch (err) {
-      copyFormulaTsvForGoogleSheet(true);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '구글 시트 자동 생성'; }
-    }
+      } else { copyFormulaTsvForGoogleSheet(true); }
+    } catch (err) { copyFormulaTsvForGoogleSheet(true); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '구글 시트 자동 생성'; } }
   }
 
   function exportToExcel() {
-    if (!currentItems.length) generateAndRender(seedCounter);
-    if (!currentItems.length) return;
-    var c = readConditions();
+    if (!currentItems.length && !generateAndRender(seedCounter)) return;
     var aoa = [['문항 번호', '문항 유형', '문항 배점', '누적 합계', '비고 · 메모']];
     var cumS = 0;
     currentItems.forEach(function (it) {
       cumS += Math.round(it.score * SCALE);
-      aoa.push([it.no + '번', it.typeLabel || '전체', it.score, cumS / SCALE, it.note || '']);
+      aoa.push([it.no + '번', it.typeLabel || '객관식', it.score, cumS / SCALE, it.note || '']);
     });
-    aoa.push(['합계', c.count + '문항', cumS / SCALE, '', '']);
+    aoa.push(['합계', currentItems.length + '문항', cumS / SCALE, '', '']);
     if (typeof XLSX !== 'undefined' && XLSX.utils) {
       var ws = XLSX.utils.aoa_to_sheet(aoa);
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, '문항배점설계');
-      XLSX.writeFile(wb, '문항별_배점설계_' + c.count + '문항_' + fmtScore(c.total) + '점.xlsx');
+      XLSX.writeFile(wb, '문항별_배점설계_' + currentItems.length + '문항_' + fmtScore(getExamTotal()) + '점.xlsx');
       setStatus('엑셀 파일(.xlsx)을 다운로드했습니다.', true);
     } else {
       var csv = '\ufeff' + aoa.map(function (r) { return r.join(','); }).join('\n');
       var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = '문항별_배점설계.csv';
-      a.click();
+      a.href = URL.createObjectURL(blob); a.download = '문항별_배점설계.csv'; a.click();
       setStatus('CSV 파일을 다운로드했습니다.', true);
     }
-  }
-
-  function setExamMode(mode) {
-    examMode = (mode === 'single') ? 'single' : 'split';
-    if (el('spModeSplitBtn')) el('spModeSplitBtn').classList.toggle('active', examMode === 'split');
-    if (el('spModeSingleBtn')) el('spModeSingleBtn').classList.toggle('active', examMode === 'single');
-    if (el('spSplitSummaryInputs')) el('spSplitSummaryInputs').style.display = examMode === 'split' ? '' : 'none';
-    if (el('spSplitRulesGrid')) el('spSplitRulesGrid').style.display = examMode === 'split' ? '' : 'none';
-    if (el('spSingleSummaryInputs')) el('spSingleSummaryInputs').style.display = examMode === 'single' ? '' : 'none';
-    if (el('spSingleRulesBox')) el('spSingleRulesBox').style.display = examMode === 'single' ? '' : 'none';
-    updateSplitHints();
   }
 
   function bindEvents() {
@@ -13981,129 +14003,127 @@ window.TodayBriefing = TodayBriefing;
       cb.addEventListener('click', function () { modal.classList.remove('show'); });
     });
 
-    [el('spModeSplitBtn'), el('spModeSingleBtn')].forEach(function (mb) {
-      if (!mb) return;
-      mb.addEventListener('click', function () {
-        setExamMode(mb.getAttribute('data-exam-mode'));
-        applyOptimalAll();
+    // 상단 인포그래픽 단계 노드 클릭 이동
+    modal.querySelectorAll('#spInfographicFlow .sp-flow-node').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var targetStep = parseInt(btn.getAttribute('data-go-step'), 10);
+        if (examMode === 'mc_only' && targetStep === 2) return;
+        goStep(targetStep);
       });
     });
 
-    if (el('spMcTotalInput')) {
-      el('spMcTotalInput').addEventListener('input', function () {
-        var tot = parseFloat((el('spTotalInput') || {}).value) || 100;
-        var mcT = parseFloat(el('spMcTotalInput').value) || 0;
-        if (mcT > 0 && mcT < tot && el('spEsTotalInput')) {
-          el('spEsTotalInput').value = Math.round((tot - mcT) * 100) / 100;
-        }
-        updateSplitHints();
+    // 처음부터 다시 버튼
+    if (el('spResetWizardBtn')) {
+      el('spResetWizardBtn').addEventListener('click', function () {
+        currentItems = [];
+        seedCounter = 0;
+        goStep(1);
       });
     }
-    if (el('spEsTotalInput')) {
-      el('spEsTotalInput').addEventListener('input', function () {
-        var tot = parseFloat((el('spTotalInput') || {}).value) || 100;
-        var esT = parseFloat(el('spEsTotalInput').value) || 0;
-        if (esT > 0 && esT < tot && el('spMcTotalInput')) {
-          el('spMcTotalInput').value = Math.round((tot - esT) * 100) / 100;
-        }
-        updateSplitHints();
+
+    // STEP 1: 시험 유형 카드 전환
+    [el('spModeSplitBtn'), el('spModeMcOnlyBtn')].forEach(function (card) {
+      if (!card) return;
+      card.addEventListener('click', function () {
+        setExamMode(card.getAttribute('data-exam-mode'));
       });
-    }
-    if (el('spTotalInput')) {
-      el('spTotalInput').addEventListener('input', function () {
-        var tot = parseFloat(el('spTotalInput').value) || 100;
-        var mcT = parseFloat((el('spMcTotalInput') || {}).value) || 70;
-        if (mcT < tot && el('spEsTotalInput')) {
-          el('spEsTotalInput').value = Math.round((tot - mcT) * 100) / 100;
-        }
-        updateSplitHints();
-      });
-    }
-    ['spMcCountInput', 'spEsCountInput'].forEach(function (id) {
-      if (el(id)) el(id).addEventListener('input', updateSplitHints);
     });
 
+    // STEP 1: 프리셋 칩
     modal.querySelectorAll('.sp-preset-chip').forEach(function (ch) {
       ch.addEventListener('click', function () {
         modal.querySelectorAll('.sp-preset-chip').forEach(function (x) { x.classList.remove('active'); });
         ch.classList.add('active');
         var md = ch.getAttribute('data-mode') || 'split';
         setExamMode(md);
+        if (el('spTotalInput')) el('spTotalInput').value = ch.getAttribute('data-total') || '100';
+        if (el('spMcCountInput')) el('spMcCountInput').value = ch.getAttribute('data-mc-count') || '16';
         if (md === 'split') {
-          if (el('spTotalInput')) el('spTotalInput').value = ch.getAttribute('data-total') || '100';
-          if (el('spMcCountInput')) el('spMcCountInput').value = ch.getAttribute('data-mc-count') || '16';
-          if (el('spMcTotalInput')) el('spMcTotalInput').value = ch.getAttribute('data-mc-total') || '70';
-          if (el('spEsCountInput')) el('spEsCountInput').value = ch.getAttribute('data-es-count') || '4';
-          if (el('spEsTotalInput')) el('spEsTotalInput').value = ch.getAttribute('data-es-total') || '30';
-          updateSplitHints();
-        } else {
-          if (el('spSingleTotalInput')) el('spSingleTotalInput').value = ch.getAttribute('data-total') || '100';
-          if (el('spCountInput')) el('spCountInput').value = ch.getAttribute('data-count') || '25';
+          var esStr = ch.getAttribute('data-es-scores') || '6,7,8,9';
+          essayRows = esStr.split(',').map(function (s) { return { score: parseFloat(s) || 5, note: '' }; });
+          if (el('spEsCountInput')) el('spEsCountInput').value = essayRows.length;
         }
-        applyOptimalAll();
+        updateInfographicFlow();
       });
     });
 
-    modal.querySelectorAll('.sp-dist-mode-row').forEach(function (row) {
-      var secKey = row.getAttribute('data-sec');
-      row.querySelectorAll('.sp-dist-mode-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          row.querySelectorAll('.sp-dist-mode-btn').forEach(function (x) { x.classList.remove('active'); });
-          btn.classList.add('active');
-          distModes[secKey] = btn.getAttribute('data-dist-mode') || 'all_diff';
-          applyOptimalForSection(secKey, true);
-          generateAndRender(seedCounter);
-        });
+    ['spTotalInput', 'spMcCountInput', 'spEsCountInput'].forEach(function (id) {
+      if (el(id)) el(id).addEventListener('input', function () {
+        if (id === 'spEsCountInput') syncEssayCountFromInput();
+        updateInfographicFlow();
       });
     });
 
-    modal.querySelectorAll('.sp-chip-row[data-step-sec]').forEach(function (row) {
-      var secKey = row.getAttribute('data-step-sec');
-      var inpId = secKey === 'mc' ? 'spMcStepInput' : (secKey === 'es' ? 'spEsStepInput' : 'spStepInput');
-      row.querySelectorAll('.sp-step-chip').forEach(function (sc) {
-        sc.addEventListener('click', function () {
-          row.querySelectorAll('.sp-step-chip').forEach(function (x) { x.classList.remove('active'); });
-          sc.classList.add('active');
-          if (el(inpId)) el(inpId).value = sc.getAttribute('data-step') || '0.1';
-          applyOptimalForSection(secKey, true);
-          generateAndRender(seedCounter);
-        });
+    // STEP 2: 논술형 문항 추가 & 빠른 채우기
+    if (el('spAddEssayRowBtn')) {
+      el('spAddEssayRowBtn').addEventListener('click', function () {
+        var lastSc = essayRows.length ? Number(essayRows[essayRows.length - 1].score || 5) : 5;
+        essayRows.push({ score: lastSc, note: '' });
+        if (el('spEsCountInput')) el('spEsCountInput').value = essayRows.length;
+        renderEssayEditor();
+        updateInfographicFlow();
+      });
+    }
+    modal.querySelectorAll('[data-essay-fill]').forEach(function (fb) {
+      fb.addEventListener('click', function () {
+        var kind = fb.getAttribute('data-essay-fill');
+        var n = Math.max(1, essayRows.length);
+        var targetEsSum = Math.round(getExamTotal() * 0.3);
+        if (kind === 'equal5') {
+          essayRows.forEach(function (r) { r.score = 5; });
+        } else if (kind === 'equal10') {
+          essayRows.forEach(function (r) { r.score = 10; });
+        } else if (kind === 'equal75') {
+          var each = Math.max(1, Math.round((targetEsSum / n) * 2) / 2);
+          essayRows.forEach(function (r) { r.score = each; });
+        } else if (kind === 'step1') {
+          var start = Math.max(1, Math.floor((targetEsSum / n) - (n - 1) / 2));
+          essayRows.forEach(function (r, idx) { r.score = start + idx; });
+        }
+        renderEssayEditor();
+        updateInfographicFlow();
       });
     });
 
-    if (el('spOptimalBtn')) el('spOptimalBtn').addEventListener('click', applyOptimalAll);
-    if (el('spMcOptBtn')) el('spMcOptBtn').addEventListener('click', function () { applyOptimalForSection('mc', false); generateAndRender(seedCounter); });
-    if (el('spEsOptBtn')) el('spEsOptBtn').addEventListener('click', function () { applyOptimalForSection('es', false); generateAndRender(seedCounter); });
+    // STEP 3: 객관식 배점 방식 카드 / 간격 / 정렬 / 자동추천
+    modal.querySelectorAll('#spMcDistModeRow .sp-dist-card').forEach(function (dc) {
+      dc.addEventListener('click', function () {
+        modal.querySelectorAll('#spMcDistModeRow .sp-dist-card').forEach(function (x) { x.classList.remove('active'); });
+        dc.classList.add('active');
+        mcDistMode = dc.getAttribute('data-dist-mode') || 'all_diff';
+        applyOptimalMcRange(true);
+      });
+    });
+    modal.querySelectorAll('#spMcStepRow .sp-step-chip').forEach(function (sc) {
+      sc.addEventListener('click', function () {
+        modal.querySelectorAll('#spMcStepRow .sp-step-chip').forEach(function (x) { x.classList.remove('active'); });
+        sc.classList.add('active');
+        if (el('spMcStepInput')) el('spMcStepInput').value = sc.getAttribute('data-step') || '0.1';
+        applyOptimalMcRange(true);
+      });
+    });
+    if (el('spMcOptBtn')) el('spMcOptBtn').addEventListener('click', function () { applyOptimalMcRange(false); });
 
-    if (el('spCalcBtn')) el('spCalcBtn').addEventListener('click', function () { generateAndRender(seedCounter); });
-    if (el('spOtherBtn')) el('spOtherBtn').addEventListener('click', function () { seedCounter++; generateAndRender(seedCounter); });
-
-    var ascBtn = el('spSortAscBtn');
-    var descBtn = el('spSortDescBtn');
+    var ascBtn = el('spSortAscBtn'), descBtn = el('spSortDescBtn');
     [ascBtn, descBtn].forEach(function (sb) {
       if (!sb) return;
       sb.addEventListener('click', function () {
         sortOrder = sb.getAttribute('data-sort') || 'asc';
         if (ascBtn) ascBtn.classList.toggle('active', sortOrder === 'asc');
         if (descBtn) descBtn.classList.toggle('active', sortOrder === 'desc');
-        if (currentItems.length) {
-          var cmp = function (a, b) { return sortOrder === 'desc' ? (b.score - a.score) : (a.score - b.score); };
-          var mcs = currentItems.filter(function (x) { return x.type === 'mc'; }).sort(cmp);
-          var ess = currentItems.filter(function (x) { return x.type === 'es'; }).sort(cmp);
-          var sgs = currentItems.filter(function (x) { return x.type === 'single'; }).sort(cmp);
-          currentItems = mcs.concat(ess).concat(sgs);
-          var mcIdx = 0, esIdx = 0;
-          currentItems.forEach(function (it, i) {
-            it.no = i + 1;
-            if (it.type === 'mc') it.secNo = ++mcIdx;
-            else if (it.type === 'es') it.secNo = ++esIdx;
-            else it.secNo = i + 1;
-          });
-          renderResult();
-        }
       });
     });
 
+    // 단계 이동 버튼들
+    if (el('spStep1NextBtn')) el('spStep1NextBtn').addEventListener('click', function () { goStep(examMode === 'split' ? 2 : 3); });
+    if (el('spStep2PrevBtn')) el('spStep2PrevBtn').addEventListener('click', function () { goStep(1); });
+    if (el('spStep2NextBtn')) el('spStep2NextBtn').addEventListener('click', function () { goStep(3); });
+    if (el('spStep3PrevBtn')) el('spStep3PrevBtn').addEventListener('click', function () { goStep(examMode === 'split' ? 2 : 1); });
+    if (el('spCalcBtn')) el('spCalcBtn').addEventListener('click', function () { goStep(4); });
+    if (el('spStep4PrevBtn')) el('spStep4PrevBtn').addEventListener('click', function () { goStep(3); });
+    if (el('spOtherBtn')) el('spOtherBtn').addEventListener('click', function () { seedCounter++; generateAndRender(seedCounter); });
+
+    // 내보내기 버튼들
     if (el('spSendGsBtn')) el('spSendGsBtn').addEventListener('click', sendToGoogleSheet);
     if (el('spCopyGsFormulaBtn')) el('spCopyGsFormulaBtn').addEventListener('click', function () { copyFormulaTsvForGoogleSheet(false); });
     if (el('spExcelBtn')) el('spExcelBtn').addEventListener('click', exportToExcel);
@@ -14113,9 +14133,8 @@ window.TodayBriefing = TodayBriefing;
     var modal = el('scorePlannerModal');
     if (!modal) return;
     bindEvents();
-    updateSplitHints();
+    goStep(1);
     modal.classList.add('show');
-    if (!currentItems.length) generateAndRender(seedCounter);
   }
 
   window.ScorePlannerModule = { open: open };

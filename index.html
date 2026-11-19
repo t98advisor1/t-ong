@@ -43,7 +43,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.86">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.87">
 </head>
 <body>
 
@@ -2854,229 +2854,269 @@
     </div>
   </div>
 
-  <!-- 수업 도구: 스무고개형 단계별 문항 배점 설계 모달 -->
+  <!-- 수업 도구: 인포그래픽 단계별 문항 배점 설계 마법사 모달 -->
   <div id="scorePlannerModal" class="modal">
     <div class="modal-content sp-modal-dialog">
       <div class="modal-header sp-modal-header">
         <div>
-          <span class="sp-kicker">출제 도우미 · 스무고개 배점 설계</span>
+          <span class="sp-kicker">출제 도우미 · 단계별 배점 마법사</span>
           <h3 style="margin:2px 0 0;">단계별 문항 배점 설계기</h3>
         </div>
         <div class="sp-head-actions">
-          <button type="button" class="btn-primary" id="spSendGsBtn">구글 시트 자동 생성</button>
-          <button type="button" class="btn-outline" id="spCopyGsFormulaBtn">수식 포함 시트 복사</button>
-          <button type="button" class="btn-outline" id="spExcelBtn">엑셀(.xlsx) 저장</button>
+          <button type="button" class="btn-outline" id="spResetWizardBtn">처음부터 다시</button>
           <button class="close-btn" data-modal="scorePlannerModal">&times;</button>
         </div>
       </div>
+
       <div class="modal-body sp-modal-body">
-        <div class="sp-step-progress" aria-label="배점 설계 3단계">
-          <span class="sp-step-pill active"><em>1</em> 객관식·논술형 구성과 총점</span>
-          <span class="sp-step-arrow">→</span>
-          <span class="sp-step-pill active"><em>2</em> 차등배점 방식 · 구간 고르기</span>
-          <span class="sp-step-arrow">→</span>
-          <span class="sp-step-pill active"><em>3</em> 문항 수 확인 · 조합 완성</span>
-        </div>
+        <!-- 상단 인포그래픽 입력 흐름도 -->
+        <nav class="sp-infographic-flow" id="spInfographicFlow" aria-label="문항 배점 입력 흐름">
+          <button type="button" class="sp-flow-node active" data-go-step="1">
+            <span class="sp-flow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9h10M7 13h6M7 17h4"/></svg>
+            </span>
+            <span class="sp-flow-meta">
+              <small>STEP 1</small>
+              <b>시험 유형 · 총점</b>
+              <em id="spFlowSub1">객16 + 논4 · 100점</em>
+            </span>
+          </button>
+          <span class="sp-flow-conn" aria-hidden="true">→</span>
 
-        <div class="sp-quiz-stack">
-          <!-- 질문 1: 출제 구성 + 총점 + 문항 수 -->
-          <div class="sp-q-card">
-            <div class="sp-q-head">
-              <span class="sp-q-num q1">질문 1</span>
-              <b>객관식·논술형을 나누어 배분할까요? 총점과 문항 수를 정하세요.</b>
-              <div class="sp-mode-switch" role="group" aria-label="출제 유형 선택">
-                <button type="button" class="sp-mode-btn active" id="spModeSplitBtn" data-exam-mode="split">객관식 + 논술형(주관식)</button>
-                <button type="button" class="sp-mode-btn" id="spModeSingleBtn" data-exam-mode="single">단일 유형 (전체 일괄)</button>
-              </div>
-            </div>
+          <button type="button" class="sp-flow-node" data-go-step="2" id="spFlowNode2">
+            <span class="sp-flow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </span>
+            <span class="sp-flow-meta">
+              <small>STEP 2</small>
+              <b>논술형 직접 입력</b>
+              <em id="spFlowSub2">4문항 · 30점</em>
+            </span>
+          </button>
+          <span class="sp-flow-conn" id="spFlowConn2" aria-hidden="true">→</span>
 
-            <div class="sp-chip-row">
-              <button type="button" class="sp-preset-chip active" data-mode="split" data-total="100" data-mc-count="16" data-mc-total="70" data-es-count="4" data-es-total="30">100점 · 객16(70) + 논4(30)</button>
-              <button type="button" class="sp-preset-chip" data-mode="split" data-total="100" data-mc-count="18" data-mc-total="75" data-es-count="4" data-es-total="25">100점 · 객18(75) + 논4(25)</button>
-              <button type="button" class="sp-preset-chip" data-mode="split" data-total="100" data-mc-count="20" data-mc-total="80" data-es-count="4" data-es-total="20">100점 · 객20(80) + 논4(20)</button>
-              <button type="button" class="sp-preset-chip" data-mode="split" data-total="50" data-mc-count="12" data-mc-total="35" data-es-count="3" data-es-total="15">50점 · 객12(35) + 논3(15)</button>
-              <button type="button" class="sp-preset-chip" data-mode="single" data-total="100" data-count="25">100점 · 단일 25문항</button>
-              <button type="button" class="sp-preset-chip" data-mode="single" data-total="100" data-count="20">100점 · 단일 20문항</button>
-            </div>
+          <button type="button" class="sp-flow-node" data-go-step="3">
+            <span class="sp-flow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20v-4"/></svg>
+            </span>
+            <span class="sp-flow-meta">
+              <small>STEP 3</small>
+              <b>객관식 배점 규칙</b>
+              <em id="spFlowSub3">16문항 · 70점</em>
+            </span>
+          </button>
+          <span class="sp-flow-conn" aria-hidden="true">→</span>
 
-            <!-- 분리 모드 입력 -->
-            <div id="spSplitSummaryInputs" class="sp-split-top-row">
-              <div class="sp-field">
-                <label for="spTotalInput">전체 목표 총점</label>
-                <input type="number" id="spTotalInput" value="100" step="0.1" min="1">
-              </div>
-              <div class="sp-field sp-field-mc">
-                <label for="spMcCountInput">객관식 문항 수</label>
-                <input type="number" id="spMcCountInput" value="16" step="1" min="1" max="80">
-              </div>
-              <div class="sp-field sp-field-mc">
-                <label for="spMcTotalInput">객관식 배점 합계</label>
-                <input type="number" id="spMcTotalInput" value="70" step="0.1" min="0.1">
-              </div>
-              <div class="sp-field sp-field-es">
-                <label for="spEsCountInput">논술형 문항 수</label>
-                <input type="number" id="spEsCountInput" value="4" step="1" min="1" max="40">
-              </div>
-              <div class="sp-field sp-field-es">
-                <label for="spEsTotalInput">논술형 배점 합계</label>
-                <input type="number" id="spEsTotalInput" value="30" step="0.1" min="0.1">
-              </div>
-              <div class="sp-split-live-check" id="spSplitLiveCheck">총 20문항 · 합계 100점</div>
-            </div>
-
-            <!-- 단일 모드 입력 -->
-            <div id="spSingleSummaryInputs" class="sp-q-inputs cols-2" style="display:none;max-width:440px;">
-              <div class="sp-field">
-                <label for="spSingleTotalInput">목표 총점</label>
-                <input type="number" id="spSingleTotalInput" value="100" step="0.1" min="1">
-              </div>
-              <div class="sp-field">
-                <label for="spCountInput">전체 문항 수</label>
-                <input type="number" id="spCountInput" value="25" step="1" min="1" max="100">
-              </div>
-            </div>
-          </div>
-
-          <!-- 질문 2: 배점 방식 (전부 차등 / 고른 차등 / 단계별 / 동배점) 및 구간 설정 -->
-          <div class="sp-q-card">
-            <div class="sp-q-head">
-              <span class="sp-q-num q2">질문 2</span>
-              <b>배점 방식(전부 차등 · 단계 차등 · 동배점)과 점수 폭을 고르세요.</b>
-              <button type="button" class="sp-opt-btn" id="spOptimalBtn">평균 기준 자동 추천</button>
-            </div>
-
-            <!-- 분리 모드: 객관식 / 논술형 2단 규칙 카드 -->
-            <div id="spSplitRulesGrid" class="sp-rules-grid cols-2">
-              <div class="sp-sec-box is-mc">
-                <div class="sp-sec-box-head">
-                  <span class="sp-type-badge mc">객관식 (선택형)</span>
-                  <small id="spMcAvgHint">16문항 · 평균 4.4점</small>
-                  <button type="button" class="sp-opt-btn mini" id="spMcOptBtn">자동 추천</button>
-                </div>
-                <div class="sp-dist-mode-row" data-sec="mc">
-                  <button type="button" class="sp-dist-mode-btn active" data-dist-mode="all_diff" title="모든 문항을 서로 다른 점수로 배분">전부 차등(중복없음)</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="spread" title="여러 점수가 자연스럽게 섞인 차등배점">고른 차등</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="tiered" title="하·중·상 3~4개 단계로 구분">단계 차등(하·중·상)</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="equal" title="가능한 한 동일한 배점">동배점 우선</button>
-                </div>
-                <div class="sp-chip-row" data-step-sec="mc">
-                  <button type="button" class="sp-step-chip active" data-step="0.1">0.1점</button>
-                  <button type="button" class="sp-step-chip" data-step="0.2">0.2점</button>
-                  <button type="button" class="sp-step-chip" data-step="0.5">0.5점</button>
-                  <button type="button" class="sp-step-chip" data-step="1">1점</button>
-                </div>
-                <div class="sp-q-inputs cols-3">
-                  <div class="sp-field">
-                    <label for="spMcMinInput">최저 점수</label>
-                    <input type="number" id="spMcMinInput" value="3.4" step="0.1" min="0.1">
-                  </div>
-                  <div class="sp-field">
-                    <label for="spMcMaxInput">최고 점수</label>
-                    <input type="number" id="spMcMaxInput" value="5.4" step="0.1" min="0.1">
-                  </div>
-                  <div class="sp-field">
-                    <label for="spMcStepInput">배점 간격</label>
-                    <input type="number" id="spMcStepInput" value="0.1" step="0.1" min="0.1">
-                  </div>
-                </div>
-              </div>
-
-              <div class="sp-sec-box is-es">
-                <div class="sp-sec-box-head">
-                  <span class="sp-type-badge es">논술형 (주관식)</span>
-                  <small id="spEsAvgHint">4문항 · 평균 7.5점</small>
-                  <button type="button" class="sp-opt-btn mini" id="spEsOptBtn">자동 추천</button>
-                </div>
-                <div class="sp-dist-mode-row" data-sec="es">
-                  <button type="button" class="sp-dist-mode-btn active" data-dist-mode="all_diff" title="모든 논술형 문항을 서로 다른 점수로 배분">전부 차등(중복없음)</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="spread">고른 차등</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="tiered">단계 차등(하·중·상)</button>
-                  <button type="button" class="sp-dist-mode-btn" data-dist-mode="equal">동배점 우선</button>
-                </div>
-                <div class="sp-chip-row" data-step-sec="es">
-                  <button type="button" class="sp-step-chip" data-step="0.1">0.1점</button>
-                  <button type="button" class="sp-step-chip" data-step="0.2">0.2점</button>
-                  <button type="button" class="sp-step-chip" data-step="0.5">0.5점</button>
-                  <button type="button" class="sp-step-chip active" data-step="1">1점</button>
-                </div>
-                <div class="sp-q-inputs cols-3">
-                  <div class="sp-field">
-                    <label for="spEsMinInput">최저 점수</label>
-                    <input type="number" id="spEsMinInput" value="5" step="0.5" min="0.1">
-                  </div>
-                  <div class="sp-field">
-                    <label for="spEsMaxInput">최고 점수</label>
-                    <input type="number" id="spEsMaxInput" value="10" step="0.5" min="0.1">
-                  </div>
-                  <div class="sp-field">
-                    <label for="spEsStepInput">배점 간격</label>
-                    <input type="number" id="spEsStepInput" value="1" step="0.1" min="0.1">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 단일 모드 규칙 카드 -->
-            <div id="spSingleRulesBox" class="sp-sec-box" style="display:none;">
-              <div class="sp-dist-mode-row" data-sec="single">
-                <button type="button" class="sp-dist-mode-btn active" data-dist-mode="all_diff">전부 차등(중복없음)</button>
-                <button type="button" class="sp-dist-mode-btn" data-dist-mode="spread">고른 차등</button>
-                <button type="button" class="sp-dist-mode-btn" data-dist-mode="tiered">단계 차등(하·중·상)</button>
-                <button type="button" class="sp-dist-mode-btn" data-dist-mode="equal">동배점 우선</button>
-              </div>
-              <div class="sp-chip-row" data-step-sec="single">
-                <button type="button" class="sp-step-chip active" data-step="0.1">0.1점 단위</button>
-                <button type="button" class="sp-step-chip" data-step="0.2">0.2점 단위</button>
-                <button type="button" class="sp-step-chip" data-step="0.5">0.5점 단위</button>
-                <button type="button" class="sp-step-chip" data-step="1">1점 단위</button>
-              </div>
-              <div class="sp-q-inputs cols-3">
-                <div class="sp-field">
-                  <label for="spMinInput">최저 점수</label>
-                  <input type="number" id="spMinInput" value="2.8" step="0.1" min="0.1">
-                </div>
-                <div class="sp-field">
-                  <label for="spMaxInput">최고 점수</label>
-                  <input type="number" id="spMaxInput" value="5.5" step="0.1" min="0.1">
-                </div>
-                <div class="sp-field">
-                  <label for="spStepInput">배점 간격</label>
-                  <input type="number" id="spStepInput" value="0.1" step="0.1" min="0.1">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 질문 3: 정렬 및 산출 실행 -->
-          <div class="sp-q-card sp-q3-bar">
-            <div class="sp-q-head" style="margin:0;">
-              <span class="sp-q-num q3">질문 3</span>
-              <b>문항 순서와 조합 산출</b>
-            </div>
-            <div class="sp-sort-toggle">
-              <button type="button" class="sp-sort-btn active" id="spSortAscBtn" data-sort="asc">쉬운 문항부터 (오름차순)</button>
-              <button type="button" class="sp-sort-btn" id="spSortDescBtn" data-sort="desc">어려운 문항부터 (내림차순)</button>
-            </div>
-            <div class="sp-q-actions">
-              <button type="button" class="btn-primary sp-calc-main" id="spCalcBtn">배점표 산출하기</button>
-              <button type="button" class="btn-outline" id="spOtherBtn">다른 조합 뽑기</button>
-            </div>
-          </div>
-        </div>
+          <button type="button" class="sp-flow-node" data-go-step="4">
+            <span class="sp-flow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </span>
+            <span class="sp-flow-meta">
+              <small>STEP 4</small>
+              <b>배점표 완성 · 저장</b>
+              <em id="spFlowSub4">산출 대기</em>
+            </span>
+          </button>
+        </nav>
 
         <div id="spStatusBar" class="sp-status-bar" style="display:none;"></div>
 
-        <div class="sp-result-card" id="spResultContainer">
-          <div class="sp-sum-banner" id="spSumBanner">
-            <span>위 질문에 답한 뒤 <b>[배점표 산출하기]</b>를 누르면 바로 완성됩니다.</span>
-          </div>
-          <div class="sp-dist-sections" id="spDistBar"></div>
-          <div class="sp-table-wrap" id="spTableWrap">
-            <div style="padding:32px 14px;text-align:center;color:#64748b;font-size:0.86rem;">
-              산출된 문항별 배점과 누적 합계가 여기에 표시됩니다.
+        <!-- STEP 1: 시험 유형 · 총점 · 문항 수 -->
+        <section class="sp-step-pane active" id="spStepPane1" data-step-pane="1">
+          <div class="sp-pane-card">
+            <div class="sp-pane-title-row">
+              <span class="sp-q-num q1">STEP 1</span>
+              <div>
+                <h4>어떤 형식의 시험을 출제하시나요?</h4>
+                <p>객관식과 논술형(주관식)을 함께 보는지, 100% 객관식 시험인지 먼저 선택하세요.</p>
+              </div>
+            </div>
+
+            <div class="sp-exam-type-grid" role="group" aria-label="시험 구성 방식 선택">
+              <button type="button" class="sp-exam-card active" id="spModeSplitBtn" data-exam-mode="split">
+                <div class="sp-exam-card-top">
+                  <span class="sp-type-badge mc">혼합형</span>
+                  <span class="sp-type-badge es">논술형 직접 입력</span>
+                </div>
+                <strong>객관식 + 논술형(주관식) 시험</strong>
+                <span>논술형 문항 점수는 직접 입력하고, 남은 점수를 객관식에 자동 배분합니다.</span>
+              </button>
+              <button type="button" class="sp-exam-card" id="spModeMcOnlyBtn" data-exam-mode="mc_only">
+                <div class="sp-exam-card-top">
+                  <span class="sp-type-badge mc">100% 객관식</span>
+                </div>
+                <strong>객관식 전용 시험 (논술형 없음)</strong>
+                <span>논술형 없이 전체 만점(예: 100점)을 객관식 문항만으로 깔끔하게 배분합니다.</span>
+              </button>
+            </div>
+
+            <div class="sp-preset-box">
+              <span class="sp-sub-label">자주 쓰는 출제 프리셋</span>
+              <div class="sp-chip-row" id="spPresetRowSplit">
+                <button type="button" class="sp-preset-chip active" data-mode="split" data-total="100" data-mc-count="16" data-es-scores="6,7,8,9">100점 · 객16(70) + 논4(30)</button>
+                <button type="button" class="sp-preset-chip" data-mode="split" data-total="100" data-mc-count="18" data-es-scores="5,6,7,7">100점 · 객18(75) + 논4(25)</button>
+                <button type="button" class="sp-preset-chip" data-mode="split" data-total="100" data-mc-count="20" data-es-scores="4,5,5,6">100점 · 객20(80) + 논4(20)</button>
+                <button type="button" class="sp-preset-chip" data-mode="split" data-total="50" data-mc-count="12" data-es-scores="4,5,6">50점 · 객12(35) + 논3(15)</button>
+              </div>
+              <div class="sp-chip-row" id="spPresetRowMcOnly" style="display:none;">
+                <button type="button" class="sp-preset-chip" data-mode="mc_only" data-total="100" data-mc-count="25">100점 · 객관식 25문항</button>
+                <button type="button" class="sp-preset-chip" data-mode="mc_only" data-total="100" data-mc-count="20">100점 · 객관식 20문항</button>
+                <button type="button" class="sp-preset-chip" data-mode="mc_only" data-total="100" data-mc-count="30">100점 · 객관식 30문항</button>
+                <button type="button" class="sp-preset-chip" data-mode="mc_only" data-total="50" data-mc-count="20">50점 · 객관식 20문항</button>
+              </div>
+            </div>
+
+            <div class="sp-step1-inputs" id="spStep1Inputs">
+              <div class="sp-field">
+                <label for="spTotalInput">시험 만점 (전체 총점)</label>
+                <input type="number" id="spTotalInput" value="100" step="0.5" min="1">
+              </div>
+              <div class="sp-field sp-field-mc">
+                <label for="spMcCountInput">객관식 문항 수</label>
+                <input type="number" id="spMcCountInput" value="16" step="1" min="1" max="100">
+              </div>
+              <div class="sp-field sp-field-es" id="spEsCountField">
+                <label for="spEsCountInput">논술형(주관식) 문항 수</label>
+                <input type="number" id="spEsCountInput" value="4" step="1" min="1" max="40">
+              </div>
+            </div>
+
+            <div class="sp-step-footer">
+              <span class="sp-footer-hint" id="spStep1Summary">총 20문항 (객관식 16 + 논술형 4) · 목표 만점 100점</span>
+              <button type="button" class="btn-primary sp-next-btn" id="spStep1NextBtn">다음: 논술형 배점 입력 →</button>
             </div>
           </div>
-        </div>
+        </section>
+
+        <!-- STEP 2: 논술형(주관식) 배점 직접 입력 -->
+        <section class="sp-step-pane" id="spStepPane2" data-step-pane="2">
+          <div class="sp-pane-card">
+            <div class="sp-pane-title-row">
+              <span class="sp-q-num q2">STEP 2</span>
+              <div>
+                <h4>논술형(주관식) 문항별 배점을 직접 입력하세요</h4>
+                <p>논술형은 선생님 의도대로 직접 점수를 적으면, 남은 점수가 객관식 목표 총점으로 자동 계산됩니다.</p>
+              </div>
+              <button type="button" class="btn-outline" id="spAddEssayRowBtn" style="margin-left:auto;">+ 논술형 문항 추가</button>
+            </div>
+
+            <div class="sp-essay-quick-bar">
+              <span class="sp-sub-label" style="margin:0;">빠른 입력 도우미</span>
+              <div class="sp-chip-row">
+                <button type="button" class="sp-step-chip" data-essay-fill="step1">1점씩 차등 (예: 6·7·8·9)</button>
+                <button type="button" class="sp-step-chip" data-essay-fill="equal5">모두 5점씩</button>
+                <button type="button" class="sp-step-chip" data-essay-fill="equal75">균등 배분 (총 30점 기준)</button>
+                <button type="button" class="sp-step-chip" data-essay-fill="equal10">모두 10점씩</button>
+              </div>
+            </div>
+
+            <div class="sp-essay-list" id="spEssayList"></div>
+
+            <div class="sp-essay-summary-box" id="spEssaySummaryBox">
+              <span>논술형 <b>4문항</b> 합계: <strong>30점</strong></span>
+              <span class="sp-flow-arrow-inline">→</span>
+              <span>남은 객관식 <b>16문항</b> 목표 총점: <strong class="mc-color">70점</strong> (문항당 평균 4.38점)</span>
+            </div>
+
+            <div class="sp-step-footer">
+              <button type="button" class="btn-outline" id="spStep2PrevBtn">← 이전 단계</button>
+              <button type="button" class="btn-primary sp-next-btn" id="spStep2NextBtn">다음: 객관식 배점 규칙 →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: 객관식 배점 방식 · 점수 폭 · 정렬 -->
+        <section class="sp-step-pane" id="spStepPane3" data-step-pane="3">
+          <div class="sp-pane-card">
+            <div class="sp-pane-title-row">
+              <span class="sp-q-num q3">STEP 3</span>
+              <div>
+                <h4>객관식 배점 방식과 점수 폭을 선택하세요</h4>
+                <p id="spStep3TargetInfo">객관식 16문항에 총 70점을 배분합니다. (문항당 평균 4.38점)</p>
+              </div>
+              <button type="button" class="sp-opt-btn" id="spMcOptBtn">평균 기준 자동 추천</button>
+            </div>
+
+            <div class="sp-dist-card-grid" id="spMcDistModeRow">
+              <button type="button" class="sp-dist-card active" data-dist-mode="all_diff">
+                <strong>전부 차등배점 (중복 없음)</strong>
+                <span>모든 객관식 문항이 겹치지 않는 서로 다른 점수로 배분됩니다.</span>
+              </button>
+              <button type="button" class="sp-dist-card" data-dist-mode="spread">
+                <strong>고른 차등배점</strong>
+                <span>최저~최고 범위 내에서 여러 배점 단계가 자연스럽게 섞입니다.</span>
+              </button>
+              <button type="button" class="sp-dist-card" data-dist-mode="tiered">
+                <strong>단계 차등 (하·중·상)</strong>
+                <span>난이도별 3~4개 핵심 점수 구간으로 깔끔하게 묶어 배분합니다.</span>
+              </button>
+              <button type="button" class="sp-dist-card" data-dist-mode="equal">
+                <strong>동배점 우선</strong>
+                <span>가능한 한 같은 점수로 맞추고 남는 차이만 최소 조정합니다.</span>
+              </button>
+            </div>
+
+            <div class="sp-step3-controls">
+              <div class="sp-step3-sub">
+                <span class="sp-sub-label">배점 단위 간격</span>
+                <div class="sp-chip-row" id="spMcStepRow">
+                  <button type="button" class="sp-step-chip active" data-step="0.1">0.1점 단위</button>
+                  <button type="button" class="sp-step-chip" data-step="0.2">0.2점 단위</button>
+                  <button type="button" class="sp-step-chip" data-step="0.5">0.5점 단위</button>
+                  <button type="button" class="sp-step-chip" data-step="1">1점 단위</button>
+                </div>
+              </div>
+              <div class="sp-step3-sub">
+                <span class="sp-sub-label">문항 배치 순서</span>
+                <div class="sp-sort-toggle inline">
+                  <button type="button" class="sp-sort-btn active" id="spSortAscBtn" data-sort="asc">쉬운 문항부터 (오름차순)</button>
+                  <button type="button" class="sp-sort-btn" id="spSortDescBtn" data-sort="desc">어려운 문항부터 (내림차순)</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-q-inputs cols-3">
+              <div class="sp-field">
+                <label for="spMcMinInput">객관식 최저 점수</label>
+                <input type="number" id="spMcMinInput" value="3.4" step="0.1" min="0.1">
+              </div>
+              <div class="sp-field">
+                <label for="spMcMaxInput">객관식 최고 점수</label>
+                <input type="number" id="spMcMaxInput" value="5.4" step="0.1" min="0.1">
+              </div>
+              <div class="sp-field">
+                <label for="spMcStepInput">배점 간격</label>
+                <input type="number" id="spMcStepInput" value="0.1" step="0.1" min="0.1">
+              </div>
+            </div>
+
+            <div class="sp-step-footer">
+              <button type="button" class="btn-outline" id="spStep3PrevBtn">← 이전 단계</button>
+              <button type="button" class="btn-primary sp-next-btn" id="spCalcBtn">배점표 산출하고 확인하기 →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4: 완성된 배점표 & 내보내기 -->
+        <section class="sp-step-pane" id="spStepPane4" data-step-pane="4">
+          <div class="sp-result-toolbar">
+            <div class="sp-result-toolbar-left">
+              <button type="button" class="btn-outline" id="spStep4PrevBtn">← 객관식 조건 수정</button>
+              <button type="button" class="btn-outline" id="spOtherBtn">다른 조합 다시 뽑기</button>
+            </div>
+            <div class="sp-result-toolbar-right">
+              <button type="button" class="btn-primary" id="spSendGsBtn">구글 시트 자동 생성</button>
+              <button type="button" class="btn-outline" id="spCopyGsFormulaBtn">수식 포함 시트 복사</button>
+              <button type="button" class="btn-outline" id="spExcelBtn">엑셀(.xlsx) 저장</button>
+            </div>
+          </div>
+
+          <div class="sp-result-card" id="spResultContainer">
+            <div class="sp-sum-banner" id="spSumBanner"></div>
+            <div class="sp-dist-sections" id="spDistBar"></div>
+            <div class="sp-table-wrap sp-table-tall" id="spTableWrap"></div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -3186,7 +3226,7 @@
   </div>
 
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.86"></script>
+  <script src="/app.js?v=5.17.0-preview.87"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;
