@@ -1585,6 +1585,50 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === "board_export_sheet") {
+      var expName = "수업메모보드_기록";
+      var expSh = ss.getSheetByName(expName);
+      if (!expSh) {
+        expSh = ss.insertSheet(expName);
+        try { expSh.setTabColor("#0284c7"); } catch (err) {}
+      }
+      expSh.clear();
+      var topicTxt = String(body.topic || "수업 메모보드").trim();
+      var expNotes = Array.isArray(body.notes) ? body.notes : [];
+      var nowExp = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm");
+      expSh.getRange("A1:G1").merge().setValue("수업 메모보드 학생 자료 기록 — " + topicTxt)
+        .setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
+      expSh.getRange("A2:G2").setValues([["내보낸 시각", nowExp, "총 메모 수", expNotes.length + "개", "", "", ""]])
+        .setBackground("#eff6ff").setFontWeight("bold");
+      expSh.getRange("A4:G4").setValues([["번호", "모둠", "작성자", "메모 내용", "공감 수", "스티커 반응", "작성 시각"]])
+        .setBackground("#1d4ed8").setFontColor("#ffffff").setFontWeight("bold");
+      for (var ei = 0; ei < expNotes.length; ei++) {
+        var en = expNotes[ei] || {};
+        expSh.getRange(5 + ei, 1, 1, 7).setValues([[
+          ei + 1,
+          String(en.group || "공통"),
+          String(en.author || "익명"),
+          String(en.text || ""),
+          Number(en.likes || 0),
+          String(en.stickers || ""),
+          String(en.createdAt || "")
+        ]]);
+      }
+      expSh.setColumnWidth(1, 60);
+      expSh.setColumnWidth(2, 90);
+      expSh.setColumnWidth(3, 130);
+      expSh.setColumnWidth(4, 420);
+      expSh.setColumnWidth(5, 80);
+      expSh.setColumnWidth(6, 150);
+      expSh.setColumnWidth(7, 150);
+      try { expSh.getRange(5, 4, Math.max(1, expNotes.length), 1).setWrap(true); } catch (err) {}
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        sheetName: expName,
+        sheetUrl: ss.getUrl() + "#gid=" + expSh.getSheetId()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "saveRecord" || action === "saveCounsel" || action === "sync_relational") {
       var updatedRow = upsertSingleStudentRecord(ss, body, today);
       return ContentService.createTextOutput(JSON.stringify({

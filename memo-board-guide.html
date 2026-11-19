@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T-ong 수업 메모보드 사용방법 안내자료</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      line-height: 1.6;
+      padding: 28px 18px 50px;
+    }
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .hero small {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .hero h1 { margin: 0; font-size: 24px; }
+    .hero p { margin: 6px 0 0; font-size: 14px; color: #dbeafe; }
+    .print-btn {
+      border: 1px solid rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.16);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .print-btn:hover { background: rgba(255,255,255,0.28); }
+    .prep-box {
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-left: 5px solid #2563eb;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+    .prep-box b { color: #1d4ed8; }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .step-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+      break-inside: avoid;
+    }
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .step-badge {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 4px 11px;
+      border-radius: 999px;
+    }
+    .step-badge.s2 { background: #059669; }
+    .step-badge.s3 { background: #7c3aed; }
+    .step-badge.s4 { background: #0f766e; }
+    .step-head h2 { margin: 0; font-size: 18px; color: #0f172a; }
+    .shot-frame {
+      border-radius: 11px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 12px;
+      background: #f1f5f9;
+    }
+    .shot-frame img {
+      width: 100%;
+      display: block;
+    }
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .role-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 13.5px;
+    }
+    .role-box strong {
+      display: block;
+      font-size: 13px;
+      color: #1e40af;
+      margin-bottom: 4px;
+    }
+    .role-box.student strong { color: #047857; }
+    .role-box ul { margin: 0; padding-left: 18px; }
+    code {
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    @media (max-width: 720px) {
+      .role-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      .print-btn { display: none; }
+      .step-card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <small>T-ong 교무수첩 · 7 수업 도구</small>
+        <h1>수업 메모보드(패들렛형) 4단계 사용방법 안내</h1>
+        <p>교실 TV에서 학생 의견을 실시간으로 모으고, 전체화면으로 공유한 뒤 엑셀·구글 시트로 기록하는 순서입니다.</p>
+      </div>
+      <button type="button" class="print-btn" onclick="window.print()">인쇄 / PDF 저장</button>
+    </header>
+
+    <div class="prep-box">
+      <b>시작 전 준비 확인</b> — 교사가 직접 포스트잇을 붙이고 <b>학생 공개 전체화면</b>·<b>엑셀 저장</b>을 사용하는 것은 별도 연동 없이 즉시 가능합니다. 학생들이 각자 스마트폰으로 <b>QR 실시간 제출</b>을 하려면 최초 1회 상단 <code>1 Google 시트 연동</code>에서 마스터 시트 웹앱 URL을 연결해 주세요.
+    </div>
+
+    <main class="steps">
+      <section class="step-card">
+        <div class="step-head">
+          <span class="step-badge">STEP 1</span>
+          <h2>보드 방식 · 모둠 수 · 수업 질문 설정하기</h2>
+        </div>
+        <div class="shot-frame"><img src="./assets/memoboard_guide/step1_setup.png" alt="1단계 수업 메모보드 설정 화면"></div>
+        <div class="role-grid">
+          <div class="role-box">
+            <strong>교사가 할 일</strong>
+            <ul>
+              <li><code>7 수업 도구</code> → <code>수업 메모보드</code>를 엽니다.</li>
+              <li><code>모둠 기둥 보드</code>(4~8모둠) 또는 <code>자유 샌드박스(드래그)</code>를 선택합니다.</li>
+              <li>수업 질문·주제를 입력하고 <code>주제 적용</code>을 누릅니다.</li>
+            </ul>
+          </div>
+          <div class="role-box student">
+            <strong>활용 팁</strong>
+            <ul>
+              <li>모둠 토의 결과 정리는 <code>4~6모둠 기둥 보드</code>가 가장 깔끔합니다.</li>
+              <li>브레인스토밍 아이디어를 비슷한 내용끼리 묶을 때는 <code>자유 샌드박스</code>로 전환해 드래그하세요.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-card">
+        <div class="step-head">
+          <span class="step-badge s2">STEP 2</span>
+          <h2>QR 학생 참여 띄우고 실시간 의견 받기</h2>
+        </div>
+        <div class="shot-frame"><img src="./assets/memoboard_guide/step2_student_qr.png" alt="2단계 QR 참여 및 학생 스마트폰 화면"></div>
+        <div class="role-grid">
+          <div class="role-box">
+            <strong>교사가 할 일</strong>
+            <ul>
+              <li>상단 <code>QR 학생 참여</code> 버튼을 눌러 교실 TV에 QR 코드를 띄웁니다.</li>
+              <li><code>크게 보기</code>를 누르면 뒷자리 학생도 쉽게 스캔할 수 있습니다.</li>
+            </ul>
+          </div>
+          <div class="role-box student">
+            <strong>학생이 할 일</strong>
+            <ul>
+              <li>스마트폰 카메라로 QR을 스캔해 학생 참여 화면에 접속합니다.</li>
+              <li>모둠·이름·포스트잇 색상을 고르고 의견을 입력해 제출하면 4초 이내에 교실 보드에 올라옵니다.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-card">
+        <div class="step-head">
+          <span class="step-badge s3">STEP 3</span>
+          <h2>학생 공개 전체화면으로 함께 보기 &amp; 긴 메모 스크롤</h2>
+        </div>
+        <div class="shot-frame"><img src="./assets/memoboard_guide/step3_present_scroll.png" alt="3단계 학생 공개 전체화면과 긴 메모 스크롤바"></div>
+        <div class="role-grid">
+          <div class="role-box">
+            <strong>교사가 할 일</strong>
+            <ul>
+              <li>상단 <code>학생 공개 전체화면</code>을 눌러 교사용 편집창을 숨기고 보드 전체를 화면 가득 띄웁니다.</li>
+              <li>긴 메모는 카드 안쪽 스크롤바로, 메모가 많은 모둠은 기둥별 스크롤바로 끝까지 읽어줍니다.</li>
+            </ul>
+          </div>
+          <div class="role-box student">
+            <strong>수업 중 상호작용</strong>
+            <ul>
+              <li>포스트잇 하단의 <code>스티커</code>와 <code>공감</code> 버튼을 눌러 우수 아이디어에 피드백을 남깁니다.</li>
+              <li><code>ESC</code> 키 또는 우측 상단 <code>전체화면 종료 (편집)</code>으로 언제든 편집 모드로 돌아옵니다.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-card">
+        <div class="step-head">
+          <span class="step-badge s4">STEP 4</span>
+          <h2>학생 자료 엑셀(.xlsx) · 구글 시트로 저장하기</h2>
+        </div>
+        <div class="shot-frame"><img src="./assets/memoboard_guide/step4_export.png" alt="4단계 엑셀 및 구글 시트 내보내기"></div>
+        <div class="role-grid">
+          <div class="role-box">
+            <strong>엑셀(.xlsx) 다운로드</strong>
+            <ul>
+              <li>상단 <code>엑셀 저장</code>을 누르면 수업 주제·모둠·작성자·메모 전문·공감·스티커·작성 시각이 표로 정리된 <code>.xlsx</code> 파일이 즉시 저장됩니다.</li>
+            </ul>
+          </div>
+          <div class="role-box student">
+            <strong>구글 시트 자동 저장</strong>
+            <ul>
+              <li><code>구글 시트 저장</code>을 누르면 마스터 시트의 <code>수업메모보드_기록</code> 탭에 자동 기록됩니다. (미연동 시 복사 후 새 시트 열기)</li>
+              <li>세특 작성이나 수행평가 참여 근거 자료로 바로 활용하세요.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

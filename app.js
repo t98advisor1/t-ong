@@ -12857,6 +12857,8 @@ window.TodayBriefing = TodayBriefing;
 
     function renderNotes(list) {
       notesCache = Array.isArray(list) ? list : [];
+      var cntEl = document.getElementById('memoBoardPresentCount');
+      if (cntEl) cntEl.textContent = '총 ' + notesCache.length + '개 메모';
       var grid = document.getElementById('memoBoardGrid');
       if (!grid) return;
       grid.innerHTML = '';
@@ -12965,6 +12967,166 @@ window.TodayBriefing = TodayBriefing;
       renderNotes([]);
     }
 
+    function showBoardToast(msg, ok) {
+      var bar = document.getElementById('memoBoardToastBar');
+      if (!bar) return;
+      if (!msg) { bar.style.display = 'none'; return; }
+      bar.textContent = msg;
+      bar.className = 'sp-status-bar ' + (ok === false ? 'err' : 'ok');
+      bar.style.display = 'block';
+    }
+
+    function syncPresentHeader() {
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      var pt = document.getElementById('memoBoardPresentTopic');
+      if (pt && topicEl) pt.textContent = topicEl.value.trim() || '수업 아이디어 모으기';
+      var cntEl = document.getElementById('memoBoardPresentCount');
+      if (cntEl) cntEl.textContent = '총 ' + notesCache.length + '개 메모';
+    }
+
+    function enterPresentMode() {
+      var modal = document.getElementById('memoBoardModal');
+      if (!modal) return;
+      var dialog = modal.querySelector('.memo-board-dialog');
+      if (dialog) {
+        dialog.classList.add('is-fullscreen');
+        dialog.classList.add('is-present-mode');
+      }
+      modal.classList.add('is-fullscreen-modal');
+      syncPresentHeader();
+      try {
+        if (!document.fullscreenElement && modal.requestFullscreen) {
+          modal.requestFullscreen().catch(function () {});
+        }
+      } catch (e) {}
+    }
+
+    function exitPresentMode() {
+      var modal = document.getElementById('memoBoardModal');
+      if (!modal) return;
+      var dialog = modal.querySelector('.memo-board-dialog');
+      if (dialog) dialog.classList.remove('is-present-mode');
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(function () {});
+        }
+      } catch (e) {}
+    }
+
+    function getExportRecords() {
+      var allStks = loadMap(LOCAL_STK_KEY);
+      return notesCache.map(function (item) {
+        var grp = extractGroup(item);
+        var stkMap = allStks[item.id] || {};
+        var stkStr = STICKERS.filter(function (s) { return Number(stkMap[s.key]) > 0; })
+          .map(function (s) { return s.label + ' ' + stkMap[s.key]; }).join(', ');
+        return {
+          group: grp,
+          author: String(item.author || '익명').replace(/^\[\d+모둠\]\s*/, ''),
+          text: String(item.text || ''),
+          likes: Number(item.likes) || 0,
+          stickers: stkStr,
+          createdAt: String(item.createdAt || '')
+        };
+      });
+    }
+
+    function exportBoardExcel() {
+      var records = getExportRecords();
+      if (!records.length) { showBoardToast('저장할 학생 메모가 아직 없습니다.', false); return; }
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      var topic = (topicEl && topicEl.value.trim()) || '수업메모보드';
+      var dateStr = new Date().toISOString().slice(0, 10);
+      var aoa = [
+        ['수업 질문 · 주제', topic, '', '총 메모 수', records.length + '개', '내보낸 날짜', dateStr],
+        [],
+        ['번호', '모둠', '작성자', '메모 내용', '공감 수', '스티커 반응', '작성 시각']
+      ];
+      records.forEach(function (r, idx) {
+        aoa.push([idx + 1, r.group, r.author, r.text, r.likes, r.stickers, r.createdAt]);
+      });
+      if (typeof XLSX !== 'undefined' && XLSX.utils) {
+        var ws = XLSX.utils.aoa_to_sheet(aoa);
+        ws['!cols'] = [{ wch: 7 }, { wch: 10 }, { wch: 14 }, { wch: 52 }, { wch: 9 }, { wch: 18 }, { wch: 20 }];
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, '수업메모보드');
+        XLSX.writeFile(wb, '수업메모보드_학생자료_' + dateStr + '.xlsx');
+        showBoardToast('학생 자료 ' + records.length + '건을 엑셀(.xlsx) 파일로 다운로드했습니다.', true);
+      } else {
+        var csv = '\ufeff' + aoa.map(function (row) {
+          return row.map(function (c) { return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '수업메모보드_학생자료_' + dateStr + '.csv';
+        a.click();
+        showBoardToast('학생 자료 ' + records.length + '건을 CSV 파일로 다운로드했습니다.', true);
+      }
+    }
+
+    function copyBoardTsvForSheet(openNew) {
+      var records = getExportRecords();
+      var lines = [['번호', '모둠', '작성자', '메모 내용', '공감 수', '스티커 반응', '작성 시각'].join('\t')];
+      records.forEach(function (r, idx) {
+        lines.push([idx + 1, r.group, r.author, r.text.replace(/[\t\n\r]+/g, ' '), r.likes, r.stickers, r.createdAt].join('\t'));
+      });
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lines.join('\n')).then(function () {
+          showBoardToast('학생 자료 ' + records.length + '건을 구글 시트용 표로 복사했습니다! 새 구글 시트 A1에 Ctrl+V로 붙여넣으세요.', true);
+          if (openNew) window.open('https://sheets.new', '_blank', 'noopener');
+        }, function () {
+          showBoardToast('클립보드 복사에 실패했습니다. [엑셀 저장]을 이용해 주세요.', false);
+        });
+      } else if (openNew) {
+        window.open('https://sheets.new', '_blank', 'noopener');
+      }
+    }
+
+    async function exportBoardGoogleSheet() {
+      var records = getExportRecords();
+      if (!records.length) { showBoardToast('저장할 학생 메모가 아직 없습니다.', false); return; }
+      var sheetUrl = getStoredSheetUrl();
+      if (!sheetUrl) {
+        copyBoardTsvForSheet(true);
+        return;
+      }
+      var btn = document.getElementById('memoBoardGsBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '시트 저장 중...'; }
+      var topicEl = document.getElementById('memoBoardTopicInput');
+      var topic = (topicEl && topicEl.value.trim()) || '수업 메모보드';
+      try {
+        var res = await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'board_export_sheet', topic: topic, notes: records })
+        });
+        var json = await res.json();
+        if (json && json.success) {
+          showBoardToast('마스터 구글 시트 [수업메모보드_기록] 탭에 학생 자료 ' + records.length + '건을 저장했습니다!', true);
+          if (json.sheetUrl) window.open(json.sheetUrl, '_blank', 'noopener');
+        } else {
+          copyBoardTsvForSheet(true);
+        }
+      } catch (err) {
+        copyBoardTsvForSheet(true);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '구글 시트 저장'; }
+      }
+    }
+
+    function openGuideModal() {
+      var gm = document.getElementById('memoBoardGuideModal');
+      if (!gm) return;
+      if (gm.dataset.bound !== '1') {
+        gm.dataset.bound = '1';
+        gm.querySelectorAll('.close-btn[data-modal="memoBoardGuideModal"]').forEach(function (cb) {
+          cb.addEventListener('click', function () { gm.classList.remove('show'); });
+        });
+      }
+      gm.classList.add('show');
+    }
+
     function openStudentQr() {
       var sheetUrl = getStoredSheetUrl();
       if (!sheetUrl) { alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 Google 시트 연동]에서 마스터 시트 웹앱 URL을 연결해 주세요.'); return; }
@@ -13003,7 +13165,14 @@ window.TodayBriefing = TodayBriefing;
       var topicEl = document.getElementById('memoBoardTopicInput');
       try { var savedTopic = localStorage.getItem(LOCAL_TOPIC_KEY); if (savedTopic && topicEl) topicEl.value = savedTopic; } catch (e) {}
       var topicSaveBtn = document.getElementById('memoBoardTopicSaveBtn');
-      if (topicSaveBtn && topicEl) { topicSaveBtn.addEventListener('click', function () { try { localStorage.setItem(LOCAL_TOPIC_KEY, topicEl.value.trim()); } catch (e) {} topicSaveBtn.textContent = '적용됨'; setTimeout(function () { topicSaveBtn.textContent = '주제 적용'; }, 1200); }); }
+      if (topicSaveBtn && topicEl) {
+        topicSaveBtn.addEventListener('click', function () {
+          try { localStorage.setItem(LOCAL_TOPIC_KEY, topicEl.value.trim()); } catch (e) {}
+          syncPresentHeader();
+          topicSaveBtn.textContent = '적용됨';
+          setTimeout(function () { topicSaveBtn.textContent = '주제 적용'; }, 1200);
+        });
+      }
 
       document.querySelectorAll('#memoBoardColorPicker .mb-color').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -13019,19 +13188,38 @@ window.TodayBriefing = TodayBriefing;
       var grpSel = document.getElementById('memoBoardGroupSelect');
       var submitHandler = function () { if (!textEl || !textEl.value.trim()) return; addNote(authorEl ? authorEl.value : '선생님', textEl.value, grpSel ? grpSel.value : '공통'); textEl.value = ''; textEl.focus(); };
       if (addBtn) addBtn.addEventListener('click', submitHandler);
-      if (textEl) textEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submitHandler(); } });
+      if (textEl) textEl.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitHandler(); } });
 
+      var guideBtn = document.getElementById('memoBoardGuideBtn'); if (guideBtn) guideBtn.addEventListener('click', openGuideModal);
       var qrBtn = document.getElementById('memoBoardQrBtn'); if (qrBtn) qrBtn.addEventListener('click', openStudentQr);
+      var presentBtn = document.getElementById('memoBoardPresentBtn'); if (presentBtn) presentBtn.addEventListener('click', enterPresentMode);
+      var exitPresentBtn = document.getElementById('memoBoardExitPresentBtn'); if (exitPresentBtn) exitPresentBtn.addEventListener('click', exitPresentMode);
+      var presentQrBtn = document.getElementById('memoBoardPresentQrBtn'); if (presentQrBtn) presentQrBtn.addEventListener('click', openStudentQr);
+      var presentRefreshBtn = document.getElementById('memoBoardPresentRefreshBtn'); if (presentRefreshBtn) presentRefreshBtn.addEventListener('click', fetchNotes);
+      var excelBtn = document.getElementById('memoBoardExcelBtn'); if (excelBtn) excelBtn.addEventListener('click', exportBoardExcel);
+      var gsBtn = document.getElementById('memoBoardGsBtn'); if (gsBtn) gsBtn.addEventListener('click', exportBoardGoogleSheet);
       var refreshBtn = document.getElementById('memoBoardRefreshBtn'); if (refreshBtn) refreshBtn.addEventListener('click', fetchNotes);
       var clearBtn = document.getElementById('memoBoardClearBtn'); if (clearBtn) clearBtn.addEventListener('click', clearAllNotes);
 
       var fsBtn = document.getElementById('memoBoardFullscreenBtn');
       var dialog = modal.querySelector('.memo-board-dialog');
-      if (fsBtn && dialog) { fsBtn.addEventListener('click', function () { var fs = dialog.classList.toggle('is-fullscreen'); modal.classList.toggle('is-fullscreen-modal', fs); fsBtn.textContent = fs ? '기본 창' : '전체화면'; }); }
+      if (fsBtn && dialog) {
+        fsBtn.addEventListener('click', function () {
+          var fs = dialog.classList.toggle('is-fullscreen');
+          modal.classList.toggle('is-fullscreen-modal', fs);
+          fsBtn.textContent = fs ? '기본 창' : '전체 창';
+        });
+      }
+
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' && dialog && dialog.classList.contains('is-present-mode')) {
+          exitPresentMode();
+        }
+      });
 
       var openSyncBtn = document.getElementById('memoBoardOpenSyncBtn');
-      if (openSyncBtn) openSyncBtn.addEventListener('click', function () { modal.classList.remove('show'); var syncBtn = document.getElementById('headerSyncBtn'); if (syncBtn) syncBtn.click(); });
-      modal.querySelectorAll('.close-btn[data-modal="memoBoardModal"]').forEach(function (cb) { cb.addEventListener('click', function () { modal.classList.remove('show'); if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }); });
+      if (openSyncBtn) openSyncBtn.addEventListener('click', function () { exitPresentMode(); modal.classList.remove('show'); var syncBtn = document.getElementById('headerSyncBtn'); if (syncBtn) syncBtn.click(); });
+      modal.querySelectorAll('.close-btn[data-modal="memoBoardModal"]').forEach(function (cb) { cb.addEventListener('click', function () { exitPresentMode(); modal.classList.remove('show'); if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }); });
     }
 
     function open() {
@@ -13040,11 +13228,16 @@ window.TodayBriefing = TodayBriefing;
       bindEvents();
       syncGroupDropdown();
       updateSyncUi();
+      showBoardToast('');
       var dialog = modal.querySelector('.memo-board-dialog');
       var fsBtn = document.getElementById('memoBoardFullscreenBtn');
-      if (dialog) dialog.classList.add('is-fullscreen');
+      if (dialog) {
+        dialog.classList.add('is-fullscreen');
+        dialog.classList.remove('is-present-mode');
+      }
       modal.classList.add('is-fullscreen-modal');
       if (fsBtn) fsBtn.textContent = '기본 창';
+      syncPresentHeader();
       modal.classList.add('show');
       fetchNotes();
       if (pollTimer) clearInterval(pollTimer);
