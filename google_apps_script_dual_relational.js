@@ -1378,21 +1378,26 @@ function doPost(e) {
         .setBackground("#f5f3ff").setFontWeight("bold");
 
       var endRow = 6 + Math.max(1, items.length);
-      sh.getRange("A3:D3").setValues([["산출 총점 (자동계산)", "=SUM(B7:B" + endRow + ")", "목표와 차이", "=B3-B2"]])
-        .setBackground("#ede9fe").setFontWeight("bold");
+      sh.getRange("A3:H3").setValues([[
+        "산출 총점 (자동)", "=SUM(C7:C" + endRow + ")",
+        "객관식 (문항/합계)", '=COUNTIF(B7:B' + endRow + ',"객관식")&"문항 / "&SUMIF(B7:B' + endRow + ',"객관식",C7:C' + endRow + ')&"점"',
+        "논술형 (문항/합계)", '=COUNTIF(B7:B' + endRow + ',"논술형")&"문항 / "&SUMIF(B7:B' + endRow + ',"논술형",C7:C' + endRow + ')&"점"',
+        "목표와 차이", "=B3-B2"
+      ]]).setBackground("#ede9fe").setFontWeight("bold");
 
-      sh.getRange("A6:D6").setValues([["문항 번호", "문항 배점", "누적 합계 (자동)", "문항 유형 · 메모"]])
+      sh.getRange("A6:E6").setValues([["문항 번호", "문항 유형", "문항 배점", "누적 합계 (자동)", "비고 · 단원 메모"]])
         .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
-      sh.getRange("F6:H6").setValues([["배점 단계", "문항 수 (자동)", "배점 소계 (자동)"]])
+      sh.getRange("G6:I6").setValues([["배점 단계", "문항 수 (자동)", "배점 소계 (자동)"]])
         .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
 
       for (var i = 0; i < items.length; i++) {
         var r = 7 + i;
         var it = items[i] || {};
-        sh.getRange(r, 1, 1, 4).setValues([[
+        sh.getRange(r, 1, 1, 5).setValues([[
           (it.no || (i + 1)) + "번",
+          String(it.typeLabel || "전체"),
           Number(it.score || 0),
-          "=SUM($B$7:B" + r + ")",
+          "=SUM($C$7:C" + r + ")",
           String(it.note || "")
         ]]);
       }
@@ -1400,29 +1405,30 @@ function doPost(e) {
       for (var d = 0; d < dist.length; d++) {
         var dr = 7 + d;
         var ds = dist[d] || {};
-        sh.getRange(dr, 6, 1, 3).setValues([[
+        sh.getRange(dr, 7, 1, 3).setValues([[
           Number(ds.score || 0),
-          "=COUNTIF($B$7:$B$" + endRow + ", F" + dr + ")",
-          "=F" + dr + "*G" + dr
+          "=COUNTIF($C$7:$C$" + endRow + ", G" + dr + ")",
+          "=G" + dr + "*H" + dr
         ]]);
       }
 
       if (dist.length > 0) {
         var distEnd = 6 + dist.length;
-        sh.getRange(distEnd + 1, 6, 1, 3).setValues([[
+        sh.getRange(distEnd + 1, 7, 1, 3).setValues([[
           "합계",
-          "=SUM(G7:G" + distEnd + ")",
-          "=SUM(H7:H" + distEnd + ")"
+          "=SUM(H7:H" + distEnd + ")",
+          "=SUM(I7:I" + distEnd + ")"
         ]]).setBackground("#f5f3ff").setFontWeight("bold");
       }
 
-      sh.setColumnWidth(1, 110);
-      sh.setColumnWidth(2, 110);
-      sh.setColumnWidth(3, 140);
-      sh.setColumnWidth(4, 200);
-      sh.setColumnWidth(6, 110);
-      sh.setColumnWidth(7, 130);
-      sh.setColumnWidth(8, 130);
+      sh.setColumnWidth(1, 95);
+      sh.setColumnWidth(2, 95);
+      sh.setColumnWidth(3, 100);
+      sh.setColumnWidth(4, 130);
+      sh.setColumnWidth(5, 190);
+      sh.setColumnWidth(7, 105);
+      sh.setColumnWidth(8, 120);
+      sh.setColumnWidth(9, 120);
 
       return ContentService.createTextOutput(JSON.stringify({
         success: true,
