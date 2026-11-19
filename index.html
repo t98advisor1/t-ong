@@ -40,7 +40,10 @@
   <meta name="apple-mobile-web-app-title" content="T-ong">
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.84">
+  <script src="./libs/jszip.min.js"></script>
+  <script src="./libs/pdf-lib.min.js"></script>
+  <script src="./libs/pdf.min.js"></script>
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.85">
 </head>
 <body>
 
@@ -79,8 +82,9 @@
                 </div>
               </details>
               <details class="fav-category" open>
-                <summary>수업·학급 운영 <small>6개</small></summary>
+                <summary>수업·학급 운영 <small>7개</small></summary>
                 <div class="fav-category-grid">
+                  <button type="button" data-open="docConverter">문서·PDF 변환기</button>
                   <button type="button" data-open="scorePlanner">문항별 배점 설계기</button>
                   <button type="button" data-open="memoBoard">수업 메모보드</button>
                   <button type="button" data-open="timer">간편 타이머</button>
@@ -2802,12 +2806,13 @@
           <h3 style="margin:2px 0 0;">교실 도구 한눈에 보기</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-outline" id="ctHubColBtn">1단 보기</button>
           <button type="button" class="btn-outline" id="ctHubFoldAllBtn">모두 접기</button>
           <button type="button" class="btn-outline" id="ctHubFullscreenBtn">전체화면</button>
           <button class="close-btn" data-modal="classroomToolsHubModal">&times;</button>
         </div>
       </div>
-      <div class="modal-body lt-hub-body" id="ctHubBody"></div>
+      <div class="modal-body lt-hub-body cols-2" id="ctHubBody"></div>
     </div>
   </div>
 
@@ -2821,12 +2826,13 @@
           <h3 style="margin:2px 0 0;">추천 사이트 한눈에 보기 (홈페이지 미리보기)</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-outline" id="fsHubColBtn">1단 보기</button>
           <button type="button" class="btn-outline" id="fsHubFoldAllBtn">모두 접기</button>
           <button type="button" class="btn-outline" id="fsHubFullscreenBtn">전체화면</button>
           <button class="close-btn" data-modal="favSitesHubModal">&times;</button>
         </div>
       </div>
-      <div class="modal-body lt-hub-body" id="fsHubBody"></div>
+      <div class="modal-body lt-hub-body cols-2" id="fsHubBody"></div>
     </div>
   </div>
 
@@ -2838,12 +2844,13 @@
           <h3 style="margin:2px 0 0;">수업 도구 한눈에 보기</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="btn-outline" id="ltHubColBtn">1단 보기</button>
           <button type="button" class="btn-outline" id="ltHubFoldAllBtn">모두 접기</button>
           <button type="button" class="btn-outline" id="ltHubFullscreenBtn">전체화면</button>
           <button class="close-btn" data-modal="lessonToolsHubModal">&times;</button>
         </div>
       </div>
-      <div class="modal-body lt-hub-body" id="ltHubBody"></div>
+      <div class="modal-body lt-hub-body cols-2" id="ltHubBody"></div>
     </div>
   </div>
 
@@ -2949,8 +2956,112 @@
     </div>
   </div>
 
+  <!-- 문서·PDF 올인원 변환기 모달 (HWP/HWPX <-> PDF · 병합/분할 · 이미지<->PDF) -->
+  <div id="docConverterModal" class="modal">
+    <div class="modal-content dc-modal-dialog">
+      <div class="modal-header dc-modal-header">
+        <div>
+          <span class="qr-share-kicker">설치 없는 웹 오피스 유틸리티</span>
+          <h3 style="margin:2px 0 0;">문서 · PDF 올인원 변환기</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.75rem;color:#475569;font-weight:700;">100% 내 브라우저 처리 (서버 전송 없음)</span>
+          <button class="close-btn" data-modal="docConverterModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body dc-modal-body">
+        <div class="dc-tabs" role="tablist">
+          <button type="button" class="dc-tab-btn active" data-dc-tab="hwp2pdf">한글(.hwpx/.hwp) → PDF · 텍스트</button>
+          <button type="button" class="dc-tab-btn" data-dc-tab="pdf2hwp">PDF → 한글(.hwpx) · 워드(.doc)</button>
+          <button type="button" class="dc-tab-btn" data-dc-tab="pdfMergeSplit">PDF 합치기 · 페이지 나누기</button>
+          <button type="button" class="dc-tab-btn" data-dc-tab="imgPdf">이미지(JPG/PNG) ↔ PDF</button>
+        </div>
+
+        <div id="dcStatusBar" class="sp-status-bar" style="display:none;"></div>
+
+        <!-- 탭 1: 한글(.hwpx/.hwp) -> PDF & 본문 추출 -->
+        <div class="dc-panel active" id="dcPanelHwp2Pdf">
+          <div class="dc-dropzone">
+            <label for="dcHwpInput">한글 파일 선택 (.hwpx 또는 .hwp)</label>
+            <input type="file" id="dcHwpInput" accept=".hwpx,.hwp">
+            <p class="dc-hint">한글 파일의 본문 문단과 표 내용을 읽어 바로 PDF 파일로 저장하거나 텍스트·워드 호환 문서로 꺼냅니다.</p>
+          </div>
+          <div class="dc-actions">
+            <button type="button" class="btn-primary" id="dcHwpToPdfBtn">PDF(.pdf)로 바로 저장</button>
+            <button type="button" class="btn-outline" id="dcHwpToDocBtn">호환 문서(.doc) 저장</button>
+            <button type="button" class="btn-outline" id="dcHwpCopyBtn">본문 텍스트 복사</button>
+          </div>
+          <textarea id="dcHwpPreview" class="dc-preview-box" rows="10" placeholder="여기에 한글 파일(.hwpx/.hwp)에서 추출한 본문 내용이 표시되며, 직접 수정 후 PDF로 저장할 수도 있습니다."></textarea>
+        </div>
+
+        <!-- 탭 2: PDF -> 한글(.hwpx) · 워드(.doc) · 텍스트 -->
+        <div class="dc-panel" id="dcPanelPdf2Hwp">
+          <div class="dc-dropzone">
+            <label for="dcPdfInput">변환할 PDF 파일 선택 (.pdf)</label>
+            <input type="file" id="dcPdfInput" accept=".pdf,application/pdf">
+            <p class="dc-hint">PDF 각 페이지의 텍스트를 추출해 한컴오피스에서 바로 열리는 표준 한글(.hwpx) 또는 .doc 파일로 만듭니다.</p>
+          </div>
+          <div class="dc-actions">
+            <button type="button" class="btn-primary" id="dcPdfToHwpxBtn">한글 표준(.hwpx) 다운로드</button>
+            <button type="button" class="btn-outline" id="dcPdfToDocBtn">한글·워드 호환(.doc) 다운로드</button>
+            <button type="button" class="btn-outline" id="dcPdfCopyBtn">추출 텍스트 복사</button>
+          </div>
+          <textarea id="dcPdfTextArea" class="dc-preview-box" rows="10" placeholder="PDF를 선택하면 추출된 페이지별 본문이 여기에 표시됩니다."></textarea>
+        </div>
+
+        <!-- 탭 3: PDF 합치기 · 페이지 나누기 -->
+        <div class="dc-panel" id="dcPanelPdfMergeSplit">
+          <div class="dc-split-grid">
+            <div class="dc-subcard">
+              <h4>PDF 합치기 (여러 파일을 1개로)</h4>
+              <input type="file" id="dcMergeInput" accept=".pdf,application/pdf" multiple>
+              <div id="dcMergeList" class="dc-file-list">합칠 PDF 파일을 2개 이상 선택하세요.</div>
+              <div class="dc-actions">
+                <button type="button" class="btn-primary" id="dcMergeRunBtn">하나의 PDF로 합쳐서 저장</button>
+                <button type="button" class="btn-outline" id="dcMergeClearBtn">목록 비우기</button>
+              </div>
+            </div>
+            <div class="dc-subcard">
+              <h4>PDF 나누기 (원하는 페이지만 추출)</h4>
+              <input type="file" id="dcSplitInput" accept=".pdf,application/pdf">
+              <div id="dcSplitInfo" class="dc-hint" style="margin:6px 0;">PDF 파일을 선택하면 전체 페이지 수가 표시됩니다.</div>
+              <label for="dcSplitRange" style="font-size:0.8rem;font-weight:700;">추출할 페이지 (예: 1-2, 4 또는 비워두면 1쪽씩 모두 분리)</label>
+              <input type="text" id="dcSplitRange" placeholder="예: 1-2, 4" style="margin-bottom:10px;">
+              <div class="dc-actions">
+                <button type="button" class="btn-primary" id="dcSplitRunBtn">선택 페이지 PDF 추출</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 탭 4: 이미지(JPG/PNG) <-> PDF -->
+        <div class="dc-panel" id="dcPanelImgPdf">
+          <div class="dc-split-grid">
+            <div class="dc-subcard">
+              <h4>이미지(JPG/PNG) → 1개의 PDF로 묶기</h4>
+              <input type="file" id="dcImgInput" accept="image/png,image/jpeg,image/webp" multiple>
+              <div id="dcImgList" class="dc-file-list">PDF로 합칠 사진·스캔 이미지를 선택하세요.</div>
+              <div class="dc-actions">
+                <button type="button" class="btn-primary" id="dcImgToPdfBtn">이미지를 PDF로 저장</button>
+              </div>
+            </div>
+            <div class="dc-subcard">
+              <h4>PDF 페이지 → 고화질 PNG 이미지로 저장</h4>
+              <input type="file" id="dcPdfToImgInput" accept=".pdf,application/pdf">
+              <div id="dcPdfToImgInfo" class="dc-hint" style="margin:6px 0;">PDF 파일을 고르면 각 페이지를 PNG 이미지로 변환합니다.</div>
+              <div class="dc-actions">
+                <button type="button" class="btn-primary" id="dcPdfToImgRunBtn">전체 페이지 PNG 변환</button>
+              </div>
+              <div id="dcPdfImgPreview" class="dc-img-preview-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.84"></script>
+  <script src="/app.js?v=5.17.0-preview.85"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

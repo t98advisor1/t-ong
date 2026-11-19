@@ -5573,22 +5573,25 @@ var ThemeManager = (function () {
     apply(selected(), false, false);
     var trigger = document.getElementById('themeBtn');
     var menu = document.getElementById('themeMenu');
-    if (!trigger || !menu) return;
-    trigger.addEventListener('click', function (event) {
-      event.stopPropagation();
-      var open = !menu.classList.contains('open');
-      menu.classList.toggle('open', open);
-      trigger.setAttribute('aria-expanded', String(open));
-    });
-    menu.addEventListener('click', function (event) { event.stopPropagation(); });
-    menu.querySelectorAll('.theme-choice').forEach(function (button) {
-      button.addEventListener('click', function () {
+    if (trigger && menu) {
+      trigger.addEventListener('click', function (event) {
+        event.stopPropagation();
+        var open = !menu.classList.contains('open');
+        menu.classList.toggle('open', open);
+        trigger.setAttribute('aria-expanded', String(open));
+      });
+      menu.addEventListener('click', function (event) { event.stopPropagation(); });
+      document.addEventListener('click', close);
+      document.addEventListener('keydown', function (event) { if (event.key === 'Escape') close(); });
+    }
+    var choices = (menu || document).querySelectorAll('.theme-choice');
+    choices.forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        event.stopPropagation();
         apply(this.dataset.theme, true, true);
         close();
       });
     });
-    document.addEventListener('click', close);
-    document.addEventListener('keydown', function (event) { if (event.key === 'Escape') close(); });
   }
   return { init:init, apply:apply, current:selected };
 })();
@@ -9301,7 +9304,8 @@ function initModeTabs() {
       links: function () { document.getElementById('linksBtn').click(); },
       calendar: function () { ScheduleCalendar.open(); },
       memoBoard: function () { if (window.MemoBoardModule) window.MemoBoardModule.open(); },
-      scorePlanner: function () { if (window.ScorePlannerModule) window.ScorePlannerModule.open(); }
+      scorePlanner: function () { if (window.ScorePlannerModule) window.ScorePlannerModule.open(); },
+      docConverter: function () { if (window.DocConverterModule) window.DocConverterModule.open(); }
     };
     menu.querySelectorAll('button[data-open]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -13644,6 +13648,7 @@ window.TodayBriefing = TodayBriefing;
   };
 
   var ITEMS = {
+    docConverter: { openKey: 'docConverter', tag: '문서 유틸리티', title: '문서 · PDF 올인원 변환기', desc: '한글(.hwpx/.hwp)↔PDF·텍스트 변환, PDF 합치기/나누기, 이미지↔PDF를 설치 없이 처리합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="18" height="24" rx="3" fill="#fff"/><rect x="36" y="28" width="18" height="24" rx="3" fill="#fde047"/><path d="M32 20h10l-4-4M32 44H22l4 4" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
     memoBoard: { openKey: 'memoBoard', tag: '실시간 참여', title: '수업 메모보드 (패들렛형)', desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
     timer: { openKey: 'timer', tag: '시간 관리', title: '간편 타이머', desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.', bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
@@ -13730,7 +13735,7 @@ window.TodayBriefing = TodayBriefing;
     });
   }
 
-  function createHubController(modalId, bodyId, foldAllId, fsBtnId, categories) {
+  function createHubController(modalId, bodyId, foldAllId, fsBtnId, colBtnId, categories) {
     function open() {
       var modal = document.getElementById(modalId);
       var body = document.getElementById(bodyId);
@@ -13750,6 +13755,13 @@ window.TodayBriefing = TodayBriefing;
             foldBtn.textContent = anyOpen ? '모두 펼치기' : '모두 접기';
           });
         }
+        var colBtn = document.getElementById(colBtnId);
+        if (colBtn) {
+          colBtn.addEventListener('click', function () {
+            var is2 = body.classList.toggle('cols-2');
+            colBtn.textContent = is2 ? '1단 보기' : '2단 보기';
+          });
+        }
         var fsBtn = document.getElementById(fsBtnId);
         var dialog = modal.querySelector('.lt-hub-dialog');
         if (fsBtn && dialog) {
@@ -13766,9 +13778,9 @@ window.TodayBriefing = TodayBriefing;
   }
 
   window.ClassroomToolsHubModule = createHubController(
-    'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn',
+    'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn', 'ctHubColBtn',
     [
-      { title: '학급 운영 · 생활 지도', keys: ['praise', 'duty', 'notice', 'memoBoard', 'timer'] },
+      { title: '학급 운영 · 생활 지도', keys: ['docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'timer'] },
       { title: '발표 · 뽑기 복불복', note: 'QR 참여 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '쉬는시간 · 신체활동 게임', note: 'QR 학생 공유 지원', keys: ['handRush', 'handKart', 'poseChallenge', 'yutnori', 'pangpang', 'turtleNeck', 'singer', 'faceMuscle'] },
       { title: '웹툰 연재 · 체험 활용 앱', note: 'QR 지원', keys: ['toonAi', 'toonEcon', 'tarot', 'kwansang'] }
@@ -13776,9 +13788,9 @@ window.TodayBriefing = TodayBriefing;
   );
 
   window.LessonToolsHubModule = createHubController(
-    'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn',
+    'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn', 'ltHubColBtn',
     [
-      { title: '출제 · 수업 설계 도구', keys: ['scorePlanner', 'memoBoard', 'timer'] },
+      { title: '출제 · 수업 설계 도구', keys: ['scorePlanner', 'docConverter', 'memoBoard', 'timer'] },
       { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]
@@ -13879,6 +13891,15 @@ window.TodayBriefing = TodayBriefing;
           foldBtn.textContent = anyOpen ? '모두 펼치기' : '모두 접기';
         });
       }
+      var colBtn = document.getElementById('fsHubColBtn');
+      if (colBtn) {
+        colBtn.addEventListener('click', function () {
+          var b = document.getElementById('fsHubBody');
+          if (!b) return;
+          var is2 = b.classList.toggle('cols-2');
+          colBtn.textContent = is2 ? '1단 보기' : '2단 보기';
+        });
+      }
       var fsBtn = document.getElementById('fsHubFullscreenBtn');
       var dialog = modal.querySelector('.lt-hub-dialog');
       if (fsBtn && dialog) {
@@ -13893,4 +13914,495 @@ window.TodayBriefing = TodayBriefing;
   }
 
   window.FavSitesHubModule = { open: open };
+})();
+// ===================================================================
+// 웹 내장 문서·PDF 올인원 변환기 (HWP/HWPX <-> PDF · 병합/분할 · 이미지<->PDF)
+// ===================================================================
+(function () {
+  'use strict';
+  var mergeFiles = [];
+  var splitFile = null;
+  var imgFiles = [];
+
+  function el(id) { return document.getElementById(id); }
+  function setStatus(msg, ok) {
+    var bar = el('dcStatusBar');
+    if (!bar) return;
+    if (!msg) { bar.style.display = 'none'; return; }
+    bar.textContent = msg;
+    bar.className = 'sp-status-bar ' + (ok ? 'ok' : 'err');
+    bar.style.display = 'block';
+  }
+  function triggerDownload(bytes, filename, mime) {
+    var blob = bytes instanceof Blob ? bytes : new Blob([bytes], { type: mime || 'application/octet-stream' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  function xmlEscape(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // --- .hwpx 파싱 ---
+  async function parseHwpxBuffer(buf) {
+    if (typeof JSZip === 'undefined') throw new Error('JSZip 라이브러리를 불러오지 못했습니다.');
+    var zip = await JSZip.loadAsync(buf);
+    var secNames = Object.keys(zip.files).filter(function (n) {
+      return /^Contents\/section\d+\.xml$/i.test(n);
+    }).sort();
+    if (!secNames.length) throw new Error('HWPX 본문 섹션(section*.xml)을 찾지 못했습니다.');
+    var outLines = [];
+    var parser = new DOMParser();
+    for (var i = 0; i < secNames.length; i++) {
+      var xmlStr = await zip.files[secNames[i]].async('string');
+      var doc = parser.parseFromString(xmlStr, 'application/xml');
+      var allNodes = doc.getElementsByTagName('*');
+      for (var j = 0; j < allNodes.length; j++) {
+        var node = allNodes[j];
+        var ln = node.localName || '';
+        if (ln === 'p' && (!node.parentNode || (node.parentNode.localName !== 'tc' && node.parentNode.localName !== 'subList'))) {
+          var tNodes = node.getElementsByTagName('*');
+          var pTxt = '';
+          for (var k = 0; k < tNodes.length; k++) {
+            if (tNodes[k].localName === 't') pTxt += (tNodes[k].textContent || '');
+          }
+          outLines.push(pTxt);
+        } else if (ln === 'tr') {
+          var cells = [];
+          var children = node.children || [];
+          for (var ci = 0; ci < children.length; ci++) {
+            if (children[ci].localName === 'tc') {
+              var cNodes = children[ci].getElementsByTagName('*');
+              var cTxt = [];
+              for (var ck = 0; ck < cNodes.length; ck++) {
+                if (cNodes[ck].localName === 't' && cNodes[ck].textContent) cTxt.push(cNodes[ck].textContent.trim());
+              }
+              cells.push(cTxt.join(' '));
+            }
+          }
+          if (cells.length) outLines.push('| ' + cells.join(' | ') + ' |');
+        }
+      }
+    }
+    return outLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // --- .hwp (OLE2 v5) 텍스트/미리보기 추출 ---
+  function parseOleHwpText(buf) {
+    var bytes = new Uint8Array(buf);
+    var dv = new DataView(buf);
+    if (bytes.length < 512 || dv.getUint32(0, false) !== 0xD0CF11E0) {
+      throw new Error('올바른 .hwp(OLE2) 파일 형식이 아닙니다.');
+    }
+    var sectorShift = dv.getUint16(30, true);
+    var sectorSize = 1 << sectorShift;
+    var fatSectors = [];
+    for (var i = 0; i < 109; i++) {
+      var s = dv.getInt32(76 + i * 4, true);
+      if (s >= 0) fatSectors.push(s);
+    }
+    var fat = new Int32Array(fatSectors.length * (sectorSize / 4));
+    var fi = 0;
+    fatSectors.forEach(function (sec) {
+      var off = (sec + 1) * sectorSize;
+      for (var k = 0; k < sectorSize; k += 4) {
+        fat[fi++] = (off + k + 4 <= bytes.length) ? dv.getInt32(off + k, true) : -1;
+      }
+    });
+    function readChain(startSec) {
+      var chunks = [], cur = startSec, guard = 0;
+      while (cur >= 0 && cur < fat.length && guard++ < 5000) {
+        var off = (cur + 1) * sectorSize;
+        if (off < bytes.length) chunks.push(bytes.subarray(off, Math.min(off + sectorSize, bytes.length)));
+        cur = fat[cur];
+      }
+      var tot = chunks.reduce(function (a, c) { return a + c.length; }, 0);
+      var res = new Uint8Array(tot), p = 0;
+      chunks.forEach(function (c) { res.set(c, p); p += c.length; });
+      return res;
+    }
+    var dirStart = dv.getInt32(48, true);
+    var dirBytes = readChain(dirStart);
+    var dirView = new DataView(dirBytes.buffer, dirBytes.byteOffset, dirBytes.byteLength);
+    var rootStart = dirView.getInt32(116, true);
+    var miniStream = rootStart >= 0 ? readChain(rootStart) : new Uint8Array(0);
+    var miniFatStart = dv.getInt32(60, true);
+    var miniFatBytes = miniFatStart >= 0 ? readChain(miniFatStart) : new Uint8Array(0);
+    var miniFat = new Int32Array(miniFatBytes.buffer, miniFatBytes.byteOffset, Math.floor(miniFatBytes.byteLength / 4));
+    function readEntryStream(entryOff) {
+      var startSec = dirView.getInt32(entryOff + 116, true);
+      var sz = dirView.getUint32(entryOff + 120, true);
+      if (sz === 0) return new Uint8Array(0);
+      if (sz < 4096 && miniStream.length) {
+        var out = new Uint8Array(sz), pos = 0, c = startSec, g2 = 0;
+        while (c >= 0 && c < miniFat.length && pos < sz && g2++ < 2000) {
+          var copyLen = Math.min(64, sz - pos);
+          out.set(miniStream.subarray(c * 64, c * 64 + copyLen), pos);
+          pos += copyLen; c = miniFat[c];
+        }
+        return out;
+      }
+      return readChain(startSec).subarray(0, sz);
+    }
+    var prvText = '';
+    for (var off = 0; off + 128 <= dirBytes.length; off += 128) {
+      var nameLen = dirView.getUint16(off + 64, true);
+      if (nameLen >= 2 && nameLen <= 64) {
+        var nm = new TextDecoder('utf-16le').decode(dirBytes.subarray(off, off + nameLen - 2));
+        if (nm === 'PrvText') {
+          var st = readEntryStream(off);
+          prvText = new TextDecoder('utf-16le').decode(st).replace(/\u0000/g, '').trim();
+          break;
+        }
+      }
+    }
+    if (!prvText) throw new Error('이 .hwp 파일에 미리보기 텍스트(PrvText)가 포함되어 있지 않습니다. 한컴오피스에서 .hwpx로 저장해 올리면 100% 본문이 추출됩니다.');
+    return prvText;
+  }
+
+  // --- 텍스트 -> 한글 폰트 선명 A4 PDF 바이너리 생성 (Canvas -> pdf-lib) ---
+  async function renderTextToPdfBytes(text, title) {
+    if (typeof PDFLib === 'undefined') throw new Error('pdf-lib 라이브러리를 불러오지 못했습니다.');
+    var clean = String(text || '').trim();
+    if (!clean) throw new Error('PDF로 변환할 내용이 없습니다.');
+    var CW = 1240, CH = 1754, PAD_X = 96, PAD_Y = 110, LINE_H = 38;
+    var MAX_W = CW - PAD_X * 2;
+
+    var measureCv = document.createElement('canvas');
+    var mg = measureCv.getContext('2d');
+    mg.font = '24px Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
+    var wrappedLines = [];
+    clean.split(/\r?\n/).forEach(function (para) {
+      if (!para) { wrappedLines.push(''); return; }
+      var line = '';
+      for (var i = 0; i < para.length; i++) {
+        var test = line + para[i];
+        if (mg.measureText(test).width > MAX_W && line) {
+          wrappedLines.push(line);
+          line = para[i];
+        } else {
+          line = test;
+        }
+      }
+      if (line) wrappedLines.push(line);
+    });
+
+    var linesPerPage = Math.floor((CH - PAD_Y * 2) / LINE_H);
+    var pdfDoc = await PDFLib.PDFDocument.create();
+    for (var start = 0; start < wrappedLines.length; start += linesPerPage) {
+      var slice = wrappedLines.slice(start, start + linesPerPage);
+      var cv = document.createElement('canvas');
+      cv.width = CW; cv.height = CH;
+      var g = cv.getContext('2d');
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, CW, CH);
+      if (start === 0 && title) {
+        g.fillStyle = '#1e293b';
+        g.font = 'bold 28px Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
+        g.fillText(title.slice(0, 60), PAD_X, PAD_Y - 36);
+      }
+      g.fillStyle = '#0f172a';
+      g.font = '24px Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
+      slice.forEach(function (ln, li) {
+        g.fillText(ln, PAD_X, PAD_Y + li * LINE_H);
+      });
+      var pngUrl = cv.toDataURL('image/png');
+      var pngImg = await pdfDoc.embedPng(pngUrl);
+      var page = pdfDoc.addPage([595.28, 841.89]);
+      page.drawImage(pngImg, { x: 0, y: 0, width: 595.28, height: 841.89 });
+    }
+    return await pdfDoc.save();
+  }
+
+  // --- PDF -> 텍스트 추출 (pdf.js) ---
+  async function extractTextFromPdfBuffer(buf) {
+    if (typeof pdfjsLib === 'undefined') throw new Error('pdf.js 라이브러리를 불러오지 못했습니다.');
+    if (pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = './libs/pdf.worker.min.js';
+    var doc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    var pagesOut = [];
+    for (var p = 1; p <= doc.numPages; p++) {
+      var page = await doc.getPage(p);
+      var tc = await page.getTextContent();
+      var lastY = null, lineBuf = [], pLines = [];
+      tc.items.forEach(function (it) {
+        var y = Math.round((it.transform && it.transform[5]) || 0);
+        if (lastY !== null && Math.abs(y - lastY) > 4) {
+          if (lineBuf.length) pLines.push(lineBuf.join(' ').trim());
+          lineBuf = [];
+        }
+        if (it.str && it.str.trim()) lineBuf.push(it.str);
+        lastY = y;
+      });
+      if (lineBuf.length) pLines.push(lineBuf.join(' ').trim());
+      pagesOut.push('[' + p + '쪽]\n' + pLines.join('\n'));
+    }
+    return pagesOut.join('\n\n');
+  }
+
+  // --- 텍스트 -> 표준 OWPML .hwpx ZIP 패키지 생성 ---
+  async function buildHwpxFromText(text) {
+    if (typeof JSZip === 'undefined') throw new Error('JSZip 라이브러리를 불러오지 못했습니다.');
+    var zip = new JSZip();
+    zip.file('mimetype', 'application/hwp+zip', { compression: 'STORE' });
+    zip.file('version.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><hv:HCFVersion xmlns:hv="http://www.hancom.co.kr/hwpml/2011/version" targetApplication="WORDPROCESSOR" major="5" minor="1" micro="0" buildNumber="0" os="1" xmlVersion="1.4"/>');
+    zip.file('META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><ocf:container xmlns:ocf="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:hpf="http://www.hancom.co.kr/schema/2011/hpf"><ocf:rootfiles><ocf:rootfile full-path="Contents/content.hpf" media-type="application/hwpml-package+xml"/></ocf:rootfiles></ocf:container>');
+    zip.file('META-INF/manifest.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><odf:manifest xmlns:odf="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0"/>');
+    zip.file('Contents/content.hpf', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><opf:package xmlns:opf="http://www.idpf.org/2007/opf" version="" unique-identifier="" id=""><opf:metadata><opf:title>T-ong 변환 문서</opf:title><opf:language>ko</opf:language></opf:metadata><opf:manifest><opf:item id="header" href="Contents/header.xml" media-type="application/xml"/><opf:item id="section0" href="Contents/section0.xml" media-type="application/xml"/></opf:manifest><opf:spine><opf:itemref idref="header" linear="yes"/><opf:itemref idref="section0" linear="yes"/></opf:spine></opf:package>');
+    zip.file('Contents/header.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><hh:head xmlns:hh="http://www.hancom.co.kr/hwpml/2011/head" version="1.4" secCnt="1"><hh:beginNum page="1" footnote="1" endnote="1" pic="1" tbl="1" equation="1"/></hh:head>');
+    var paras = String(text || '').split(/\r?\n/).map(function (ln) {
+      return '<hp:p id="0" paraPrIDRef="0" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0"><hp:run charPrIDRef="0"><hp:t>' + xmlEscape(ln) + '</hp:t></hp:run></hp:p>';
+    }).join('');
+    var secXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?><hs:sec xmlns:hs="http://www.hancom.co.kr/hwpml/2011/section" xmlns:hp="http://www.hancom.co.kr/hwpml/2011/paragraph">' + paras + '</hs:sec>';
+    zip.file('Contents/section0.xml', secXml);
+    return await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+  }
+
+  function buildWordHtmlDoc(text, title) {
+    var body = String(text || '').split(/\r?\n/).map(function (ln) {
+      return '<p style="margin:0 0 6pt;font-family:Malgun Gothic,sans-serif;font-size:11pt;">' + xmlEscape(ln || ' ') + '</p>';
+    }).join('');
+    return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + xmlEscape(title || '문서') + '</title></head><body>' + body + '</body></html>';
+  }
+
+  function parsePageRanges(rangeStr, totalPages) {
+    var clean = String(rangeStr || '').trim();
+    if (!clean) return null;
+    var set = [];
+    clean.split(',').forEach(function (part) {
+      var m = part.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+      if (!m) return;
+      var a = Math.max(1, parseInt(m[1], 10));
+      var b = m[2] ? Math.min(totalPages, parseInt(m[2], 10)) : a;
+      for (var p = Math.min(a, b); p <= Math.max(a, b); p++) {
+        if (p >= 1 && p <= totalPages && set.indexOf(p - 1) < 0) set.push(p - 1);
+      }
+    });
+    return set;
+  }
+
+  function bindEvents() {
+    var modal = el('docConverterModal');
+    if (!modal || modal.dataset.bound === '1') return;
+    modal.dataset.bound = '1';
+
+    modal.querySelectorAll('.close-btn[data-modal="docConverterModal"]').forEach(function (cb) {
+      cb.addEventListener('click', function () { modal.classList.remove('show'); });
+    });
+
+    var tabMap = { hwp2pdf: 'dcPanelHwp2Pdf', pdf2hwp: 'dcPanelPdf2Hwp', pdfMergeSplit: 'dcPanelPdfMergeSplit', imgPdf: 'dcPanelImgPdf' };
+    modal.querySelectorAll('.dc-tab-btn').forEach(function (tb) {
+      tb.addEventListener('click', function () {
+        modal.querySelectorAll('.dc-tab-btn').forEach(function (x) { x.classList.remove('active'); });
+        modal.querySelectorAll('.dc-panel').forEach(function (p) { p.classList.remove('active'); });
+        tb.classList.add('active');
+        var panel = el(tabMap[tb.getAttribute('data-dc-tab')]);
+        if (panel) panel.classList.add('active');
+        setStatus('');
+      });
+    });
+
+    // Tab 1: HWP/HWPX -> PDF / DOC / Text
+    var hwpInput = el('dcHwpInput');
+    if (hwpInput) hwpInput.addEventListener('change', async function () {
+      var f = hwpInput.files && hwpInput.files[0];
+      if (!f) return;
+      try {
+        setStatus('한글 문서를 읽는 중...', true);
+        var buf = await f.arrayBuffer();
+        var ext = f.name.split('.').pop().toLowerCase();
+        var text = (ext === 'hwpx') ? await parseHwpxBuffer(buf) : parseOleHwpText(buf);
+        if (el('dcHwpPreview')) el('dcHwpPreview').value = text;
+        setStatus(f.name + ' 본문을 성공적으로 불러왔습니다. 바로 PDF로 저장할 수 있습니다.', true);
+      } catch (err) { setStatus(err.message || '한글 파일을 읽는 데 실패했습니다.', false); }
+    });
+    var hwpPdfBtn = el('dcHwpToPdfBtn');
+    if (hwpPdfBtn) hwpPdfBtn.addEventListener('click', async function () {
+      try {
+        var txt = (el('dcHwpPreview') || {}).value || '';
+        var fName = (el('dcHwpInput') && el('dcHwpInput').files[0] && el('dcHwpInput').files[0].name.replace(/\.(hwpx?|HWPX?)$/, '')) || '한글변환문서';
+        var pdfBytes = await renderTextToPdfBytes(txt, fName);
+        triggerDownload(pdfBytes, fName + '.pdf', 'application/pdf');
+        setStatus(fName + '.pdf 파일 생성이 완료되었습니다.', true);
+      } catch (err) { setStatus(err.message || 'PDF 변환 오류', false); }
+    });
+    var hwpDocBtn = el('dcHwpToDocBtn');
+    if (hwpDocBtn) hwpDocBtn.addEventListener('click', function () {
+      var txt = (el('dcHwpPreview') || {}).value || '';
+      if (!txt.trim()) { setStatus('저장할 내용이 없습니다.', false); return; }
+      triggerDownload(buildWordHtmlDoc(txt, '문서'), '변환문서.doc', 'application/msword');
+      setStatus('호환 문서(.doc)를 다운로드했습니다.', true);
+    });
+    var hwpCopyBtn = el('dcHwpCopyBtn');
+    if (hwpCopyBtn) hwpCopyBtn.addEventListener('click', function () {
+      var txt = (el('dcHwpPreview') || {}).value || '';
+      if (navigator.clipboard && txt) navigator.clipboard.writeText(txt).then(function () { setStatus('본문을 복사했습니다.', true); });
+    });
+
+    // Tab 2: PDF -> HWPX / DOC / Text
+    var pdfInput = el('dcPdfInput');
+    if (pdfInput) pdfInput.addEventListener('change', async function () {
+      var f = pdfInput.files && pdfInput.files[0];
+      if (!f) return;
+      try {
+        setStatus('PDF 텍스트를 추출하는 중...', true);
+        var txt = await extractTextFromPdfBuffer(await f.arrayBuffer());
+        if (el('dcPdfTextArea')) el('dcPdfTextArea').value = txt;
+        setStatus(f.name + ' 텍스트 추출 완료! [한글 표준(.hwpx) 다운로드]를 누르세요.', true);
+      } catch (err) { setStatus(err.message || 'PDF 추출 오류', false); }
+    });
+    var pdfHwpxBtn = el('dcPdfToHwpxBtn');
+    if (pdfHwpxBtn) pdfHwpxBtn.addEventListener('click', async function () {
+      try {
+        var txt = (el('dcPdfTextArea') || {}).value || '';
+        if (!txt.trim()) { setStatus('먼저 PDF 파일을 선택하거나 내용을 입력해 주세요.', false); return; }
+        var fName = (el('dcPdfInput') && el('dcPdfInput').files[0] && el('dcPdfInput').files[0].name.replace(/\.pdf$/i, '')) || 'PDF변환문서';
+        var bytes = await buildHwpxFromText(txt);
+        triggerDownload(bytes, fName + '.hwpx', 'application/hwp+zip');
+        setStatus(fName + '.hwpx (표준 한글 문서) 다운로드가 완료되었습니다.', true);
+      } catch (err) { setStatus(err.message || 'HWPX 생성 오류', false); }
+    });
+    var pdfDocBtn = el('dcPdfToDocBtn');
+    if (pdfDocBtn) pdfDocBtn.addEventListener('click', function () {
+      var txt = (el('dcPdfTextArea') || {}).value || '';
+      if (!txt.trim()) { setStatus('먼저 PDF 파일을 선택해 주세요.', false); return; }
+      triggerDownload(buildWordHtmlDoc(txt, 'PDF변환'), 'PDF변환.doc', 'application/msword');
+      setStatus('한글·워드 호환(.doc) 문서를 다운로드했습니다.', true);
+    });
+    var pdfCopyBtn = el('dcPdfCopyBtn');
+    if (pdfCopyBtn) pdfCopyBtn.addEventListener('click', function () {
+      var txt = (el('dcPdfTextArea') || {}).value || '';
+      if (navigator.clipboard && txt) navigator.clipboard.writeText(txt).then(function () { setStatus('추출 텍스트를 복사했습니다.', true); });
+    });
+
+    // Tab 3: PDF 합치기 & 나누기
+    var mIn = el('dcMergeInput');
+    if (mIn) mIn.addEventListener('change', function () {
+      Array.from(mIn.files || []).forEach(function (f) { mergeFiles.push(f); });
+      var ml = el('dcMergeList');
+      if (ml) ml.innerHTML = mergeFiles.length ? mergeFiles.map(function (f, i) { return (i + 1) + '. ' + f.name; }).join('<br>') : '합칠 PDF 파일을 2개 이상 선택하세요.';
+    });
+    var mClear = el('dcMergeClearBtn');
+    if (mClear) mClear.addEventListener('click', function () {
+      mergeFiles = []; if (mIn) mIn.value = '';
+      if (el('dcMergeList')) el('dcMergeList').textContent = '합칠 PDF 파일을 2개 이상 선택하세요.';
+    });
+    var mRun = el('dcMergeRunBtn');
+    if (mRun) mRun.addEventListener('click', async function () {
+      if (mergeFiles.length < 2) { setStatus('합칠 PDF 파일을 2개 이상 선택해 주세요.', false); return; }
+      try {
+        var outPdf = await PDFLib.PDFDocument.create();
+        for (var i = 0; i < mergeFiles.length; i++) {
+          var d = await PDFLib.PDFDocument.load(await mergeFiles[i].arrayBuffer());
+          var copied = await outPdf.copyPages(d, d.getPageIndices());
+          copied.forEach(function (pg) { outPdf.addPage(pg); });
+        }
+        triggerDownload(await outPdf.save(), '병합된_문서.pdf', 'application/pdf');
+        setStatus(mergeFiles.length + '개 PDF를 하나로 합쳐 저장했습니다.', true);
+      } catch (err) { setStatus(err.message || 'PDF 합치기 오류', false); }
+    });
+
+    var sIn = el('dcSplitInput');
+    if (sIn) sIn.addEventListener('change', async function () {
+      splitFile = sIn.files && sIn.files[0];
+      if (!splitFile) return;
+      try {
+        var d = await PDFLib.PDFDocument.load(await splitFile.arrayBuffer());
+        if (el('dcSplitInfo')) el('dcSplitInfo').textContent = splitFile.name + ' (총 ' + d.getPageCount() + '페이지)';
+      } catch (err) { setStatus('PDF 페이지 수를 확인하지 못했습니다.', false); }
+    });
+    var sRun = el('dcSplitRunBtn');
+    if (sRun) sRun.addEventListener('click', async function () {
+      if (!splitFile) { setStatus('나눌 PDF 파일을 먼저 선택해 주세요.', false); return; }
+      try {
+        var srcDoc = await PDFLib.PDFDocument.load(await splitFile.arrayBuffer());
+        var total = srcDoc.getPageCount();
+        var indices = parsePageRanges((el('dcSplitRange') || {}).value, total);
+        if (indices && indices.length) {
+          var sub = await PDFLib.PDFDocument.create();
+          var copied = await sub.copyPages(srcDoc, indices);
+          copied.forEach(function (pg) { sub.addPage(pg); });
+          triggerDownload(await sub.save(), '추출_' + splitFile.name, 'application/pdf');
+          setStatus('선택한 ' + indices.length + '페이지를 PDF로 추출했습니다.', true);
+        } else {
+          var zip = new JSZip();
+          for (var p = 0; p < total; p++) {
+            var single = await PDFLib.PDFDocument.create();
+            var cp = await single.copyPages(srcDoc, [p]);
+            single.addPage(cp[0]);
+            zip.file('page_' + (p + 1) + '.pdf', await single.save());
+          }
+          triggerDownload(await zip.generateAsync({ type: 'uint8array' }), '분할페이지모음.zip', 'application/zip');
+          setStatus('전체 ' + total + '페이지를 개별 PDF로 분할해 ZIP으로 저장했습니다.', true);
+        }
+      } catch (err) { setStatus(err.message || 'PDF 나누기 오류', false); }
+    });
+
+    // Tab 4: Image <-> PDF
+    var iIn = el('dcImgInput');
+    if (iIn) iIn.addEventListener('change', function () {
+      imgFiles = Array.from(iIn.files || []);
+      if (el('dcImgList')) el('dcImgList').innerHTML = imgFiles.length ? imgFiles.map(function (f, i) { return (i + 1) + '. ' + f.name; }).join('<br>') : '이미지를 선택하세요.';
+    });
+    var iRun = el('dcImgToPdfBtn');
+    if (iRun) iRun.addEventListener('click', async function () {
+      if (!imgFiles.length) { setStatus('PDF로 묶을 이미지를 선택해 주세요.', false); return; }
+      try {
+        var pdfDoc = await PDFLib.PDFDocument.create();
+        for (var i = 0; i < imgFiles.length; i++) {
+          var f = imgFiles[i];
+          var buf = await f.arrayBuffer();
+          var img = /png$/i.test(f.name) || f.type === 'image/png' ? await pdfDoc.embedPng(buf) : await pdfDoc.embedJpg(buf);
+          var pg = pdfDoc.addPage([img.width, img.height]);
+          pg.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        }
+        triggerDownload(await pdfDoc.save(), '이미지_통합.pdf', 'application/pdf');
+        setStatus(imgFiles.length + '장의 이미지를 1개의 PDF로 저장했습니다.', true);
+      } catch (err) { setStatus(err.message || '이미지→PDF 변환 오류', false); }
+    });
+
+    var p2iBtn = el('dcPdfToImgRunBtn');
+    if (p2iBtn) p2iBtn.addEventListener('click', async function () {
+      var fIn = el('dcPdfToImgInput');
+      var f = fIn && fIn.files && fIn.files[0];
+      if (!f) { setStatus('PNG로 변환할 PDF 파일을 선택해 주세요.', false); return; }
+      try {
+        if (pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = './libs/pdf.worker.min.js';
+        var doc = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
+        var grid = el('dcPdfImgPreview');
+        if (grid) grid.innerHTML = '';
+        var zip = new JSZip();
+        for (var p = 1; p <= doc.numPages; p++) {
+          var pg = await doc.getPage(p);
+          var vp = pg.getViewport({ scale: 1.8 });
+          var cv = document.createElement('canvas');
+          cv.width = vp.width; cv.height = vp.height;
+          await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+          var dataUrl = cv.toDataURL('image/png');
+          var binStr = atob(dataUrl.split(',')[1]);
+          var u8 = new Uint8Array(binStr.length);
+          for (var b = 0; b < binStr.length; b++) u8[b] = binStr.charCodeAt(b);
+          zip.file('page_' + p + '.png', u8);
+          if (grid) {
+            var card = document.createElement('div'); card.className = 'dc-img-thumb';
+            card.innerHTML = '<img src="' + dataUrl + '" alt="' + p + '쪽"><span>' + p + '쪽 PNG</span>';
+            grid.appendChild(card);
+          }
+        }
+        triggerDownload(await zip.generateAsync({ type: 'uint8array' }), f.name.replace(/\.pdf$/i, '') + '_images.zip', 'application/zip');
+        setStatus(doc.numPages + '개 페이지를 고화질 PNG 이미지 ZIP으로 저장했습니다.', true);
+      } catch (err) { setStatus(err.message || 'PDF→PNG 변환 오류', false); }
+    });
+  }
+
+  function open() {
+    var modal = el('docConverterModal');
+    if (!modal) return;
+    bindEvents();
+    setStatus('');
+    modal.classList.add('show');
+  }
+
+  window.DocConverterModule = { open: open };
 })();
