@@ -1,0 +1,27 @@
+{
+  "id": "/smart-board.html",
+  "name": "스마트 판서 보드 — PDF · PPTX · S펜 · 무료 OCR",
+  "short_name": "스마트판서",
+  "description": "스마트패드·갤럭시탭 수업용 전체화면 PDF·PPTX(클릭 액션) 판서, 스닙페이스트 게시 모드, 삼성노트형 폴더 보관함 및 무료 OCR 앱",
+  "lang": "ko",
+  "start_url": "/smart-board.html",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b1120",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

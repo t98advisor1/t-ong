@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.1.0-46';
+var CACHE_VERSION = 'v3.1.0-47';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
@@ -12,11 +12,12 @@ var PRECACHE = [
   '/app.js?v=5.17.0-preview.90',
   '/smart-board.html',
   '/smart-board-guide.html',
+  '/smart-board.webmanifest',
   '/memo-board-guide.html',
   '/score-planner-guide.html',
   '/doc-converter-guide.html',
-  '/smart-board.css?v=1.0.1',
-  '/smart-board.js?v=1.0.0',
+  '/smart-board.css?v=2.0.0',
+  '/smart-board.js?v=2.0.0',
   '/qr-lib.js',
   '/libs/jszip.min.js',
   '/libs/pdf-lib.min.js',
@@ -57,25 +58,28 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // 페이지 이동: 네트워크 우선 (새 버전을 바로 받도록), 실패 시 캐시
+  // 페이지 이동: 네트워크 우선 (새 버전을 바로 받도록), 실패 시 요청 URL 또는 index.html 캐시
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
         .then(function (res) {
           var copy = res.clone();
-          caches.open(CACHE_NAME).then(function (c) { c.put('/index.html', copy); });
+          caches.open(CACHE_NAME).then(function (c) { c.put(req, copy); });
           return res;
         })
         .catch(function () {
-          return caches.match('/index.html');
+          return caches.match(req).then(function (m) {
+            return m || caches.match('/index.html');
+          });
         })
     );
     return;
   }
 
-  // 앱 핵심 자산(style.css, app.js)은 네트워크 우선으로 받아 화면 깨짐/구버전 캐시 고착을 방지합니다.
+  // 앱 핵심 자산(style.css, app.js, smart-board.*)은 네트워크 우선으로 받아 화면 깨짐/구버전 캐시 고착을 방지합니다.
   var urlPath = new URL(req.url).pathname;
-  if (urlPath === '/style.css' || urlPath === '/app.js' || urlPath === '/index.html') {
+  if (urlPath === '/style.css' || urlPath === '/app.js' || urlPath === '/index.html' ||
+      urlPath === '/smart-board.html' || urlPath === '/smart-board.css' || urlPath === '/smart-board.js') {
     event.respondWith(
       fetch(req)
         .then(function (res) {

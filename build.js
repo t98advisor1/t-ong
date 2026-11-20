@@ -126,7 +126,8 @@ const rootStaticFiles = [
   'smart-board.html',
   'smart-board.css',
   'smart-board.js',
-  'smart-board-guide.html'
+  'smart-board-guide.html',
+  'smart-board.webmanifest'
 ];
 rootStaticFiles.forEach((f) => {
   if (fs.existsSync(path.join(SRC, f))) write(f, read(f));

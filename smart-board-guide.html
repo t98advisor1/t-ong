@@ -1,301 +1,415 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>T-ong 스마트 판서 보드 스크린샷 사용설명서</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>스마트 판서 보드 v2.0 전체화면 사용설명서 — T-ong 교무수첩</title>
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.14);
+      --green: #34d399;
+      --amber: #fbbf24;
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f8fafc;
-      color: #0f172a;
-      line-height: 1.6;
-      padding: 26px 18px 54px;
+      font-family: 'Pretendard', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
     }
-    .page { max-width: 980px; margin: 0 auto; }
-    .hero {
-      background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-      color: #ffffff;
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+    header.hero {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 24px 28px;
+      padding: 26px 28px;
+      margin-bottom: 24px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
     }
-    .hero small {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.18);
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 1.55rem;
+      color: #f8fafc;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #1e293b;
+      color: var(--text);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .btn.green {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(52, 211, 153, 0.45);
+      color: #6ee7b7;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #e2e8f0;
+      margin: 28px 0 14px;
+      padding-left: 12px;
+      border-left: 4px solid var(--accent);
+    }
+    .gif-grid, .step-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-head {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+    .step-badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       padding: 3px 10px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 0.76rem;
       font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+    .step-badge.gif {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.45);
+    }
+    .step-head h2 {
+      margin: 0;
+      font-size: 1rem;
+      color: #f1f5f9;
+    }
+    .step-img-wrap {
+      background: #020617;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-img-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .step-body {
+      padding: 14px 18px 18px;
+      font-size: 0.89rem;
+      color: #cbd5e1;
+    }
+    .step-body ul, .step-body ol {
+      margin: 6px 0 0;
+      padding-left: 18px;
+    }
+    .step-body li {
       margin-bottom: 6px;
     }
-    .hero h1 { margin: 0; font-size: 24px; }
-    .hero p { margin: 6px 0 0; font-size: 14px; color: #dbeafe; }
-    .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn {
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      background: rgba(255, 255, 255, 0.16);
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 13.5px;
-      padding: 9px 15px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .btn:hover { background: rgba(255, 255, 255, 0.28); }
-    .prep-box {
-      background: #ffffff;
-      border: 1px solid #bfdbfe;
-      border-left: 5px solid #2563eb;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 18px;
-      font-size: 14px;
-    }
-    .prep-box b { color: #1d4ed8; }
-    .steps { display: flex; flex-direction: column; gap: 18px; }
-    .step-card {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
+    .shortcut-box {
+      margin-top: 26px;
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-      break-inside: avoid;
+      padding: 20px 24px;
     }
-    .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .badge {
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: 900;
-      padding: 4px 11px;
-      border-radius: 999px;
+    .shortcut-box h3 {
+      margin: 0 0 12px;
+      font-size: 1.08rem;
+      color: var(--accent);
     }
-    .b1 { background: #1d4ed8; }
-    .b2 { background: #2563eb; }
-    .b3 { background: #d97706; }
-    .b4 { background: #0891b2; }
-    .b5 { background: #7c3aed; }
-    .b6 { background: #0f766e; }
-    .step-head h2 { margin: 0; font-size: 18px; color: #0f172a; }
-    .shot {
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid #cbd5e1;
-      margin-bottom: 12px;
-      background: #0f172a;
-    }
-    .shot img { width: 100%; display: block; }
-    .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 10px 13px;
-      font-size: 13.5px;
-    }
-    .box strong { display: block; font-size: 13px; color: #1e40af; margin-bottom: 4px; }
-    .box.tip strong { color: #047857; }
-    .box ul { margin: 0; padding-left: 18px; }
-    code, kbd {
-      background: #eff6ff;
-      color: #1d4ed8;
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 12.5px;
-    }
-    kbd { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
-    .sc-table {
+    .shortcut-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13.5px;
-      margin-top: 8px;
+      font-size: 0.87rem;
     }
-    .sc-table th, .sc-table td {
-      border: 1px solid #e2e8f0;
-      padding: 8px 10px;
+    .shortcut-table th, .shortcut-table td {
+      border: 1px solid var(--border);
+      padding: 9px 12px;
       text-align: left;
     }
-    .sc-table th { background: #f1f5f9; color: #1e293b; font-weight: 800; }
-    @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+    .shortcut-table th {
+      background: rgba(15, 23, 42, 0.7);
+      color: #93c5fd;
+    }
+    kbd {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      font-family: ui-monospace, monospace;
+      font-size: 0.79rem;
+      color: #f8fafc;
+    }
+    @media (max-width: 860px) {
+      .gif-grid, .step-grid { grid-template-columns: 1fr; }
+    }
     @media print {
-      body { background: #ffffff; padding: 0; }
+      body { background: #fff; color: #0f172a; }
+      .hero, .step-card, .shortcut-box { background: #fff; border-color: #cbd5e1; color: #0f172a; }
       .hero-actions { display: none; }
-      .step-card { box-shadow: none; }
+      .step-head h2, .hero h1 { color: #0f172a; }
+      .step-body, .hero p { color: #334155; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="wrap">
     <header class="hero">
       <div>
-        <small>T-ong 교무수첩 · 7 수업 도구 · 태블릿/PC 겸용</small>
-        <h1>스마트 판서 보드 (PDF · PPTX · OCR) 사용설명서</h1>
-        <p>SaniZ 스타일 4대 모드(게시·확대·판서·편집)와 PPTX 클릭 액션, 갤럭시탭 S펜·무료 OCR 활용법입니다.</p>
+        <h1>스마트 판서 보드 v2.0 전체화면 사용설명서 (GIF 동적 가이드 포함)</h1>
+        <p>상하 여백 ZERO 좌측 접이식 팔레트 · 삼성노트형 폴더 보관함 · 고호환 PPTX 클릭 액션 · 내장 웹 브라우저 ①스탬프 · 무료 AI 필기 OCR</p>
       </div>
       <div class="hero-actions">
-        <a href="./smart-board.html" class="btn">스마트 판서 보드 열기</a>
-        <button type="button" class="btn" onclick="window.print()">인쇄 / PDF 저장</button>
+        <button class="btn green" id="toggleFsBtn" type="button">⛶ 전체화면으로 보기</button>
+        <a class="btn primary" href="/smart-board.html">✏️ 스마트 판서 보드 열기</a>
+        <a class="btn" href="/index.html">🏠 교무수첩 홈으로</a>
+        <button class="btn" type="button" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
       </div>
     </header>
 
-    <div class="prep-box">
-      <b>접속 방법</b> — T-ong 교무수첩 상단 <code>7 수업 도구</code> → <code>스마트 판서 보드</code>를 누르거나, 카드 우측 <code>QR</code> 버튼을 갤럭시탭 카메라로 스캔해 전체화면으로 바로 실행하세요. 브라우저 메뉴의 <b>[홈 화면에 추가]</b>를 누르면 태블릿 단독 앱처럼 쓸 수 있습니다.
-    </div>
-
-    <main class="steps">
-      <section class="step-card">
-        <div class="step-head"><span class="badge b1">STEP 1</span><h2>PDF · PPTX(클릭 액션) · 이미지 · 배경 불러오기</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step1_load_pptx.png" alt="1단계 PDF, PPTX 클릭 액션 불러오기 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>수업 자료 불러오기</strong>
-            <ul>
-              <li><code>PDF 열기</code>: 교과서·활동지 PDF를 고해상도로 페이지별 표시(페이지별 판서 독립 보관).</li>
-              <li><code>PPTX 열기</code>: 파워포인트 슬라이드와 클릭 순차 나타나기(<code>&lt;p:timing&gt;</code>) 액션을 그대로 재생합니다.</li>
-              <li><code>이미지</code> 또는 <code>Ctrl+V</code> 붙여넣기, <code>칠판/백지/모눈</code> 배경 즉시 전환.</li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>PPTX 클릭 액션 조작</strong>
-            <ul>
-              <li>하단 <code>다음 액션 실행 ▶</code> 버튼 또는 키보드 <code>Space</code> / <code>→</code>로 숨겨진 공식·정답을 한 단계씩 띄웁니다.</li>
-              <li>수식·특수 폰트가 많은 PPT는 PDF로 저장해 열면 깨짐 없이 선명합니다.</li>
-            </ul>
-          </div>
+    <div class="section-title">1. 핵심 기능 동적 GIF 가이드 (4종)</div>
+    <section class="gif-grid">
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge gif">GIF 1 · 스닙페이스트</span>
+          <h2>게시 모드(Pin)로 문제·공식 화면 위 고정</h2>
         </div>
-      </section>
-
-      <section class="step-card">
-        <div class="step-head"><span class="badge b2">STEP 2</span><h2>판서 모드 (Alt+2) — 펜 · 형광펜 · 레이저 · 가림막 · 텍스트 · 스탬프</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step2_draw_tools.png" alt="2단계 판서 도구 및 정답 가림막 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>주요 판서 도구</strong>
-            <ul>
-              <li><code>펜</code> · <code>형광펜</code>(반투명) · <code>레이저</code>(잔상 자동 소멸) · <code>직선(Shift)</code> · <code>사각형(Ctrl)</code> · <code>채움(Ctrl+Shift)</code></li>
-              <li><code>가림막</code>: 문제의 정답 부분을 가려 둔 뒤, 수업 중 <b>탭하면 즉시 열리고 다시 탭하면 닫힙니다</b>.</li>
-              <li><code>텍스트(T)</code>(Enter 완료, Shift+Enter 줄바꿈) · <code>①스탬프(S)</code>(1, 2, 3 자동 번호) · <code>지우개(E)</code></li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>색상 · 굵기 · 되돌리기</strong>
-            <ul>
-              <li>단축키 <kbd>R</kbd>(빨강) <kbd>G</kbd>(초록) <kbd>B</kbd>(파랑) <kbd>Y</kbd>(노랑) <kbd>I</kbd>(아이보리)와 검정 지원.</li>
-              <li>좌측 슬라이더 또는 <b>마우스 휠</b>로 펜 굵기·글자 크기·지우개 크기를 즉시 조절합니다.</li>
-              <li><kbd>Ctrl+Z</kbd> 되돌리기 / <kbd>Ctrl+Y</kbd> 다시실행 / <kbd>Ctrl+E</kbd> 현재 쪽 전체 삭제.</li>
-            </ul>
-          </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/gif_snipaste_pin.gif" alt="스닙페이스트 게시 모드 동적 GIF" />
         </div>
-      </section>
-
-      <section class="step-card">
-        <div class="step-head"><span class="badge b3">STEP 3</span><h2>게시 모드 (Alt+`) — 핵심 공식 오려 화면 맨 위 고정</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step3_pin_mode.png" alt="3단계 게시 조각을 다음 페이지에서도 유지하는 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>영역 오려 고정하기</strong>
-            <ul>
-              <li><code>게시(Alt+`)</code>를 누르고 고정할 공식·문제 조건 영역을 드래그하면 화면 최상단 조각으로 고정되며, 자동으로 판서 모드로 돌아옵니다.</li>
-              <li><b>다음 페이지·슬라이드로 이동해도 게시 조각이 그대로 유지</b>되어 공식을 보며 문제를 풀 수 있습니다.</li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>게시 조각 조작법</strong>
-            <ul>
-              <li><b>조각 드래그</b>: 원하는 구석으로 위치 이동</li>
-              <li><b>마우스 휠 / 우측 하단 주황 핸들</b>: 조각 크기 확대·축소</li>
-              <li><b>조각 우클릭 / 우측 상단 × 버튼</b>: 해당 조각 삭제 (하단 <code>게시 조각 모두 닫기</code> 지원)</li>
-            </ul>
-          </div>
+        <div class="step-body">
+          <ul>
+            <li><b>게시 모드(<kbd>Alt+`</kbd>)</b>를 누르고 원하는 문제·도표·웹 화면 영역을 드래그하면 즉시 스티커 조각으로 분리되어 화면 최상단에 고정됩니다.</li>
+            <li>고정된 조각은 다음 페이지로 넘어가거나 웹 브라우저를 띄워도 항상 맨 위에 유지되며, 드래그 이동·마우스 휠 크기 조절·우클릭 삭제를 지원합니다.</li>
+          </ul>
         </div>
-      </section>
+      </article>
 
-      <section class="step-card">
-        <div class="step-head"><span class="badge b4">STEP 4</span><h2>확대 모드 (Alt+1) · 모눈 격자 · 갤럭시탭 S펜 최적화</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step4_zoom_spen.png" alt="4단계 확대 모드 고정, 모눈 배경, S펜 전용 활성화 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>확대 모드 활용 (PC &amp; 태블릿)</strong>
-            <ul>
-              <li><code>확대(Alt+1)</code> 진입 시 커서를 따라 화면이 부드럽게 확대되며, 휠(또는 두 손가락 핀치)로 배율(1x~4x)을 조절합니다.</li>
-              <li>원하는 위치에서 <b>좌클릭(탭)하면 확대 상태가 고정된 채 즉시 판서 모드</b>로 전환됩니다. 좌측 상단 <code>100% 복귀</code> 또는 <kbd>Esc</kbd>로 원복합니다.</li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>갤럭시탭 S펜 특화 기능</strong>
-            <ul>
-              <li>상단 <code>S펜 전용</code>을 켜면 손바닥을 화면에 대고 필기해도 오작동하지 않습니다(손가락은 화면 이동·핀치 확대 전용).</li>
-              <li>안드로이드 Chrome에서 <b>S펜 옆 버튼</b>을 누른 채 문지르면 삼성노트처럼 자동으로 지우개로 작동합니다.</li>
-            </ul>
-          </div>
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge gif">GIF 2 · 번호 스탬프</span>
+          <h2>클릭할 때마다 ① → ② → ③ 자동 증가 스탬프</h2>
         </div>
-      </section>
-
-      <section class="step-card">
-        <div class="step-head"><span class="badge b5">STEP 5</span><h2>편집 모드 (Alt+3) — 영역 이동 &amp; 무료 OCR 글씨 변환</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step5_edit_ocr.png" alt="5단계 편집 모드 선택 및 OCR 액션 바 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>선택 판서 이동 · 삭제 · 게시</strong>
-            <ul>
-              <li><code>편집(Alt+3)</code>에서 사각형으로 판서 영역을 감싸 선택합니다.</li>
-              <li>선택된 사각형 <b>안쪽을 드래그</b>하면 배경은 그대로 둔 채 선택한 판서 획·도형·글씨만 통째로 이동합니다.</li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>판서 → 글씨 변환 (무료 OCR)</strong>
-            <ul>
-              <li>선택 후 상단 플로팅 바의 <code>글씨로 변환 (OCR)</code>을 누릅니다.</li>
-              <li>인식 결과를 확인한 뒤 <code>선택 판서를 글씨로 교체</code>, <code>수업 메모보드로 보내기</code>, <code>텍스트 복사</code>를 1클릭으로 실행합니다.</li>
-            </ul>
-          </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/gif_number_stamp.gif" alt="번호 스탬프 동적 GIF" />
         </div>
-      </section>
-
-      <section class="step-card">
-        <div class="step-head"><span class="badge b6">STEP 6</span><h2>무료 OCR 키 설정 · PNG 저장 · 전체 합본 PDF 저장</h2></div>
-        <div class="shot"><img src="./assets/smartboard_guide/step6_export_ocr_cfg.png" alt="6단계 무료 OCR 설정 모달과 PNG 저장 화면"></div>
-        <div class="cols">
-          <div class="box">
-            <strong>무료 OCR 설정 (1회 입력)</strong>
-            <ul>
-              <li>상단 <code>OCR 설정</code>에서 <b>Google Gemini 무료 API</b>(추천: 한글 손글씨·수학 수식 최고 정확도) 또는 <b>OCR.space</b>를 선택합니다.</li>
-              <li>API 키는 현재 기기 브라우저에만 안전하게 저장됩니다.</li>
-            </ul>
-          </div>
-          <div class="box tip">
-            <strong>수업 기록 저장</strong>
-            <ul>
-              <li><code>PNG 저장 (Ctrl+S)</code>: 현재 화면(배경 + 판서)을 고화질 PNG 이미지로 즉시 저장.</li>
-              <li><code>합본 PDF</code>: 수업 중 판서한 <b>모든 페이지</b>를 하나의 PDF 파일로 묶어 다운로드(학생 공유·삼성노트 보관용).</li>
-            </ul>
-          </div>
+        <div class="step-body">
+          <ul>
+            <li><b>숫자 스탬프(<kbd>S</kbd>)</b>를 켜고 판서 화면이나 내장 웹 브라우저 위를 터치/클릭하면 <b>①, ②, ③, ④...</b> 원형 번호가 현재 펜 색상으로 선명하게 찍힙니다.</li>
+            <li>풀이 단계 표시, 웹 기사 핵심 근거 표시, 오답 포인트 짚어주기에 최적화되어 있습니다.</li>
+          </ul>
         </div>
-      </section>
+      </article>
 
-      <section class="step-card">
-        <div class="step-head"><span class="badge b1">단축키</span><h2>SaniZ 호환 전체 단축키 요약표</h2></div>
-        <table class="sc-table">
-          <thead><tr><th>구분</th><th>단축키</th><th>동작 설명</th></tr></thead>
-          <tbody>
-            <tr><td>모드 전환</td><td><kbd>Alt + `</kbd> / <kbd>Alt + 1</kbd> / <kbd>Alt + 2</kbd> / <kbd>Alt + 3</kbd></td><td>게시 모드 / 확대 모드 / 판서 모드 / 편집 모드 전환</td></tr>
-            <tr><td>도형 그리기</td><td><kbd>Shift</kbd> / <kbd>Ctrl</kbd> / <kbd>Ctrl+Shift</kbd> + 드래그</td><td>직선 / 사각형 테두리 / 채운 사각형</td></tr>
-            <tr><td>색상 · 도구</td><td><kbd>R</kbd> <kbd>G</kbd> <kbd>B</kbd> <kbd>Y</kbd> <kbd>I</kbd> · <kbd>T</kbd> <kbd>S</kbd> <kbd>E</kbd></td><td>5색 펜(빨강·초록·파랑·노랑·아이보리) · 텍스트 · 스탬프 · 지우개</td></tr>
-            <tr><td>배경 · 편집</td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd> / <kbd>Ctrl+E</kbd></td><td>칠판 / 백지 · 되돌리기 / 다시실행 / 판서 전체 삭제</td></tr>
-            <tr><td>저장 · 진행</td><td><kbd>Ctrl+S</kbd> · <kbd>Space</kbd> / <kbd>←</kbd> <kbd>→</kbd> · <kbd>Esc</kbd></td><td>PNG 저장 · PPTX 액션/페이지 이동 · 취소 및 확대 해제</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </main>
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge gif">GIF 3 · PDF/칠판 판서</span>
+          <h2>상하 여백 0% 전체화면 판서 · 도형 · S펜 필압</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/gif_pdf_draw.gif" alt="PDF 및 칠판 판서 동적 GIF" />
+        </div>
+        <div class="step-body">
+          <ul>
+            <li>상단·하단 툴바를 없애고 <b>100% 세로 높이(100dvh)</b>를 판서 영역으로 확보했습니다.</li>
+            <li>자유 곡선, <kbd>Shift</kbd>+드래그(직선), <kbd>Ctrl</kbd>+드래그(사각형 테두리), <kbd>Ctrl+Shift</kbd>+드래그(채운 사각형/정답 가림막) 및 갤럭시탭 S펜 필압을 완벽 지원합니다.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge gif">GIF 4 · PPTX 액션 &amp; OCR</span>
+          <h2>고호환 PPTX 클릭 액션 및 무료 AI 손글씨 OCR</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/gif_pptx_ocr.gif" alt="PPTX 클릭 액션 및 필기 OCR 동적 GIF" />
+        </div>
+        <div class="step-body">
+          <ul>
+            <li><b>PPTX 클릭 액션</b>: 그룹 도형(<code>p:grpSp</code>), 레이아웃 상속 제목/본문, 문단별(<code>p:pRg</code>) 순차 등장 애니메이션을 파싱하여 <b>[다음 액션 ▶]</b> 클릭 시 하나씩 등장합니다.</li>
+            <li><b>필기 OCR 변환</b>: 손글씨 판서를 인식해 깔끔한 텍스트 박스로 즉시 변환합니다.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <div class="section-title">2. 기능별 상세 스크린샷 매뉴얼 (v2.0)</div>
+    <section class="step-grid">
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge">기능 1 · 접이식 팔레트</span>
+          <h2>좌측 통합 접이식 팔레트 &amp; 스마트패드 상하 여백 ZERO</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/step1_load_pptx.png" alt="좌측 접이식 팔레트 및 PPTX 액션 화면" />
+        </div>
+        <div class="step-body">
+          <ul>
+            <li><b>팔레트 접기/펴기(<kbd>Tab</kbd>)</b>: 팔레트 상단 <b>[◀ 접기]</b> 버튼을 누르거나 키보드 <kbd>Tab</kbd> 키를 누르면 팔레트가 완전히 숨겨지고 좌측 상단에 작은 <b>[▶ 팔레트]</b> 버튼만 남습니다.</li>
+            <li><b>액션 호환 안전장치</b>: 복잡한 애니메이션이 포함된 PPTX도 누락 없이 렌더링하며, <b>[전체 보기]</b> 토글 버튼으로 모든 요소를 한 번에 띄울 수도 있습니다.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge">기능 2 · 삼성노트형 폴더</span>
+          <h2>로컬 폴더별 노트 저장 · 불러오기 · JSON 백업</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/step3_pin_mode.png" alt="삼성노트형 폴더 보관함 및 스닙페이스트 화면" />
+        </div>
+        <div class="step-body">
+          <ul>
+            <li><b>[📁 노트 보관함]</b>을 열면 삼성노트처럼 <b>과목·학급별 폴더(예: 1학년 수학, 2학년 확률과통계, 수행평가·기출)</b>를 자유롭게 생성·관리할 수 있습니다.</li>
+            <li><b>현재 노트 전체 저장(<kbd>Ctrl+Shift+S</kbd>)</b>: 모든 페이지의 배경(PDF/PPTX/웹 스냅샷), 펜 필기, 텍스트, 스티커를 브라우저 IndexedDB에 썸네일과 함께 영구 저장하고 언제든 이어서 수업할 수 있습니다.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge">기능 3 · 내장 웹 브라우저</span>
+          <h2>보드 안 웹 브라우저 접속 + 웹 화면 위 판서·①스탬프</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/step4_zoom_spen.png" alt="내장 웹 브라우저 및 스탬프 판서 화면" />
+        </div>
+        <div class="step-body">
+          <ul>
+            <li><b>[🌐 웹 브라우저]</b>를 켜면 판서 보드 내부에 웹 브라우저가 열리며, <b>GeoGebra · Desmos · 위키백과 · AI 수학 · 기하벡터 · 모의주식</b> 프리셋이나 원하는 URL에 즉시 접속합니다.</li>
+            <li>상단 주소창의 <b>[✏️ 판서·스탬프 모드 / 👆 웹 조작 모드]</b> 버튼으로 웹 스크롤/클릭과 웹 화면 위 직접 판서·①스탬프를 즉시 전환하며, <b>[📸 스냅샷 고정]</b>으로 칠판 배경에 박제할 수 있습니다.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-head">
+          <span class="step-badge">기능 4 · 무료 OCR 매뉴얼</span>
+          <h2>무료 AI 필기 OCR 3단계 설정법 및 안드로이드 앱/버셀 배포</h2>
+        </div>
+        <div class="step-img-wrap">
+          <img src="/assets/smartboard_guide/step6_export_ocr_cfg.png" alt="무료 OCR 설정 및 내보내기 화면" />
+        </div>
+        <div class="step-body">
+          <ol>
+            <li><b>무설치 즉시 사용(OCR.space 무료 엔진)</b>: 별도 API 키가 없어도 자동으로 한국어/영어 무료 OCR 엔진으로 폴백되어 손글씨를 인식합니다.</li>
+            <li><b>Google Gemini 무료 키 발급(고정밀 수식·악필 추천)</b>: <code>aistudio.google.com/apikey</code> 접속 → <b>[Create API key]</b> 클릭 → <b>[⚙️ OCR 설정]</b>에 붙여넣고 저장하면 무료 할당량(일 1,500회)으로 99% 인식률을 제공합니다.</li>
+            <li><b>단독 안드로이드 앱 &amp; 버셀 링크</b>: <code>/smart-board.html</code> 단독 링크 배포 및 갤럭시탭 <b>[홈 화면에 추가 / 앱 설치]</b> 시 상단 주소창 없는 100% 네이티브 전체화면 앱으로 구동됩니다.</li>
+          </ol>
+        </div>
+      </article>
+    </section>
+
+    <section class="shortcut-box">
+      <h3>⌨️ 키보드 단축키 및 마우스/S펜 조작 완벽 가이드 (보드에서 ? 또는 F1 키)</h3>
+      <table class="shortcut-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>단축키 / 조작</th>
+            <th>동작 설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>화면 / 팔레트</b></td>
+            <td><kbd>Tab</kbd> / <kbd>?</kbd>(<kbd>F1</kbd>) / <kbd>Esc</kbd></td>
+            <td>좌측 통합 팔레트 접기·펴기 토글 / 단축키 안내 창 열기 / 현재 특수 모드 해제·모달 닫기</td>
+          </tr>
+          <tr>
+            <td><b>4대 모드 전환</b></td>
+            <td><kbd>Alt + `</kbd> / <kbd>Alt + 1</kbd> / <kbd>Alt + 2</kbd> / <kbd>Alt + 3</kbd></td>
+            <td>게시 모드(스닙페이스트 고정) / 확대 모드(돋보기) / 판서 모드 / 편집 모드(영역 이동)</td>
+          </tr>
+          <tr>
+            <td><b>도형 빨리 그리기</b></td>
+            <td>드래그 / <kbd>Shift</kbd>+드래그 / <kbd>Ctrl</kbd>+드래그 / <kbd>Ctrl+Shift</kbd>+드래그</td>
+            <td>자유 곡선 / 반듯한 직선 / 사각형 테두리 / 채운 사각형(정답 가림막 박스)</td>
+          </tr>
+          <tr>
+            <td><b>펜 색상 &amp; 칠판 배경</b></td>
+            <td><kbd>R</kbd> <kbd>G</kbd> <kbd>B</kbd> <kbd>Y</kbd> <kbd>I</kbd> / <kbd>K</kbd> <kbd>W</kbd></td>
+            <td>빨강(R) · 초록(G) · 파랑(B) · 노랑(Y) · 아이보리(I) 펜 색상 / 어두운 칠판(K) · 밝은 칠판(W)</td>
+          </tr>
+          <tr>
+            <td><b>특수 판서 도구</b></td>
+            <td><kbd>T</kbd> / <kbd>S</kbd> / <kbd>E</kbd> / 마우스 휠</td>
+            <td>텍스트 상자(<kbd>Enter</kbd> 완료, <kbd>Shift+Enter</kbd> 줄바꿈) / 숫자 스탬프(①②③) / 지우개 / 굵기·크기 조절</td>
+          </tr>
+          <tr>
+            <td><b>편집 &amp; 저장</b></td>
+            <td><kbd>Ctrl + Z</kbd> / <kbd>Ctrl + E</kbd> / <kbd>Ctrl + S</kbd> / <kbd>Ctrl + Shift + S</kbd></td>
+            <td>마지막 동작 되돌리기 / 현재 페이지 판서 전체 삭제 / PNG 이미지 저장 / 삼성노트형 폴더 보관함에 현재 노트 저장</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
   </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('toggleFsBtn');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(function () {});
+          btn.textContent = '🗗 전체화면 종료';
+        } else {
+          document.exitFullscreen().catch(function () {});
+          btn.textContent = '⛶ 전체화면으로 보기';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
