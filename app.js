@@ -14348,6 +14348,7 @@ window.TodayBriefing = TodayBriefing;
   };
 
   var ITEMS = {
+    smartBoard: { title: '스마트 판서 보드 (PDF · PPTX)', url: './smart-board.html', tag: '태블릿 판서 · OCR', desc: 'PDF·PPTX(클릭 액션) 위에 게시·확대·판서·편집(무료 OCR 글씨 변환)과 S펜 필기를 전체화면으로 실행합니다.', bg: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="10" width="48" height="36" rx="6" fill="rgba(255,255,255,0.14)" stroke="#fff" stroke-width="2.6"/><path d="M16 34c5-12 11-12 16 0s10-10 14-14" stroke="#fde047" stroke-width="3.2" stroke-linecap="round"/><circle cx="46" cy="20" r="3.5" fill="#ef4444"/><path d="M22 54h20" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     docConverter: { openKey: 'docConverter', tag: '문서 유틸리티', title: '문서 · PDF 올인원 변환기', desc: '한글(.hwpx/.hwp)↔PDF·텍스트 변환, PDF 합치기/나누기, 이미지↔PDF를 설치 없이 처리합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="18" height="24" rx="3" fill="#fff"/><rect x="36" y="28" width="18" height="24" rx="3" fill="#fde047"/><path d="M32 20h10l-4-4M32 44H22l4 4" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
     memoBoard: { openKey: 'memoBoard', tag: '실시간 참여', title: '수업 메모보드 (패들렛형)', desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
@@ -14426,9 +14427,10 @@ window.TodayBriefing = TodayBriefing;
       qb.addEventListener('click', function () {
         var it = ITEMS[qb.getAttribute('data-item-key')];
         if (it && it.url && typeof window.openQrShareModal === 'function') {
-          window.openQrShareModal(it.title, it.url, {
-            kicker: '학생 접속용 QR 공유',
-            desc: '교실 TV나 화면에 띄워 학생들이 스마트폰·태블릿으로 스캔하면 바로 접속합니다.'
+          var fullUrl = /^https?:\/\//i.test(it.url) ? it.url : new URL(it.url, window.location.href).href;
+          window.openQrShareModal(it.title, fullUrl, {
+            kicker: '기기·학생 접속용 QR 공유',
+            desc: '태블릿이나 스마트폰 카메라로 스캔하면 바로 전체화면으로 접속합니다.'
           });
         }
       });
@@ -14480,7 +14482,7 @@ window.TodayBriefing = TodayBriefing;
   window.ClassroomToolsHubModule = createHubController(
     'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn', 'ctHubColBtn',
     [
-      { title: '학급 운영 · 생활 지도', keys: ['docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'timer'] },
+      { title: '학급 운영 · 생활 지도', keys: ['smartBoard', 'docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'timer'] },
       { title: '발표 · 뽑기 복불복', note: 'QR 참여 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '쉬는시간 · 신체활동 게임', note: 'QR 학생 공유 지원', keys: ['handRush', 'handKart', 'poseChallenge', 'yutnori', 'pangpang', 'turtleNeck', 'singer', 'faceMuscle'] },
       { title: '웹툰 연재 · 체험 활용 앱', note: 'QR 지원', keys: ['toonAi', 'toonEcon', 'tarot', 'kwansang'] }
@@ -14490,7 +14492,7 @@ window.TodayBriefing = TodayBriefing;
   window.LessonToolsHubModule = createHubController(
     'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn', 'ltHubColBtn',
     [
-      { title: '출제 · 수업 설계 도구', keys: ['scorePlanner', 'docConverter', 'memoBoard', 'timer'] },
+      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'scorePlanner', 'docConverter', 'memoBoard', 'timer'] },
       { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]

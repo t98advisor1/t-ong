@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>T-ong 스마트 판서 보드 (PDF · PPTX · OCR)</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <script src="./libs/jszip.min.js"></script>
+  <script src="./libs/pdf-lib.min.js"></script>
+  <script src="./libs/pdf.min.js"></script>
+  <link rel="stylesheet" href="./smart-board.css?v=1.0.0">
+</head>
+<body class="sb-theme-dark">
+  <!-- 상단 슬림 툴바 -->
+  <header class="sb-topbar" id="sbTopBar">
+    <div class="sb-top-left">
+      <a href="./index.html" class="sb-btn sb-btn-ghost" title="T-ong 교무수첩으로 돌아가기">← 교무수첩</a>
+      <span class="sb-brand">스마트 판서 보드</span>
+      <div class="sb-divider"></div>
+      <label class="sb-btn sb-btn-file" title="PDF 파일 불러오기">
+        PDF 열기
+        <input type="file" id="sbPdfInput" accept=".pdf,application/pdf" hidden>
+      </label>
+      <label class="sb-btn sb-btn-file sb-btn-pptx" title="PPTX 파일 및 클릭 액션 불러오기">
+        PPTX 열기
+        <input type="file" id="sbPptxInput" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden>
+      </label>
+      <label class="sb-btn sb-btn-file" title="이미지 파일 불러오기 (Ctrl+V 붙여넣기도 가능)">
+        이미지
+        <input type="file" id="sbImgInput" accept="image/*" hidden>
+      </label>
+    </div>
+
+    <!-- SaniZ 4대 핵심 모드 -->
+    <div class="sb-mode-tabs" role="tablist" aria-label="판서 스튜디오 모드">
+      <button type="button" class="sb-mode-btn" data-sb-mode="pin" title="화면 영역을 오려 항상 맨 위에 고정 (Alt + `)">게시 <kbd>Alt+`</kbd></button>
+      <button type="button" class="sb-mode-btn" data-sb-mode="zoom" title="커서/핀치로 확대 후 클릭하여 판서 전환 (Alt + 1)">확대 <kbd>Alt+1</kbd></button>
+      <button type="button" class="sb-mode-btn active" data-sb-mode="draw" title="펜·도형·텍스트·스탬프 판서 (Alt + 2)">판서 <kbd>Alt+2</kbd></button>
+      <button type="button" class="sb-mode-btn" data-sb-mode="edit" title="영역 선택 이동 및 무료 OCR 글씨 변환 (Alt + 3)">편집 <kbd>Alt+3</kbd></button>
+    </div>
+
+    <div class="sb-top-right">
+      <button type="button" class="sb-btn sb-btn-toggle" id="sbPalmRejectBtn" title="갤럭시탭 S펜/애플펜슬 전용 필기 (손바닥 무시)">S펜 전용: 꺼짐</button>
+      <div class="sb-bg-group" role="group" aria-label="배경 전환">
+        <button type="button" class="sb-mini-btn active" data-sb-bg="dark" title="어두운 칠판 (K)">칠판</button>
+        <button type="button" class="sb-mini-btn" data-sb-bg="light" title="밝은 백지 (W)">백지</button>
+        <button type="button" class="sb-mini-btn" data-sb-bg="grid" title="모눈 격자 배경">모눈</button>
+      </div>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbOcrCfgBtn" title="무료 OCR 손글씨 변환 설정">OCR 설정</button>
+      <button type="button" class="sb-btn sb-btn-primary" id="sbSavePngBtn" title="현재 화면 PNG 저장 (Ctrl + S)">PNG 저장</button>
+      <button type="button" class="sb-btn sb-btn-accent" id="sbSavePdfBtn" title="전체 페이지 판서 합본 PDF 저장">합본 PDF</button>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbHelpBtn" title="단축키 및 사용법">사용법</button>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbFullscreenBtn" title="브라우저 전체화면 전환">전체화면</button>
+    </div>
+  </header>
+
+  <!-- 메인 캔버스 영역 -->
+  <main class="sb-workspace" id="sbWorkspace">
+    <!-- 좌측 플로팅 판서 도구 독 -->
+    <aside class="sb-dock" id="sbToolDock" aria-label="판서 도구 모음">
+      <div class="sb-dock-group">
+        <button type="button" class="sb-tool-btn active" data-sb-tool="pen" title="자유 곡선 펜">펜</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="highlighter" title="반투명 형광펜">형광펜</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="laser" title="사라지는 레이저 포인터">레이저</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="line" title="직선 (Shift+드래그)">직선</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="rect" title="사각형 테두리 (Ctrl+드래그)">사각형</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="fillRect" title="채운 사각형 (Ctrl+Shift+드래그)">채움</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="cover" title="탭하면 열리는 정답 가림막">가림막</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="text" title="한글 텍스트 입력 (T)">텍스트</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="stamp" title="숫자 스탬프 1,2,3 (S)">①스탬프</button>
+        <button type="button" class="sb-tool-btn" data-sb-tool="eraser" title="지우개 (E / S펜 버튼)">지우개</button>
+      </div>
+
+      <div class="sb-dock-sep"></div>
+
+      <!-- SaniZ 5색(R/G/B/Y/I) + 검정 -->
+      <div class="sb-color-group" id="sbColorGroup" aria-label="펜 색상">
+        <button type="button" class="sb-color-dot active" data-color="#ef4444" data-key="R" style="background:#ef4444" title="빨강 (R)"></button>
+        <button type="button" class="sb-color-dot" data-color="#22c55e" data-key="G" style="background:#22c55e" title="초록 (G)"></button>
+        <button type="button" class="sb-color-dot" data-color="#3b82f6" data-key="B" style="background:#3b82f6" title="파랑 (B)"></button>
+        <button type="button" class="sb-color-dot" data-color="#facc15" data-key="Y" style="background:#facc15" title="노랑 (Y)"></button>
+        <button type="button" class="sb-color-dot" data-color="#f8fafc" data-key="I" style="background:#f8fafc" title="아이보리 (I)"></button>
+        <button type="button" class="sb-color-dot" data-color="#0f172a" data-key="D" style="background:#0f172a" title="검정"></button>
+      </div>
+
+      <div class="sb-dock-sep"></div>
+
+      <div class="sb-size-box" title="펜 굵기 · 글자/지우개 크기 (마우스 휠 조절 가능)">
+        <span id="sbSizeLabel">5px</span>
+        <input type="range" id="sbSizeSlider" min="2" max="36" value="5" step="1">
+      </div>
+
+      <div class="sb-dock-sep"></div>
+
+      <div class="sb-dock-group">
+        <button type="button" class="sb-tool-btn" id="sbUndoBtn" title="되돌리기 (Ctrl + Z)">되돌리기</button>
+        <button type="button" class="sb-tool-btn" id="sbRedoBtn" title="다시 실행 (Ctrl + Y)">다시실행</button>
+        <button type="button" class="sb-tool-btn sb-danger" id="sbClearInkBtn" title="현재 페이지 판서 전체 삭제 (Ctrl + E)">전체삭제</button>
+      </div>
+    </aside>
+
+    <!-- 중앙 캔버스 스테이지 -->
+    <div class="sb-stage-wrap" id="sbStageWrap">
+      <div class="sb-zoom-badge" id="sbZoomBadge" style="display:none;">
+        <span id="sbZoomText">확대 2.0x</span>
+        <button type="button" class="sb-mini-btn" id="sbZoomResetBtn">100% 복귀</button>
+      </div>
+
+      <div class="sb-canvas-viewport" id="sbViewport">
+        <div class="sb-board-frame" id="sbBoardFrame">
+          <canvas id="sbBgCanvas" width="1280" height="720"></canvas>
+          <canvas id="sbInkCanvas" width="1280" height="720"></canvas>
+          <canvas id="sbLiveCanvas" width="1280" height="720"></canvas>
+          <!-- 인라인 한글 텍스트 입력 상자 -->
+          <textarea id="sbInlineText" class="sb-inline-text" rows="1" placeholder="글씨 입력 (Enter 완료, Shift+Enter 줄바꿈)" style="display:none;"></textarea>
+        </div>
+      </div>
+
+      <!-- 편집 모드 선택 영역 플로팅 액션 바 -->
+      <div class="sb-edit-bar" id="sbEditBar" style="display:none;">
+        <span class="sb-edit-count" id="sbEditCount">선택됨</span>
+        <button type="button" class="sb-btn sb-btn-primary" id="sbEditOcrBtn">글씨로 변환 (OCR)</button>
+        <button type="button" class="sb-btn sb-btn-ghost" id="sbEditPinBtn">게시 조각 고정</button>
+        <button type="button" class="sb-btn sb-btn-danger" id="sbEditDelBtn">선택 삭제</button>
+        <button type="button" class="sb-btn sb-btn-ghost" id="sbEditCancelBtn">해제</button>
+      </div>
+
+      <!-- 상태 토스트 -->
+      <div class="sb-toast" id="sbToast" style="display:none;"></div>
+    </div>
+
+    <!-- 게시 모드 조각 레이어 (페이지·모드 전환 시에도 항상 최상단 유지) -->
+    <div class="sb-pin-layer" id="sbPinLayer"></div>
+  </main>
+
+  <!-- 하단 페이지 & PPTX 클릭 액션 바 -->
+  <footer class="sb-footer" id="sbFooter">
+    <div class="sb-page-controls">
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbPrevPageBtn">◀ 이전 쪽</button>
+      <span class="sb-page-indicator" id="sbPageIndicator">1 / 1 (칠판)</span>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbNextPageBtn">다음 쪽 ▶</button>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbAddPageBtn">+ 새 판서 페이지</button>
+    </div>
+
+    <!-- PPTX 클릭 액션 컨트롤 (PPTX 로드 시 표시) -->
+    <div class="sb-pptx-action-bar" id="sbPptxActionBar" style="display:none;">
+      <span class="sb-pptx-tag">PPTX 클릭 액션</span>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbPptxPrevActBtn">◀ 이전 단계</button>
+      <span class="sb-page-indicator" id="sbPptxActIndicator">0 / 0</span>
+      <button type="button" class="sb-btn sb-btn-primary" id="sbPptxNextActBtn">다음 액션 실행 ▶</button>
+    </div>
+
+    <div class="sb-footer-right">
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbStampResetBtn" title="숫자 스탬프 번호 1부터 초기화">스탬프 초기화 (<span id="sbStampNum">1</span>)</button>
+      <button type="button" class="sb-btn sb-btn-ghost" id="sbClearPinsBtn" title="화면에 떠 있는 게시 조각 모두 닫기">게시 조각 모두 닫기</button>
+    </div>
+  </footer>
+
+  <!-- OCR 설정 모달 -->
+  <div class="sb-modal" id="sbOcrCfgModal">
+    <div class="sb-modal-card">
+      <div class="sb-modal-head">
+        <h3>무료 OCR 손글씨 변환 설정</h3>
+        <button type="button" class="sb-close-btn" data-close="sbOcrCfgModal">&times;</button>
+      </div>
+      <div class="sb-modal-body">
+        <p class="sb-help-note">편집 모드(<code>Alt+3</code>)로 손글씨 영역을 감싸 <b>[글씨로 변환 (OCR)]</b>을 누르면 아래 선택한 무료 엔진으로 판서를 깔끔한 텍스트로 바꿉니다. API 키는 이 기기 브라우저에만 저장됩니다.</p>
+        <label class="sb-field-label" for="sbOcrEngineSelect">OCR 엔진 선택</label>
+        <select id="sbOcrEngineSelect" class="sb-input">
+          <option value="gemini">Google Gemini 무료 API (추천 · 한글 손글씨·수식 최고 정확도)</option>
+          <option value="ocrspace">OCR.space 무료 API (인쇄체·정자체 한글 지원)</option>
+        </select>
+
+        <div id="sbOcrGeminiFields" style="margin-top:10px;">
+          <label class="sb-field-label" for="sbGeminiKeyInput">Google AI Studio 무료 API 키</label>
+          <input type="password" id="sbGeminiKeyInput" class="sb-input" placeholder="AIza...">
+          <small class="sb-sub-help">aistudio.google.com에서 무료 발급 가능. 한글 흘림 손글씨와 수학 수식까지 정확하게 인식합니다.</small>
+        </div>
+
+        <div id="sbOcrSpaceFields" style="margin-top:10px;display:none;">
+          <label class="sb-field-label" for="sbOcrSpaceKeyInput">OCR.space 무료 API 키 (비우면 체험용 공용 키 사용)</label>
+          <input type="text" id="sbOcrSpaceKeyInput" class="sb-input" placeholder="helloworld 또는 무료 발급 키">
+          <small class="sb-sub-help">ocr.space/ocrapi 에서 월 25,000건 무료 키를 받을 수 있습니다.</small>
+        </div>
+
+        <div class="sb-modal-actions">
+          <button type="button" class="sb-btn sb-btn-ghost" data-close="sbOcrCfgModal">닫기</button>
+          <button type="button" class="sb-btn sb-btn-primary" id="sbOcrSaveCfgBtn">설정 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR 변환 결과 모달 -->
+  <div class="sb-modal" id="sbOcrResultModal">
+    <div class="sb-modal-card">
+      <div class="sb-modal-head">
+        <h3>판서 → 글씨 변환 결과</h3>
+        <button type="button" class="sb-close-btn" data-close="sbOcrResultModal">&times;</button>
+      </div>
+      <div class="sb-modal-body">
+        <div id="sbOcrLoadingMsg" class="sb-help-note" style="display:none;">손글씨를 분석하는 중입니다...</div>
+        <textarea id="sbOcrResultText" class="sb-input" rows="6" placeholder="변환된 글씨가 여기에 표시됩니다. 필요하면 바로 다듬을 수 있습니다."></textarea>
+        <div class="sb-modal-actions">
+          <button type="button" class="sb-btn sb-btn-primary" id="sbOcrReplaceBtn">선택 판서를 글씨로 교체</button>
+          <button type="button" class="sb-btn sb-btn-accent" id="sbOcrToMemoBtn">수업 메모보드로 보내기</button>
+          <button type="button" class="sb-btn sb-btn-ghost" id="sbOcrCopyBtn">텍스트 복사</button>
+          <button type="button" class="sb-btn sb-btn-ghost" data-close="sbOcrResultModal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 단축키 및 사용법 모달 (SaniZ 호환 + 태블릿 S펜 안내) -->
+  <div class="sb-modal" id="sbHelpModal">
+    <div class="sb-modal-card sb-modal-wide">
+      <div class="sb-modal-head">
+        <h3>스마트 판서 보드 사용법 &amp; 단축키 안내</h3>
+        <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
+      </div>
+      <div class="sb-modal-body sb-help-grid">
+        <div class="sb-help-sec">
+          <h4>모드 전환 &amp; 저장</h4>
+          <ul>
+            <li><kbd>Alt + `</kbd> 게시 모드 켜기 / 끄기</li>
+            <li><kbd>Alt + 1</kbd> 확대 모드 켜기 / 끄기</li>
+            <li><kbd>Alt + 2</kbd> 판서 모드 켜기 / 끄기</li>
+            <li><kbd>Alt + 3</kbd> 편집 모드 켜기 / 끄기</li>
+            <li><kbd>Ctrl + S</kbd> 현재 화면 PNG 이미지 저장</li>
+            <li><kbd>Esc</kbd> 현재 작업 취소 / 확대 해제</li>
+          </ul>
+          <h4>게시 모드 (항상 맨 위 조각)</h4>
+          <ul>
+            <li><b>드래그</b>: 오려낼 영역 지정 (완료 시 자동 판서 복귀)</li>
+            <li>페이지를 넘겨도 게시된 조각은 화면 위에 유지됩니다.</li>
+            <li><b>조각 드래그</b>: 이동 / <b>휠·모서리</b>: 크기 조절 / <b>우클릭·×</b>: 삭제</li>
+          </ul>
+        </div>
+        <div class="sb-help-sec">
+          <h4>판서 모드 &amp; 갤럭시탭 S펜</h4>
+          <ul>
+            <li><b>드래그</b>: 자유 곡선 / <kbd>Shift</kbd>+드래그: 직선</li>
+            <li><kbd>Ctrl</kbd>+드래그: 사각형 / <kbd>Ctrl+Shift</kbd>+드래그: 채운 사각형</li>
+            <li><b>가림막</b>: 채운 상자를 그린 뒤 클릭(탭)하면 정답이 열리고 닫힙니다.</li>
+            <li><kbd>R</kbd> <kbd>G</kbd> <kbd>B</kbd> <kbd>Y</kbd> <kbd>I</kbd>: 5색 펜 / <kbd>T</kbd>: 텍스트 / <kbd>S</kbd>: 숫자 스탬프 / <kbd>E</kbd>: 지우개</li>
+            <li><kbd>K</kbd>/<kbd>W</kbd>: 칠판·백지 / <kbd>Ctrl+Z</kbd>: 되돌리기 / <kbd>Ctrl+E</kbd>: 전체 삭제</li>
+            <li><b>갤럭시탭 S펜</b>: 상단 <code>S펜 전용</code>을 켜면 손바닥을 대고 써도 오작동하지 않으며, S펜 옆 버튼을 누른 채 문지르면 지우개로 동작합니다.</li>
+          </ul>
+          <h4>편집 모드 &amp; 무료 OCR</h4>
+          <ul>
+            <li><b>드래그</b>로 영역 선택 후 안쪽을 드래그하면 선택된 판서만 이동합니다.</li>
+            <li>선택 바의 <b>[글씨로 변환 (OCR)]</b>으로 손글씨를 텍스트로 바꿀 수 있습니다.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./smart-board.js?v=1.0.0"></script>
+</body>
+</html>
