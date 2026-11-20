@@ -109,18 +109,29 @@ const sw = read('sw.js')
   .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash);
 write('sw.js', sw);
 
-// 4) 정적 파일 (매뉴얼, 매니페스트, 아이콘, 템플릿 등)
+// 4) 정적 파일 (매뉴얼, 스마트 판서 보드, 가이드, QR/PDF 라이브러리, 매니페스트, 아이콘 등)
 const rootStaticFiles = [
   'manifest.webmanifest',
   'icon.svg',
   'icon-maskable.svg',
   'manual.html',
   'sync-manual.html',
-  '교사용_올인원_클라우드동기화_매뉴얼.html'
+  '교사용_올인원_클라우드동기화_매뉴얼.html',
+  'youtube-guide.html',
+  'qr-lib.js',
+  'board.html',
+  'memo-board-guide.html',
+  'score-planner-guide.html',
+  'doc-converter-guide.html',
+  'smart-board.html',
+  'smart-board.css',
+  'smart-board.js',
+  'smart-board-guide.html'
 ];
 rootStaticFiles.forEach((f) => {
   if (fs.existsSync(path.join(SRC, f))) write(f, read(f));
 });
+const nLibs = copyDir('libs');
 const nGuide = copyDir('guide');
 const nAssets = copyDir('assets');
 const nVendor = copyDir('vendor');
@@ -143,6 +154,6 @@ const kb = (s) => Math.round(Buffer.byteLength(s, 'utf8') / 1024);
 console.log('  app.js    ' + kb(appSrc) + 'KB → ' + kb(obfuscated) + 'KB (난독화)');
 console.log('  style.css ' + kb(read('style.css')) + 'KB → ' + kb(css) + 'KB');
 console.log('  index.html ' + kb(read('index.html')) + 'KB → ' + kb(html) + 'KB');
-console.log('  guide/ ' + nGuide + '개, assets/ ' + nAssets + '개');
+console.log('  guide/ ' + nGuide + '개, assets/ ' + nAssets + '개, libs/ ' + nLibs + '개');
 console.log('  캐시 버전 ' + hash);
 console.log('✔ dist/ 생성 완료');
