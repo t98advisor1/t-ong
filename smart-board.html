@@ -9,7 +9,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=1.0.0">
+  <link rel="stylesheet" href="./smart-board.css?v=1.0.1">
 </head>
 <body class="sb-theme-dark">
   <!-- 상단 슬림 툴바 -->
@@ -212,46 +212,92 @@
     </div>
   </div>
 
-  <!-- 단축키 및 사용법 모달 (SaniZ 호환 + 태블릿 S펜 안내) -->
+  <!-- 단축키 및 스크린샷 6단계 사용설명서 모달 -->
   <div class="sb-modal" id="sbHelpModal">
-    <div class="sb-modal-card sb-modal-wide">
+    <div class="sb-modal-card sb-modal-guide">
       <div class="sb-modal-head">
-        <h3>스마트 판서 보드 사용법 &amp; 단축키 안내</h3>
-        <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
-      </div>
-      <div class="sb-modal-body sb-help-grid">
-        <div class="sb-help-sec">
-          <h4>모드 전환 &amp; 저장</h4>
-          <ul>
-            <li><kbd>Alt + `</kbd> 게시 모드 켜기 / 끄기</li>
-            <li><kbd>Alt + 1</kbd> 확대 모드 켜기 / 끄기</li>
-            <li><kbd>Alt + 2</kbd> 판서 모드 켜기 / 끄기</li>
-            <li><kbd>Alt + 3</kbd> 편집 모드 켜기 / 끄기</li>
-            <li><kbd>Ctrl + S</kbd> 현재 화면 PNG 이미지 저장</li>
-            <li><kbd>Esc</kbd> 현재 작업 취소 / 확대 해제</li>
-          </ul>
-          <h4>게시 모드 (항상 맨 위 조각)</h4>
-          <ul>
-            <li><b>드래그</b>: 오려낼 영역 지정 (완료 시 자동 판서 복귀)</li>
-            <li>페이지를 넘겨도 게시된 조각은 화면 위에 유지됩니다.</li>
-            <li><b>조각 드래그</b>: 이동 / <b>휠·모서리</b>: 크기 조절 / <b>우클릭·×</b>: 삭제</li>
-          </ul>
+        <div>
+          <span class="sb-guide-kicker">스크린샷 단계별 사용설명서</span>
+          <h3>스마트 판서 보드 6단계 사용법 &amp; 단축키 안내</h3>
         </div>
-        <div class="sb-help-sec">
-          <h4>판서 모드 &amp; 갤럭시탭 S펜</h4>
-          <ul>
-            <li><b>드래그</b>: 자유 곡선 / <kbd>Shift</kbd>+드래그: 직선</li>
-            <li><kbd>Ctrl</kbd>+드래그: 사각형 / <kbd>Ctrl+Shift</kbd>+드래그: 채운 사각형</li>
-            <li><b>가림막</b>: 채운 상자를 그린 뒤 클릭(탭)하면 정답이 열리고 닫힙니다.</li>
-            <li><kbd>R</kbd> <kbd>G</kbd> <kbd>B</kbd> <kbd>Y</kbd> <kbd>I</kbd>: 5색 펜 / <kbd>T</kbd>: 텍스트 / <kbd>S</kbd>: 숫자 스탬프 / <kbd>E</kbd>: 지우개</li>
-            <li><kbd>K</kbd>/<kbd>W</kbd>: 칠판·백지 / <kbd>Ctrl+Z</kbd>: 되돌리기 / <kbd>Ctrl+E</kbd>: 전체 삭제</li>
-            <li><b>갤럭시탭 S펜</b>: 상단 <code>S펜 전용</code>을 켜면 손바닥을 대고 써도 오작동하지 않으며, S펜 옆 버튼을 누른 채 문지르면 지우개로 동작합니다.</li>
-          </ul>
-          <h4>편집 모드 &amp; 무료 OCR</h4>
-          <ul>
-            <li><b>드래그</b>로 영역 선택 후 안쪽을 드래그하면 선택된 판서만 이동합니다.</li>
-            <li>선택 바의 <b>[글씨로 변환 (OCR)]</b>으로 손글씨를 텍스트로 바꿀 수 있습니다.</li>
-          </ul>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">설명서 새 창 / 인쇄</a>
+          <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
+        </div>
+      </div>
+      <div class="sb-modal-body sb-guide-modal-body">
+        <div class="sb-guide-cards">
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s1">STEP 1</span><b>PDF · PPTX(클릭 액션) · 이미지 · 배경 불러오기</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step1_load_pptx.png" alt="1단계 PDF, PPTX 클릭 액션 불러오기 화면"></div>
+            <ul>
+              <li>상단 <code>PDF 열기</code>, <code>PPTX 열기</code>, <code>이미지</code>(또는 <code>Ctrl+V</code>)로 수업 자료를 불러옵니다.</li>
+              <li>PPTX에 애니메이션이 있으면 하단 <code>PPTX 클릭 액션</code> 버튼(또는 <code>Space</code>/<code>→</code>)으로 숨겨진 공식·정답을 순서대로 공개합니다.</li>
+            </ul>
+          </article>
+
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s2">STEP 2</span><b>판서 모드 (Alt+2) — 펜 · 형광펜 · 가림막 · 텍스트 · 스탬프</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step2_draw_tools.png" alt="2단계 판서 도구, 형광펜, 가림막, 스탬프, 텍스트 화면"></div>
+            <ul>
+              <li>좌측 독에서 <code>펜</code>·<code>형광펜</code>·<code>레이저</code>·<code>직선(Shift)</code>·<code>사각형(Ctrl)</code>·<code>가림막</code>·<code>텍스트(T)</code>·<code>①스탬프(S)</code>를 선택합니다.</li>
+              <li><b>가림막</b>으로 정답을 가린 뒤 수업 중 탭하면 즉시 열리고 닫힙니다. <code>R/G/B/Y/I</code>로 5색을 빠르게 전환합니다.</li>
+            </ul>
+          </article>
+
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s3">STEP 3</span><b>게시 모드 (Alt+`) — 핵심 공식 오려 화면 맨 위 고정</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step3_pin_mode.png" alt="3단계 게시 모드 조각을 다음 페이지에서도 유지하는 화면"></div>
+            <ul>
+              <li><code>게시</code> 선택 후 화면 영역을 드래그하면 떠 있는 조각으로 고정되며, 자동으로 판서 모드로 돌아옵니다.</li>
+              <li><b>다음 페이지·슬라이드로 넘겨도 조각이 유지</b>됩니다. 드래그로 이동, 휠·모서리로 크기 조절, 우클릭·<code>×</code>로 삭제합니다.</li>
+            </ul>
+          </article>
+
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s4">STEP 4</span><b>확대 모드 (Alt+1) · 모눈 배경 · 갤럭시탭 S펜 전용</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step4_zoom_spen.png" alt="4단계 확대 모드 고정, 모눈 배경, S펜 전용 활성화 화면"></div>
+            <ul>
+              <li><code>확대(Alt+1)</code> 상태에서 마우스 이동·휠(또는 두 손가락 핀치)로 배율을 맞추고 <b>클릭하면 확대된 채로 바로 판서</b>합니다.</li>
+              <li>상단 <code>S펜 전용</code>을 켜면 손바닥이 화면에 닿아도 선이 그어지지 않으며, <b>S펜 옆 버튼</b>을 누른 채 문지르면 지우개로 작동합니다.</li>
+            </ul>
+          </article>
+
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s5">STEP 5</span><b>편집 모드 (Alt+3) — 영역 이동 &amp; 무료 OCR 글씨 변환</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step5_edit_ocr.png" alt="5단계 편집 모드 영역 선택 및 OCR 액션 바 화면"></div>
+            <ul>
+              <li><code>편집</code>에서 사각형으로 판서를 감싸면 안쪽을 드래그해 <b>선택한 판서만 통째로 이동</b>할 수 있습니다.</li>
+              <li>상단 바의 <code>글씨로 변환 (OCR)</code>을 누르면 손글씨를 텍스트로 바꿔 <b>판서 교체 · 복사 · 수업 메모보드 전송</b>을 바로 실행합니다.</li>
+            </ul>
+          </article>
+
+          <article class="sb-gcard">
+            <div class="sb-gcard-head"><span class="sb-gstep s6">STEP 6</span><b>무료 OCR 설정 · PNG 저장 (Ctrl+S) · 합본 PDF</b></div>
+            <div class="sb-gshot"><img src="./assets/smartboard_guide/step6_export_ocr_cfg.png" alt="6단계 무료 OCR 설정 모달과 PNG/합본 PDF 저장 화면"></div>
+            <ul>
+              <li><code>OCR 설정</code>에서 <b>Google Gemini 무료 API 키</b>(한글 흘림체·수식 추천) 또는 <b>OCR.space</b>를 1회 설정합니다.</li>
+              <li>수업 후 <code>PNG 저장(Ctrl+S)</code>으로 현재 화면을, <code>합본 PDF</code>로 전체 페이지 판서 합본을 다운로드합니다.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="sb-shortcut-summary">
+          <h4>SaniZ 호환 단축키 한눈에 보기</h4>
+          <div class="sb-sc-grid">
+            <span><kbd>Alt + `</kbd> 게시 모드</span>
+            <span><kbd>Alt + 1</kbd> 확대 모드</span>
+            <span><kbd>Alt + 2</kbd> 판서 모드</span>
+            <span><kbd>Alt + 3</kbd> 편집 모드</span>
+            <span><kbd>Ctrl + S</kbd> PNG 저장</span>
+            <span><kbd>Esc</kbd> 취소 / 확대 해제</span>
+            <span><kbd>Shift</kbd>+드래그 직선</span>
+            <span><kbd>Ctrl</kbd>+드래그 사각형</span>
+            <span><kbd>Ctrl+Shift</kbd>+드래그 채움</span>
+            <span><kbd>R G B Y I</kbd> 5색 펜</span>
+            <span><kbd>T</kbd> 텍스트 / <kbd>S</kbd> 스탬프 / <kbd>E</kbd> 지우개</span>
+            <span><kbd>K</kbd> 칠판 / <kbd>W</kbd> 백지 / <kbd>Ctrl+Z/E</kbd> 되돌리기·전체삭제</span>
+          </div>
         </div>
       </div>
     </div>

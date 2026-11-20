@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.1.0-44';
+var CACHE_VERSION = 'v3.1.0-45';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
@@ -11,7 +11,8 @@ var PRECACHE = [
   '/style.css?v=5.17.0-preview.89',
   '/app.js?v=5.17.0-preview.89',
   '/smart-board.html',
-  '/smart-board.css?v=1.0.0',
+  '/smart-board-guide.html',
+  '/smart-board.css?v=1.0.1',
   '/smart-board.js?v=1.0.0',
   '/qr-lib.js',
   '/libs/jszip.min.js',
