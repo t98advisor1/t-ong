@@ -38,8 +38,11 @@
     size: 5,
     bgMode: 'dark',        // 'dark' | 'light' | 'grid'
     palmReject: false,
-    spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] 버튼 활성화
+    spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] <-> [펜] 양방향 스위치
+    lastSpenSwitchTime: 0,
     lastDrawTool: 'pen',
+    autoHide: true,        // 상단 팔레트 자동 숨김 (판서 시작 시 자동으로 위로 숨김)
+    fillScreen: true,      // 화면 송출 시 여백 없는 100% 꽉 찬 화면 모드
     stampCounter: 1,
     zoomScale: 1,
     panX: 0,
@@ -99,12 +102,22 @@
     return state.pages[state.pageIndex];
   }
 
+  function getIdealBoardSize() {
+    var rect = stageWrap ? stageWrap.getBoundingClientRect() : { width: window.innerWidth || 1280, height: window.innerHeight || 800 };
+    var rw = Math.max(320, rect.width || window.innerWidth || 1280);
+    var rh = Math.max(240, rect.height || window.innerHeight || 800);
+    var bw = 1280;
+    var bh = state.fillScreen ? Math.round(bw * (rh / rw)) : 720;
+    return { w: bw, h: Math.max(400, Math.min(2000, bh)) };
+  }
+
   function createBlankPage(bgMode) {
+    var sz = getIdealBoardSize();
     return {
       kind: 'blank',
       label: bgMode === 'light' ? '백지' : (bgMode === 'grid' ? '모눈' : '칠판'),
-      width: 1280,
-      height: 720,
+      width: sz.w,
+      height: sz.h,
       bgMode: bgMode || state.bgMode,
       objects: [],
       redoStack: []
@@ -112,8 +125,18 @@
   }
 
   // ===================================================================
-  // 팔레트 접기/펴기 & 상하 여백 최소화 뷰포트 맞춤
+  // 상단 가로형 팔레트 접기/펴기(자동 숨김) & 100% 꽉 찬 전체화면 뷰포트 맞춤
   // ===================================================================
+  var autoHideTimer = null;
+  function scheduleAutoHidePalette(delayMs) {
+    clearTimeout(autoHideTimer);
+    if (!state.autoHide) return;
+    autoHideTimer = setTimeout(function () {
+      var anyModalOpen = document.querySelector('.sb-modal.show');
+      if (!anyModalOpen) togglePalette(true);
+    }, delayMs || 3200);
+  }
+
   function togglePalette(forceCollapse) {
     var pal = el('sbPalette');
     var opener = el('sbFloatingOpener');
@@ -122,11 +145,16 @@
     pal.classList.toggle('collapsed', collapsed);
     if (opener) opener.style.display = collapsed ? 'inline-flex' : 'none';
     setTimeout(fitViewport, 30);
-    setTimeout(fitViewport, 200);
+    setTimeout(fitViewport, 220);
   }
 
   function resizeBoardToPage() {
     var pg = curPage();
+    if (pg.kind === 'blank' && state.fillScreen) {
+      var sz = getIdealBoardSize();
+      pg.width = sz.w;
+      pg.height = sz.h;
+    }
     var w = pg.width || 1280;
     var h = pg.height || 720;
     [bgCanvas, inkCanvas, liveCanvas].forEach(function (cv) {
@@ -143,10 +171,16 @@
   function fitViewport() {
     var pg = curPage();
     var rect = stageWrap.getBoundingClientRect();
-    // 스마트패드 상하 여백 최소화 (padY = 2px)
-    var sx = Math.max(0.2, (rect.width - 4) / (pg.width || 1280));
-    var sy = Math.max(0.2, (rect.height - 2) / (pg.height || 720));
-    state.baseScale = Math.min(sx, sy);
+    var rw = Math.max(100, rect.width);
+    var rh = Math.max(100, rect.height);
+    var sx = rw / (pg.width || 1280);
+    var sy = rh / (pg.height || 720);
+    // 1:1 정방형 픽셀 비율 유지 (원형 스탬프가 절대 찌그러지지 않으면서 화면을 꽉 채움)
+    state.baseScale = state.fillScreen ? Math.max(sx, sy) : Math.min(sx, sy);
+    if (pg.kind === 'pdf' || pg.kind === 'pptx' || pg.kind === 'image') {
+      // 문서/슬라이드도 여백 0으로 화면에 꽉 차게 맞춤 (글자 잘림 방지)
+      state.baseScale = Math.min(sx, sy);
+    }
     applyTransform();
   }
 
@@ -264,11 +298,11 @@
       var lx = Math.min(o.x1, o.x2), ly = Math.min(o.y1, o.y2);
       return { x: lx - 6, y: ly - 6, w: Math.abs(o.x2 - o.x1) + 12, h: Math.abs(o.y2 - o.y1) + 12 };
     }
-    if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover') {
+    if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover' || o.type === 'circle') {
       return { x: Math.min(o.x, o.x + o.w), y: Math.min(o.y, o.y + o.h), w: Math.abs(o.w), h: Math.abs(o.h) };
     }
     if (o.type === 'stamp') {
-      var r = o.radius || 20;
+      var r = o.radius || 22;
       return { x: o.x - r, y: o.y - r, w: r * 2, h: r * 2 };
     }
     if (o.type === 'text') {
@@ -289,7 +323,7 @@
       o.points.forEach(function (pt) { pt.x += dx; pt.y += dy; });
     } else if (o.type === 'line') {
       o.x1 += dx; o.y1 += dy; o.x2 += dx; o.y2 += dy;
-    } else if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover' || o.type === 'stamp' || o.type === 'text') {
+    } else if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover' || o.type === 'circle' || o.type === 'stamp' || o.type === 'text') {
       o.x += dx; o.y += dy;
     }
   }
@@ -328,44 +362,84 @@
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
       ctx.strokeRect(o.x, o.y, o.w, o.h);
+    } else if (o.type === 'circle') {
+      ctx.strokeStyle = o.color || '#ef4444';
+      ctx.lineWidth = o.size || 5;
+      var cx = o.x + o.w / 2;
+      var cy = o.y + o.h / 2;
+      var rx = Math.max(1, Math.abs(o.w) / 2);
+      var ry = Math.max(1, Math.abs(o.h) / 2);
+      if (o.perfect) {
+        var pr = Math.max(rx, ry);
+        rx = pr; ry = pr;
+      }
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
     } else if (o.type === 'fillRect') {
       ctx.fillStyle = o.color || '#ef4444';
       ctx.globalAlpha = 0.88;
       ctx.fillRect(o.x, o.y, o.w, o.h);
     } else if (o.type === 'cover') {
-      var rx = Math.min(o.x, o.x + o.w), ry = Math.min(o.y, o.y + o.h);
+      var rx2 = Math.min(o.x, o.x + o.w), ry2 = Math.min(o.y, o.y + o.h);
       var rw = Math.abs(o.w), rh = Math.abs(o.h);
       if (o.revealed) {
         ctx.strokeStyle = '#38bdf8';
         ctx.setLineDash([6, 4]);
         ctx.lineWidth = 2;
-        ctx.strokeRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx2, ry2, rw, rh);
       } else {
         ctx.fillStyle = '#1e293b';
-        ctx.fillRect(rx, ry, rw, rh);
+        ctx.fillRect(rx2, ry2, rw, rh);
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2.5;
-        ctx.strokeRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx2, ry2, rw, rh);
         ctx.fillStyle = '#bae6fd';
         ctx.font = 'bold 16px Pretendard, "Noto Sans KR", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        if (rw > 70 && rh > 26) ctx.fillText('탭하여 공개', rx + rw / 2, ry + rh / 2);
+        if (rw > 70 && rh > 26) ctx.fillText('탭하여 공개', rx2 + rw / 2, ry2 + rh / 2);
       }
     } else if (o.type === 'stamp') {
-      var rad = o.radius || 20;
+      var rad = Math.round(o.radius || 22);
+      var sx = Math.round(o.x);
+      var sy = Math.round(o.y);
       ctx.fillStyle = o.color || '#ef4444';
-      ctx.beginPath();
-      ctx.arc(o.x, o.y, rad, 0, Math.PI * 2);
-      ctx.fill();
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+      ctx.lineWidth = 2.6;
+      if (o.shape === 'square') {
+        // 사각 번호 스탬프 (정사각형 1:1 비율)
+        var boxX = sx - rad;
+        var boxY = sy - rad;
+        var side = rad * 2;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(boxX, boxY, side, side, 5);
+        else ctx.rect(boxX, boxY, side, side);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // 완벽한 정원(1:1 원형) 번호 스탬프
+        ctx.beginPath();
+        ctx.arc(sx, sy, rad, 0, Math.PI * 2, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      var numStr = String(o.num || 1);
       ctx.fillStyle = (o.color === '#facc15' || o.color === '#f8fafc') ? '#0f172a' : '#ffffff';
-      ctx.font = '900 ' + Math.round(rad * 1.1) + 'px Pretendard, sans-serif';
+      var fontPx = Math.round(rad * (numStr.length >= 2 ? 0.96 : 1.12));
+      ctx.font = '900 ' + fontPx + 'px Pretendard, "Noto Sans KR", sans-serif';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(String(o.num || 1), o.x, o.y + 1);
+      ctx.textBaseline = 'alphabetic';
+      var m = ctx.measureText(numStr);
+      var asc = (typeof m.actualBoundingBoxAscent === 'number' && m.actualBoundingBoxAscent > 0)
+        ? m.actualBoundingBoxAscent
+        : fontPx * 0.72;
+      var desc = (typeof m.actualBoundingBoxDescent === 'number')
+        ? m.actualBoundingBoxDescent
+        : fontPx * 0.08;
+      var textY = sy + (asc - desc) / 2;
+      ctx.fillText(numStr, sx, textY);
     } else if (o.type === 'text') {
       var fs = o.fontSize || 26;
       ctx.fillStyle = o.color || '#f8fafc';
@@ -703,17 +777,22 @@
 
   function activateSpenEraserButton(toggleIfAlreadyEraser, reasonText) {
     if (!state.spenEraserOnBtn) return false;
-    if (toggleIfAlreadyEraser && state.tool === 'eraser') {
+    var now = Date.now();
+    // 한 번의 물리 버튼 클릭으로 hover + pointerdown 이 연속 발생할 때 이중 토글 방지 (280ms 디바운스)
+    if (now - (state.lastSpenSwitchTime || 0) < 280) return true;
+    state.lastSpenSwitchTime = now;
+
+    // 항상 양방향 스위치(지우개 <-> 이전 펜 도구)로 동작!
+    if (state.tool === 'eraser') {
       var prev = state.lastDrawTool || 'pen';
       setTool(prev);
-      showToast((reasonText || 'S펜 버튼') + ': [' + prev + '] 도구로 전환되었습니다.');
+      showToast((reasonText || 'S펜 버튼 스위치') + ': 다시 [' + prev + '] 모드로 전환되었습니다.');
+      return true;
+    } else {
+      setTool('eraser');
+      showToast((reasonText || 'S펜 버튼 스위치') + ': [지우개] 모드가 활성화되었습니다. (한 번 더 누르면 펜 복귀)');
       return true;
     }
-    if (state.tool !== 'eraser') {
-      setTool('eraser');
-      showToast((reasonText || 'S펜 버튼') + ': [지우개] 버튼이 활성화되었습니다.');
-    }
-    return true;
   }
 
   function setColor(hex) {
@@ -872,6 +951,11 @@
     pointer.moved = false;
     try { liveCanvas.setPointerCapture(ev.pointerId); } catch (e) {}
 
+    // 자동 숨김이 켜져 있으면 판서 시작 시 상단 팔레트를 자동으로 위로 숨겨 100% 꽉 찬 화면 확보
+    if (state.autoHide && el('sbPalette') && !el('sbPalette').classList.contains('collapsed')) {
+      togglePalette(true);
+    }
+
     if (state.mode === 'pin') {
       pointer.effectiveTool = 'pin_select';
       return;
@@ -889,16 +973,15 @@
       return;
     }
 
-    var isSpenEraser = isSpenSideButtonPressed(ev);
-    if (isSpenEraser && state.spenEraserOnBtn) {
-      // 갤럭시 S펜 옆 버튼을 누른 채 화면을 터치하거나 클릭하면 좌측 팔레트 [지우개] 버튼을 즉시 활성화!
-      activateSpenEraserButton(false, 'S펜 옆 버튼 감지');
+    var isSpenBtn = isSpenSideButtonPressed(ev);
+    if (isSpenBtn && state.spenEraserOnBtn) {
+      // 갤럭시 S펜 옆 버튼을 누르면 [지우개] <-> [펜] 양방향 스위치로 전환!
+      activateSpenEraserButton(true, 'S펜 옆 버튼 스위치');
     }
     var eff = state.tool;
-    if (isSpenEraser) eff = 'eraser';
-    else if (ev.ctrlKey && ev.shiftKey) eff = 'fillRect';
+    if (ev.ctrlKey && ev.shiftKey) eff = 'fillRect';
     else if (ev.ctrlKey) eff = 'rect';
-    else if (ev.shiftKey) eff = 'line';
+    else if (ev.shiftKey && eff !== 'circle') eff = 'line';
     pointer.effectiveTool = eff;
 
     if (eff === 'text') {
@@ -906,17 +989,18 @@
       openInlineText(pt.x, pt.y);
       return;
     }
-    if (eff === 'stamp') {
+    if (eff === 'stamp' || eff === 'sqStamp') {
       pointer.down = false;
       var pg = curPage();
       pg.objects.push({
         id: uid(),
         type: 'stamp',
-        x: pt.x,
-        y: pt.y,
+        shape: eff === 'sqStamp' ? 'square' : 'circle',
+        x: Math.round(pt.x),
+        y: Math.round(pt.y),
         num: state.stampCounter++,
         color: state.color,
-        radius: Math.max(16, state.size * 2.5)
+        radius: Math.max(18, Math.round(state.size * 2.6))
       });
       pg.redoStack = [];
       if (el('sbStampNum')) el('sbStampNum').textContent = state.stampCounter;
@@ -1050,12 +1134,12 @@
       pointer.currentStroke.points.push({ x: pt.x, y: pt.y });
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       drawInkObject(liveCtx, pointer.currentStroke);
-    } else if (eff === 'line' || eff === 'rect' || eff === 'fillRect' || eff === 'cover') {
+    } else if (eff === 'line' || eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') {
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       if (eff === 'line') {
         drawInkObject(liveCtx, { type: 'line', x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
       } else {
-        drawInkObject(liveCtx, { type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false });
+        drawInkObject(liveCtx, { type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false, perfect: !!ev.shiftKey });
       }
     }
     pointer.lastX = pt.x;
@@ -1122,8 +1206,8 @@
       curPg.redoStack = [];
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       renderInk();
-    } else if ((eff === 'rect' || eff === 'fillRect' || eff === 'cover') && pointer.moved) {
-      curPg.objects.push({ id: uid(), type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false });
+    } else if ((eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') && pointer.moved) {
+      curPg.objects.push({ id: uid(), type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false, perfect: !!ev.shiftKey });
       curPg.redoStack = [];
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       renderInk();
@@ -1243,36 +1327,100 @@
     dkBlue: '#1e3a8a', ltGray: '#e2e8f0', dkGray: '#334155', orange: '#f97316', purple: '#9333ea'
   };
 
+  var activeThemeMap = {
+    bg1: '#ffffff', lt1: '#ffffff', tx1: '#0f172a', dk1: '#0f172a',
+    bg2: '#f1f5f9', lt2: '#e2e8f0', tx2: '#1e293b', dk2: '#1e293b',
+    accent1: '#2563eb', accent2: '#ea580c', accent3: '#16a34a',
+    accent4: '#d97706', accent5: '#0891b2', accent6: '#7c3aed',
+    hlink: '#2563eb', folHlink: '#7c3aed'
+  };
+
+  function applyColorModifiers(hexStr, clrNode) {
+    if (!hexStr || !clrNode || hexStr.charAt(0) !== '#' || hexStr.length < 7) return hexStr;
+    var r = parseInt(hexStr.slice(1, 3), 16);
+    var g = parseInt(hexStr.slice(3, 5), 16);
+    var b = parseInt(hexStr.slice(5, 7), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return hexStr;
+
+    var lumModNode = directChild(clrNode, 'lumMod');
+    var lumOffNode = directChild(clrNode, 'lumOff');
+    var tintNode = directChild(clrNode, 'tint');
+    var shadeNode = directChild(clrNode, 'shade');
+
+    if (lumModNode || lumOffNode) {
+      var mod = lumModNode ? (parseInt(xmlAttr(lumModNode, 'val'), 10) / 100000) : 1;
+      var off = lumOffNode ? (parseInt(xmlAttr(lumOffNode, 'val'), 10) / 100000) : 0;
+      if (!isNaN(mod) && !isNaN(off)) {
+        r = Math.round(Math.max(0, Math.min(255, r * mod + 255 * off)));
+        g = Math.round(Math.max(0, Math.min(255, g * mod + 255 * off)));
+        b = Math.round(Math.max(0, Math.min(255, b * mod + 255 * off)));
+      }
+    }
+    if (tintNode) {
+      var tv = parseInt(xmlAttr(tintNode, 'val'), 10) / 100000;
+      if (!isNaN(tv)) {
+        r = Math.round(r + (255 - r) * (1 - tv));
+        g = Math.round(g + (255 - g) * (1 - tv));
+        b = Math.round(b + (255 - b) * (1 - tv));
+      }
+    }
+    if (shadeNode) {
+      var sv = parseInt(xmlAttr(shadeNode, 'val'), 10) / 100000;
+      if (!isNaN(sv)) {
+        r = Math.round(r * sv);
+        g = Math.round(g * sv);
+        b = Math.round(b * sv);
+      }
+    }
+    var toHex = function (n) { var s = Math.max(0, Math.min(255, n)).toString(16); return s.length < 2 ? '0' + s : s; };
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+  }
+
   function extractFillColor(node) {
     if (!node) return null;
-    var srgb = qOne(node, 'srgbClr');
-    if (srgb && xmlAttr(srgb, 'val')) return '#' + xmlAttr(srgb, 'val');
-    var sys = qOne(node, 'sysClr');
-    if (sys && xmlAttr(sys, 'lastClr')) return '#' + xmlAttr(sys, 'lastClr');
-    var prst = qOne(node, 'prstClr');
-    if (prst && PRESET_COLORS[xmlAttr(prst, 'val')]) return PRESET_COLORS[xmlAttr(prst, 'val')];
-    var scheme = qOne(node, 'schemeClr');
+    if (directChild(node, 'noFill')) return null;
+    var grad = node.localName === 'gradFill' ? node : qOne(node, 'gradFill');
+    var target = grad ? (qOne(grad, 'gs') || grad) : node;
+
+    var srgb = qOne(target, 'srgbClr');
+    if (srgb && xmlAttr(srgb, 'val')) return applyColorModifiers('#' + xmlAttr(srgb, 'val'), srgb);
+    var sys = qOne(target, 'sysClr');
+    if (sys && (xmlAttr(sys, 'lastClr') || xmlAttr(sys, 'val'))) {
+      var sc = xmlAttr(sys, 'lastClr') || (xmlAttr(sys, 'val') === 'windowText' ? '000000' : 'FFFFFF');
+      return applyColorModifiers('#' + sc, sys);
+    }
+    var prst = qOne(target, 'prstClr');
+    if (prst && PRESET_COLORS[xmlAttr(prst, 'val')]) return applyColorModifiers(PRESET_COLORS[xmlAttr(prst, 'val')], prst);
+    var scheme = qOne(target, 'schemeClr');
     if (scheme) {
       var v = xmlAttr(scheme, 'val');
-      var map = {
-        bg1: '#ffffff', lt1: '#ffffff', tx1: '#0f172a', dk1: '#0f172a',
-        bg2: '#f1f5f9', lt2: '#e2e8f0', tx2: '#1e293b', dk2: '#1e293b',
-        accent1: '#2563eb', accent2: '#ea580c', accent3: '#16a34a',
-        accent4: '#d97706', accent5: '#0891b2', accent6: '#7c3aed'
-      };
-      return map[v] || null;
+      var baseHex = activeThemeMap[v] || null;
+      return baseHex ? applyColorModifiers(baseHex, scheme) : null;
     }
     return null;
   }
 
-  // 실제 파워포인트 <p:timing> 클릭 시퀀스 파서 (도형 단위 + 문단 pRg 단위 + bldP 지원)
+  // 실제 파워포인트 <p:timing> 클릭 시퀀스 파서 (mainSeq + interactiveSeq 트리거 + 문단 pRg + bldP 완벽 지원)
   function parseSlideTiming(doc) {
     var timing = qOne(doc, 'timing');
     if (!timing) return [];
 
-    // mainSeq 가 있으면 mainSeq 하위를 우선 탐색
-    var mainSeq = qAll(timing, 'cTn').find(function (n) { return xmlAttr(n, 'nodeType') === 'mainSeq'; });
-    var searchRoot = mainSeq || timing;
+    // bldLst(<p:bldP spid="3" build="p"/>) 문단 빌드 대상 파악
+    var bldParaMap = {};
+    qAll(timing, 'bldP').forEach(function (bp) {
+      var bSpid = xmlAttr(bp, 'spid');
+      var bType = xmlAttr(bp, 'build');
+      if (bSpid && (bType === 'p' || bType === 'allAtOnce')) {
+        bldParaMap[bSpid] = bType;
+      }
+    });
+
+    // mainSeq 뿐 아니라 interactiveSeq(특정 도형 클릭 트리거 시퀀스)도 모두 수집
+    var seqNodes = qAll(timing, 'cTn').filter(function (n) {
+      var nt = xmlAttr(n, 'nodeType');
+      return nt === 'mainSeq' || nt === 'interactiveSeq';
+    });
+    var searchRoots = seqNodes.length ? seqNodes : [timing];
 
     var steps = [];
     var seenInStep = {};
@@ -1298,45 +1446,46 @@
       return targets;
     }
 
-    var allCtns = qAll(searchRoot, 'cTn');
-    allCtns.forEach(function (ctn) {
-      var nt = xmlAttr(ctn, 'nodeType');
-      var pClass = xmlAttr(ctn, 'presetClass');
-      var isEffectNode = (nt === 'clickEffect' || nt === 'withEffect' || nt === 'afterEffect') ||
-                         (pClass === 'entr' || pClass === 'exit' || pClass === 'emph' || pClass === 'path');
-      if (!isEffectNode) return;
+    searchRoots.forEach(function (rootNode) {
+      var allCtns = qAll(rootNode, 'cTn');
+      allCtns.forEach(function (ctn) {
+        var nt = xmlAttr(ctn, 'nodeType');
+        var pClass = xmlAttr(ctn, 'presetClass');
+        var isEffectNode = (nt === 'clickEffect' || nt === 'withEffect' || nt === 'afterEffect') ||
+                           (pClass === 'entr' || pClass === 'exit' || pClass === 'emph' || pClass === 'path');
+        if (!isEffectNode) return;
 
-      // presetClass 가 생략된 경우 내부 set(style.visibility) 또는 animEffect 로 판별
-      if (!pClass) {
-        var animEf = qOne(ctn, 'animEffect');
-        if (animEf) {
-          pClass = xmlAttr(animEf, 'transition') === 'out' ? 'exit' : 'entr';
-        } else if (qOne(ctn, 'set') || qOne(ctn, 'anim')) {
-          var toVal = qOne(ctn, 'to');
-          var strVal = toVal ? qOne(toVal, 'strVal') : null;
-          pClass = (strVal && xmlAttr(strVal, 'val') === 'hidden') ? 'exit' : 'entr';
-        } else {
-          return;
+        if (!pClass) {
+          var animEf = qOne(ctn, 'animEffect');
+          if (animEf) {
+            pClass = xmlAttr(animEf, 'transition') === 'out' ? 'exit' : 'entr';
+          } else if (qOne(ctn, 'set') || qOne(ctn, 'anim') || qOne(ctn, 'animScale') || qOne(ctn, 'animMotion')) {
+            var toVal = qOne(ctn, 'to');
+            var strVal = toVal ? qOne(toVal, 'strVal') : null;
+            pClass = (strVal && (xmlAttr(strVal, 'val') === 'hidden' || xmlAttr(strVal, 'val') === 'false')) ? 'exit' : 'entr';
+          } else {
+            return;
+          }
         }
-      }
-      if (pClass === 'path') pClass = 'emph';
-      if (pClass !== 'entr' && pClass !== 'exit' && pClass !== 'emph') return;
+        if (pClass === 'path') pClass = 'emph';
+        if (pClass !== 'entr' && pClass !== 'exit' && pClass !== 'emph') return;
 
-      var tgts = extractTargetsFromEffectNode(ctn, pClass);
-      if (!tgts.length) return;
+        var tgts = extractTargetsFromEffectNode(ctn, pClass);
+        if (!tgts.length) return;
 
-      var isClickStart = (nt === 'clickEffect') || !steps.length;
-      if (isClickStart) {
-        steps.push({ targets: [] });
-        seenInStep = {};
-      }
-      var curStep = steps[steps.length - 1];
-      tgts.forEach(function (t) {
-        var key = t.spid + ':' + t.pStart + ':' + t.pEnd + ':' + t.presetClass;
-        if (!seenInStep[key]) {
-          seenInStep[key] = true;
-          curStep.targets.push(t);
+        var isClickStart = (nt === 'clickEffect') || !steps.length;
+        if (isClickStart) {
+          steps.push({ targets: [] });
+          seenInStep = {};
         }
+        var curStep = steps[steps.length - 1];
+        tgts.forEach(function (t) {
+          var key = t.spid + ':' + t.pStart + ':' + t.pEnd + ':' + t.presetClass;
+          if (!seenInStep[key]) {
+            seenInStep[key] = true;
+            curStep.targets.push(t);
+          }
+        });
       });
     });
 
@@ -1372,6 +1521,70 @@
       var slideCy = parseInt(xmlAttr(sldSz, 'cy'), 10) || 5143500;
       var bw = 1280;
       var bh = Math.round(bw * (slideCy / slideCx));
+
+      // 1) ppt/theme/theme1.xml 에서 실제 테마 색상표(dk1, lt1, accent1~6 등) 추출
+      activeThemeMap = {
+        bg1: '#ffffff', lt1: '#ffffff', tx1: '#0f172a', dk1: '#0f172a',
+        bg2: '#f1f5f9', lt2: '#e2e8f0', tx2: '#1e293b', dk2: '#1e293b',
+        accent1: '#2563eb', accent2: '#ea580c', accent3: '#16a34a',
+        accent4: '#d97706', accent5: '#0891b2', accent6: '#7c3aed',
+        hlink: '#2563eb', folHlink: '#7c3aed'
+      };
+      var themeFile = zip.file('ppt/theme/theme1.xml');
+      if (themeFile) {
+        var tDoc = parser.parseFromString(await themeFile.async('string'), 'application/xml');
+        var clrScheme = qOne(tDoc, 'clrScheme');
+        if (clrScheme && clrScheme.children) {
+          Array.from(clrScheme.children).forEach(function (cNode) {
+            var slot = cNode.localName;
+            var srgb = qOne(cNode, 'srgbClr');
+            var sys = qOne(cNode, 'sysClr');
+            if (srgb && xmlAttr(srgb, 'val')) activeThemeMap[slot] = '#' + xmlAttr(srgb, 'val');
+            else if (sys && (xmlAttr(sys, 'lastClr') || xmlAttr(sys, 'val'))) {
+              activeThemeMap[slot] = '#' + (xmlAttr(sys, 'lastClr') || (xmlAttr(sys, 'val') === 'windowText' ? '000000' : 'FFFFFF'));
+            }
+          });
+          activeThemeMap.bg1 = activeThemeMap.lt1 || '#ffffff';
+          activeThemeMap.tx1 = activeThemeMap.dk1 || '#0f172a';
+          activeThemeMap.bg2 = activeThemeMap.lt2 || '#f1f5f9';
+          activeThemeMap.tx2 = activeThemeMap.dk2 || '#1e293b';
+        }
+      }
+
+      // 2) ppt/slideMasters/slideMaster1.xml 에서 clrMap 및 마스터 기본 배경·플레이스홀더 추출
+      var masterPhBoxes = {};
+      var masterBgColor = null;
+      var masterFile = zip.file('ppt/slideMasters/slideMaster1.xml');
+      if (masterFile) {
+        var mDoc = parser.parseFromString(await masterFile.async('string'), 'application/xml');
+        var clrMap = qOne(mDoc, 'clrMap');
+        if (clrMap) {
+          ['bg1', 'tx1', 'bg2', 'tx2', 'accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'].forEach(function (k) {
+            var mapped = xmlAttr(clrMap, k);
+            if (mapped && activeThemeMap[mapped]) activeThemeMap[k] = activeThemeMap[mapped];
+          });
+        }
+        masterBgColor = extractFillColor(qOne(mDoc, 'bg'));
+        qAll(mDoc, 'sp').forEach(function (sp) {
+          var ph = qOne(sp, 'ph');
+          if (!ph) return;
+          var key = (xmlAttr(ph, 'type') || '') + ':' + (xmlAttr(ph, 'idx') || '');
+          var xfrm = qOne(sp, 'xfrm');
+          var off = xfrm ? qOne(xfrm, 'off') : null;
+          var ext = xfrm ? qOne(xfrm, 'ext') : null;
+          if (off && ext && xmlAttr(off, 'x') !== '') {
+            var box = {
+              x: (parseInt(xmlAttr(off, 'x'), 10) / slideCx) * bw,
+              y: (parseInt(xmlAttr(off, 'y'), 10) / slideCy) * bh,
+              w: (parseInt(xmlAttr(ext, 'cx'), 10) / slideCx) * bw,
+              h: (parseInt(xmlAttr(ext, 'cy'), 10) / slideCy) * bh
+            };
+            masterPhBoxes[key] = box;
+            if (xmlAttr(ph, 'type')) masterPhBoxes[xmlAttr(ph, 'type') + ':'] = box;
+            if (xmlAttr(ph, 'idx')) masterPhBoxes[':' + xmlAttr(ph, 'idx')] = box;
+          }
+        });
+      }
 
       var presRelsFile = zip.file('ppt/_rels/presentation.xml.rels');
       var relMap = {};
@@ -1465,7 +1678,12 @@
 
         var layoutInfo = layoutPath ? await parseLayoutPlaceholders(layoutPath) : { phBoxes: {}, bgColor: null };
         var bgNode = qOne(sDoc, 'bg');
-        var bgColor = extractFillColor(bgNode) || layoutInfo.bgColor || '#ffffff';
+        var bgColor = extractFillColor(bgNode) || layoutInfo.bgColor || masterBgColor || activeThemeMap.bg1 || '#ffffff';
+        var isDarkSlideBg = false;
+        if (bgColor && bgColor.charAt(0) === '#' && bgColor.length >= 7) {
+          var br = parseInt(bgColor.slice(1, 3), 16), bgG = parseInt(bgColor.slice(3, 5), 16), bb = parseInt(bgColor.slice(5, 7), 16);
+          if ((br * 0.299 + bgG * 0.587 + bb * 0.114) < 128) isDarkSlideBg = true;
+        }
         var bgDataUrl = null;
         var bgBlip = bgNode ? qOne(bgNode, 'blip') : null;
         if (bgBlip) {
@@ -1547,6 +1765,9 @@
               box = layoutInfo.phBoxes[phType + ':' + phIdx] ||
                     layoutInfo.phBoxes[phType + ':'] ||
                     layoutInfo.phBoxes[':' + phIdx] ||
+                    masterPhBoxes[phType + ':' + phIdx] ||
+                    masterPhBoxes[phType + ':'] ||
+                    masterPhBoxes[':' + phIdx] ||
                     defaultPlaceholderBox(phType, phIdx, bw, bh);
             }
 
@@ -1568,12 +1789,27 @@
             } else {
               var spPr = directChild(ch, 'spPr') || qOne(ch, 'spPr');
               var noFill = spPr ? directChild(spPr, 'noFill') : null;
-              var fill = noFill ? null : extractFillColor(spPr ? directChild(spPr, 'solidFill') : null);
+              var fillNode = spPr ? (directChild(spPr, 'solidFill') || directChild(spPr, 'gradFill')) : null;
+              var fill = noFill ? null : extractFillColor(fillNode);
+              // 도형 내부에 그림 채우기(<a:blipFill>)가 있는 경우 이미지 도형으로 추가
+              var spBlipFill = spPr ? directChild(spPr, 'blipFill') : null;
+              if (spBlipFill) {
+                var spBlip = qOne(spBlipFill, 'blip');
+                var spRid = spBlip ? (spBlip.getAttribute('r:embed') || spBlip.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed')) : '';
+                var spImgUrl = (spRid && sRelMap[spRid]) ? await getMediaDataUrl(sRelMap[spRid]) : null;
+                if (spImgUrl) elements.push({ kind: 'pic', spid: spid, x: box.x, y: box.y, w: box.w, h: box.h, imgDataUrl: spImgUrl });
+              }
               var lnNode = spPr ? directChild(spPr, 'ln') : null;
               var noLine = lnNode ? directChild(lnNode, 'noFill') : null;
               var stroke = (lnNode && !noLine) ? (extractFillColor(lnNode) || (ln === 'cxnSp' ? '#475569' : null)) : null;
               var prstGeom = spPr ? qOne(spPr, 'prstGeom') : null;
               var geom = prstGeom ? xmlAttr(prstGeom, 'prst') : (ln === 'cxnSp' ? 'line' : 'rect');
+
+              var isDarkBox = isDarkSlideBg;
+              if (fill && fill.charAt(0) === '#' && fill.length >= 7) {
+                var fr = parseInt(fill.slice(1, 3), 16), fg = parseInt(fill.slice(3, 5), 16), fb2 = parseInt(fill.slice(5, 7), 16);
+                isDarkBox = (fr * 0.299 + fg * 0.587 + fb2 * 0.114) < 135;
+              }
 
               var paras = [];
               var txBody = directChild(ch, 'txBody') || qOne(ch, 'txBody');
@@ -1586,7 +1822,7 @@
                   var bullet = buChar ? (xmlAttr(buChar, 'char') + ' ') : '';
                   var lineTxt = '';
                   var fontSize = (phType === 'title' || phType === 'ctrTitle') ? 34 : 21;
-                  var fontColor = (fill && /^#(1e|0f|1d|25|31|00)/i.test(fill)) ? '#ffffff' : '#0f172a';
+                  var fontColor = isDarkBox ? '#f8fafc' : (activeThemeMap.tx1 || '#0f172a');
                   var bold = (phType === 'title' || phType === 'ctrTitle');
 
                   qAll(pNode, 'r').forEach(function (rNode) {
@@ -2316,11 +2552,51 @@
     renderBackground();
     renderInk();
 
-    window.addEventListener('resize', fitViewport);
+    window.addEventListener('resize', function () {
+      resizeBoardToPage();
+      renderBackground();
+      renderInk();
+    });
 
-    // 팔레트 접기/펴기
+    // 상단 팔레트 접기/펴기 & 자동 숨김 센서
     if (el('sbFoldPaletteBtn')) el('sbFoldPaletteBtn').addEventListener('click', function () { togglePalette(true); });
     if (el('sbOpenPaletteBtn')) el('sbOpenPaletteBtn').addEventListener('click', function () { togglePalette(false); });
+    if (el('sbTopHoverSensor')) {
+      el('sbTopHoverSensor').addEventListener('pointerenter', function () {
+        if (el('sbPalette') && el('sbPalette').classList.contains('collapsed')) {
+          togglePalette(false);
+        }
+      });
+    }
+    if (el('sbAutoHideBtn')) {
+      el('sbAutoHideBtn').addEventListener('click', function () {
+        state.autoHide = !state.autoHide;
+        this.classList.toggle('active', state.autoHide);
+        this.textContent = state.autoHide ? '자동숨김: 켜짐' : '자동숨김: 꺼짐';
+        showToast(state.autoHide ? '상단 팔레트 자동 숨김 ON (판서 시작 시 자동으로 위로 숨겨집니다)' : '상단 팔레트 자동 숨김 OFF (항상 상단에 고정)');
+      });
+    }
+    if (el('sbFillScreenModeBtn')) {
+      el('sbFillScreenModeBtn').addEventListener('click', function () {
+        state.fillScreen = !state.fillScreen;
+        this.classList.toggle('active', state.fillScreen);
+        this.textContent = state.fillScreen ? '꽉찬화면: ON' : '꽉찬화면: OFF';
+        resizeBoardToPage();
+        renderBackground();
+        renderInk();
+        showToast(state.fillScreen ? '화면 송출용 100% 꽉 찬 화면 모드 ON' : '기본 비율 화면 모드');
+      });
+    }
+    if (el('sbFloatingHelpBtn')) {
+      el('sbFloatingHelpBtn').addEventListener('click', function () {
+        if (el('sbHelpModal')) el('sbHelpModal').classList.add('show');
+      });
+    }
+    if (el('sbFloatingFsBtn')) {
+      el('sbFloatingFsBtn').addEventListener('click', function () {
+        if (el('sbFullscreenBtn')) el('sbFullscreenBtn').click();
+      });
+    }
 
     // 삼성노트형 폴더 보관함
     if (el('sbOpenVaultBtn')) el('sbOpenVaultBtn').addEventListener('click', async function () {
@@ -2418,32 +2694,30 @@
       b.addEventListener('click', function () { setBlankBgMode(b.getAttribute('data-sb-bg')); });
     });
 
-    // S펜 옆 버튼 & 에어액션 → 지우개 활성화 토글
+    // S펜 옆 버튼 & 에어액션 → [지우개] <-> [펜] 양방향 스위치 토글
     if (el('sbSpenEraserModeBtn')) {
       el('sbSpenEraserModeBtn').addEventListener('click', function () {
         state.spenEraserOnBtn = !state.spenEraserOnBtn;
         this.classList.toggle('active', state.spenEraserOnBtn);
-        this.textContent = state.spenEraserOnBtn ? 'S펜버튼: 지우개' : 'S펜버튼: 꺼짐';
+        this.textContent = state.spenEraserOnBtn ? 'S펜버튼: 지우개↔펜 스위치' : 'S펜버튼: 꺼짐';
         showToast(state.spenEraserOnBtn
-          ? 'S펜 옆 버튼 / 에어액션 지우개 전환 ON (펜 버튼을 누르면 [지우개] 버튼이 즉시 활성화됩니다)'
-          : 'S펜 옆 버튼 지우개 자동 활성화 OFF');
+          ? 'S펜 버튼 양방향 스위치 ON (펜 버튼을 누르면 [지우개], 다시 누르면 [펜]으로 전환됩니다)'
+          : 'S펜 옆 버튼 스위치 OFF');
       });
     }
 
-    // 갤럭시탭(안드로이드 크롬/삼성 인터넷)에서 S펜 옆 버튼을 누른 채 화면을 탭할 때 발생하는 contextmenu / auxclick 가로채기 → [지우개] 버튼 활성화
+    // 갤럭시탭(안드로이드 크롬/삼성 인터넷)에서 S펜 옆 버튼을 누를 때 발생하는 contextmenu / auxclick 가로채기 → [지우개] <-> [펜] 스위치
     liveCanvas.addEventListener('contextmenu', function (ev) {
       ev.preventDefault();
       if (state.spenEraserOnBtn) {
-        activateSpenEraserButton(false, 'S펜 버튼 감지');
-        var pt = clientToBoard(ev.clientX, ev.clientY);
-        eraseAt(pt.x, pt.y);
+        activateSpenEraserButton(true, 'S펜 버튼 스위치');
       }
     });
     liveCanvas.addEventListener('auxclick', function (ev) {
       if (ev.button === 2 || ev.button === 5) {
         ev.preventDefault();
         if (state.spenEraserOnBtn) {
-          activateSpenEraserButton(true, 'S펜 버튼 클릭');
+          activateSpenEraserButton(true, 'S펜 버튼 스위치');
         }
       }
     });
@@ -2565,23 +2839,58 @@
       showToast('모든 게시 조각을 닫았습니다.');
     });
 
-    // 저장 / 단축키 / 전체화면 매뉴얼
+    // 저장 / 단축키 전체창 / 사용설명서 2단계 뷰(큰 글씨 텍스트 요약 <-> 전체화면 GIF 과정)
     if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', saveCurrentPng);
     if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', saveMergedPdf);
     if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () { el('sbShortcutModal').classList.add('show'); });
-    if (el('sbHelpBtn')) el('sbHelpBtn').addEventListener('click', function () { el('sbHelpModal').classList.add('show'); });
-    if (el('sbHelpToggleFsBtn')) el('sbHelpToggleFsBtn').addEventListener('click', function () {
-      var card = el('sbHelpModalCard');
+    if (el('sbShortcutToggleFsBtn')) el('sbShortcutToggleFsBtn').addEventListener('click', function () {
+      var card = el('sbShortcutModalCard');
       if (!card) return;
       var fs = card.classList.toggle('is-fullscreen');
       this.textContent = fs ? '창 크기로 보기' : '전체화면으로 보기';
     });
+
+    function switchHelpVisualMode(showVisualGif) {
+      var quickPane = el('sbGuideQuickTextPane');
+      var visualPane = el('sbGuideFullVisualPane');
+      var toggleBtn = el('sbToggleVisualGuideBtn');
+      var card = el('sbHelpModalCard');
+      if (!quickPane || !visualPane) return;
+      quickPane.style.display = showVisualGif ? 'none' : 'block';
+      visualPane.style.display = showVisualGif ? 'block' : 'none';
+      if (card) card.classList.add('is-fullscreen');
+      if (toggleBtn) {
+        toggleBtn.textContent = showVisualGif ? '← 큰 글씨 핵심 요약으로 보기' : '전체화면으로 GIF & 상세 과정 보기';
+      }
+    }
+
+    if (el('sbHelpBtn')) el('sbHelpBtn').addEventListener('click', function () {
+      switchHelpVisualMode(false);
+      el('sbHelpModal').classList.add('show');
+    });
+    if (el('sbToggleVisualGuideBtn')) el('sbToggleVisualGuideBtn').addEventListener('click', function () {
+      var visualPane = el('sbGuideFullVisualPane');
+      var isCurrentlyVisual = visualPane && visualPane.style.display !== 'none';
+      switchHelpVisualMode(!isCurrentlyVisual);
+    });
+    if (el('sbEnterFullGifViewBtn')) el('sbEnterFullGifViewBtn').addEventListener('click', function () {
+      switchHelpVisualMode(true);
+    });
+    if (el('sbBackToQuickTextBtn')) el('sbBackToQuickTextBtn').addEventListener('click', function () {
+      switchHelpVisualMode(false);
+    });
+
     if (el('sbFullscreenBtn')) el('sbFullscreenBtn').addEventListener('click', function () {
       if (!document.fullscreenElement) {
         if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
       } else if (document.exitFullscreen) {
         document.exitFullscreen().catch(function () {});
       }
+      setTimeout(function () {
+        resizeBoardToPage();
+        renderBackground();
+        renderInk();
+      }, 150);
     });
 
     // OCR 설정 & 결과 모달
@@ -2669,6 +2978,17 @@
 
       if (e.key === 'Tab') { e.preventDefault(); togglePalette(); return; }
       if (e.key === '?' || e.key === 'F1') { e.preventDefault(); el('sbShortcutModal').classList.toggle('show'); return; }
+      // 백스페이스(Backspace) 또는 Delete: 편집 모드 선택 영역 삭제 또는 마지막 판서 취소(되돌리기)
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        if (state.mode === 'edit' && state.selection && el('sbEditDelBtn')) {
+          el('sbEditDelBtn').click();
+        } else if (el('sbUndoBtn')) {
+          el('sbUndoBtn').click();
+          showToast('마지막 판서 동작을 취소했습니다. (Backspace)');
+        }
+        return;
+      }
       if (e.altKey && (e.code === 'Backquote' || e.key === '`')) { e.preventDefault(); setMode(state.mode === 'pin' ? 'draw' : 'pin'); return; }
       if (e.altKey && e.key === '1') { e.preventDefault(); setMode(state.mode === 'zoom' ? 'draw' : 'zoom'); return; }
       if (e.altKey && e.key === '2') { e.preventDefault(); setMode('draw'); return; }
@@ -2689,20 +3009,30 @@
 
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         var k = e.key.toLowerCase();
-        if (k === 'r') setColor('#ef4444');
-        else if (k === 'g') setColor('#22c55e');
-        else if (k === 'b') setColor('#3b82f6');
-        else if (k === 'y') setColor('#facc15');
-        else if (k === 'i') setColor('#f8fafc');
-        else if (k === 't') setTool(state.tool === 'text' ? 'pen' : 'text');
-        else if (k === 's') setTool(state.tool === 'stamp' ? 'pen' : 'stamp');
-        else if (k === 'e') setTool(state.tool === 'eraser' ? 'pen' : 'eraser');
+        // 도형 및 도구 1글자 단축키: 지우개(E), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
+        if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
+        else if (k === 's') setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');
+        else if (k === 'q') setTool(state.tool === 'sqStamp' ? (state.lastDrawTool || 'pen') : 'sqStamp');
+        else if (k === 't') setTool(state.tool === 'text' ? (state.lastDrawTool || 'pen') : 'text');
+        else if (k === 'r') setTool(e.shiftKey ? 'fillRect' : 'rect');
+        else if (k === 'c') setTool('circle');
+        else if (k === 'l') setTool('line');
+        else if (k === 'p') setTool('pen');
+        else if (k === 'h') setTool('highlighter');
+        else if (k === 'f') { if (el('sbFullscreenBtn')) el('sbFullscreenBtn').click(); }
+        // 숫자 1~6: 펜 색상 빠른 변경
+        else if (k === '1') setColor('#ef4444');
+        else if (k === '2') setColor('#22c55e');
+        else if (k === '3') setColor('#3b82f6');
+        else if (k === '4') setColor('#facc15');
+        else if (k === '5') setColor('#f8fafc');
+        else if (k === '6') setColor('#0f172a');
         else if (k === 'k') setBlankBgMode('dark');
         else if (k === 'w') setBlankBgMode('light');
-        // 갤럭시 S펜 블루투스 에어액션(Air Action: 허공에서 S펜 버튼 클릭 시 브라우저로 전달되는 PageDown / PageUp / MediaPlayPause / F13~F24 신호) → [지우개] 버튼 활성화 토글
+        // 갤럭시 S펜 블루투스 에어액션(Air Action) → [지우개] <-> [펜] 양방향 스위치 토글
         else if (state.spenEraserOnBtn && (e.key === 'PageDown' || e.key === 'PageUp' || e.key === 'MediaPlayPause' || /^f(1[3-9]|2[0-4])$/i.test(e.key))) {
           e.preventDefault();
-          activateSpenEraserButton(true, 'S펜 에어액션 버튼');
+          activateSpenEraserButton(true, 'S펜 에어액션 스위치');
         }
         else if (e.key === ' ' || e.key === 'ArrowRight') {
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(1); }
