@@ -75,9 +75,12 @@
 
         <!-- 3. 판서 도구 모음 -->
         <section class="sb-pal-sec">
-          <div class="sb-pal-sec-title">
+          <div class="sb-pal-sec-title" style="flex-wrap:wrap;gap:4px;">
             <span>판서 도구</span>
-            <button type="button" class="sb-spen-pill" id="sbPalmRejectBtn" title="갤럭시탭 S펜 전용 필기 (손바닥 터치 무시)">S펜 전용: 꺼짐</button>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <button type="button" class="sb-spen-pill active" id="sbSpenEraserModeBtn" title="갤럭시 S펜 옆 버튼 누르기 또는 에어액션 버튼 클릭 시 [지우개] 버튼을 즉시 활성화합니다">S펜버튼: 지우개</button>
+              <button type="button" class="sb-spen-pill" id="sbPalmRejectBtn" title="갤럭시탭 S펜 전용 필기 (손바닥 터치 무시)">S펜전용: 꺼짐</button>
+            </div>
           </div>
           <div class="sb-tool-grid">
             <button type="button" class="sb-tool-btn active" data-sb-tool="pen" title="자유 곡선 펜">펜</button>

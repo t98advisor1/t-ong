@@ -38,6 +38,8 @@
     size: 5,
     bgMode: 'dark',        // 'dark' | 'light' | 'grid'
     palmReject: false,
+    spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] 버튼 활성화
+    lastDrawTool: 'pen',
     stampCounter: 1,
     zoomScale: 1,
     panX: 0,
@@ -71,6 +73,7 @@
     effectiveTool: 'pen',
     currentStroke: null,
     draggingSelection: false,
+    lastHoverSideBtn: false,
     pinchMap: {}
   };
 
@@ -673,6 +676,9 @@
 
   function setTool(nextTool) {
     commitInlineText();
+    if (nextTool !== 'eraser') {
+      state.lastDrawTool = nextTool;
+    }
     state.tool = nextTool;
     if (state.webActive && state.webInteract) setWebInteractMode(false);
     if (state.mode !== 'draw') setMode('draw');
@@ -680,6 +686,34 @@
       b.classList.toggle('active', b.getAttribute('data-sb-tool') === nextTool);
     });
     liveCanvas.style.cursor = nextTool === 'text' ? 'text' : 'crosshair';
+  }
+
+  // 갤럭시 S펜 옆 버튼(배럴 버튼: button=2 / buttons bit 2, 지우개 버튼: button=5 / buttons bit 32) 감지
+  function isSpenSideButtonPressed(ev) {
+    if (!ev) return false;
+    var btns = typeof ev.buttons === 'number' ? ev.buttons : 0;
+    var btn = typeof ev.button === 'number' ? ev.button : -1;
+    if ((btns & 32) !== 0 || btn === 5) return true;
+    if ((btns & 2) !== 0 || btn === 2) {
+      // S펜(pen)이거나 S펜 버튼 모드가 켜져 있을 때 보조 버튼 입력을 S펜 옆 버튼으로 처리
+      if (ev.pointerType === 'pen' || state.spenEraserOnBtn) return true;
+    }
+    return false;
+  }
+
+  function activateSpenEraserButton(toggleIfAlreadyEraser, reasonText) {
+    if (!state.spenEraserOnBtn) return false;
+    if (toggleIfAlreadyEraser && state.tool === 'eraser') {
+      var prev = state.lastDrawTool || 'pen';
+      setTool(prev);
+      showToast((reasonText || 'S펜 버튼') + ': [' + prev + '] 도구로 전환되었습니다.');
+      return true;
+    }
+    if (state.tool !== 'eraser') {
+      setTool('eraser');
+      showToast((reasonText || 'S펜 버튼') + ': [지우개] 버튼이 활성화되었습니다.');
+    }
+    return true;
   }
 
   function setColor(hex) {
@@ -800,14 +834,16 @@
   }
 
   liveCanvas.addEventListener('pointerdown', function (ev) {
-    pointer.pinchMap[ev.pointerId] = { x: ev.clientX, y: ev.clientY, type: ev.pointerType };
-    var pIds = Object.keys(pointer.pinchMap);
-    if (pIds.length === 2) {
-      pointer.down = false;
-      var p1 = pointer.pinchMap[pIds[0]], p2 = pointer.pinchMap[pIds[1]];
-      pointer.pinchStartDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      pointer.pinchStartZoom = state.zoomScale;
-      return;
+    if (ev.pointerType === 'touch') {
+      pointer.pinchMap[ev.pointerId] = { x: ev.clientX, y: ev.clientY, type: ev.pointerType };
+      var pIds = Object.keys(pointer.pinchMap);
+      if (pIds.length === 2) {
+        pointer.down = false;
+        var p1 = pointer.pinchMap[pIds[0]], p2 = pointer.pinchMap[pIds[1]];
+        pointer.pinchStartDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        pointer.pinchStartZoom = state.zoomScale;
+        return;
+      }
     }
 
     if (state.palmReject && ev.pointerType === 'touch' && state.mode === 'draw') {
@@ -816,7 +852,7 @@
       pointer.effectiveTool = 'pan';
       pointer.lastX = ev.clientX;
       pointer.lastY = ev.clientY;
-      liveCanvas.setPointerCapture(ev.pointerId);
+      try { liveCanvas.setPointerCapture(ev.pointerId); } catch (e) {}
       return;
     }
 
@@ -834,7 +870,7 @@
     pointer.lastX = pt.x;
     pointer.lastY = pt.y;
     pointer.moved = false;
-    liveCanvas.setPointerCapture(ev.pointerId);
+    try { liveCanvas.setPointerCapture(ev.pointerId); } catch (e) {}
 
     if (state.mode === 'pin') {
       pointer.effectiveTool = 'pin_select';
@@ -853,7 +889,11 @@
       return;
     }
 
-    var isSpenEraser = (ev.pointerType === 'pen' && (ev.buttons === 32 || ev.button === 5));
+    var isSpenEraser = isSpenSideButtonPressed(ev);
+    if (isSpenEraser && state.spenEraserOnBtn) {
+      // 갤럭시 S펜 옆 버튼을 누른 채 화면을 터치하거나 클릭하면 좌측 팔레트 [지우개] 버튼을 즉시 활성화!
+      activateSpenEraserButton(false, 'S펜 옆 버튼 감지');
+    }
     var eff = state.tool;
     if (isSpenEraser) eff = 'eraser';
     else if (ev.ctrlKey && ev.shiftKey) eff = 'fillRect';
@@ -929,6 +969,17 @@
       state.panY = Math.round(-ny * 2 * maxPanY);
       applyTransform();
       return;
+    }
+
+    // 갤럭시탭 S펜을 화면 가까이 호버링(hover)한 상태에서 펜 옆 버튼을 딸깍 눌렀을 때 [지우개] 버튼 즉시 토글/활성화!
+    if (!pointer.down && (ev.pointerType === 'pen' || state.spenEraserOnBtn)) {
+      var hoverSidePressed = ((ev.buttons & 2) !== 0 || (ev.buttons & 32) !== 0);
+      if (hoverSidePressed && !pointer.lastHoverSideBtn) {
+        pointer.lastHoverSideBtn = true;
+        activateSpenEraserButton(true, 'S펜 호버 버튼 클릭');
+      } else if (!hoverSidePressed && pointer.lastHoverSideBtn) {
+        pointer.lastHoverSideBtn = false;
+      }
     }
 
     if (!pointer.down || ev.pointerId !== pointer.activeId) return;
@@ -2367,12 +2418,42 @@
       b.addEventListener('click', function () { setBlankBgMode(b.getAttribute('data-sb-bg')); });
     });
 
+    // S펜 옆 버튼 & 에어액션 → 지우개 활성화 토글
+    if (el('sbSpenEraserModeBtn')) {
+      el('sbSpenEraserModeBtn').addEventListener('click', function () {
+        state.spenEraserOnBtn = !state.spenEraserOnBtn;
+        this.classList.toggle('active', state.spenEraserOnBtn);
+        this.textContent = state.spenEraserOnBtn ? 'S펜버튼: 지우개' : 'S펜버튼: 꺼짐';
+        showToast(state.spenEraserOnBtn
+          ? 'S펜 옆 버튼 / 에어액션 지우개 전환 ON (펜 버튼을 누르면 [지우개] 버튼이 즉시 활성화됩니다)'
+          : 'S펜 옆 버튼 지우개 자동 활성화 OFF');
+      });
+    }
+
+    // 갤럭시탭(안드로이드 크롬/삼성 인터넷)에서 S펜 옆 버튼을 누른 채 화면을 탭할 때 발생하는 contextmenu / auxclick 가로채기 → [지우개] 버튼 활성화
+    liveCanvas.addEventListener('contextmenu', function (ev) {
+      ev.preventDefault();
+      if (state.spenEraserOnBtn) {
+        activateSpenEraserButton(false, 'S펜 버튼 감지');
+        var pt = clientToBoard(ev.clientX, ev.clientY);
+        eraseAt(pt.x, pt.y);
+      }
+    });
+    liveCanvas.addEventListener('auxclick', function (ev) {
+      if (ev.button === 2 || ev.button === 5) {
+        ev.preventDefault();
+        if (state.spenEraserOnBtn) {
+          activateSpenEraserButton(true, 'S펜 버튼 클릭');
+        }
+      }
+    });
+
     // S펜 전용 토글
     if (el('sbPalmRejectBtn')) {
       el('sbPalmRejectBtn').addEventListener('click', function () {
         state.palmReject = !state.palmReject;
         this.classList.toggle('active', state.palmReject);
-        this.textContent = state.palmReject ? 'S펜 전용: 켜짐' : 'S펜 전용: 꺼짐';
+        this.textContent = state.palmReject ? 'S펜전용: 켜짐' : 'S펜전용: 꺼짐';
         showToast(state.palmReject ? 'S펜 전용 모드 ON (손바닥 무시 · 손가락으로 확대 이동)' : 'S펜 전용 모드 OFF (손가락·펜 모두 필기)');
       });
     }
@@ -2618,6 +2699,11 @@
         else if (k === 'e') setTool(state.tool === 'eraser' ? 'pen' : 'eraser');
         else if (k === 'k') setBlankBgMode('dark');
         else if (k === 'w') setBlankBgMode('light');
+        // 갤럭시 S펜 블루투스 에어액션(Air Action: 허공에서 S펜 버튼 클릭 시 브라우저로 전달되는 PageDown / PageUp / MediaPlayPause / F13~F24 신호) → [지우개] 버튼 활성화 토글
+        else if (state.spenEraserOnBtn && (e.key === 'PageDown' || e.key === 'PageUp' || e.key === 'MediaPlayPause' || /^f(1[3-9]|2[0-4])$/i.test(e.key))) {
+          e.preventDefault();
+          activateSpenEraserButton(true, 'S펜 에어액션 버튼');
+        }
         else if (e.key === ' ' || e.key === 'ArrowRight') {
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(1); }
           else if (e.key === 'ArrowRight') goPage(state.pageIndex + 1);
