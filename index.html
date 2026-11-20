@@ -3438,6 +3438,82 @@
   <script src="./qr-lib.js"></script>
   <script src="/app.js?v=5.17.0-preview.90"></script>
   <script>
+    // 스크린샷 사용설명서 모달(수업 메모보드, 문항 배점 설계기, 문서·PDF 올인원 변환기) 2단 분할 제거 & 전체화면 좌우 슬라이드 초기화
+    (function initGuideSlideDecks() {
+      document.querySelectorAll('.mb-guide-dialog').forEach(function (dlg) {
+        var stepsWrap = dlg.querySelector('.mb-guide-steps');
+        if (!stepsWrap) return;
+        var cards = Array.from(stepsWrap.querySelectorAll('.mb-guide-card'));
+        if (cards.length < 2) return;
+
+        var nav = document.createElement('div');
+        nav.className = 'mb-slide-nav-bar';
+
+        var prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = 'btn-primary';
+        prevBtn.textContent = '◀ 이전 단계';
+
+        var tabsWrap = document.createElement('div');
+        tabsWrap.className = 'mb-slide-tabs';
+        cards.forEach(function (c, i) {
+          var tb = document.createElement('button');
+          tb.type = 'button';
+          tb.className = 'mb-slide-tab' + (i === 0 ? ' active' : '');
+          var headB = c.querySelector('.mb-guide-step-head b');
+          var shortTitle = headB ? headB.textContent.slice(0, 16) : ('단계 ' + (i + 1));
+          tb.textContent = (i + 1) + '. ' + shortTitle;
+          tb.addEventListener('click', function () { goSlide(i); });
+          tabsWrap.appendChild(tb);
+        });
+
+        var counter = document.createElement('strong');
+        counter.style.cssText = 'color:#38bdf8;font-size:0.95rem;padding:0 8px;white-space:nowrap;';
+        counter.textContent = '1 / ' + cards.length;
+
+        var nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'btn-primary';
+        nextBtn.textContent = '다음 단계 ▶';
+
+        var allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'btn-outline';
+        allBtn.style.cssText = 'background:#1e293b;color:#f8fafc;border-color:#475569;';
+        allBtn.textContent = '전체 연속 보기';
+
+        nav.appendChild(prevBtn);
+        nav.appendChild(tabsWrap);
+        nav.appendChild(counter);
+        nav.appendChild(nextBtn);
+        nav.appendChild(allBtn);
+        stepsWrap.parentNode.insertBefore(nav, stepsWrap);
+
+        var cur = 0, showAll = false;
+        function goSlide(idx) {
+          showAll = false;
+          allBtn.textContent = '전체 연속 보기';
+          cur = (idx + cards.length) % cards.length;
+          cards.forEach(function (c, i) { c.style.display = i === cur ? 'flex' : 'none'; });
+          Array.from(tabsWrap.children).forEach(function (t, i) { t.classList.toggle('active', i === cur); });
+          counter.textContent = (cur + 1) + ' / ' + cards.length;
+        }
+        prevBtn.addEventListener('click', function () { goSlide(cur - 1); });
+        nextBtn.addEventListener('click', function () { goSlide(cur + 1); });
+        allBtn.addEventListener('click', function () {
+          showAll = !showAll;
+          if (showAll) {
+            cards.forEach(function (c) { c.style.display = 'flex'; });
+            allBtn.textContent = '1장씩 슬라이드로 보기';
+          } else {
+            goSlide(cur);
+          }
+        });
+        goSlide(0);
+      });
+    })();
+  </script>
+  <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;
     var isLocalDev = ['localhost', '127.0.0.1', '::1'].indexOf(localHost) !== -1 || /^192\.168\./.test(localHost) || /^10\./.test(localHost) || /^172\.(1[6-9]|2\d|3[01])\./.test(localHost);

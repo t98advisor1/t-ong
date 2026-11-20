@@ -2839,15 +2839,73 @@
       showToast('모든 게시 조각을 닫았습니다.');
     });
 
-    // 저장 / 단축키 전체창 / 사용설명서 2단계 뷰(큰 글씨 텍스트 요약 <-> 전체화면 GIF 과정)
+    // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
     if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', saveCurrentPng);
     if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', saveMergedPdf);
-    if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () { el('sbShortcutModal').classList.add('show'); });
+    if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () {
+      goScSlide(0);
+      el('sbShortcutModal').classList.add('show');
+    });
     if (el('sbShortcutToggleFsBtn')) el('sbShortcutToggleFsBtn').addEventListener('click', function () {
       var card = el('sbShortcutModalCard');
       if (!card) return;
       var fs = card.classList.toggle('is-fullscreen');
       this.textContent = fs ? '창 크기로 보기' : '전체화면으로 보기';
+    });
+
+    // 단축키 안내 모달 내부 스크린샷 좌우 슬라이드 (1 / 2)
+    var scSlideIdx = 0;
+    function goScSlide(idx) {
+      var panes = document.querySelectorAll('[data-sc-slide-pane]');
+      if (!panes.length) return;
+      scSlideIdx = (idx + panes.length) % panes.length;
+      panes.forEach(function (p, i) {
+        p.style.display = i === scSlideIdx ? 'flex' : 'none';
+        p.classList.toggle('active', i === scSlideIdx);
+      });
+      document.querySelectorAll('[data-sc-slide]').forEach(function (t, i) {
+        t.classList.toggle('active', i === scSlideIdx);
+      });
+      if (el('sbScSlideCounter')) el('sbScSlideCounter').textContent = (scSlideIdx + 1) + ' / ' + panes.length;
+    }
+    if (el('sbScPrevSlideBtn')) el('sbScPrevSlideBtn').addEventListener('click', function () { goScSlide(scSlideIdx - 1); });
+    if (el('sbScNextSlideBtn')) el('sbScNextSlideBtn').addEventListener('click', function () { goScSlide(scSlideIdx + 1); });
+    document.querySelectorAll('[data-sc-slide]').forEach(function (tb) {
+      tb.addEventListener('click', function () { goScSlide(parseInt(tb.getAttribute('data-sc-slide'), 10) || 0); });
+    });
+
+    // 사용설명서 전체화면 GIF & 스크린샷 좌우 슬라이드 (1 / 6)
+    var visSlideIdx = 0;
+    var visShowAll = false;
+    function goVisSlide(idx) {
+      var panes = document.querySelectorAll('[data-vis-slide-pane]');
+      if (!panes.length) return;
+      visShowAll = false;
+      if (el('sbVisShowAllToggleBtn')) el('sbVisShowAllToggleBtn').textContent = '연속 스크롤로 보기';
+      visSlideIdx = (idx + panes.length) % panes.length;
+      panes.forEach(function (p, i) {
+        p.style.display = i === visSlideIdx ? 'flex' : 'none';
+        p.classList.toggle('active', i === visSlideIdx);
+      });
+      document.querySelectorAll('[data-vis-slide]').forEach(function (t, i) {
+        t.classList.toggle('active', i === visSlideIdx);
+      });
+      if (el('sbVisSlideCounter')) el('sbVisSlideCounter').textContent = (visSlideIdx + 1) + ' / ' + panes.length;
+    }
+    if (el('sbVisPrevSlideBtn')) el('sbVisPrevSlideBtn').addEventListener('click', function () { goVisSlide(visSlideIdx - 1); });
+    if (el('sbVisNextSlideBtn')) el('sbVisNextSlideBtn').addEventListener('click', function () { goVisSlide(visSlideIdx + 1); });
+    document.querySelectorAll('[data-vis-slide]').forEach(function (tb) {
+      tb.addEventListener('click', function () { goVisSlide(parseInt(tb.getAttribute('data-vis-slide'), 10) || 0); });
+    });
+    if (el('sbVisShowAllToggleBtn')) el('sbVisShowAllToggleBtn').addEventListener('click', function () {
+      var panes = document.querySelectorAll('[data-vis-slide-pane]');
+      visShowAll = !visShowAll;
+      if (visShowAll) {
+        panes.forEach(function (p) { p.style.display = 'flex'; });
+        this.textContent = '1장씩 슬라이드로 보기';
+      } else {
+        goVisSlide(visSlideIdx);
+      }
     });
 
     function switchHelpVisualMode(showVisualGif) {
@@ -2858,6 +2916,7 @@
       if (!quickPane || !visualPane) return;
       quickPane.style.display = showVisualGif ? 'none' : 'block';
       visualPane.style.display = showVisualGif ? 'block' : 'none';
+      if (showVisualGif) goVisSlide(0);
       if (card) card.classList.add('is-fullscreen');
       if (toggleBtn) {
         toggleBtn.textContent = showVisualGif ? '← 큰 글씨 핵심 요약으로 보기' : '전체화면으로 GIF & 상세 과정 보기';
@@ -3035,9 +3094,29 @@
           activateSpenEraserButton(true, 'S펜 에어액션 스위치');
         }
         else if (e.key === ' ' || e.key === 'ArrowRight') {
+          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
+            e.preventDefault();
+            goVisSlide(visSlideIdx + 1);
+            return;
+          }
+          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
+            e.preventDefault();
+            goScSlide(scSlideIdx + 1);
+            return;
+          }
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(1); }
           else if (e.key === 'ArrowRight') goPage(state.pageIndex + 1);
         } else if (e.key === 'ArrowLeft') {
+          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
+            e.preventDefault();
+            goVisSlide(visSlideIdx - 1);
+            return;
+          }
+          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
+            e.preventDefault();
+            goScSlide(scSlideIdx - 1);
+            return;
+          }
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(-1); }
           else goPage(state.pageIndex - 1);
         }

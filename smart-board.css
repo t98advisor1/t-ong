@@ -1234,51 +1234,90 @@ kbd {
   color: #1e293b;
 }
 
-/* 전체화면 1단 대형 GIF & 과정 뷰 */
-.sb-visual-top-bar {
+/* 전체화면 1단 대형 GIF & 좌우 슬라이드 과정 뷰 */
+.sb-slide-nav-bar {
   background: #0f172a;
   color: #ffffff;
   border-radius: 14px;
-  padding: 14px 20px;
-  margin-bottom: 18px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
-.sb-visual-top-bar strong {
-  display: block;
-  font-size: 1.12rem;
-  color: #38bdf8;
+.sb-slide-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  justify-content: center;
 }
-.sb-visual-top-bar span {
-  font-size: 0.92rem;
+.sb-slide-tab {
+  border: 1px solid #334155;
+  background: #1e293b;
   color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.sb-slide-tab:hover { background: #334155; color: #ffffff; }
+.sb-slide-tab.active {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+.sb-slide-counter {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #38bdf8;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.sb-gshot.sb-gshot-full {
+  width: 100%;
+  aspect-ratio: auto;
+  max-height: 66vh;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.sb-gshot.sb-gshot-full img {
+  width: 100%;
+  max-height: 64vh;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 .sb-visual-single-col {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  max-width: 980px;
+  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
 }
-.sb-visual-single-col .sb-gcard {
+.sb-visual-single-col .sb-gcard,
+.sb-slide-viewport .sb-gcard {
   padding: 18px 20px;
+  width: 100%;
 }
-.sb-visual-single-col .sb-gcard-head b {
-  font-size: 1.12rem;
+.sb-visual-single-col .sb-gcard-head b,
+.sb-slide-viewport .sb-gcard-head b {
+  font-size: 1.14rem;
 }
-.sb-visual-single-col .sb-gcard ul {
-  font-size: 0.98rem;
+.sb-visual-single-col .sb-gcard ul,
+.sb-slide-viewport .sb-gcard ul {
+  font-size: 1rem;
   line-height: 1.65;
-}
-
-/* 단축키 전체창 모달 내부 스크린샷 그리드 */
-.sb-sc-shot-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
 }
 .sb-sc-full-table {
   font-size: 0.94rem;

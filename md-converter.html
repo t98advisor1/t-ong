@@ -416,90 +416,137 @@
       color: #1e293b;
     }
 
-    /* 스크린샷 사용설명서 모달 */
+    /* 스크린샷 사용설명서 모달 (2단 분할 없이 100% 전체화면 좌우 슬라이드) */
     .md-modal {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.72);
+      background: rgba(15, 23, 42, 0.85);
       z-index: 100;
       display: none;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      padding: 18px;
+      padding: 0;
     }
     .md-modal.show { display: flex; }
     .md-modal-card {
       background: #ffffff;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 1180px;
-      max-height: 92vh;
+      border-radius: 0;
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
     .md-modal-head {
-      padding: 16px 22px;
+      padding: 14px 22px;
       background: #0f172a;
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      flex-shrink: 0;
     }
-    .md-modal-head h3 { margin: 2px 0 0; font-size: 1.12rem; }
+    .md-modal-head h3 { margin: 2px 0 0; font-size: 1.15rem; }
     .md-modal-body {
-      padding: 20px 22px;
+      padding: 16px 24px 28px;
       overflow-y: auto;
+      flex: 1 1 auto;
+      background: #f1f5f9;
+    }
+    .md-slide-nav {
+      max-width: 1240px;
+      margin: 0 auto 14px;
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .md-slide-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+    .md-slide-tab {
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      font-size: 0.84rem;
+      font-weight: 800;
+      padding: 6px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .md-slide-tab.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+      color: #ffffff;
     }
     .md-guide-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1240px;
+      margin: 0 auto;
     }
     .md-gcard {
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 16px;
       overflow: hidden;
-      background: #f8fafc;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     }
     .md-gcard-head {
-      padding: 11px 14px;
+      padding: 14px 18px;
       background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 800;
-      font-size: 0.92rem;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 1.08rem;
     }
     .md-gstep {
       background: #2563eb;
       color: #ffffff;
-      font-size: 0.73rem;
-      font-weight: 800;
-      padding: 2px 9px;
+      font-size: 0.8rem;
+      font-weight: 900;
+      padding: 4px 12px;
       border-radius: 999px;
     }
     .md-gshot {
       background: #0f172a;
-      padding: 10px;
+      padding: 12px;
       border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .md-gshot img {
       width: 100%;
+      max-height: 64vh;
+      object-fit: contain;
       height: auto;
       display: block;
-      border-radius: 8px;
+      border-radius: 10px;
     }
     .md-gcard ul {
       margin: 0;
-      padding: 12px 16px 14px 30px;
-      font-size: 0.83rem;
-      color: #334155;
+      padding: 14px 22px 18px 36px;
+      font-size: 0.98rem;
+      color: #1e293b;
+      line-height: 1.65;
     }
-    .md-gcard li { margin-bottom: 5px; }
+    .md-gcard li { margin-bottom: 6px; }
 
     @media (max-width: 1024px) {
       .md-workspace, .md-editor-grid, .md-info-grid, .md-guide-grid {
@@ -684,9 +731,22 @@
         </div>
       </div>
       <div class="md-modal-body">
-        <div class="md-guide-grid">
-          <article class="md-gcard">
-            <div class="md-gcard-head"><span class="md-gstep">STEP 1</span><b>파일 끌어다 놓기 또는 폴더 통째로 넣기</b></div>
+        <div class="md-slide-nav">
+          <button type="button" class="md-btn md-btn-primary" id="mdSlidePrevBtn">◀ 이전 단계</button>
+          <div class="md-slide-tabs" id="mdSlideTabs">
+            <button type="button" class="md-slide-tab active" data-md-slide="0">STEP 1 · 파일/폴더 넣기</button>
+            <button type="button" class="md-slide-tab" data-md-slide="1">STEP 2 · 한글 수식 LaTeX 변환</button>
+            <button type="button" class="md-slide-tab" data-md-slide="2">STEP 3 · 일괄 변환 &amp; ZIP 저장</button>
+            <button type="button" class="md-slide-tab" data-md-slide="3">STEP 4 · 파일 호환표 &amp; AI 활용</button>
+          </div>
+          <strong id="mdSlideCounter" style="color:#38bdf8;font-size:0.95rem;padding:0 8px;">1 / 4</strong>
+          <button type="button" class="md-btn md-btn-primary" id="mdSlideNextBtn">다음 단계 ▶</button>
+          <button type="button" class="md-btn md-btn-dark" id="mdSlideToggleAllBtn">전체 연속 보기</button>
+        </div>
+
+        <div class="md-guide-grid" id="mdSlideDeck">
+          <article class="md-gcard" data-md-slide-pane="0">
+            <div class="md-gcard-head"><span class="md-gstep">STEP 1 / 4</span><b>파일 끌어다 놓기 또는 폴더 통째로 넣기 (전체화면 스크린샷)</b></div>
             <div class="md-gshot"><img src="./assets/md_converter_guide/step1_drop_folder.png" alt="1단계 파일 끌어다 놓기 및 폴더 선택 화면"></div>
             <ul>
               <li>바꿀 파일(<code>.hwpx</code>, <code>.pdf</code>, <code>.docx</code>, <code>.pptx</code>, <code>.xlsx</code>)을 점선 영역에 끌어다 놓거나 <b>[파일 여러 개 선택]</b>·<b>[폴더 통째로 선택]</b>을 누릅니다.</li>
@@ -694,8 +754,8 @@
             </ul>
           </article>
 
-          <article class="md-gcard">
-            <div class="md-gcard-head"><span class="md-gstep">STEP 2</span><b>한글(HWPX) 수식 → LaTeX($...$) 및 표 자동 변환</b></div>
+          <article class="md-gcard" data-md-slide-pane="1" style="display:none;">
+            <div class="md-gcard-head"><span class="md-gstep">STEP 2 / 4</span><b>한글(HWPX) 수식 → LaTeX($...$) 및 표 자동 변환 (전체화면 스크린샷)</b></div>
             <div class="md-gshot"><img src="./assets/md_converter_guide/step2_hwpx_latex.png" alt="2단계 한글 HWPX 수식 LaTeX 변환 화면"></div>
             <ul>
               <li>한글(<code>.hwpx</code>) 속 수식(분수 <code>over</code>, 근호 <code>sqrt</code>, 극한 <code>lim</code>, 적분 <code>int</code>, 행렬 <code>matrix</code>)을 AI가 가장 잘 읽는 <b>LaTeX(<code>$...$</code>) 수식</b>으로 자동 변환합니다.</li>
@@ -703,8 +763,8 @@
             </ul>
           </article>
 
-          <article class="md-gcard">
-            <div class="md-gcard-head"><span class="md-gstep">STEP 3</span><b>PDF 수식기호 복원 &amp; md 결과 ZIP 일괄 저장</b></div>
+          <article class="md-gcard" data-md-slide-pane="2" style="display:none;">
+            <div class="md-gcard-head"><span class="md-gstep">STEP 3 / 4</span><b>PDF 수식기호 복원 &amp; md 결과 ZIP 일괄 저장 (전체화면 스크린샷)</b></div>
             <div class="md-gshot"><img src="./assets/md_converter_guide/step3_batch_zip.png" alt="3단계 일괄 변환 로그 및 ZIP 저장 화면"></div>
             <ul>
               <li>PDF의 깨진 한컴 수식 글꼴(PUA 영역 문자)을 일반 수학 기호로 자동 복원하며, 스캔본(그림 PDF) 여부를 자동 진단합니다.</li>
@@ -712,8 +772,8 @@
             </ul>
           </article>
 
-          <article class="md-gcard">
-            <div class="md-gcard-head"><span class="md-gstep">STEP 4</span><b>파일별 호환 안내 및 AI(클로드·제미나이·노트북LM) 활용</b></div>
+          <article class="md-gcard" data-md-slide-pane="3" style="display:none;">
+            <div class="md-gcard-head"><span class="md-gstep">STEP 4 / 4</span><b>파일별 호환 안내 및 AI(클로드·제미나이·노트북LM) 활용 (전체화면 스크린샷)</b></div>
             <div class="md-gshot"><img src="./assets/md_converter_guide/step4_file_compat.png" alt="4단계 파일별 호환표 및 주의사항 화면"></div>
             <ul>
               <li>변환된 <code>.md</code> 파일을 클로드, 제미나이, 노트북LM에 첨부하면 PDF 대비 토큰 소모가 대폭 줄어들어 긴 교육과정·지도서도 여러 번 정확하게 질문할 수 있습니다.</li>

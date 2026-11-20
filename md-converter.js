@@ -1072,8 +1072,47 @@
       });
     }
 
+    // 전체화면 좌우 슬라이드 스크린샷 사용설명서 제어 (1 / 4)
+    var mdSlideIdx = 0;
+    var mdShowAll = false;
+    function goMdSlide(idx) {
+      var panes = document.querySelectorAll('[data-md-slide-pane]');
+      if (!panes.length) return;
+      mdShowAll = false;
+      if (el('mdSlideToggleAllBtn')) el('mdSlideToggleAllBtn').textContent = '전체 연속 보기';
+      mdSlideIdx = (idx + panes.length) % panes.length;
+      panes.forEach(function (p, i) { p.style.display = i === mdSlideIdx ? 'block' : 'none'; });
+      document.querySelectorAll('[data-md-slide]').forEach(function (t, i) { t.classList.toggle('active', i === mdSlideIdx); });
+      if (el('mdSlideCounter')) el('mdSlideCounter').textContent = (mdSlideIdx + 1) + ' / ' + panes.length;
+    }
+
+    if (el('mdSlidePrevBtn')) el('mdSlidePrevBtn').addEventListener('click', function () { goMdSlide(mdSlideIdx - 1); });
+    if (el('mdSlideNextBtn')) el('mdSlideNextBtn').addEventListener('click', function () { goMdSlide(mdSlideIdx + 1); });
+    document.querySelectorAll('[data-md-slide]').forEach(function (tb) {
+      tb.addEventListener('click', function () { goMdSlide(parseInt(tb.getAttribute('data-md-slide'), 10) || 0); });
+    });
+    if (el('mdSlideToggleAllBtn')) el('mdSlideToggleAllBtn').addEventListener('click', function () {
+      var panes = document.querySelectorAll('[data-md-slide-pane]');
+      mdShowAll = !mdShowAll;
+      if (mdShowAll) {
+        panes.forEach(function (p) { p.style.display = 'block'; });
+        this.textContent = '1장씩 슬라이드로 보기';
+      } else {
+        goMdSlide(mdSlideIdx);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (el('mdGuideModal') && el('mdGuideModal').classList.contains('show')) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); goMdSlide(mdSlideIdx + 1); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); goMdSlide(mdSlideIdx - 1); }
+        else if (e.key === 'Escape') { el('mdGuideModal').classList.remove('show'); }
+      }
+    });
+
     if (el('mdOpenGuideModalBtn')) {
       el('mdOpenGuideModalBtn').addEventListener('click', function () {
+        goMdSlide(0);
         el('mdGuideModal').classList.add('show');
       });
     }
