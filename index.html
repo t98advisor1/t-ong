@@ -43,7 +43,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.89">
+  <link rel="stylesheet" href="/style.css?v=5.17.0-preview.90">
 </head>
 <body>
 
@@ -2955,6 +2955,7 @@
           <h3 style="margin:2px 0 0;">단계별 문항 배점 설계기</h3>
         </div>
         <div class="sp-head-actions">
+          <button type="button" class="btn-outline" id="spGuideBtn">사용설명서</button>
           <button type="button" class="btn-outline" id="spResetWizardBtn">처음부터 다시</button>
           <button class="close-btn" data-modal="scorePlannerModal">&times;</button>
         </div>
@@ -3221,8 +3222,9 @@
           <span class="qr-share-kicker">설치 없는 웹 오피스 유틸리티</span>
           <h3 style="margin:2px 0 0;">문서 · PDF 올인원 변환기</h3>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:0.75rem;color:#475569;font-weight:700;">100% 내 브라우저 처리 (서버 전송 없음)</span>
+          <button type="button" class="btn-outline" id="dcGuideBtn">사용설명서</button>
           <button class="close-btn" data-modal="docConverterModal">&times;</button>
         </div>
       </div>
@@ -3317,8 +3319,109 @@
     </div>
   </div>
 
+  <!-- 단계별 문항 배점 설계기 스크린샷 사용설명서 모달 -->
+  <div id="scorePlannerGuideModal" class="modal">
+    <div class="modal-content mb-guide-dialog">
+      <div class="modal-header mb-guide-header">
+        <div>
+          <span class="qr-share-kicker">스크린샷 4단계 사용설명서</span>
+          <h3 style="margin:2px 0 0;">단계별 문항 배점 설계기 사용방법</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="score-planner-guide.html" target="_blank" rel="noopener noreferrer" class="btn-outline" style="text-decoration:none;">설명서 새 창 / 인쇄</a>
+          <button class="close-btn" data-modal="scorePlannerGuideModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body mb-guide-body">
+        <div class="mb-guide-steps">
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q1">STEP 1</span><b>시험 유형 · 총점 · 문항 수 선택</b></div>
+            <div class="mb-guide-shot"><img src="./assets/score_planner_guide/step1_type_total.png" alt="1단계 시험 유형과 총점 선택 화면"></div>
+            <ul class="mb-guide-list">
+              <li><code>객관식 + 논술형(주관식)</code> 또는 <code>100% 객관식 전용</code> 시험을 선택하고 프리셋·문항 수를 입력합니다.</li>
+              <li>100% 객관식 전용 시험은 STEP 2(논술형 입력)가 자동 생략됩니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q2">STEP 2</span><b>논술형(주관식) 배점 직접 입력</b></div>
+            <div class="mb-guide-shot"><img src="./assets/score_planner_guide/step2_essay_direct.png" alt="2단계 논술형 배점 직접 입력 화면"></div>
+            <ul class="mb-guide-list">
+              <li>서술 1~4번 문항의 배점과 메모를 직접 적으면 <b>남은 객관식 목표 총점</b>이 자동 계산됩니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q3">STEP 3</span><b>객관식 차등배점 방식 · 점수 폭 선택</b></div>
+            <div class="mb-guide-shot"><img src="./assets/score_planner_guide/step3_mc_rules.png" alt="3단계 객관식 배점 방식 4종 선택 화면"></div>
+            <ul class="mb-guide-list">
+              <li><code>전부 차등(중복없음)</code>, <code>고른 차등</code>, <code>단계 차등</code>, <code>동배점 우선</code> 중 선택하고 <code>평균 기준 자동 추천</code>을 활용합니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q1" style="background:#0f766e;">STEP 4</span><b>배점표 확인 · 미세 조절 · 시트/엑셀 저장</b></div>
+            <div class="mb-guide-shot"><img src="./assets/score_planner_guide/step4_result_export.png" alt="4단계 완성된 배점표와 내보내기 화면"></div>
+            <ul class="mb-guide-list">
+              <li><code>다른 조합 다시 뽑기</code>·<code>−/+</code> 조절 후 <code>구글 시트 자동 생성</code>, <code>수식 포함 시트 복사</code>, <code>엑셀(.xlsx) 저장</code>으로 마무리합니다.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 문서·PDF 올인원 변환기 스크린샷 사용설명서 모달 -->
+  <div id="docConverterGuideModal" class="modal">
+    <div class="modal-content mb-guide-dialog">
+      <div class="modal-header mb-guide-header">
+        <div>
+          <span class="qr-share-kicker">스크린샷 4가지 기능 사용설명서</span>
+          <h3 style="margin:2px 0 0;">문서 · PDF 올인원 변환기 사용방법</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="doc-converter-guide.html" target="_blank" rel="noopener noreferrer" class="btn-outline" style="text-decoration:none;">설명서 새 창 / 인쇄</a>
+          <button class="close-btn" data-modal="docConverterGuideModal">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body mb-guide-body">
+        <div class="mb-guide-intro">
+          <b>100% 브라우저 로컬 처리 안내</b>
+          <p>모든 한글·PDF·이미지 변환은 외부 서버로 파일을 보내지 않고 <b>현재 기기 브라우저 내부에서만 처리</b>되므로 학교 공문과 시험지도 안전하게 변환할 수 있습니다.</p>
+        </div>
+        <div class="mb-guide-steps">
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q1">기능 1</span><b>한글(.hwpx/.hwp) → PDF · 텍스트</b></div>
+            <div class="mb-guide-shot"><img src="./assets/doc_converter_guide/tab1_hwp_to_pdf.png" alt="1번 탭 한글에서 PDF 변환 화면"></div>
+            <ul class="mb-guide-list">
+              <li><code>.hwpx</code>/<code>.hwp</code> 파일을 선택해 본문을 읽고 <code>PDF(.pdf)로 바로 저장</code> 또는 <code>.doc</code>·텍스트 복사를 실행합니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q2">기능 2</span><b>PDF → 한글(.hwpx) · 워드(.doc)</b></div>
+            <div class="mb-guide-shot"><img src="./assets/doc_converter_guide/tab2_pdf_to_hwp.png" alt="2번 탭 PDF에서 한글 문서 생성 화면"></div>
+            <ul class="mb-guide-list">
+              <li>PDF 텍스트를 자동 추출한 뒤 <code>한글 표준(.hwpx) 다운로드</code>로 한컴오피스 편집 파일을 생성합니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q3">기능 3</span><b>PDF 합치기 · 페이지 나누기</b></div>
+            <div class="mb-guide-shot"><img src="./assets/doc_converter_guide/tab3_pdf_merge_split.png" alt="3번 탭 PDF 합치기와 나누기 화면"></div>
+            <ul class="mb-guide-list">
+              <li>여러 PDF를 하나로 병합하거나, 지정 페이지 범위(예: <code>1-3, 5</code>) 추출 및 전체 개별 PDF ZIP 분할을 실행합니다.</li>
+            </ul>
+          </article>
+          <article class="mb-guide-card">
+            <div class="mb-guide-step-head"><span class="sp-q-num q1" style="background:#0f766e;">기능 4</span><b>이미지(JPG/PNG) ↔ PDF 변환</b></div>
+            <div class="mb-guide-shot"><img src="./assets/doc_converter_guide/tab4_img_pdf.png" alt="4번 탭 이미지와 PDF 상호 변환 화면"></div>
+            <ul class="mb-guide-list">
+              <li>사진·스캔 이미지 여러 장을 1개의 PDF로 묶거나, PDF 각 페이지를 고화질 PNG 이미지 ZIP으로 일괄 변환합니다.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="./qr-lib.js"></script>
-  <script src="/app.js?v=5.17.0-preview.89"></script>
+  <script src="/app.js?v=5.17.0-preview.90"></script>
   <script>
     // 로컬 개발 중에는 캐시가 수정사항을 가리므로 서비스 워커를 쓰지 않습니다.
     var localHost = location.hostname;

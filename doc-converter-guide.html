@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T-ong 문서 · PDF 올인원 변환기 스크린샷 사용설명서</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Pretendard", "Noto Sans KR", -apple-system, sans-serif; background: #f8fafc; color: #0f172a; line-height: 1.6; padding: 26px 18px 50px; }
+    .page { max-width: 960px; margin: 0 auto; }
+    .hero { background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%); color: #fff; border-radius: 18px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+    .hero small { display: inline-block; background: rgba(255,255,255,0.18); padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+    .hero h1 { margin: 0; font-size: 23px; }
+    .hero p { margin: 6px 0 0; font-size: 14px; color: #e0f2fe; }
+    .btn { border: 1px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.16); color: #fff; font-weight: 800; font-size: 13.5px; padding: 9px 15px; border-radius: 10px; cursor: pointer; }
+    .note { background: #fff; border: 1px solid #bae6fd; border-left: 5px solid #0284c7; border-radius: 12px; padding: 13px 16px; margin-bottom: 18px; font-size: 14px; }
+    .steps { display: flex; flex-direction: column; gap: 18px; }
+    .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(15,23,42,0.04); break-inside: avoid; }
+    .head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .badge { color: #fff; font-size: 12px; font-weight: 900; padding: 4px 11px; border-radius: 999px; background: #0284c7; }
+    .b2 { background: #2563eb; } .b3 { background: #7c3aed; } .b4 { background: #0f766e; }
+    .head h2 { margin: 0; font-size: 18px; }
+    .shot { border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; margin-bottom: 12px; }
+    .shot img { width: 100%; display: block; }
+    ul { margin: 0; padding-left: 20px; font-size: 14px; color: #334155; }
+    code { background: #eff6ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 12.5px; }
+    @media print { body { background: #fff; padding: 0; } .btn { display: none; } .card { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <small>T-ong 교무수첩 · 6 교실 도구 / 7 수업 도구 · 100% 브라우저 로컬 처리</small>
+        <h1>문서 · PDF 올인원 변환기 4가지 기능 사용설명서</h1>
+        <p>별도 프로그램 설치나 외부 서버 전송 없이, 학교 공문·학습지·한글·PDF·이미지를 브라우저에서 즉시 변환합니다.</p>
+      </div>
+      <button type="button" class="btn" onclick="window.print()">인쇄 / PDF 저장</button>
+    </header>
+    <div class="note">
+      <b>보안 안내</b> — 업로드한 모든 한글·PDF·이미지 파일은 외부 서버로 전송되지 않고 선생님 기기의 브라우저 안에서만 안전하게 변환됩니다.
+    </div>
+    <main class="steps">
+      <section class="card">
+        <div class="head"><span class="badge">기능 1</span><h2>한글(.hwpx / .hwp) → PDF · 호환 문서(.doc) · 텍스트</h2></div>
+        <div class="shot"><img src="./assets/doc_converter_guide/tab1_hwp_to_pdf.png" alt="1번 탭 한글 파일을 PDF로 변환하는 화면"></div>
+        <ul>
+          <li><code>.hwpx</code>(표준 한글) 또는 <code>.hwp</code> 파일을 선택하면 본문 내용이 아래 편집창에 자동으로 추출됩니다.</li>
+          <li>필요 시 내용을 수정한 뒤 <code>PDF(.pdf)로 바로 저장</code>을 누르면 한글 폰트가 깨지지 않는 A4 PDF로 다운로드됩니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b2">기능 2</span><h2>PDF → 한글(.hwpx) · 워드(.doc) · 텍스트 추출</h2></div>
+        <div class="shot"><img src="./assets/doc_converter_guide/tab2_pdf_to_hwp.png" alt="2번 탭 PDF에서 텍스트를 추출해 한글 문서로 저장하는 화면"></div>
+        <ul>
+          <li>PDF 파일을 선택하면 페이지별 본문 텍스트를 자동 추출합니다.</li>
+          <li><code>한글 표준(.hwpx) 다운로드</code> 또는 <code>한글·워드 호환(.doc) 저장</code>을 눌러 한컴오피스에서 바로 편집 가능한 파일로 저장합니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b3">기능 3</span><h2>PDF 합치기 · 페이지 나누기</h2></div>
+        <div class="shot"><img src="./assets/doc_converter_guide/tab3_pdf_merge_split.png" alt="3번 탭 여러 PDF 합치기 및 페이지 분할 화면"></div>
+        <ul>
+          <li><b>PDF 합치기</b>: 여러 PDF 파일을 2개 이상 고른 뒤 <code>하나의 PDF로 합치기</code>를 눌러 단일 파일로 병합합니다.</li>
+          <li><b>PDF 나누기</b>: 원하는 페이지 범위(예: <code>1-3, 5</code>)만 뽑아내거나, 빈칸으로 두어 전체 페이지를 개별 PDF ZIP으로 분할합니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b4">기능 4</span><h2>이미지(JPG/PNG) ↔ PDF 상호 변환</h2></div>
+        <div class="shot"><img src="./assets/doc_converter_guide/tab4_img_pdf.png" alt="4번 탭 이미지를 PDF로 묶거나 PDF를 PNG 이미지로 변환하는 화면"></div>
+        <ul>
+          <li><b>이미지 → PDF</b>: 여러 장의 사진·스캔 이미지를 선택해 순서대로 1개의 PDF 파일로 묶어 저장합니다.</li>
+          <li><b>PDF → 고화질 PNG</b>: PDF의 각 페이지를 고화질 PNG 이미지로 변환해 미리보기와 함께 ZIP 파일로 내려받습니다.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

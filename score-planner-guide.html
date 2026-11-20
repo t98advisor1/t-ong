@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T-ong 단계별 문항 배점 설계기 스크린샷 사용설명서</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Pretendard", "Noto Sans KR", -apple-system, sans-serif; background: #f8fafc; color: #0f172a; line-height: 1.6; padding: 26px 18px 50px; }
+    .page { max-width: 960px; margin: 0 auto; }
+    .hero { background: linear-gradient(135deg, #1e1b4b 0%, #2563eb 100%); color: #fff; border-radius: 18px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+    .hero small { display: inline-block; background: rgba(255,255,255,0.18); padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+    .hero h1 { margin: 0; font-size: 23px; }
+    .hero p { margin: 6px 0 0; font-size: 14px; color: #dbeafe; }
+    .btn { border: 1px solid rgba(255,255,255,0.45); background: rgba(255,255,255,0.16); color: #fff; font-weight: 800; font-size: 13.5px; padding: 9px 15px; border-radius: 10px; cursor: pointer; }
+    .steps { display: flex; flex-direction: column; gap: 18px; }
+    .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(15,23,42,0.04); break-inside: avoid; }
+    .head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .badge { color: #fff; font-size: 12px; font-weight: 900; padding: 4px 11px; border-radius: 999px; background: #2563eb; }
+    .b2 { background: #059669; } .b3 { background: #7c3aed; } .b4 { background: #0f766e; }
+    .head h2 { margin: 0; font-size: 18px; }
+    .shot { border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; margin-bottom: 12px; }
+    .shot img { width: 100%; display: block; }
+    ul { margin: 0; padding-left: 20px; font-size: 14px; color: #334155; }
+    code { background: #eff6ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 12.5px; }
+    @media print { body { background: #fff; padding: 0; } .btn { display: none; } .card { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <small>T-ong 교무수첩 · 7 수업 도구 · 지필평가 출제 도우미</small>
+        <h1>단계별 문항 배점 설계기 4단계 사용설명서</h1>
+        <p>객관식+논술형 혼합 시험부터 100% 객관식 시험, 전부 차등배점(중복 없음)까지 4단계로 완성합니다.</p>
+      </div>
+      <button type="button" class="btn" onclick="window.print()">인쇄 / PDF 저장</button>
+    </header>
+    <main class="steps">
+      <section class="card">
+        <div class="head"><span class="badge">STEP 1</span><h2>시험 유형(혼합형 / 100% 객관식) · 총점 · 문항 수 선택</h2></div>
+        <div class="shot"><img src="./assets/score_planner_guide/step1_type_total.png" alt="1단계 시험 유형과 총점, 문항 수 선택 화면"></div>
+        <ul>
+          <li><code>객관식 + 논술형(주관식) 시험</code>과 <code>100% 객관식 전용 시험</code> 중 선택합니다.</li>
+          <li>자주 쓰는 출제 프리셋(예: <code>100점 · 객16(70) + 논4(30)</code>)을 누르거나 만점·문항 수를 직접 입력한 뒤 다음 단계로 넘어갑니다.</li>
+          <li>100% 객관식 전용 시험을 고르면 STEP 2(논술형 입력)는 자동으로 생략됩니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b2">STEP 2</span><h2>논술형(주관식) 배점 직접 입력</h2></div>
+        <div class="shot"><img src="./assets/score_planner_guide/step2_essay_direct.png" alt="2단계 논술형 문항별 배점 직접 입력 화면"></div>
+        <ul>
+          <li>서술 1번, 서술 2번… 각 논술형 문항의 점수와 메모를 직접 입력하거나 <code>빠른 입력 도우미</code>로 한 번에 채웁니다.</li>
+          <li>논술형 합계를 제외한 <b>남은 객관식 목표 총점과 평균</b>이 하단에 자동으로 계산됩니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b3">STEP 3</span><h2>객관식 차등배점 방식 · 점수 폭 · 배치 순서 선택</h2></div>
+        <div class="shot"><img src="./assets/score_planner_guide/step3_mc_rules.png" alt="3단계 객관식 배점 방식 4종 및 점수 폭 설정 화면"></div>
+        <ul>
+          <li><code>전부 차등배점(중복 없음)</code>, <code>고른 차등배점</code>, <code>단계 차등(하·중·상)</code>, <code>동배점 우선</code> 중 원하는 방식을 고릅니다.</li>
+          <li><code>평균 기준 자동 추천</code>을 누르면 선택한 배점 방식과 간격(0.1~1점)에 딱 맞는 최저·최고 점수를 자동 계산해 줍니다.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <div class="head"><span class="badge b4">STEP 4</span><h2>완성된 배점표 확인 · 미세 조절 · 구글 시트/엑셀 저장</h2></div>
+        <div class="shot"><img src="./assets/score_planner_guide/step4_result_export.png" alt="4단계 완성된 배점표, 분포, 내보내기 화면"></div>
+        <ul>
+          <li>객관식·논술형별 문항 개수 분포와 누적 합계를 확인하고, <code>다른 조합 다시 뽑기</code>나 문항별 <code>−/+</code>로 미세 조절합니다.</li>
+          <li><code>구글 시트 자동 생성</code>, <code>수식 포함 시트 복사(=SUM, =SUMIF)</code>, <code>엑셀(.xlsx) 저장</code>으로 원안지 작업에 바로 활용합니다.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

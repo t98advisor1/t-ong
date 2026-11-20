@@ -14205,7 +14205,20 @@ window.TodayBriefing = TodayBriefing;
       });
     });
 
-    // 처음부터 다시 버튼
+    // 처음부터 다시 & 사용설명서 버튼
+    if (el('spGuideBtn')) {
+      el('spGuideBtn').addEventListener('click', function () {
+        var gm = el('scorePlannerGuideModal');
+        if (!gm) return;
+        if (gm.dataset.bound !== '1') {
+          gm.dataset.bound = '1';
+          gm.querySelectorAll('.close-btn[data-modal="scorePlannerGuideModal"]').forEach(function (cb) {
+            cb.addEventListener('click', function () { gm.classList.remove('show'); });
+          });
+        }
+        gm.classList.add('show');
+      });
+    }
     if (el('spResetWizardBtn')) {
       el('spResetWizardBtn').addEventListener('click', function () {
         currentItems = [];
@@ -14892,6 +14905,19 @@ window.TodayBriefing = TodayBriefing;
     modal.querySelectorAll('.close-btn[data-modal="docConverterModal"]').forEach(function (cb) {
       cb.addEventListener('click', function () { modal.classList.remove('show'); });
     });
+    if (el('dcGuideBtn')) {
+      el('dcGuideBtn').addEventListener('click', function () {
+        var gm = el('docConverterGuideModal');
+        if (!gm) return;
+        if (gm.dataset.bound !== '1') {
+          gm.dataset.bound = '1';
+          gm.querySelectorAll('.close-btn[data-modal="docConverterGuideModal"]').forEach(function (cb) {
+            cb.addEventListener('click', function () { gm.classList.remove('show'); });
+          });
+        }
+        gm.classList.add('show');
+      });
+    }
 
     var tabMap = { hwp2pdf: 'dcPanelHwp2Pdf', pdf2hwp: 'dcPanelPdf2Hwp', pdfMergeSplit: 'dcPanelPdfMergeSplit', imgPdf: 'dcPanelImgPdf' };
     modal.querySelectorAll('.dc-tab-btn').forEach(function (tb) {
