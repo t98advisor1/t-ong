@@ -120,7 +120,14 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sb-top-row::-webkit-scrollbar {
+  display: none;
 }
 .sb-top-row-primary {
   padding-bottom: 4px;
@@ -130,7 +137,46 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+.sb-btn-open-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sb-btn-open-hub svg {
+  flex-shrink: 0;
+}
+@media (max-width: 1320px) {
+  .sb-top-row {
+    gap: 4px;
+  }
+  .sb-top-group {
+    gap: 2px;
+  }
+  .sb-mode-btn kbd,
+  .sb-tool-btn kbd {
+    display: none;
+  }
+  .sb-top-row-primary .sb-btn,
+  .sb-top-row-primary .sb-btn-xs,
+  .sb-top-row-primary .sb-mode-btn,
+  .sb-top-row-primary .sb-spen-pill,
+  .sb-top-row-primary .sb-pal-fold-btn {
+    padding: 4px 7px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+  .sb-top-row-primary .sb-btn-guide-top,
+  .sb-top-row-primary .sb-btn-fs-top {
+    padding: 4px 8px;
+    font-size: 0.73rem;
+    white-space: nowrap;
+  }
+  .sb-top-divider {
+    margin: 0;
+  }
 }
 .sb-right-controls {
   margin-left: auto;
@@ -1379,20 +1425,157 @@ kbd {
 }
 
 
-/* 통합 파일·링크 열기 모달 (#sbFileHubModal) */
+/* PNG · PDF 저장 선택 팝오버 (#sbSaveMenu) */
+.sb-save-popover {
+  display: none;
+  position: fixed;
+  top: 52px;
+  right: 16px;
+  z-index: 4200;
+  width: 296px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.34);
+  flex-direction: column;
+  gap: 6px;
+}
+.sb-save-popover.show {
+  display: flex;
+}
+.sb-save-pop-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+}
+.sb-save-pop-item:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+.sb-save-pop-badge {
+  flex: 0 0 42px;
+  height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+.sb-save-pop-badge.is-png {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+.sb-save-pop-badge.is-pdf {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+.sb-save-pop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sb-save-pop-text b {
+  font-size: 0.86rem;
+  color: #0f172a;
+}
+.sb-save-pop-text small {
+  font-size: 0.72rem;
+  color: #475569;
+  line-height: 1.35;
+}
+
+/* 통합 파일·링크·구글 드라이브 열기 모달 (#sbFileHubModal) */
+.sb-modal-filehub {
+  width: min(960px, 94vw);
+  max-width: 960px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.sb-modal-filehub .sb-modal-body {
+  overflow-y: auto;
+}
+.sb-filehub-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 24px 24px !important;
+}
 .sb-filehub-sec {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
+  gap: 11px;
+}
+.sb-filehub-sec-drive {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.sb-filehub-sec-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sb-filehub-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .sb-filehub-title {
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   font-weight: 900;
   color: #0f172a;
+}
+.sb-filehub-desc {
+  margin: 0;
+  font-size: 0.81rem;
+  line-height: 1.48;
+  color: #475569;
+}
+.sb-btn-drive {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border: 1px solid #15803d;
+  color: #ffffff;
+  font-weight: 800;
+}
+.sb-btn-drive:hover {
+  background: #166534;
+}
+.sb-btn-drive-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #86efac;
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.sb-btn-drive-link:hover {
+  background: #dcfce7;
 }
 .sb-filehub-drop {
   display: flex;

@@ -38,24 +38,27 @@
   <main class="sb-workspace" id="sbWorkspace">
     <!-- 상단 가로형 통합 자동숨김 팔레트 -->
     <header class="sb-palette sb-top-palette" id="sbPalette" aria-label="상단 통합 판서 팔레트">
-      <!-- 1열(최상단 우선 바): 교무수첩 / 사용설명서 / 전체화면 / 단축키 안내 / 자동숨김 / 폴더·파일·PPTX 액션 -->
+      <!-- 1열(최상단 우선 바): 교무수첩 / 사용설명서 / 전체화면 / 단축키 / 광고제거 / 노트·열기 / 4대 모드 / PNG·PDF 저장 -->
       <div class="sb-top-row sb-top-row-primary">
         <!-- 최우선 메뉴: 사용설명서 & 전체화면 최상단 배치 -->
         <div class="sb-top-group sb-priority-group">
-          <a href="./index.html" class="sb-btn sb-btn-ghost sb-btn-xs" title="T-ong 교무수첩 홈으로 돌아가기">← 교무수첩</a>
-          <button type="button" class="sb-btn sb-btn-guide-top" id="sbHelpBtn" title="큰 글씨 핵심 사용법 및 전체화면 GIF 시연 매뉴얼 열기">사용설명서</button>
+          <a href="./index.html" class="sb-btn sb-btn-ghost sb-btn-xs" title="T-ong 교무수첩 홈으로 돌아가기">← 홈</a>
+          <button type="button" class="sb-btn sb-btn-guide-top" id="sbHelpBtn" title="큰 글씨 핵심 사용법 및 스크린샷 매뉴얼 열기">사용설명서</button>
           <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F)">전체화면</button>
-          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키 안내(?)</button>
-          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">유튜브 광고제거(?)</button>
+          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키(?)</button>
+          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">광고제거(?)</button>
         </div>
 
         <div class="sb-top-divider"></div>
 
-        <!-- 노트 보관함 & 통합 파일·링크 열기 -->
+        <!-- 노트 보관함 & 통합 열기 -->
         <div class="sb-top-group">
-          <button type="button" class="sb-btn sb-btn-vault sb-btn-xs" id="sbOpenVaultBtn" title="삼성노트형 로컬 폴더별 판서 노트 보관함">폴더·노트함</button>
+          <button type="button" class="sb-btn sb-btn-vault sb-btn-xs" id="sbOpenVaultBtn" title="삼성노트형 로컬 폴더별 판서 노트 보관함">노트함</button>
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbQuickSaveNoteBtn" title="현재 판서 노트를 로컬 폴더에 즉시 저장 (Ctrl+Shift+S)">노트저장</button>
-          <button type="button" class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs" id="sbOpenFileHubBtn" title="PDF · PPTX · 이미지 파일 업로드 또는 유튜브 · 웹 링크 열기">파일·링크 열기</button>
+          <button type="button" class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs sb-btn-open-hub" id="sbOpenFileHubBtn" title="PDF · PPTX · 이미지 · 구글 드라이브 · 유튜브 · 웹 링크 열기">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v1H2V6z"/><path d="M2 10h20l-2 9a2 2 0 0 1-2 1H6a2 2 0 0 1-2-1l-2-9z"/></svg>
+            <span>열기</span>
+          </button>
         </div>
 
         <div class="sb-top-divider"></div>
@@ -65,18 +68,16 @@
           <button type="button" class="sb-mode-btn" data-sb-mode="pin" title="화면 영역을 오려 항상 맨 위에 고정 (Alt + `)">게시 <kbd>Alt+`</kbd></button>
           <button type="button" class="sb-mode-btn" data-sb-mode="zoom" title="커서/핀치 확대 후 클릭하여 판서 전환 (Alt + 1)">확대 <kbd>Alt+1</kbd></button>
           <button type="button" class="sb-mode-btn active" data-sb-mode="draw" title="펜·도형·텍스트·스탬프 판서 (Alt + 2)">판서 <kbd>Alt+2</kbd></button>
-          <button type="button" class="sb-mode-btn" data-sb-mode="edit" title="영역 선택 이동 및 무료 OCR 글씨 변환 (Alt + 3)">편집·OCR <kbd>Alt+3</kbd></button>
+          <button type="button" class="sb-mode-btn" data-sb-mode="edit" title="영역 선택·이동·편집 및 손글씨 변환 (Alt + 3)">편집 <kbd>Alt+3</kbd></button>
         </div>
 
         <div class="sb-top-divider"></div>
 
-        <!-- 내보내기 & 자동 숨김 / 접기 제어 -->
+        <!-- 내보내기(PNG·PDF) & 자동 숨김 / 접기 제어 -->
         <div class="sb-top-group sb-right-controls">
-          <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbSavePngBtn" title="현재 화면 PNG 이미지 저장 (Ctrl+S)">PNG저장</button>
-          <button type="button" class="sb-btn sb-btn-accent sb-btn-xs" id="sbSavePdfBtn" title="모든 페이지 판서 합본 PDF 저장">합본PDF</button>
-          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbOcrCfgBtn" title="무료 AI 손글씨 OCR 설정 및 안내">OCR설정</button>
-          <button type="button" class="sb-spen-pill active" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김: 켜짐</button>
-          <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨기기</button>
+          <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-btn-export" id="sbSaveMenuBtn" title="현재 화면 PNG 이미지 또는 전체 페이지 합본 PDF 저장">PNG·PDF ▾</button>
+          <button type="button" class="sb-spen-pill active" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김 ON</button>
+          <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨김</button>
         </div>
       </div>
 
@@ -593,21 +594,44 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- 통합 파일·링크 열기 모달 (#sbFileHubModal) -->
+  <!-- PNG · PDF 저장 선택 팝오버 (#sbSaveMenu) -->
+  <!-- ================================================================= -->
+  <div class="sb-save-popover" id="sbSaveMenu" role="menu" aria-label="PNG 또는 PDF로 저장">
+    <button type="button" class="sb-save-pop-item" id="sbSavePngBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-png">PNG</span>
+      <span class="sb-save-pop-text">
+        <b>현재 화면 PNG 저장</b>
+        <small>지금 보고 있는 판서 화면 1장을 고화질 이미지로 저장 (Ctrl+S)</small>
+      </span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbSavePdfBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-pdf">PDF</span>
+      <span class="sb-save-pop-text">
+        <b>전체 페이지 합본 PDF 저장</b>
+        <small>열어 둔 모든 슬라이드와 판서를 1개의 PDF 문서로 묶어 저장</small>
+      </span>
+    </button>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 통합 파일·링크·구글 드라이브 열기 모달 (#sbFileHubModal) -->
   <!-- ================================================================= -->
   <div class="sb-modal" id="sbFileHubModal">
-    <div class="sb-modal-card sb-modal-wide">
+    <div class="sb-modal-card sb-modal-filehub">
       <div class="sb-modal-head">
         <div>
-          <span class="sb-guide-kicker">PDF · PPTX · 이미지 업로드 및 유튜브 · 웹 수업 링크 한 곳에서 열기</span>
-          <h3>파일 · 링크 열기</h3>
+          <span class="sb-guide-kicker">내 기기 파일 · 구글 드라이브 · 유튜브 · 웹 수업 링크를 한 곳에서 열기</span>
+          <h3>수업 자료 · 링크 열기</h3>
         </div>
         <button type="button" class="sb-close-btn" data-close="sbFileHubModal">&times;</button>
       </div>
-      <div class="sb-modal-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div class="sb-modal-body sb-filehub-body">
         <!-- 1. 파일 업로드 섹션 -->
         <div class="sb-filehub-sec">
-          <div class="sb-filehub-title">1. 내 기기에서 수업 파일 올리기 (PDF · PPTX · 이미지)</div>
+          <div class="sb-filehub-sec-head">
+            <div class="sb-filehub-title">1. 내 기기에서 수업 파일 올리기 (PDF · PPTX · 이미지)</div>
+            <p class="sb-filehub-desc">교과서 PDF, 수업 PPTX, 문제 캡처 이미지를 불러와 바로 위에 판서할 수 있습니다. (모든 파일은 기기 안에서만 안전하게 처리됩니다.)</p>
+          </div>
           <label class="sb-filehub-drop" id="sbFileHubDropzone">
             <strong>여기를 클릭하거나 파일을 끌어다 놓으세요</strong>
             <span>PDF 문서, PPTX 발표자료(클릭 액션 지원), PNG·JPG 이미지를 자동으로 판별해 엽니다.</span>
@@ -632,9 +656,27 @@
           </div>
         </div>
 
-        <!-- 2. 웹 링크 · 유튜브 열기 섹션 -->
+        <!-- 2. 구글 드라이브 열기 섹션 -->
+        <div class="sb-filehub-sec sb-filehub-sec-drive">
+          <div class="sb-filehub-sec-head">
+            <div class="sb-filehub-title-row">
+              <div class="sb-filehub-title">2. 구글 드라이브에서 열기 (PDF · 구글 슬라이드 · 문서 · 시트)</div>
+              <a href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-drive-link" title="새 탭에서 내 구글 드라이브를 열어 파일 공유 링크를 복사하거나 내려받습니다">내 구글 드라이브 열기 ↗</a>
+            </div>
+            <p class="sb-filehub-desc">구글 드라이브 파일의 <b>공유 링크</b>를 붙여넣으면 보드 안에서 바로 열려 위에 판서할 수 있습니다. (파일 공유 설정을 <b>링크가 있는 모든 사용자</b>로 두면 즉시 표시됩니다.)</p>
+          </div>
+          <div class="sb-filehub-url-row">
+            <input type="text" id="sbFileHubDriveUrlInput" class="sb-input" placeholder="구글 드라이브 링크 붙여넣기 (https://drive.google.com/file/d/... 또는 docs.google.com/presentation/d/...)">
+            <button type="button" class="sb-btn sb-btn-drive" id="sbFileHubOpenDriveUrlBtn" style="white-space:nowrap;">드라이브 열기</button>
+          </div>
+        </div>
+
+        <!-- 3. 웹 링크 · 유튜브 열기 섹션 -->
         <div class="sb-filehub-sec">
-          <div class="sb-filehub-title">2. 유튜브 · 웹 링크 보드 안에서 바로 열기</div>
+          <div class="sb-filehub-sec-head">
+            <div class="sb-filehub-title">3. 유튜브 · 웹 링크 보드 안에서 바로 열기</div>
+            <p class="sb-filehub-desc">유튜브 영상이나 수업용 웹 도구를 판서 보드 안에 띄워, 재생·조작하면서 화면 위에 바로 필기하거나 스탬프를 찍을 수 있습니다.</p>
+          </div>
           <div class="sb-filehub-url-row">
             <input type="text" id="sbFileHubUrlInput" class="sb-input" placeholder="유튜브 링크(youtube.com / youtu.be) 또는 웹 주소(https://...) 입력 후 Enter">
             <button type="button" class="sb-btn sb-btn-primary" id="sbFileHubOpenUrlBtn" style="white-space:nowrap;">링크 열기</button>

@@ -670,6 +670,22 @@
     return null;
   }
 
+  function convertGoogleDriveToEmbedUrl(rawUrl) {
+    var s = String(rawUrl || '').trim();
+    if (!s) return null;
+    var mFile = s.match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/i);
+    if (mFile && mFile[1]) return 'https://drive.google.com/file/d/' + mFile[1] + '/preview';
+    var mOpen = s.match(/drive\.google\.com\/(?:open|uc)\?[^#]*\bid=([A-Za-z0-9_-]+)/i);
+    if (mOpen && mOpen[1]) return 'https://drive.google.com/file/d/' + mOpen[1] + '/preview';
+    var mSlides = s.match(/docs\.google\.com\/presentation\/d\/([A-Za-z0-9_-]+)/i);
+    if (mSlides && mSlides[1]) return 'https://docs.google.com/presentation/d/' + mSlides[1] + '/preview';
+    var mDocs = s.match(/docs\.google\.com\/document\/d\/([A-Za-z0-9_-]+)/i);
+    if (mDocs && mDocs[1]) return 'https://docs.google.com/document/d/' + mDocs[1] + '/preview';
+    var mSheets = s.match(/docs\.google\.com\/spreadsheets\/d\/([A-Za-z0-9_-]+)/i);
+    if (mSheets && mSheets[1]) return 'https://docs.google.com/spreadsheets/d/' + mSheets[1] + '/preview';
+    return null;
+  }
+
   function syncWebQuickToolsUi() {
     document.querySelectorAll('.sb-web-qtool[data-web-qtool]').forEach(function (b) {
       var qt = b.getAttribute('data-web-qtool');
@@ -688,8 +704,9 @@
     var raw = String(urlStr || (el('sbWebUrlInput') && el('sbWebUrlInput').value) || '').trim();
     if (!raw) raw = 'https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0';
     var ytEmbed = convertYoutubeToEmbedUrl(raw);
-    var targetUrl = ytEmbed || raw;
-    if (!ytEmbed && !/^https?:\/\//i.test(raw)) {
+    var driveEmbed = ytEmbed ? null : convertGoogleDriveToEmbedUrl(raw);
+    var targetUrl = ytEmbed || driveEmbed || raw;
+    if (!ytEmbed && !driveEmbed && !/^https?:\/\//i.test(raw)) {
       if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(raw)) {
         targetUrl = 'https://' + raw;
       } else {
@@ -703,10 +720,13 @@
       webFrame.style.display = 'block';
       webFrame.src = targetUrl;
     }
-    // 유튜브는 바로 재생 버튼을 누를 수 있도록 웹 조작 모드로, 일반 웹은 현재 도구 유지
+    // 유튜브·구글 드라이브는 바로 재생/페이지 넘김할 수 있도록 웹 조작 모드로, 일반 웹은 현재 도구 유지
     if (ytEmbed) {
       setWebInteractMode(true);
       showToast('유튜브 영상을 보드 안에서 열었습니다. 재생 후 하단 [① 원형스탬프] 또는 [펜 필기]로 영상 위에 필기하세요.');
+    } else if (driveEmbed) {
+      setWebInteractMode(true);
+      showToast('구글 드라이브 자료를 보드 안에서 열었습니다. 페이지를 맞춘 뒤 하단 [펜 필기]·[스탬프]로 바로 판서하세요.');
     } else {
       setWebInteractMode(false);
       showToast('내장 웹 브라우저를 열었습니다. 하단 [① 원형스탬프]·[▣ 사각스탬프]·[펜 필기]·[웹 조작]을 바로 전환하세요.');
@@ -2678,7 +2698,7 @@
       el('sbAutoHideBtn').addEventListener('click', function () {
         state.autoHide = !state.autoHide;
         this.classList.toggle('active', state.autoHide);
-        this.textContent = state.autoHide ? '자동숨김: 켜짐' : '자동숨김: 꺼짐';
+        this.textContent = state.autoHide ? '자동숨김 ON' : '자동숨김 OFF';
         showToast(state.autoHide ? '상단 팔레트 자동 숨김 ON (판서 시작 시 자동으로 위로 숨겨집니다)' : '상단 팔레트 자동 숨김 OFF (항상 상단에 고정)');
       });
     }
@@ -2968,6 +2988,26 @@
         }
       });
     }
+    if (el('sbFileHubOpenDriveUrlBtn')) {
+      el('sbFileHubOpenDriveUrlBtn').addEventListener('click', function () {
+        var u = (el('sbFileHubDriveUrlInput') && el('sbFileHubDriveUrlInput').value || '').trim();
+        if (!u) {
+          showToast('구글 드라이브 공유 링크를 먼저 붙여넣어 주세요.');
+          if (el('sbFileHubDriveUrlInput')) el('sbFileHubDriveUrlInput').focus();
+          return;
+        }
+        closeFileHubModal();
+        openWebBrowser(u);
+      });
+    }
+    if (el('sbFileHubDriveUrlInput')) {
+      el('sbFileHubDriveUrlInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (el('sbFileHubOpenDriveUrlBtn')) el('sbFileHubOpenDriveUrlBtn').click();
+        }
+      });
+    }
     if (el('sbFileHubOpenUrlBtn')) {
       el('sbFileHubOpenUrlBtn').addEventListener('click', function () {
         var u = (el('sbFileHubUrlInput') && el('sbFileHubUrlInput').value || '').trim();
@@ -3109,8 +3149,30 @@
     });
 
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
-    if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', saveCurrentPng);
-    if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', saveMergedPdf);
+    // PNG · PDF 저장 선택 팝오버 (#sbSaveMenuBtn / #sbSaveMenu)
+    function closeSaveMenu() {
+      if (el('sbSaveMenu')) el('sbSaveMenu').classList.remove('show');
+    }
+    if (el('sbSaveMenuBtn') && el('sbSaveMenu')) {
+      el('sbSaveMenuBtn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        var menu = el('sbSaveMenu');
+        var willOpen = !menu.classList.contains('show');
+        if (willOpen) {
+          var rect = this.getBoundingClientRect();
+          menu.style.top = Math.round(rect.bottom + 6) + 'px';
+          var rightOffset = Math.max(10, Math.round(window.innerWidth - rect.right));
+          menu.style.right = rightOffset + 'px';
+          menu.classList.add('show');
+        } else {
+          menu.classList.remove('show');
+        }
+      });
+      el('sbSaveMenu').addEventListener('click', function (e) { e.stopPropagation(); });
+      document.addEventListener('click', closeSaveMenu);
+    }
+    if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', function () { closeSaveMenu(); saveCurrentPng(); });
+    if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', function () { closeSaveMenu(); saveMergedPdf(); });
     if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () {
       goScSlide(0);
       el('sbShortcutModal').classList.add('show');
