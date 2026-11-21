@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.6.3">
+  <link rel="stylesheet" href="./smart-board.css?v=2.6.4">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -51,23 +51,11 @@
 
         <div class="sb-top-divider"></div>
 
-        <!-- 노트 보관함 & 자료 불러오기 -->
+        <!-- 노트 보관함 & 통합 파일·링크 열기 -->
         <div class="sb-top-group">
           <button type="button" class="sb-btn sb-btn-vault sb-btn-xs" id="sbOpenVaultBtn" title="삼성노트형 로컬 폴더별 판서 노트 보관함">폴더·노트함</button>
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbQuickSaveNoteBtn" title="현재 판서 노트를 로컬 폴더에 즉시 저장 (Ctrl+Shift+S)">노트저장</button>
-          <label class="sb-btn sb-btn-file sb-btn-xs" title="PDF 파일 불러오기">
-            PDF 열기
-            <input type="file" id="sbPdfInput" accept=".pdf,application/pdf" hidden>
-          </label>
-          <label class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs" title="PPTX 슬라이드 및 클릭 애니메이션 액션 불러오기">
-            PPTX 열기
-            <input type="file" id="sbPptxInput" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden>
-          </label>
-          <label class="sb-btn sb-btn-file sb-btn-xs" title="이미지 불러오기 (Ctrl+V 붙여넣기 가능)">
-            이미지
-            <input type="file" id="sbImgInput" accept="image/*" hidden>
-          </label>
-          <button type="button" class="sb-btn sb-btn-web sb-btn-xs" id="sbOpenWebBtn" title="내장 웹 브라우저를 띄우고 그 위에 스탬프와 판서를 남깁니다">웹브라우저</button>
+          <button type="button" class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs" id="sbOpenFileHubBtn" title="PDF · PPTX · 이미지 파일 업로드 또는 유튜브 · 웹 링크 열기">파일·링크 열기</button>
         </div>
 
         <div class="sb-top-divider"></div>
@@ -94,8 +82,9 @@
 
       <!-- 2열(판서 도구 · 원형/사각 스탬프 · 색상 · S펜 스위치 · 페이지/PPTX 액션 바) -->
       <div class="sb-top-row sb-top-row-tools">
-        <!-- 판서 도구 (단축키 P, H, L, R, C, T, S, Q, E 반영) -->
+        <!-- 판서 도구 (단축키 V, P, H, L, R, C, T, S, Q, E 반영) -->
         <div class="sb-top-group sb-tools-strip">
+          <button type="button" class="sb-tool-btn" data-sb-tool="select" title="선택·이동 모드: 필기·도형·스탬프를 클릭/드래그하여 자유롭게 이동 및 선택 (단축키 V)">선택·이동 <kbd>V</kbd></button>
           <button type="button" class="sb-tool-btn active" data-sb-tool="pen" title="자유 곡선 펜 (단축키 P)">펜 <kbd>P</kbd></button>
           <button type="button" class="sb-tool-btn" data-sb-tool="highlighter" title="반투명 형광펜 (단축키 H)">형광펜 <kbd>H</kbd></button>
           <button type="button" class="sb-tool-btn" data-sb-tool="line" title="반듯한 직선 (단축키 L 또는 Shift+드래그)">직선 <kbd>L</kbd></button>
@@ -693,6 +682,67 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.6.3"></script>
+  <!-- ================================================================= -->
+  <!-- 통합 파일·링크 열기 모달 (#sbFileHubModal) -->
+  <!-- ================================================================= -->
+  <div class="sb-modal" id="sbFileHubModal">
+    <div class="sb-modal-card sb-modal-wide">
+      <div class="sb-modal-head">
+        <div>
+          <span class="sb-guide-kicker">PDF · PPTX · 이미지 업로드 및 유튜브 · 웹 수업 링크 한 곳에서 열기</span>
+          <h3>파일 · 링크 열기</h3>
+        </div>
+        <button type="button" class="sb-close-btn" data-close="sbFileHubModal">&times;</button>
+      </div>
+      <div class="sb-modal-body" style="display:flex;flex-direction:column;gap:16px;">
+        <!-- 1. 파일 업로드 섹션 -->
+        <div class="sb-filehub-sec">
+          <div class="sb-filehub-title">1. 내 기기에서 수업 파일 올리기 (PDF · PPTX · 이미지)</div>
+          <label class="sb-filehub-drop" id="sbFileHubDropzone">
+            <strong>여기를 클릭하거나 파일을 끌어다 놓으세요</strong>
+            <span>PDF 문서, PPTX 발표자료(클릭 액션 지원), PNG·JPG 이미지를 자동으로 판별해 엽니다.</span>
+            <input type="file" id="sbUnifiedFileInput" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/*" hidden>
+          </label>
+          <div class="sb-filehub-cards">
+            <label class="sb-filehub-card">
+              <b>PDF 열기</b>
+              <small>교과서·시험지 PDF 판서</small>
+              <input type="file" id="sbPdfInput" accept=".pdf,application/pdf" hidden>
+            </label>
+            <label class="sb-filehub-card is-pptx">
+              <b>PPTX 열기</b>
+              <small>슬라이드·클릭 액션 지원</small>
+              <input type="file" id="sbPptxInput" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden>
+            </label>
+            <label class="sb-filehub-card">
+              <b>이미지 열기</b>
+              <small>사진·캡처 (Ctrl+V 가능)</small>
+              <input type="file" id="sbImgInput" accept="image/*" hidden>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. 웹 링크 · 유튜브 열기 섹션 -->
+        <div class="sb-filehub-sec">
+          <div class="sb-filehub-title">2. 유튜브 · 웹 링크 보드 안에서 바로 열기</div>
+          <div class="sb-filehub-url-row">
+            <input type="text" id="sbFileHubUrlInput" class="sb-input" placeholder="유튜브 링크(youtube.com / youtu.be) 또는 웹 주소(https://...) 입력 후 Enter">
+            <button type="button" class="sb-btn sb-btn-primary" id="sbFileHubOpenUrlBtn" style="white-space:nowrap;">링크 열기</button>
+          </div>
+          <div class="sb-filehub-presets">
+            <button type="button" class="sb-mini-btn sb-web-yt-btn" data-filehub-yt="1">▶ 유튜브 바로 열기</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://www.geogebra.org/classic?lang=ko">지오지브라</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://www.desmos.com/calculator?lang=ko">데스모스</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">위키백과</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://ai-math-practice.vercel.app/">인공지능수학</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://go.geomath.workers.dev/">기하벡터</button>
+            <button type="button" class="sb-mini-btn" data-filehub-url="https://stock-arena-v3.vercel.app/">모의주식</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./smart-board.js?v=2.6.4"></script>
 </body>
 </html>

@@ -663,7 +663,7 @@ body {
 /* 편집 모드 액션 바 */
 .sb-edit-bar {
   position: absolute;
-  top: 12px;
+  top: 56px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 36;
@@ -1376,4 +1376,101 @@ kbd {
 }
 .sb-sc-full-table th, .sb-sc-full-table td {
   padding: 11px 14px;
+}
+
+
+/* 통합 파일·링크 열기 모달 (#sbFileHubModal) */
+.sb-filehub-sec {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sb-filehub-title {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+.sb-filehub-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 18px 14px;
+  border: 2px dashed #60a5fa;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.sb-filehub-drop:hover,
+.sb-filehub-drop.dragover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+.sb-filehub-drop strong { font-size: 0.92rem; }
+.sb-filehub-drop span { font-size: 0.78rem; color: #475569; }
+.sb-filehub-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.sb-filehub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.14s ease, transform 0.12s ease;
+}
+.sb-filehub-card:hover {
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+.sb-filehub-card.is-pptx {
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+.sb-filehub-card b { font-size: 0.86rem; color: #0f172a; }
+.sb-filehub-card small { font-size: 0.74rem; color: #64748b; }
+.sb-filehub-url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sb-filehub-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sb-filehub-presets .sb-mini-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  font-weight: 800;
+}
+.sb-filehub-presets .sb-mini-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+.sb-filehub-presets .sb-web-yt-btn {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+.sb-filehub-presets .sb-web-yt-btn:hover {
+  background: #b91c1c;
+}
+@media (max-width: 680px) {
+  .sb-filehub-cards { grid-template-columns: 1fr; }
 }

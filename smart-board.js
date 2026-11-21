@@ -486,7 +486,7 @@
   function renderSelectionOverlay() {
     var pg = curPage();
     liveCtx.clearRect(0, 0, pg.width, pg.height);
-    if (state.mode === 'edit' && state.selection) {
+    if ((state.mode === 'edit' || state.tool === 'select') && state.selection) {
       var s = state.selection;
       liveCtx.save();
       liveCtx.fillStyle = 'rgba(124, 58, 237, 0.14)';
@@ -797,6 +797,7 @@
     if (nextTool !== 'eraser') {
       state.lastDrawTool = nextTool;
     }
+    if (nextTool !== 'select') clearSelection();
     state.tool = nextTool;
     if (state.webActive && state.webInteract) setWebInteractMode(false);
     if (state.mode !== 'draw') setMode('draw');
@@ -804,7 +805,7 @@
       b.classList.toggle('active', b.getAttribute('data-sb-tool') === nextTool);
     });
     syncWebQuickToolsUi();
-    liveCanvas.style.cursor = nextTool === 'text' ? 'text' : 'crosshair';
+    liveCanvas.style.cursor = nextTool === 'select' ? 'default' : (nextTool === 'text' ? 'text' : 'crosshair');
   }
 
   // 갤럭시 S펜 옆 버튼(배럴 버튼: button=2 / buttons bit 2, 지우개 버튼: button=5 / buttons bit 32) 감지
@@ -1007,14 +1008,33 @@
       return;
     }
 
-    if (state.mode === 'edit') {
+    if (state.mode === 'edit' || (state.mode === 'draw' && state.tool === 'select')) {
+      pointer.effectiveTool = 'select';
       if (state.selection &&
           pt.x >= state.selection.x && pt.x <= state.selection.x + state.selection.w &&
           pt.y >= state.selection.y && pt.y <= state.selection.y + state.selection.h) {
         pointer.draggingSelection = true;
       } else {
-        pointer.draggingSelection = false;
-        clearSelection();
+        // 선택·이동 모드에서는 개별 판서/스탬프/도형을 클릭 즉시 선택하고 바로 드래그 이동 가능
+        var curObjs = curPage().objects || [];
+        var hitObj = null;
+        for (var hi = curObjs.length - 1; hi >= 0; hi--) {
+          var hb = getObjBounds(curObjs[hi]);
+          if (pt.x >= hb.x - 10 && pt.x <= hb.x + hb.w + 10 && pt.y >= hb.y - 10 && pt.y <= hb.y + hb.h + 10) {
+            hitObj = curObjs[hi];
+            break;
+          }
+        }
+        if (hitObj) {
+          var b0 = getObjBounds(hitObj);
+          state.selection = { x: b0.x - 6, y: b0.y - 6, w: b0.w + 12, h: b0.h + 12, ids: [hitObj.id] };
+          pointer.draggingSelection = true;
+          renderSelectionOverlay();
+          showEditBar();
+        } else {
+          pointer.draggingSelection = false;
+          clearSelection();
+        }
       }
       return;
     }
@@ -1142,7 +1162,7 @@
       return;
     }
 
-    if (state.mode === 'edit') {
+    if (state.mode === 'edit' || pointer.effectiveTool === 'select') {
       if (pointer.draggingSelection && state.selection) {
         var dx = pt.x - pointer.lastX;
         var dy = pt.y - pointer.lastY;
@@ -1211,7 +1231,7 @@
       return;
     }
 
-    if (state.mode === 'edit') {
+    if (state.mode === 'edit' || pointer.effectiveTool === 'select') {
       if (!pointer.draggingSelection) {
         var ex = Math.min(pointer.startX, pt.x), ey = Math.min(pointer.startY, pt.y);
         var ew = Math.abs(pt.x - pointer.startX), eh = Math.abs(pt.y - pointer.startY);
@@ -2905,12 +2925,88 @@
       });
     }
 
+    // 통합 파일·링크 열기 모달 (#sbFileHubModal)
+    function closeFileHubModal() {
+      if (el('sbFileHubModal')) el('sbFileHubModal').classList.remove('show');
+    }
+    function handleUnifiedFile(f) {
+      if (!f) return;
+      closeFileHubModal();
+      var name = String(f.name || '').toLowerCase();
+      if (name.endsWith('.pdf') || f.type === 'application/pdf') {
+        loadPdfFile(f);
+      } else if (name.endsWith('.pptx')) {
+        loadPptxFile(f);
+      } else if (f.type && f.type.indexOf('image/') === 0 || /\.(png|jpe?g|gif|webp|bmp)$/i.test(name)) {
+        var fr = new FileReader();
+        fr.onload = function () { loadImageFromDataUrl(fr.result, f.name); };
+        fr.readAsDataURL(f);
+      } else {
+        showToast('지원 형식은 PDF, PPTX, 이미지(PNG/JPG)입니다.');
+      }
+    }
+    if (el('sbOpenFileHubBtn')) {
+      el('sbOpenFileHubBtn').addEventListener('click', function () {
+        if (el('sbFileHubModal')) el('sbFileHubModal').classList.add('show');
+      });
+    }
+    if (el('sbUnifiedFileInput')) {
+      el('sbUnifiedFileInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) handleUnifiedFile(this.files[0]);
+        this.value = '';
+      });
+    }
+    if (el('sbFileHubDropzone')) {
+      var dz = el('sbFileHubDropzone');
+      dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', function () { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dz.classList.remove('dragover');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleUnifiedFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+    if (el('sbFileHubOpenUrlBtn')) {
+      el('sbFileHubOpenUrlBtn').addEventListener('click', function () {
+        var u = (el('sbFileHubUrlInput') && el('sbFileHubUrlInput').value || '').trim();
+        closeFileHubModal();
+        openWebBrowser(u || 'https://www.youtube.com/watch?v=aircAruvnKk');
+      });
+    }
+    if (el('sbFileHubUrlInput')) {
+      el('sbFileHubUrlInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var u = (this.value || '').trim();
+          closeFileHubModal();
+          openWebBrowser(u);
+        }
+      });
+    }
+    document.querySelectorAll('[data-filehub-url]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeFileHubModal();
+        openWebBrowser(btn.getAttribute('data-filehub-url'));
+      });
+    });
+    document.querySelectorAll('[data-filehub-yt]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeFileHubModal();
+        var u = (el('sbFileHubUrlInput') && el('sbFileHubUrlInput').value || '').trim();
+        if (u && /youtube\.com|youtu\.be/i.test(u)) openWebBrowser(u);
+        else openWebBrowser('https://www.youtube.com/watch?v=aircAruvnKk');
+      });
+    });
+
     // 파일 입력
-    if (el('sbPdfInput')) el('sbPdfInput').addEventListener('change', function () { if (this.files && this.files[0]) loadPdfFile(this.files[0]); this.value = ''; });
-    if (el('sbPptxInput')) el('sbPptxInput').addEventListener('change', function () { if (this.files && this.files[0]) loadPptxFile(this.files[0]); this.value = ''; });
+    if (el('sbPdfInput')) el('sbPdfInput').addEventListener('change', function () { if (this.files && this.files[0]) { closeFileHubModal(); loadPdfFile(this.files[0]); } this.value = ''; });
+    if (el('sbPptxInput')) el('sbPptxInput').addEventListener('change', function () { if (this.files && this.files[0]) { closeFileHubModal(); loadPptxFile(this.files[0]); } this.value = ''; });
     if (el('sbImgInput')) el('sbImgInput').addEventListener('change', function () {
       var f = this.files && this.files[0];
       if (!f) return;
+      closeFileHubModal();
       var fr = new FileReader();
       fr.onload = function () { loadImageFromDataUrl(fr.result, f.name); };
       fr.readAsDataURL(f);
@@ -3213,7 +3309,7 @@
       // 백스페이스(Backspace) 또는 Delete: 편집 모드 선택 영역 삭제 또는 마지막 판서 취소(되돌리기)
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        if (state.mode === 'edit' && state.selection && el('sbEditDelBtn')) {
+        if ((state.mode === 'edit' || state.tool === 'select') && state.selection && el('sbEditDelBtn')) {
           el('sbEditDelBtn').click();
         } else if (el('sbUndoBtn')) {
           el('sbUndoBtn').click();
@@ -3241,8 +3337,9 @@
 
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         var k = e.key.toLowerCase();
-        // 도형 및 도구 1글자 단축키: 지우개(E), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
-        if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
+        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
+        if (k === 'v') setTool('select');
+        else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
         else if (k === 's') setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');
         else if (k === 'q') setTool(state.tool === 'sqStamp' ? (state.lastDrawTool || 'pen') : 'sqStamp');
         else if (k === 't') setTool(state.tool === 'text' ? (state.lastDrawTool || 'pen') : 'text');
