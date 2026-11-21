@@ -164,20 +164,28 @@
 
     <!-- 중앙 100% 전체화면 캔버스 스테이지 (100vw x 100dvh 꽉 찬 송출 화면) -->
     <div class="sb-stage-wrap" id="sbStageWrap">
-      <!-- 내장 웹 브라우저 상단 슬림 주소·모드 바 -->
+      <!-- 내장 웹 브라우저 하단 슬림 주소·유튜브·스탬프 제어 바 (상단 팔레트와 겹치지 않도록 하단 배치) -->
       <div class="sb-web-bar" id="sbWebBar" style="display:none;">
         <div class="sb-web-presets">
+          <button type="button" class="sb-mini-btn sb-web-yt-btn" id="sbWebYoutubePresetBtn" title="유튜브 링크를 보드 안에서 바로 재생합니다 (youtube.com/watch?v=... 또는 youtu.be/... 붙여넣기 지원)">▶ 유튜브</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://www.geogebra.org/classic?lang=ko">지오지브라</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://www.desmos.com/calculator?lang=ko">데스모스</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">위키백과</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://ai-math-practice.vercel.app/">인공지능수학</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://go.geomath.workers.dev/">기하벡터</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://stock-arena-v3.vercel.app/">모의주식</button>
+          <button type="button" class="sb-mini-btn sb-web-adblock-btn" id="sbAdBlockGuideBtn" title="수업 중 유튜브·웹 광고 없이 보기 위한 브라우저 광고제거 확장프로그램 설치 안내">광고제거 안내</button>
+          <div class="sb-web-quick-tools" id="sbWebQuickTools">
+            <button type="button" class="sb-web-qtool" id="sbWebInteractToggleBtn" data-web-qtool="interact" title="웹페이지·유튜브 클릭 및 스크롤 조작">웹 조작</button>
+            <button type="button" class="sb-web-qtool active" id="sbWebPenBtn" data-web-qtool="pen" title="웹 화면 위 펜 필기">펜 필기</button>
+            <button type="button" class="sb-web-qtool" id="sbWebCircleStampBtn" data-web-qtool="stamp" title="웹 화면 위 완벽한 원형 ①②③ 스탬프 찍기">① 원형스탬프</button>
+            <button type="button" class="sb-web-qtool" id="sbWebSquareStampBtn" data-web-qtool="sqStamp" title="웹 화면 위 정사각형 [1][2][3] 스탬프 찍기">▣ 사각스탬프</button>
+            <button type="button" class="sb-web-qtool" id="sbWebEraserBtn" data-web-qtool="eraser" title="웹 화면 위 판서·스탬프 지우기">지우개</button>
+          </div>
         </div>
         <div class="sb-web-addr-row">
-          <input type="text" id="sbWebUrlInput" class="sb-web-input" placeholder="웹 주소(https://...) 또는 위키백과 검색어 입력 후 Enter" value="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">
+          <input type="text" id="sbWebUrlInput" class="sb-web-input" placeholder="유튜브 영상 링크(youtube.com/watch?v=... / youtu.be/...) 또는 웹 주소 입력 후 Enter" value="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbWebGoBtn">열기</button>
-          <button type="button" class="sb-btn sb-btn-accent sb-btn-xs" id="sbWebInteractToggleBtn" title="웹페이지 클릭·스크롤 조작과 웹 위 판서·스탬프 찍기를 전환합니다">현재: 판서·①스탬프 모드</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbWebSnapBtn" title="현재 웹 화면을 이미지 칠판으로 캡처해 판서·저장합니다">스냅샷 고정</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbWebOpenTabBtn" title="현재 주소를 새 탭으로 열기">새 탭 ↗</button>
           <button type="button" class="sb-btn sb-btn-danger sb-btn-xs" id="sbWebCloseBtn">웹 닫기</button>
@@ -192,7 +200,7 @@
       <div class="sb-canvas-viewport" id="sbViewport">
         <div class="sb-board-frame" id="sbBoardFrame">
           <canvas id="sbBgCanvas" width="1280" height="720"></canvas>
-          <iframe id="sbWebFrame" class="sb-web-frame" title="내장 수업 웹 브라우저" referrerpolicy="no-referrer" style="display:none;"></iframe>
+          <iframe id="sbWebFrame" class="sb-web-frame" title="내장 수업 웹 브라우저" referrerpolicy="no-referrer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display:none;"></iframe>
           <canvas id="sbInkCanvas" width="1280" height="720"></canvas>
           <canvas id="sbLiveCanvas" width="1280" height="720"></canvas>
           <textarea id="sbInlineText" class="sb-inline-text" rows="1" placeholder="글씨 입력 (Enter 완료, Shift+Enter 줄바꿈)" style="display:none;"></textarea>
@@ -603,6 +611,59 @@
               </ul>
             </article>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- 유튜브 수업용 브라우저 광고제거 확장프로그램 설치 안내 모달 (#sbAdBlockModal) -->
+  <!-- ================================================================= -->
+  <div class="sb-modal" id="sbAdBlockModal">
+    <div class="sb-modal-card sb-modal-wide">
+      <div class="sb-modal-head">
+        <div>
+          <span class="sb-guide-kicker">수업 중 유튜브·웹 광고 없이 깔끔하게 재생하기</span>
+          <h3>브라우저 광고제거 확장프로그램 설치 및 유튜브 활용 안내</h3>
+        </div>
+        <button type="button" class="sb-close-btn" data-close="sbAdBlockModal">&times;</button>
+      </div>
+      <div class="sb-modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="sb-help-note" style="margin:0;">
+          <b>유튜브 영상 링크 바로 재생 방법</b><br>
+          내장 웹 브라우저 주소창에 유튜브 링크(<code>youtube.com/watch?v=...</code>, <code>youtu.be/...</code>, <code>shorts/...</code>)를 붙여넣고 <b>[열기]</b>를 누르면 보드 안에서 바로 재생되며, <b>[① 원형스탬프]</b>·<b>[▣ 사각스탬프]</b>·<b>[펜 필기]</b>로 영상 위에 직접 필기할 수 있습니다.
+        </div>
+
+        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#2563eb;">
+          <h4 style="color:#1d4ed8;">1. PC 크롬(Chrome) · 엣지(Edge) · 웨일(Whale) 브라우저</h4>
+          <ol>
+            <li>아래 공식 스토어 링크를 눌러 <b>uBlock Origin Lite</b>(권장·초경량) 또는 <b>AdGuard 광고 차단기</b>를 설치합니다.</li>
+            <li>설치 후 브라우저를 새로고침하면 스마트 판서 보드 안의 유튜브 영상에서도 앞·중간 광고 없이 바로 재생됩니다.</li>
+          </ol>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">uBlock Origin Lite 설치 (Chrome 스토어 ↗)</a>
+            <a href="https://chromewebstore.google.com/detail/adguard-adblocker/bgnkhhnnamicmpeenaelnjfhikgbkllg" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-ghost">AdGuard 광고 차단기 설치 (Chrome 스토어 ↗)</a>
+          </div>
+        </div>
+
+        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#059669;">
+          <h4 style="color:#047857;">2. 갤럭시탭 / 안드로이드 태블릿 (추천 설정)</h4>
+          <ol>
+            <li><b>삼성 인터넷(Samsung Internet) 사용 시</b>: 우측 하단 <b>[≡ 메뉴] → [애드블록]</b>에서 <b>AdGuard 콘텐츠 차단기</b>를 설치해 켜면 광고 없이 쾌적하게 수업할 수 있습니다.</li>
+            <li><b>Brave 브라우저 사용 시</b>: Play 스토어에서 <b>Brave 브라우저</b>를 설치해 우리 사이트에 접속하면 별도 확장프로그램 없이 기본 광고 차단이 자동 적용됩니다.</li>
+          </ol>
+        </div>
+
+        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#d97706;">
+          <h4 style="color:#b45309;">3. 아이패드(iPad) / 사파리(Safari)</h4>
+          <ol>
+            <li>App Store에서 무료 <b>AdGuard for Safari</b>를 설치한 뒤, 아이패드 <b>[설정 → Safari → 확장 프로그램]</b>에서 활성화합니다.</li>
+          </ol>
+        </div>
+
+        <div class="sb-modal-actions" style="margin-top:4px;">
+          <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-danger">유튜브 새 탭에서 영상 링크 찾기 ↗</a>
+          <button type="button" class="sb-btn sb-btn-primary" data-close="sbAdBlockModal">확인 및 닫기</button>
         </div>
       </div>
     </div>

@@ -453,22 +453,24 @@ body {
   overflow: hidden;
 }
 
-/* 내장 웹 브라우저 상단 슬림 바 */
+/* 내장 웹 브라우저 하단 슬림 바 (상단 팔레트 및 미니 열기 바와 겹치지 않음) */
 .sb-web-bar {
-  position: absolute;
-  top: 8px;
+  position: fixed;
+  bottom: 12px;
+  top: auto;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 35;
-  width: min(980px, 94%);
+  z-index: 42;
+  width: min(1040px, calc(100vw - 240px));
   background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(8px);
   border: 1.5px solid #10b981;
   border-radius: 12px;
   padding: 7px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
 }
 .sb-web-presets {
   display: flex;
@@ -481,6 +483,51 @@ body {
   border: 1px solid #334155;
 }
 .sb-web-presets .sb-mini-btn:hover { background: #065f46; color: #ffffff; }
+.sb-web-presets .sb-web-yt-btn {
+  background: #dc2626;
+  border-color: #f87171;
+  color: #ffffff;
+  font-weight: 900;
+}
+.sb-web-presets .sb-web-yt-btn:hover { background: #b91c1c; }
+.sb-web-presets .sb-web-adblock-btn {
+  background: #1d4ed8;
+  border-color: #60a5fa;
+  color: #ffffff;
+  font-weight: 800;
+}
+.sb-web-presets .sb-web-adblock-btn:hover { background: #1e40af; }
+.sb-web-quick-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding-left: 8px;
+  border-left: 1px solid #334155;
+  flex-wrap: wrap;
+}
+.sb-web-qtool {
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #cbd5e1;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.sb-web-qtool:hover { background: #1e293b; color: #ffffff; }
+.sb-web-qtool.active {
+  background: #10b981;
+  border-color: #34d399;
+  color: #022c22;
+}
+.sb-web-qtool[data-web-qtool="interact"].active {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: #ffffff;
+}
 .sb-web-addr-row {
   display: flex;
   align-items: center;

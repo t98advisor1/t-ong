@@ -635,23 +635,37 @@
   }
 
   // ===================================================================
-  // 내장 웹 브라우저 + 스탬프/판서 레이어
+  // 내장 웹 브라우저 + 유튜브 임베드 + 원형/사각 스탬프/판서 레이어
   // ===================================================================
+  function convertYoutubeToEmbedUrl(rawUrl) {
+    var s = String(rawUrl || '').trim();
+    var m = s.match(/(?:youtube\.com\/(?:watch\?.*?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+    if (m && m[1]) {
+      return 'https://www.youtube-nocookie.com/embed/' + m[1] + '?rel=0&modestbranding=1';
+    }
+    return null;
+  }
+
+  function syncWebQuickToolsUi() {
+    document.querySelectorAll('.sb-web-qtool[data-web-qtool]').forEach(function (b) {
+      var qt = b.getAttribute('data-web-qtool');
+      var isAct = state.webInteract ? (qt === 'interact') : (qt === state.tool);
+      b.classList.toggle('active', isAct);
+    });
+  }
+
   function setWebInteractMode(interactOn) {
     state.webInteract = !!interactOn;
     boardFrame.classList.toggle('web-interact-on', state.webInteract);
-    var btn = el('sbWebInteractToggleBtn');
-    if (btn) {
-      btn.textContent = state.webInteract ? '현재: 웹 조작(클릭·스크롤)' : '현재: 판서·①스탬프 모드';
-      btn.className = 'sb-btn sb-btn-xs ' + (state.webInteract ? 'sb-btn-file' : 'sb-btn-accent');
-    }
+    syncWebQuickToolsUi();
   }
 
   function openWebBrowser(urlStr) {
     var raw = String(urlStr || (el('sbWebUrlInput') && el('sbWebUrlInput').value) || '').trim();
     if (!raw) raw = 'https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0';
-    var targetUrl = raw;
-    if (!/^https?:\/\//i.test(raw)) {
+    var ytEmbed = convertYoutubeToEmbedUrl(raw);
+    var targetUrl = ytEmbed || raw;
+    if (!ytEmbed && !/^https?:\/\//i.test(raw)) {
       if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(raw)) {
         targetUrl = 'https://' + raw;
       } else {
@@ -665,8 +679,14 @@
       webFrame.style.display = 'block';
       webFrame.src = targetUrl;
     }
-    setWebInteractMode(false);
-    showToast('내장 웹 브라우저를 열었습니다. 웹 위에서 바로 ①스탬프와 판서를 찍을 수 있습니다.');
+    // 유튜브는 바로 재생 버튼을 누를 수 있도록 웹 조작 모드로, 일반 웹은 현재 도구 유지
+    if (ytEmbed) {
+      setWebInteractMode(true);
+      showToast('유튜브 영상을 보드 안에서 열었습니다. 재생 후 하단 [① 원형스탬프] 또는 [펜 필기]로 영상 위에 필기하세요.');
+    } else {
+      setWebInteractMode(false);
+      showToast('내장 웹 브라우저를 열었습니다. 하단 [① 원형스탬프]·[▣ 사각스탬프]·[펜 필기]·[웹 조작]을 바로 전환하세요.');
+    }
   }
 
   function closeWebBrowser() {
@@ -759,6 +779,7 @@
     document.querySelectorAll('.sb-tool-btn[data-sb-tool]').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-sb-tool') === nextTool);
     });
+    syncWebQuickToolsUi();
     liveCanvas.style.cursor = nextTool === 'text' ? 'text' : 'crosshair';
   }
 
@@ -2656,14 +2677,69 @@
       this.value = '';
     });
 
-    // 내장 웹 브라우저
+    // 내장 웹 브라우저 + 유튜브 + 광고제거 안내 + 웹 위 스탬프/필기 빠른 전환
     if (el('sbOpenWebBtn')) el('sbOpenWebBtn').addEventListener('click', function () { openWebBrowser(); });
     if (el('sbWebGoBtn')) el('sbWebGoBtn').addEventListener('click', function () { openWebBrowser(el('sbWebUrlInput').value); });
     if (el('sbWebUrlInput')) el('sbWebUrlInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') openWebBrowser(this.value); });
     document.querySelectorAll('[data-web-url]').forEach(function (wb) {
       wb.addEventListener('click', function () { openWebBrowser(wb.getAttribute('data-web-url')); });
     });
-    if (el('sbWebInteractToggleBtn')) el('sbWebInteractToggleBtn').addEventListener('click', function () { setWebInteractMode(!state.webInteract); });
+    if (el('sbWebYoutubePresetBtn')) {
+      el('sbWebYoutubePresetBtn').addEventListener('click', function () {
+        var inp = el('sbWebUrlInput');
+        var curVal = inp ? inp.value.trim() : '';
+        if (convertYoutubeToEmbedUrl(curVal)) {
+          openWebBrowser(curVal);
+        } else {
+          if (inp) {
+            inp.value = 'https://www.youtube.com/watch?v=aircAruvnKk';
+            inp.focus();
+            inp.select();
+          }
+          openWebBrowser('https://www.youtube.com/watch?v=aircAruvnKk');
+          showToast('유튜브 샘플 영상을 열었습니다. 원하는 유튜브 링크를 주소창에 붙여넣고 [열기]를 누르세요.');
+        }
+      });
+    }
+    if (el('sbAdBlockGuideBtn')) {
+      el('sbAdBlockGuideBtn').addEventListener('click', function () {
+        if (el('sbAdBlockModal')) el('sbAdBlockModal').classList.add('show');
+      });
+    }
+    if (el('sbWebInteractToggleBtn')) {
+      el('sbWebInteractToggleBtn').addEventListener('click', function () {
+        setWebInteractMode(true);
+        showToast('웹 조작 모드: 웹페이지 스크롤 및 유튜브 재생 버튼 클릭이 가능합니다.');
+      });
+    }
+    if (el('sbWebPenBtn')) {
+      el('sbWebPenBtn').addEventListener('click', function () {
+        setWebInteractMode(false);
+        setTool('pen');
+        showToast('웹 위 [펜 필기] 모드로 전환했습니다.');
+      });
+    }
+    if (el('sbWebCircleStampBtn')) {
+      el('sbWebCircleStampBtn').addEventListener('click', function () {
+        setWebInteractMode(false);
+        setTool('stamp');
+        showToast('웹 위 [① 원형 스탬프] 모드입니다. 웹 화면을 클릭하면 ①, ②, ③이 찍힙니다.');
+      });
+    }
+    if (el('sbWebSquareStampBtn')) {
+      el('sbWebSquareStampBtn').addEventListener('click', function () {
+        setWebInteractMode(false);
+        setTool('sqStamp');
+        showToast('웹 위 [▣ 사각 스탬프] 모드입니다. 웹 화면을 클릭하면 [1], [2], [3]이 찍힙니다.');
+      });
+    }
+    if (el('sbWebEraserBtn')) {
+      el('sbWebEraserBtn').addEventListener('click', function () {
+        setWebInteractMode(false);
+        setTool('eraser');
+        showToast('웹 위 [지우개] 모드로 전환했습니다.');
+      });
+    }
     if (el('sbWebSnapBtn')) el('sbWebSnapBtn').addEventListener('click', snapshotWebToBoard);
     if (el('sbWebOpenTabBtn')) el('sbWebOpenTabBtn').addEventListener('click', function () {
       var u = (el('sbWebUrlInput') && el('sbWebUrlInput').value.trim()) || 'https://www.geogebra.org';
