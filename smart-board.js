@@ -2766,9 +2766,41 @@
         }
       });
     }
-    if (el('sbAdBlockGuideBtn')) {
-      el('sbAdBlockGuideBtn').addEventListener('click', function () {
-        if (el('sbAdBlockModal')) el('sbAdBlockModal').classList.add('show');
+    var adSlideIdx = 0;
+    var adShowAll = false;
+    function goAdSlide(nextIdx) {
+      var panes = document.querySelectorAll('[data-ad-slide-pane]');
+      if (!panes.length) return;
+      adShowAll = false;
+      adSlideIdx = (nextIdx + panes.length) % panes.length;
+      panes.forEach(function (p, i) { p.style.display = i === adSlideIdx ? 'flex' : 'none'; });
+      document.querySelectorAll('[data-ad-slide]').forEach(function (tb) {
+        tb.classList.toggle('active', parseInt(tb.getAttribute('data-ad-slide'), 10) === adSlideIdx);
+      });
+      if (el('sbAdSlideCounter')) el('sbAdSlideCounter').textContent = (adSlideIdx + 1) + ' / ' + panes.length;
+      if (el('sbAdShowAllToggleBtn')) el('sbAdShowAllToggleBtn').textContent = '전체 보기';
+    }
+    function openAdBlockGuide() {
+      goAdSlide(0);
+      if (el('sbAdBlockModal')) el('sbAdBlockModal').classList.add('show');
+    }
+    if (el('sbAdBlockGuideBtn')) el('sbAdBlockGuideBtn').addEventListener('click', openAdBlockGuide);
+    if (el('sbTopAdBlockGuideBtn')) el('sbTopAdBlockGuideBtn').addEventListener('click', openAdBlockGuide);
+    if (el('sbAdPrevSlideBtn')) el('sbAdPrevSlideBtn').addEventListener('click', function () { goAdSlide(adSlideIdx - 1); });
+    if (el('sbAdNextSlideBtn')) el('sbAdNextSlideBtn').addEventListener('click', function () { goAdSlide(adSlideIdx + 1); });
+    document.querySelectorAll('[data-ad-slide]').forEach(function (tb) {
+      tb.addEventListener('click', function () { goAdSlide(parseInt(tb.getAttribute('data-ad-slide'), 10) || 0); });
+    });
+    if (el('sbAdShowAllToggleBtn')) {
+      el('sbAdShowAllToggleBtn').addEventListener('click', function () {
+        var panes = document.querySelectorAll('[data-ad-slide-pane]');
+        adShowAll = !adShowAll;
+        if (adShowAll) {
+          panes.forEach(function (p) { p.style.display = 'flex'; });
+          this.textContent = '1장씩 슬라이드로 보기';
+        } else {
+          goAdSlide(adSlideIdx);
+        }
       });
     }
     if (el('sbWebInteractToggleBtn')) {

@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.6.2">
+  <link rel="stylesheet" href="./smart-board.css?v=2.6.3">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -46,6 +46,7 @@
           <button type="button" class="sb-btn sb-btn-guide-top" id="sbHelpBtn" title="큰 글씨 핵심 사용법 및 전체화면 GIF 시연 매뉴얼 열기">사용설명서</button>
           <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F)">전체화면</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키 안내(?)</button>
+          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">유튜브 광고제거(?)</button>
         </div>
 
         <div class="sb-top-divider"></div>
@@ -181,7 +182,7 @@
           <button type="button" class="sb-mini-btn" data-web-url="https://ai-math-practice.vercel.app/">인공지능수학</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://go.geomath.workers.dev/">기하벡터</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://stock-arena-v3.vercel.app/">모의주식</button>
-          <button type="button" class="sb-mini-btn sb-web-adblock-btn" id="sbAdBlockGuideBtn" title="수업 중 유튜브·웹 광고 없이 보기 위한 브라우저 광고제거 확장프로그램 설치 안내">광고제거 안내</button>
+          <button type="button" class="sb-mini-btn sb-web-adblock-btn" id="sbAdBlockGuideBtn" title="모바일(Firefox + uBlock Origin) 및 PC 유튜브 광고제거 스크린샷 설치 매뉴얼">광고제거(?)</button>
           <div class="sb-web-quick-tools" id="sbWebQuickTools">
             <button type="button" class="sb-web-qtool" id="sbWebInteractToggleBtn" data-web-qtool="interact" title="웹페이지·유튜브 클릭 및 스크롤 조작">웹 조작</button>
             <button type="button" class="sb-web-qtool active" id="sbWebPenBtn" data-web-qtool="pen" title="웹 화면 위 펜 필기">펜 필기</button>
@@ -624,58 +625,74 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- 유튜브 수업용 브라우저 광고제거 확장프로그램 설치 안내 모달 (#sbAdBlockModal) -->
+  <!-- 모바일(Firefox + uBlock Origin) & PC 유튜브 광고제거 스크린샷 매뉴얼 모달 (#sbAdBlockModal) -->
   <!-- ================================================================= -->
   <div class="sb-modal" id="sbAdBlockModal">
-    <div class="sb-modal-card sb-modal-wide">
+    <div class="sb-modal-card sb-modal-guide is-fullscreen">
       <div class="sb-modal-head">
         <div>
-          <span class="sb-guide-kicker">수업 중 유튜브·웹 광고 없이 깔끔하게 재생하기</span>
-          <h3>브라우저 광고제거 확장프로그램 설치 및 유튜브 활용 안내</h3>
+          <span class="sb-guide-kicker">모바일(갤럭시탭·안드로이드) Firefox + uBlock Origin · PC · 아이패드</span>
+          <h3>유튜브 광고 제거 브라우저·확장프로그램 설치 매뉴얼 (?)</h3>
         </div>
-        <button type="button" class="sb-close-btn" data-close="sbAdBlockModal">&times;</button>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">모바일 Firefox 설치 (Play 스토어 ↗)</a>
+          <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-ghost">PC uBlock Lite (Chrome ↗)</a>
+          <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-danger">유튜브 ↗</a>
+          <button type="button" class="sb-close-btn" data-close="sbAdBlockModal">&times;</button>
+        </div>
       </div>
-      <div class="sb-modal-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="sb-help-note" style="margin:0;">
-          <b>유튜브 영상 링크 바로 재생 방법</b><br>
-          내장 웹 브라우저 주소창에 유튜브 링크(<code>youtube.com/watch?v=...</code>, <code>youtu.be/...</code>, <code>shorts/...</code>)를 붙여넣고 <b>[열기]</b>를 누르면 보드 안에서 바로 재생되며, <b>[① 원형스탬프]</b>·<b>[▣ 사각스탬프]</b>·<b>[펜 필기]</b>로 영상 위에 직접 필기할 수 있습니다.
-        </div>
-
-        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#2563eb;">
-          <h4 style="color:#1d4ed8;">1. PC 크롬(Chrome) · 엣지(Edge) · 웨일(Whale) 브라우저</h4>
-          <ol>
-            <li>아래 공식 스토어 링크를 눌러 <b>uBlock Origin Lite</b>(권장·초경량) 또는 <b>AdGuard 광고 차단기</b>를 설치합니다.</li>
-            <li>설치 후 브라우저를 새로고침하면 스마트 판서 보드 안의 유튜브 영상에서도 앞·중간 광고 없이 바로 재생됩니다.</li>
-          </ol>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-            <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">uBlock Origin Lite 설치 (Chrome 스토어 ↗)</a>
-            <a href="https://chromewebstore.google.com/detail/adguard-adblocker/bgnkhhnnamicmpeenaelnjfhikgbkllg" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-ghost">AdGuard 광고 차단기 설치 (Chrome 스토어 ↗)</a>
+      <div class="sb-modal-body sb-guide-modal-body">
+        <div class="sb-slide-nav-bar">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbAdPrevSlideBtn">◀ 이전 단계</button>
+            <span class="sb-slide-counter" id="sbAdSlideCounter">1 / 5</span>
+            <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbAdNextSlideBtn">다음 단계 ▶</button>
           </div>
+          <div class="sb-slide-tabs" id="sbAdSlideTabs">
+            <button type="button" class="sb-slide-tab active" data-ad-slide="0">1. Firefox 설치</button>
+            <button type="button" class="sb-slide-tab" data-ad-slide="1">2. 확장 기능 메뉴</button>
+            <button type="button" class="sb-slide-tab" data-ad-slide="2">3. uBlock 추가</button>
+            <button type="button" class="sb-slide-tab" data-ad-slide="3">4. 판서·스탬프 수업</button>
+            <button type="button" class="sb-slide-tab" data-ad-slide="4">5. PC·아이패드 요약</button>
+          </div>
+          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbAdShowAllToggleBtn">전체 보기</button>
         </div>
 
-        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#059669;">
-          <h4 style="color:#047857;">2. 갤럭시탭 / 안드로이드 태블릿 (추천 설정)</h4>
-          <ol>
-            <li><b>삼성 인터넷(Samsung Internet) 사용 시</b>: 우측 하단 <b>[≡ 메뉴] → [애드블록]</b>에서 <b>AdGuard 콘텐츠 차단기</b>를 설치해 켜면 광고 없이 쾌적하게 수업할 수 있습니다.</li>
-            <li><b>Brave 브라우저 사용 시</b>: Play 스토어에서 <b>Brave 브라우저</b>를 설치해 우리 사이트에 접속하면 별도 확장프로그램 없이 기본 광고 차단이 자동 적용됩니다.</li>
-          </ol>
-        </div>
+        <div class="sb-slide-viewport" id="sbAdSlideStage">
+          <article class="sb-gcard" data-ad-slide-pane="0">
+            <div class="sb-gcard-head"><span class="sb-gstep s1">1 / 5 · 모바일 준비</span><b>Google Play 스토어에서 Firefox 브라우저 설치하기</b></div>
+            <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/adblock_step1_playstore_firefox.png" alt="1단계 Google Play 스토어에서 Firefox 설치 스크린샷"></div>
+            <ul><li>안드로이드 크롬 앱은 확장프로그램을 지원하지 않지만, <b>Firefox 모바일 앱</b>은 무료 광고 차단기(<b>uBlock Origin</b>)를 공식 지원합니다. Play 스토어에서 Firefox를 설치해 실행하세요.</li></ul>
+          </article>
 
-        <div class="sb-ocr-manual-box" style="margin:0;border-left-color:#d97706;">
-          <h4 style="color:#b45309;">3. 아이패드(iPad) / 사파리(Safari)</h4>
-          <ol>
-            <li>App Store에서 무료 <b>AdGuard for Safari</b>를 설치한 뒤, 아이패드 <b>[설정 → Safari → 확장 프로그램]</b>에서 활성화합니다.</li>
-          </ol>
-        </div>
+          <article class="sb-gcard" data-ad-slide-pane="1" style="display:none;">
+            <div class="sb-gcard-head"><span class="sb-gstep s2">2 / 5 · 확장 기능 열기</span><b>Firefox 주소창 옆 메뉴(⋮) → [확장 기능] 들어가기</b></div>
+            <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/adblock_step2_firefox_addons.png" alt="2단계 Firefox 메뉴에서 확장 기능 열기 스크린샷"></div>
+            <ul><li>Firefox 브라우저 주소창 오른쪽의 <b>점 세 개(⋮)</b> 버튼을 누른 뒤, 메뉴에서 <b>[확장 기능 (Add-ons)]</b> 항목을 선택합니다.</li></ul>
+          </article>
 
-        <div class="sb-modal-actions" style="margin-top:4px;">
-          <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-danger">유튜브 새 탭에서 영상 링크 찾기 ↗</a>
-          <button type="button" class="sb-btn sb-btn-primary" data-close="sbAdBlockModal">확인 및 닫기</button>
+          <article class="sb-gcard" data-ad-slide-pane="2" style="display:none;">
+            <div class="sb-gcard-head"><span class="sb-gstep s3">3 / 5 · uBlock Origin 설치</span><b>[uBlock Origin] 옆 (+) 버튼을 눌러 1초 설치 완료</b></div>
+            <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/adblock_step3_ublock_install.png" alt="3단계 uBlock Origin 추가 버튼 클릭 스크린샷"></div>
+            <ul><li>추천 확장 기능 목록에서 <b>uBlock Origin</b> 오른쪽의 <b>(+)</b> 버튼을 누르고 팝업에서 <b>[추가] → [확인]</b>을 누르면 즉시 유튜브 광고 차단이 활성화됩니다.</li></ul>
+          </article>
+
+          <article class="sb-gcard" data-ad-slide-pane="3" style="display:none;">
+            <div class="sb-gcard-head"><span class="sb-gstep s4">4 / 5 · 실전 수업 활용</span><b>Firefox로 스마트 판서 열고 유튜브·웹 위에서 바로 스탬프 판서</b></div>
+            <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/adblock_step4_smartboard_youtube.png" alt="4단계 스마트 판서 내장 브라우저에서 유튜브 및 스탬프 판서 화면"></div>
+            <ul><li>이제 Firefox로 스마트 판서에 접속해 <b>[웹브라우저] → [▶ 유튜브]</b>에 영상 링크를 붙여넣으면 광고 없이 바로 재생되며, 하단의 <b>[① 원형스탬프] · [▣ 사각스탬프] · [펜 필기]</b>로 영상 위에 직접 판서할 수 있습니다.</li></ul>
+          </article>
+
+          <article class="sb-gcard" data-ad-slide-pane="4" style="display:none;">
+            <div class="sb-gcard-head"><span class="sb-gstep s5">5 / 5 · 기기별 전체 요약</span><b>갤럭시탭(Firefox) · 교실 PC(Chrome/Edge) · 아이패드(Safari) 광고 제거 요약</b></div>
+            <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/adblock_step5_pc_ipad_summary.png" alt="5단계 기기별 무료 광고 제거 확장프로그램 요약 스크린샷"></div>
+            <ul><li><b>PC(크롬·엣지·웨일)</b>는 <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh" target="_blank" rel="noopener noreferrer" style="color:#2563eb;font-weight:800;">uBlock Origin Lite</a> 또는 <a href="https://chromewebstore.google.com/detail/adguard-adblocker/bgnkhhnnamicmpeenaelnjfhikgbkllg" target="_blank" rel="noopener noreferrer" style="color:#2563eb;font-weight:800;">AdGuard 광고 차단기</a>를, <b>아이패드</b>는 App Store의 무료 <b>AdGuard for Safari</b>를 설치하면 모든 기기에서 광고 없이 수업할 수 있습니다.</li></ul>
+          </article>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.6.2"></script>
+  <script src="./smart-board.js?v=2.6.3"></script>
 </body>
 </html>
