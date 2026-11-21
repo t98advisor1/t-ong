@@ -261,7 +261,9 @@
       mapDiv.innerHTML = '<div style="padding:24px;color:#475569;text-align:center;">지도를 불러오지 못했습니다. 네트워크 연결 또는 KAKAO_MAP_JS_KEY 환경변수를 확인해 주세요.</div>';
       return null;
     }
-    providerBadge.textContent = '무료 지도 모드 (KAKAO_MAP_JS_KEY 등록 시 카카오맵 전환)';
+    providerBadge.textContent = (cfg && cfg.kakaoMapJsKey)
+      ? '카카오맵 SDK 로드 실패 (Web 도메인 등록·JavaScript 키 확인 필요 · 임시 무료 지도 표시 중)'
+      : '무료 지도 모드 (KAKAO_MAP_JS_KEY 등록 시 카카오맵 전환)';
     var lmap = L.map(mapDiv).setView([centerLat, centerLng], opts.leafletZoom || 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,

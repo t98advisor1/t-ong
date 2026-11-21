@@ -20,8 +20,26 @@ const CACHE_SECONDS = {
   ListNecessariesPricesService: 3600
 };
 
+const SEOUL_ENV_CANDIDATES = [
+  'SEOUL_OPEN_API_KEY',
+  'SEOUL_API_KEY',
+  'SEOUL_OPEN_DATA_KEY',
+  'SEOUL_DATA_API_KEY',
+  'SEOUL_OPENAPI_KEY',
+  'NEXT_PUBLIC_SEOUL_OPEN_API_KEY',
+  'VITE_SEOUL_OPEN_API_KEY'
+];
+
 function cleanEnv(val) {
   return String(val || '').trim().replace(/^["']+|["']+$/g, '').trim();
+}
+
+function getSeoulApiKey() {
+  for (let i = 0; i < SEOUL_ENV_CANDIDATES.length; i++) {
+    const val = cleanEnv(process.env[SEOUL_ENV_CANDIDATES[i]]);
+    if (val) return val;
+  }
+  return '';
 }
 
 function send(res, status, body, cacheSec) {
@@ -45,7 +63,7 @@ module.exports = async function handler(req, res) {
     return send(res, 405, { ok: false, error: 'METHOD_NOT_ALLOWED' });
   }
 
-  const key = cleanEnv(process.env.SEOUL_OPEN_API_KEY);
+  const key = getSeoulApiKey();
   if (!key) {
     return send(res, 503, {
       ok: false,
