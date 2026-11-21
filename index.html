@@ -3592,5 +3592,13 @@
   </div>
 
   <script src="./geo-services.js?v=1.0.0"></script>
+  <script>
+    // 부분 화면 모달에서 닫기 버튼을 누르지 않고 빈 배경(오버레이)을 눌러도 바로 닫기
+    document.addEventListener('click', function (ev) {
+      if (ev.target && ev.target.classList && ev.target.classList.contains('modal') && ev.target.classList.contains('show')) {
+        ev.target.classList.remove('show');
+      }
+    });
+  </script>
 </body>
 </html>

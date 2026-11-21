@@ -3193,7 +3193,7 @@
     }
 
     if (el('sbHelpBtn')) el('sbHelpBtn').addEventListener('click', function () {
-      switchHelpVisualMode(false);
+      goVisSlide(0);
       el('sbHelpModal').classList.add('show');
     });
     if (el('sbToggleVisualGuideBtn')) el('sbToggleVisualGuideBtn').addEventListener('click', function () {
@@ -3296,6 +3296,12 @@
       cb.addEventListener('click', function () {
         var m = el(cb.getAttribute('data-close'));
         if (m) m.classList.remove('show');
+      });
+    });
+    // 부분 화면 모달에서 닫기 버튼 없이 빈 배경을 눌러도 바로 닫기
+    document.querySelectorAll('.sb-modal').forEach(function (m) {
+      m.addEventListener('click', function (ev) {
+        if (ev.target === m) m.classList.remove('show');
       });
     });
 

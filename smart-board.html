@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.6.4">
+  <link rel="stylesheet" href="./smart-board.css?v=2.6.5">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -449,163 +449,73 @@
     <div class="sb-modal-card sb-modal-guide is-fullscreen" id="sbHelpModalCard">
       <div class="sb-modal-head">
         <div>
-          <span class="sb-guide-kicker">태블릿·모바일 가독성 최적화 큰 글씨 요약 + 전체화면 GIF 시연</span>
-          <h3>스마트 판서 보드 사용설명서</h3>
+          <span class="sb-guide-kicker">화살표 · 네모 · 번호 스탬프로 한눈에 보는 직관형 사용설명서</span>
+          <h3>스마트 판서 보드 사용설명서 (스크린샷 · GIF)</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="sb-btn sb-btn-accent" id="sbToggleVisualGuideBtn">전체화면으로 GIF &amp; 상세 과정 보기</button>
           <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">매뉴얼 새 창 / 인쇄</a>
           <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
         </div>
       </div>
 
       <div class="sb-modal-body sb-guide-modal-body">
-        <!-- [뷰 1] 처음 열었을 때: 가볍고 큰 글씨로 한눈에 읽히는 텍스트 중심 요약 매뉴얼 -->
-        <div id="sbGuideQuickTextPane" class="sb-guide-quick-pane">
-          <div class="sb-quick-hero-banner">
-            <div>
-              <h4>한눈에 읽는 핵심 기능 가이드 (큰 글씨 요약)</h4>
-              <p>태블릿과 모바일에서도 복잡하지 않게 핵심 조작법만 큰 글씨로 정리했습니다. 움직이는 GIF 시연과 단계별 스크린샷은 오른쪽 버튼을 눌러 전체화면으로 넓게 확인하세요.</p>
-            </div>
-            <button type="button" class="sb-btn sb-btn-primary sb-btn-lg" id="sbEnterFullGifViewBtn">전체화면으로 GIF 시연 &amp; 과정 보기 →</button>
-          </div>
-
-          <div class="sb-quick-text-grid">
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">01</div>
-              <h4>상단 자동숨김 팔레트 &amp; 꽉 찬 전체화면 송출</h4>
-              <p>모든 메뉴를 상단 가로 바에 배치했습니다. <b>판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져</b> 칠판·TV·빔프로젝터 송출 시 화면이 100% 꽉 찬 화면으로 표시됩니다.</p>
-              <div class="sb-qcard-keys">
-                <span><kbd>Tab</kbd> 팔레트 숨기기/펼치기</span>
-                <span><kbd>F</kbd> 전체화면 송출</span>
-                <span>상단 끝 호버 시 자동 펼침</span>
-              </div>
-            </article>
-
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">02</div>
-              <h4>완벽한 원형 스탬프(①) · 사각 스탬프(▣) · 도형 단축키</h4>
-              <p>클릭할 때마다 번호가 자동 증가하는 <b>완벽한 정원 스탬프(<kbd>S</kbd>)</b>와 <b>정사각형 스탬프(<kbd>Q</kbd>)</b>를 지원합니다. 사각형(<kbd>R</kbd>), 원(<kbd>C</kbd>), 직선(<kbd>L</kbd>), 텍스트(<kbd>T</kbd>), 지우개(<kbd>E</kbd>), 취소(<kbd>Backspace</kbd>)를 1키로 조작합니다.</p>
-              <div class="sb-qcard-keys">
-                <span><kbd>S</kbd> ①원형스탬프</span>
-                <span><kbd>Q</kbd> ▣사각스탬프</span>
-                <span><kbd>R</kbd> 사각형 · <kbd>C</kbd> 원 · <kbd>L</kbd> 선</span>
-                <span><kbd>⌫ Backspace</kbd> 취소</span>
-              </div>
-            </article>
-
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">03</div>
-              <h4>갤럭시 S펜 옆 버튼 지우개 ↔ 펜 양방향 스위치</h4>
-              <p>갤럭시탭 S펜 옆 버튼(또는 에어액션 버튼)을 <b>한 번 누르면 [지우개]가 활성화</b>되고, <b>다시 한 번 누르면 이전에 쓰던 [펜] 모드로 즉시 복귀</b>하는 스위치 역할을 합니다.</p>
-              <div class="sb-qcard-keys">
-                <span>S펜 버튼 1회: 지우개 ON</span>
-                <span>S펜 버튼 재클릭: 펜 복귀</span>
-                <span>S펜전용: 손바닥 터치 무시</span>
-              </div>
-            </article>
-
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">04</div>
-              <h4>고호환 PPTX 클릭 액션 · PDF 판서 · 스닙페이스트 게시</h4>
-              <p>테마 색상·그라데이션·그룹 도형·트리거 액션이 포함된 <b>PPTX</b>와 <b>PDF</b>를 불러와 판서합니다. <b>게시 모드(<kbd>Alt+`</kbd>)</b>로 중요 문제나 공식을 오려내면 다음 페이지로 넘어가도 화면 맨 위에 고정됩니다.</p>
-              <div class="sb-qcard-keys">
-                <span><kbd>Space</kbd> / <kbd>→</kbd> 다음 PPTX 액션</span>
-                <span><kbd>Alt+`</kbd> 스닙페이스트 조각 고정</span>
-              </div>
-            </article>
-
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">05</div>
-              <h4>삼성노트형 로컬 폴더 보관함 &amp; 내장 웹 브라우저</h4>
-              <p><b>[폴더·노트함]</b>에서 학급·과목별 폴더를 만들어 판서 노트를 기기 내부(IndexedDB)에 영구 저장하고 불러옵니다. <b>[웹브라우저]</b>를 열면 지오지브라·위키백과 등 웹 화면 위에 바로 스탬프와 판서를 남길 수 있습니다.</p>
-              <div class="sb-qcard-keys">
-                <span><kbd>Ctrl+Shift+S</kbd> 폴더 노트 저장</span>
-                <span>웹 화면 위 ①스탬프 &amp; 스냅샷 고정</span>
-              </div>
-            </article>
-
-            <article class="sb-qcard">
-              <div class="sb-qcard-num">06</div>
-              <h4>무료 AI 필기 OCR 변환 &amp; 합본 PDF 내보내기</h4>
-              <p><b>편집·OCR(<kbd>Alt+3</kbd>)</b> 모드로 손글씨 판서를 드래그해 깔끔한 타이핑 텍스트로 즉시 변환하거나 수업 메모보드로 전송합니다. 수업이 끝나면 모든 쪽의 판서를 <b>[합본PDF]</b>로 한 번에 저장합니다.</p>
-              <div class="sb-qcard-keys">
-                <span><kbd>Alt+3</kbd> 손글씨 OCR 변환</span>
-                <span><kbd>Ctrl+S</kbd> PNG 저장 · 합본 PDF</span>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        <!-- [뷰 2] 전체화면 GIF 동적 시연 & 단계별 스크린샷 좌우 슬라이드 뷰 (2단 분할 없이 화면 전체에 1개씩 큼직하게 표시) -->
-        <div id="sbGuideFullVisualPane" class="sb-guide-visual-pane" style="display:none;">
+        <div id="sbGuideFullVisualPane" class="sb-guide-visual-pane" style="display:block;">
           <div class="sb-slide-nav-bar sb-visual-slide-bar">
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisPrevSlideBtn">◀ 이전 슬라이드</button>
+            <button type="button" class="sb-btn sb-btn-primary" id="sbVisPrevSlideBtn">◀ 이전</button>
             <div class="sb-slide-tabs" id="sbVisSlideTabs">
-              <button type="button" class="sb-slide-tab active" data-vis-slide="0">1. 스닙페이스트(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="1">2. 원형·사각 스탬프(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="2">3. 자동숨김·도형(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="3">4. PPTX 액션·OCR(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="4">5. 폴더 노트함</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="5">6. 무료 OCR 설정</button>
+              <button type="button" class="sb-slide-tab active" data-vis-slide="0">1. 상단 팔레트</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="1">2. 선택·이동·스탬프</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="2">3. 파일·링크 열기</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="3">4. 유튜브·웹 스탬프</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="4">5. 스닙페이스트(GIF)</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="5">6. 번호 스탬프(GIF)</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="6">7. PDF·칠판(GIF)</button>
+              <button type="button" class="sb-slide-tab" data-vis-slide="7">8. PPTX·OCR(GIF)</button>
             </div>
-            <span class="sb-slide-counter" id="sbVisSlideCounter">1 / 6</span>
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisNextSlideBtn">다음 슬라이드 ▶</button>
-            <button type="button" class="sb-btn sb-btn-ghost" id="sbVisShowAllToggleBtn">연속 스크롤로 보기</button>
-            <button type="button" class="sb-btn sb-btn-ghost" id="sbBackToQuickTextBtn">← 큰 글씨 요약으로</button>
+            <span class="sb-slide-counter" id="sbVisSlideCounter">1 / 8</span>
+            <button type="button" class="sb-btn sb-btn-primary" id="sbVisNextSlideBtn">다음 ▶</button>
+            <button type="button" class="sb-btn sb-btn-ghost" id="sbVisShowAllToggleBtn">전체 보기</button>
           </div>
 
           <div class="sb-visual-single-col sb-visual-slide-deck" id="sbVisSlideContainer">
-            <article class="sb-gcard is-gif-card sb-vis-slide-item active" data-vis-slide-pane="0">
-              <div class="sb-gcard-head"><span class="sb-gstep s3">슬라이드 1 / 6 · GIF</span><b>스닙페이스트(Snipaste) 게시 모드 (Alt+`) — 영역 오려 화면 최상단 고정</b></div>
+            <article class="sb-gcard sb-vis-slide-item active" data-vis-slide-pane="0">
+              <div class="sb-gcard-head"><span class="sb-gstep s1">1 / 8</span><b>상단 팔레트 · 파일·링크 통합 열기 · 자동숨김</b></div>
+              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_01_top_filehub.png" alt="상단 팔레트 화살표·스탬프 안내 스크린샷"></div>
+            </article>
+
+            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="1" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s2">2 / 8</span><b>선택·이동(V) · 원형(S)/사각(Q) 번호 스탬프 · S펜 스위치</b></div>
+              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_02_select_stamp_spen.png" alt="선택 이동 및 스탬프 S펜 스위치 안내 스크린샷"></div>
+            </article>
+
+            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="2" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s3">3 / 8</span><b>파일·링크 열기 팝업 (PDF · PPTX · 이미지 · 유튜브 통합)</b></div>
+              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_03_filehub_modal.png" alt="통합 파일 링크 열기 팝업 안내 스크린샷"></div>
+            </article>
+
+            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="3" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s4">4 / 8</span><b>유튜브 · 내장 웹 브라우저 위 ①원형·▣사각 스탬프 판서</b></div>
+              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_04_web_stamp.png" alt="내장 웹 브라우저 유튜브 및 스탬프 판서 안내 스크린샷"></div>
+            </article>
+
+            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="4" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s3">5 / 8 · GIF</span><b>스닙페이스트(게시 모드 · Alt+`) — 영역 오려 화면 최상단 고정</b></div>
               <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_snipaste_pin.gif" alt="스닙페이스트 게시 모드 GIF 시연"></div>
-              <ul>
-                <li><code>게시(Alt+`)</code>를 누른 뒤 핵심 공식·조건을 드래그하면 화면 맨 위에 떠 있는 스티커 조각으로 고정됩니다.</li>
-                <li>다음 페이지로 넘어가도 조각이 사라지지 않고 유지되며, 드래그 이동·휠/모서리 크기 조절·우클릭 삭제가 가능합니다.</li>
-              </ul>
             </article>
 
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="1" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s2">슬라이드 2 / 6 · GIF</span><b>완벽한 원형 스탬프(S) · 사각 스탬프(Q) &amp; 탭 공개 정답 가림막</b></div>
+            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="5" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s2">6 / 8 · GIF</span><b>원형 스탬프(S) · 사각 스탬프(Q) 자동 증가 &amp; 정답 가림막</b></div>
               <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_number_stamp.gif" alt="번호 스탬프 및 정답 가림막 GIF 시연"></div>
-              <ul>
-                <li><code>①원스탬프(S)</code> 또는 <code>▣사각스탬프(Q)</code>를 선택하고 화면을 클릭할 때마다 <b>1 → 2 → 3 → 4</b> 번호가 완벽한 원형/정사각형으로 찍힙니다.</li>
-                <li><code>가림막</code>으로 정답을 덮어 두었다가 수업 중 클릭(탭)하면 즉시 열리고 다시 탭하면 닫힙니다.</li>
-              </ul>
             </article>
 
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="2" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s1">슬라이드 3 / 6 · GIF</span><b>상단 자동숨김 팔레트 · 도형 단축키(R/C/L) · 100% 꽉 찬 전체화면 판서</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pdf_draw.gif" alt="상단 자동숨김 팔레트 및 도형 판서 GIF 시연"></div>
-              <ul>
-                <li>판서를 시작하면 상단 팔레트가 자동으로 숨겨져 상하좌우 여백 없는 100% 꽉 찬 송출 화면이 됩니다.</li>
-                <li>펜(<code>P</code>), 형광펜(<code>H</code>), 직선(<code>L</code>), 사각형(<code>R</code>), 원(<code>C</code>), 지우개(<code>E</code>), 취소(<code>Backspace</code>) 단축키와 갤럭시 S펜 옆 버튼 스위치로 빠르게 판서합니다.</li>
-              </ul>
+            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="6" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s1">7 / 8 · GIF</span><b>PDF · 칠판 · 모눈 판서 및 도형 단축키(R/C/L)</b></div>
+              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pdf_draw.gif" alt="PDF 및 칠판 도형 판서 GIF 시연"></div>
             </article>
 
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="3" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s5">슬라이드 4 / 6 · GIF</span><b>고호환 PPTX 클릭 액션 &amp; 편집 모드 무료 OCR 손글씨 변환</b></div>
+            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="7" style="display:none;">
+              <div class="sb-gcard-head"><span class="sb-gstep s5">8 / 8 · GIF</span><b>PPTX 클릭 액션 &amp; 손글씨 무료 AI OCR 변환</b></div>
               <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pptx_ocr.gif" alt="PPTX 액션 및 무료 OCR 변환 GIF 시연"></div>
-              <ul>
-                <li><code>PPTX 열기</code>로 슬라이드를 불러오면 테마 색상·그라데이션·그룹 도형·문단별/트리거 클릭 애니메이션을 파싱해 <code>다음액션 ▶</code>(또는 <code>Space</code>)으로 단계별 재생합니다.</li>
-                <li><code>편집·OCR(Alt+3)</code>로 손글씨를 감싸 <code>글씨로 변환(OCR)</code>을 누르면 깔끔한 텍스트로 즉시 교체합니다.</li>
-              </ul>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="4" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s4">슬라이드 5 / 6 · 스크린샷</span><b>삼성노트형 로컬 폴더 · 노트 보관함 (IndexedDB 영구 저장)</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/step3_pin_mode.png" alt="삼성노트형 로컬 폴더 및 노트 보관함 화면"></div>
-              <ul>
-                <li>상단 팔레트의 <code>폴더·노트함</code>을 누르면 과목·학급별 폴더를 만들고 판서 노트를 썸네일 카드로 분류·저장할 수 있습니다.</li>
-              </ul>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="5" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s6">슬라이드 6 / 6 · 스크린샷</span><b>내장 웹 브라우저 스탬프 &amp; 무료 OCR 3단계 설정</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/step6_export_ocr_cfg.png" alt="무료 OCR 설정 및 내장 웹 브라우저 화면"></div>
-              <ul>
-                <li><code>OCR설정</code>에서 키 없이 무료 OCR.space 엔진을 바로 쓰거나 Google AI Studio 무료 키를 등록해 한글 흘림체와 수식을 고정밀 변환합니다.</li>
-              </ul>
             </article>
           </div>
         </div>
@@ -743,6 +653,6 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.6.4"></script>
+  <script src="./smart-board.js?v=2.6.5"></script>
 </body>
 </html>

@@ -14532,6 +14532,18 @@ window.TodayBriefing = TodayBriefing;
             fsBtn.textContent = fs ? '기본 창' : '전체화면';
           });
         }
+        // 부분 화면(기본 창)일 때 닫기 버튼을 누르지 않고 빈 배경을 클릭해도 바로 닫기
+        modal.addEventListener('click', function (ev) {
+          if (ev.target === modal) modal.classList.remove('show');
+        });
+      }
+      // 수업도구/학급도구 열기 시 기본적으로 전체화면으로 열기
+      var dlgOpen = modal.querySelector('.lt-hub-dialog');
+      var fsBtnOpen = document.getElementById(fsBtnId);
+      if (dlgOpen) {
+        dlgOpen.classList.add('is-fullscreen');
+        modal.classList.add('is-fullscreen-modal');
+        if (fsBtnOpen) fsBtnOpen.textContent = '기본 창';
       }
       modal.classList.add('show');
     }
