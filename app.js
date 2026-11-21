@@ -9305,7 +9305,8 @@ function initModeTabs() {
       calendar: function () { ScheduleCalendar.open(); },
       memoBoard: function () { if (window.MemoBoardModule) window.MemoBoardModule.open(); },
       scorePlanner: function () { if (window.ScorePlannerModule) window.ScorePlannerModule.open(); },
-      docConverter: function () { if (window.DocConverterModule) window.DocConverterModule.open(); }
+      docConverter: function () { if (window.DocConverterModule) window.DocConverterModule.open(); },
+      seoulData: function () { if (window.SeoulDataExplorerModule) window.SeoulDataExplorerModule.open(); }
     };
     menu.querySelectorAll('button[data-open]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -12816,7 +12817,16 @@ window.TodayBriefing = TodayBriefing;
 
       var body = document.createElement('div');
       body.className = 'memo-sticky-body';
-      body.textContent = item.text || '';
+      var mapParsed = (window.TongGeoServices && window.TongGeoServices.parseMapTag) ? window.TongGeoServices.parseMapTag(item.text || '') : { cleanText: item.text || '', place: '' };
+      if (mapParsed.place) {
+        var locTag = document.createElement('div');
+        locTag.className = 'mb-sticky-loc-tag';
+        locTag.textContent = '[위치] ' + mapParsed.place;
+        body.appendChild(locTag);
+      }
+      var txtDiv = document.createElement('div');
+      txtDiv.textContent = mapParsed.cleanText || '';
+      body.appendChild(txtDiv);
 
       var stkBar = document.createElement('div');
       stkBar.className = 'memo-sticker-bar';
@@ -12856,11 +12866,33 @@ window.TodayBriefing = TodayBriefing;
     }
 
     function renderNotes(list) {
+      var prevLen = notesCache.length;
       notesCache = Array.isArray(list) ? list : [];
       var cntEl = document.getElementById('memoBoardPresentCount');
       if (cntEl) cntEl.textContent = '총 ' + notesCache.length + '개 메모';
       var grid = document.getElementById('memoBoardGrid');
+      var mapWrap = document.getElementById('memoBoardMapWrap');
+      var mapCompose = document.getElementById('mbMapComposeBar');
+      var grpBar = document.getElementById('mbGroupCountBar');
       if (!grid) return;
+
+      var isMap = boardMode === 'map';
+      if (mapWrap) mapWrap.style.display = isMap ? 'grid' : 'none';
+      if (mapCompose) mapCompose.style.display = isMap ? 'flex' : 'none';
+      if (grpBar) grpBar.style.display = isMap ? 'none' : 'inline-flex';
+      grid.style.display = isMap ? 'none' : '';
+
+      if (isMap) {
+        if (window.TongGeoServices && window.TongGeoServices.MemoBoardMap) {
+          window.TongGeoServices.MemoBoardMap.render(notesCache, {
+            onLike: likeNote,
+            onDelete: deleteNote,
+            skipFit: prevLen === notesCache.length && prevLen > 0
+          });
+        }
+        return;
+      }
+
       grid.innerHTML = '';
       grid.className = boardMode === 'sandbox' ? 'memo-sandbox-stage' : (groupCount >= 2 ? 'memo-columns-wrap' : 'memo-board-grid');
 
@@ -13133,8 +13165,11 @@ window.TodayBriefing = TodayBriefing;
       var topicEl = document.getElementById('memoBoardTopicInput');
       var topic = (topicEl && topicEl.value.trim()) || '수업 아이디어 모으기';
       var base = new URL('./board.html', window.location.href).href;
-      var studentUrl = base + '?api=' + encodeURIComponent(sheetUrl) + '&room=' + encodeURIComponent(getRoomId()) + '&title=' + encodeURIComponent(topic) + (groupCount >= 2 ? '&groups=' + groupCount : '');
-      showQrModal('수업 메모보드 학생 참여', studentUrl, { kicker: '수업 메모보드 QR 참여', desc: '학생들이 스마트폰 카메라로 스캔해 모둠을 고르고 메모를 올리면 보드에 실시간 표시됩니다.' });
+      var studentUrl = base + '?api=' + encodeURIComponent(sheetUrl) + '&room=' + encodeURIComponent(getRoomId()) + '&title=' + encodeURIComponent(topic) + (groupCount >= 2 ? '&groups=' + groupCount : '') + (boardMode === 'map' ? '&mode=map' : '');
+      var qrDesc = boardMode === 'map'
+        ? '학생들이 스마트폰으로 QR을 스캔해 카카오맵에서 장소를 검색하거나 지도를 찍어 핀 메모를 올리면 교실 지도에 실시간 표시됩니다.'
+        : '학생들이 스마트폰 카메라로 스캔해 모둠을 고르고 메모를 올리면 보드에 실시간 표시됩니다.';
+      showQrModal(boardMode === 'map' ? '지도 메모보드 학생 참여' : '수업 메모보드 학생 참여', studentUrl, { kicker: boardMode === 'map' ? '카카오맵 지도 보드 QR 참여' : '수업 메모보드 QR 참여', desc: qrDesc });
     }
 
     function bindEvents() {
@@ -13186,7 +13221,17 @@ window.TodayBriefing = TodayBriefing;
       var authorEl = document.getElementById('memoBoardAuthorInput');
       var textEl = document.getElementById('memoBoardTextInput');
       var grpSel = document.getElementById('memoBoardGroupSelect');
-      var submitHandler = function () { if (!textEl || !textEl.value.trim()) return; addNote(authorEl ? authorEl.value : '선생님', textEl.value, grpSel ? grpSel.value : '공통'); textEl.value = ''; textEl.focus(); };
+      var submitHandler = function () {
+        if (!textEl || !textEl.value.trim()) return;
+        var outTxt = textEl.value.trim();
+        if (boardMode === 'map' && window.TongGeoServices && window.TongGeoServices.MemoBoardMap) {
+          var loc = window.TongGeoServices.MemoBoardMap.consumePendingLocation();
+          if (loc) outTxt = window.TongGeoServices.encodeMapTag(outTxt, loc);
+        }
+        addNote(authorEl ? authorEl.value : '선생님', outTxt, grpSel ? grpSel.value : '공통');
+        textEl.value = '';
+        textEl.focus();
+      };
       if (addBtn) addBtn.addEventListener('click', submitHandler);
       if (textEl) textEl.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitHandler(); } });
 
@@ -14364,7 +14409,8 @@ window.TodayBriefing = TodayBriefing;
     smartBoard: { title: '스마트 판서 보드 (PDF · PPTX)', url: './smart-board.html', tag: '태블릿 판서 · OCR', desc: 'PDF·PPTX(클릭 액션) 위에 게시·확대·판서·편집(무료 OCR 글씨 변환)과 S펜 필기를 전체화면으로 실행합니다.', bg: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="10" width="48" height="36" rx="6" fill="rgba(255,255,255,0.14)" stroke="#fff" stroke-width="2.6"/><path d="M16 34c5-12 11-12 16 0s10-10 14-14" stroke="#fde047" stroke-width="3.2" stroke-linecap="round"/><circle cx="46" cy="20" r="3.5" fill="#ef4444"/><path d="M22 54h20" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     docConverter: { openKey: 'docConverter', tag: '문서 유틸리티', title: '문서 · PDF 올인원 변환기', desc: '한글(.hwpx/.hwp)↔PDF·텍스트 변환, PDF 합치기/나누기, 이미지↔PDF를 설치 없이 처리합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="18" height="24" rx="3" fill="#fff"/><rect x="36" y="28" width="18" height="24" rx="3" fill="#fde047"/><path d="M32 20h10l-4-4M32 44H22l4 4" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
-    memoBoard: { openKey: 'memoBoard', tag: '실시간 참여', title: '수업 메모보드 (패들렛형)', desc: '학생들이 QR 코드를 스캔해 스마트폰으로 올린 아이디어를 전체화면 포스트잇 보드로 모읍니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
+    memoBoard: { openKey: 'memoBoard', tag: '실시간 참여 · 지도', title: '수업 메모보드 (패들렛 · 카카오맵)', desc: '학생들이 QR로 포스트잇·지도 핀을 실시간으로 올려 교실 보드와 카카오맵 위에 모읍니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
+    seoulData: { openKey: 'seoulData', tag: '공공데이터 · 지도', title: '서울 공공데이터 × 카카오맵 탐구', desc: '따릉이·지하철 승하차·문화행사·미세먼지 실시간 데이터를 지도 시각화 및 CSV로 추출합니다.', bg: 'linear-gradient(135deg, #0f766e 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="28" r="14" stroke="#fff" stroke-width="2.8" fill="rgba(255,255,255,0.16)"/><circle cx="32" cy="28" r="4" fill="#fde047"/><path d="M32 42v12M16 54h32" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     timer: { openKey: 'timer', tag: '시간 관리', title: '간편 타이머', desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.', bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     praise: { openKey: 'praise', tag: '생활 지도', title: '칭찬 포인트', desc: '알·병아리·닭 4단계 성장 배지로 학생별 칭찬 점수를 기록하고 시트에 동기화합니다.', bg: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M32 10l6.5 13.5L53 25.5 42.5 36l2.5 14.5L32 43.5l-13 7 2.5-14.5L11 25.5l14.5-2z" fill="#fef08a" stroke="#fff" stroke-width="2.5"/></svg>' },
     duty: { openKey: 'duty', tag: '학급 역할', title: '1인 1역', desc: '학급 역할을 직접 또는 무작위로 배정하고 엑셀 명단 및 시트 8번 탭과 연동합니다.', bg: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="24" cy="22" r="7" fill="#fff"/><circle cx="42" cy="24" r="6" fill="rgba(255,255,255,0.7)"/><path d="M12 48c0-7 5-12 12-12s12 5 12 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M36 48c0-5 4-9 9-9s8 4 8 9" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round"/></svg>' },
@@ -14495,7 +14541,7 @@ window.TodayBriefing = TodayBriefing;
   window.ClassroomToolsHubModule = createHubController(
     'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn', 'ctHubColBtn',
     [
-      { title: '학급 운영 · 생활 지도', keys: ['smartBoard', 'docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'timer'] },
+      { title: '학급 운영 · 생활 지도', keys: ['smartBoard', 'docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'seoulData', 'timer'] },
       { title: '발표 · 뽑기 복불복', note: 'QR 참여 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '쉬는시간 · 신체활동 게임', note: 'QR 학생 공유 지원', keys: ['handRush', 'handKart', 'poseChallenge', 'yutnori', 'pangpang', 'turtleNeck', 'singer', 'faceMuscle'] },
       { title: '웹툰 연재 · 체험 활용 앱', note: 'QR 지원', keys: ['toonAi', 'toonEcon', 'tarot', 'kwansang'] }
@@ -14505,7 +14551,7 @@ window.TodayBriefing = TodayBriefing;
   window.LessonToolsHubModule = createHubController(
     'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn', 'ltHubColBtn',
     [
-      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'scorePlanner', 'docConverter', 'memoBoard', 'timer'] },
+      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'scorePlanner', 'docConverter', 'memoBoard', 'seoulData', 'timer'] },
       { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]

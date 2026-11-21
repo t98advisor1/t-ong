@@ -8037,3 +8037,359 @@ summary.lt-fold-sum::-webkit-details-marker { display: none; }
 @media (max-width: 780px) {
   .dc-split-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ============================================================================
+ * 카카오맵 패들렛 지도 보드 · 알림장 대기질 배지 · 서울 공공데이터 탐구 스타일
+ * ============================================================================ */
+.notice-air-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.notice-air-bar select {
+  padding: 4px 8px;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #ffffff;
+}
+.notice-air-pill, .nb-air-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.nb-air-badge { font-size: 0.92rem; padding: 5px 14px; }
+.air-good { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.air-ok { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.air-bad { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+.air-worst { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.air-muted { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+.mb-map-compose-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+}
+.mb-map-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mb-map-search-wrap input {
+  width: 240px;
+  max-width: 55vw;
+  padding: 6px 10px;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  background: #ffffff;
+}
+.mb-map-search-wrap button {
+  white-space: nowrap;
+}
+.mb-map-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  width: 310px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+}
+.mb-map-res-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mb-map-res-item:hover { background: #eff6ff; }
+.mb-map-res-item b { font-size: 0.84rem; color: #0f172a; }
+.mb-map-res-item small { font-size: 0.74rem; color: #64748b; }
+.mb-map-selected-loc {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+.mb-map-selected-loc.has-loc {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #60a5fa;
+}
+.mb-sticky-loc-tag {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.mb-map-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 12px;
+  min-height: 460px;
+  height: calc(70vh - 80px);
+}
+.memo-board-dialog.is-fullscreen .mb-map-wrap,
+.memo-board-dialog.is-present-mode .mb-map-wrap {
+  height: calc(100vh - 220px);
+}
+.memo-board-dialog.is-present-mode .mb-map-compose-bar {
+  display: none !important;
+}
+.mb-map-canvas, .sd-map-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid #cbd5e1;
+  background: #e2e8f0;
+}
+.mb-map-side {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+.mb-map-empty {
+  padding: 20px 14px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+.mb-map-note-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.mb-map-note-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+.mb-map-note-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+}
+.mb-map-note-loc {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 2px 6px;
+  border-radius: 999px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mb-map-note-body {
+  font-size: 0.86rem;
+  color: #0f172a;
+  line-height: 1.48;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.mb-map-note-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.geo-provider-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 400;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(15, 23, 42, 0.86);
+  color: #f8fafc;
+  pointer-events: none;
+}
+.geo-provider-badge.is-kakao {
+  background: #fee500;
+  color: #191919;
+  border: 1px solid #eab308;
+}
+.geo-leaflet-pin-wrap { background: transparent !important; border: none !important; }
+.geo-pin-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 2px solid #0f172a;
+  font-size: 0.75rem;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  cursor: pointer;
+}
+.geo-infowin {
+  min-width: 180px;
+  max-width: 260px;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #0f172a;
+}
+.geo-iw-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 4px;
+}
+.geo-iw-place {
+  font-size: 0.72rem;
+  color: #2563eb;
+  font-weight: 700;
+}
+.geo-iw-body { white-space: pre-wrap; word-break: break-word; }
+
+/* 서울 공공데이터 탐구 모달 */
+.sd-dialog {
+  width: min(1160px, 95vw) !important;
+  max-width: 95vw !important;
+}
+.sd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+.sd-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sd-tabs, .sd-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sd-controls input {
+  padding: 6px 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+.sd-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.sd-status { color: #475569; font-weight: 600; }
+.sd-status.is-err { color: #dc2626; }
+.sd-summary { color: #1d4ed8; }
+.sd-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  height: 52vh;
+  min-height: 360px;
+}
+.sd-table-wrap {
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+}
+.sd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.sd-table th, .sd-table td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  white-space: nowrap;
+}
+.sd-table th {
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 800;
+}
+.sd-empty {
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 860px) {
+  .mb-map-wrap, .sd-split {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .mb-map-canvas, .sd-map-canvas { height: 320px; }
+  .mb-map-side, .sd-table-wrap { max-height: 280px; }
+}

@@ -125,6 +125,7 @@ const rootStaticFiles = [
   '교사용_올인원_클라우드동기화_매뉴얼.html',
   'youtube-guide.html',
   'qr-lib.js',
+  'geo-services.js',
   'board.html',
   'memo-board-guide.html',
   'score-planner-guide.html',

@@ -1127,6 +1127,11 @@
         <button class="close-btn" data-modal="noticeModal">&times;</button>
       </div>
       <div class="modal-body">
+        <div class="notice-air-bar" id="noticeAirBar">
+          <select id="noticeAirGuSelect" aria-label="서울 자치구 선택"></select>
+          <span class="notice-air-pill air-muted" id="noticeAirBadge">서울시 대기질 확인 중...</span>
+          <button type="button" class="btn-outline" id="noticeAirRefreshBtn" style="padding:3px 8px;font-size:0.74rem;">새로고침</button>
+        </div>
         <p class="hint">준비물 · 과제 · 공지사항을 적어두면 좌석표 옆에 계속 보입니다.</p>
         <textarea id="noticeInput" rows="7" placeholder="예)&#10;· 내일 체육복 지참&#10;· 수학 익힘책 42~45쪽&#10;· 금요일 현장체험학습 동의서 제출"></textarea>
         <p class="hint" id="noticeSavedAt"></p>
@@ -1142,7 +1147,7 @@
   <!-- 알림장 크게 보기 (교실 TV용) -->
   <div id="noticeBoard" class="notice-board">
     <div class="nb-inner">
-      <div class="nb-head"><span id="nbClass"></span><span id="nbDate"></span></div>
+      <div class="nb-head"><span id="nbClass"></span><span id="nbAirBadge" class="nb-air-badge" style="display:none;"></span><span id="nbDate"></span></div>
       <div id="nbBody" class="nb-body"></div>
     </div>
     <button type="button" id="nbCloseBtn" class="nb-close">닫기 ✕</button>
@@ -2735,6 +2740,7 @@
             <span class="mb-bar-label">보드 방식</span>
             <button type="button" class="mb-seg-btn active" data-mb-mode="columns">모둠 기둥 보드</button>
             <button type="button" class="mb-seg-btn" data-mb-mode="sandbox">자유 샌드박스 (드래그)</button>
+            <button type="button" class="mb-seg-btn" data-mb-mode="map">지도 보드 (카카오맵)</button>
           </div>
           <div class="mb-mode-group" id="mbGroupCountBar">
             <span class="mb-bar-label">모둠 수</span>
@@ -2754,6 +2760,15 @@
           <span>실시간 학생 QR 참여는 상단 <b>[1 Google 시트 연동]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모·스티커·엑셀 저장은 바로 가능합니다.)</span>
           <button type="button" class="btn-outline" id="memoBoardOpenSyncBtn">시트 연동 열기</button>
         </div>
+        <div class="mb-map-compose-bar" id="mbMapComposeBar" style="display:none;">
+          <div class="mb-map-search-wrap">
+            <input type="text" id="mbMapSearchInput" placeholder="장소 검색 (예: 경복궁, 강남역, 우리 학교)" autocomplete="off">
+            <button type="button" class="btn-outline" id="mbMapSearchBtn">장소 검색</button>
+            <div class="mb-map-search-results" id="mbMapSearchResults" style="display:none;"></div>
+          </div>
+          <span class="mb-map-selected-loc" id="mbMapSelectedLoc">지도 클릭 또는 장소 검색으로 핀 위치를 지정하세요</span>
+          <button type="button" class="btn-outline" id="mbMapClearLocBtn" style="display:none;">위치 해제</button>
+        </div>
         <div class="memo-board-compose">
           <select id="memoBoardGroupSelect" aria-label="모둠 선택"></select>
           <input type="text" id="memoBoardAuthorInput" maxlength="20" placeholder="작성자 (예: 선생님)" value="선생님">
@@ -2768,6 +2783,10 @@
           <button type="button" class="btn-primary" id="memoBoardAddBtn">포스트잇 붙이기</button>
         </div>
         <div id="memoBoardGrid" class="memo-board-grid"></div>
+        <div id="memoBoardMapWrap" class="mb-map-wrap" style="display:none;">
+          <div id="memoBoardMapCanvas" class="mb-map-canvas"></div>
+          <div id="memoBoardMapSide" class="mb-map-side"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -3532,5 +3551,46 @@
       }
     }
   </script>
+  <!-- 서울 공공데이터 × 카카오맵 수업 탐구 모달 -->
+  <div id="seoulDataModal" class="modal">
+    <div class="modal-content sd-dialog">
+      <div class="modal-header">
+        <div>
+          <span class="qr-share-kicker">서울 열린데이터 광장 × 카카오맵 실시간 탐구</span>
+          <h3 style="margin:2px 0 0;">서울 공공데이터 수업 탐구 도구 (통계 · 지도 · CSV)</h3>
+        </div>
+        <button class="close-btn" data-modal="seoulDataModal">&times;</button>
+      </div>
+      <div class="modal-body sd-body">
+        <div class="sd-toolbar">
+          <div class="sd-tabs">
+            <button type="button" class="mb-seg-btn active" data-sd-service="bikeList">따릉이 실시간</button>
+            <button type="button" class="mb-seg-btn" data-sd-service="CardSubwayStatsNew">지하철 승하차</button>
+            <button type="button" class="mb-seg-btn" data-sd-service="culturalEventInfo">서울 문화행사</button>
+            <button type="button" class="mb-seg-btn" data-sd-service="RealtimeCityAir">25개 구 대기질</button>
+          </div>
+          <div class="sd-controls">
+            <label id="seoulDataDateWrap" style="display:none;align-items:center;gap:4px;font-size:0.8rem;font-weight:700;">
+              기준일
+              <input type="text" id="seoulDataDateInput" maxlength="8" placeholder="YYYYMMDD" style="width:92px;">
+            </label>
+            <input type="text" id="seoulDataFilterInput" placeholder="역명·자치구·대여소 필터..." style="width:165px;">
+            <button type="button" class="btn-primary" id="seoulDataQueryBtn">조회</button>
+            <button type="button" class="btn-outline" id="seoulDataCsvBtn">CSV 저장</button>
+          </div>
+        </div>
+        <div class="sd-meta-row">
+          <span id="seoulDataStatus" class="sd-status">데이터셋을 선택하고 조회를 눌러 주세요.</span>
+          <strong id="seoulDataSummary" class="sd-summary"></strong>
+        </div>
+        <div class="sd-split">
+          <div id="seoulDataMapCanvas" class="sd-map-canvas"></div>
+          <div id="seoulDataTableWrap" class="sd-table-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./geo-services.js?v=1.0.0"></script>
 </body>
 </html>

@@ -165,6 +165,18 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .map-search-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .map-search-row input { flex: 1; }
+    .map-search-btn { padding: 0 14px; border: none; border-radius: 10px; background: #2563eb; color: #fff; font-weight: 800; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+    .map-results { max-height: 170px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; margin-bottom: 6px; }
+    .map-res-btn { display: flex; flex-direction: column; width: 100%; padding: 8px 10px; border: none; border-bottom: 1px solid #f1f5f9; background: #fff; text-align: left; cursor: pointer; font-family: inherit; }
+    .map-res-btn:hover { background: #eff6ff; }
+    .map-res-btn b { font-size: 0.85rem; color: #0f172a; }
+    .map-res-btn small { font-size: 0.74rem; color: #64748b; }
+    .stu-map-box { position: relative; width: 100%; height: 230px; border-radius: 12px; overflow: hidden; border: 1.5px solid #cbd5e1; background: #e2e8f0; }
+    .stu-map-loc { margin-top: 6px; font-size: 0.82rem; font-weight: 700; color: #1d4ed8; }
+    .geo-provider-badge { position: absolute; bottom: 8px; left: 8px; z-index: 400; padding: 3px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; background: rgba(15, 23, 42, 0.84); color: #fff; pointer-events: none; }
+    .geo-provider-badge.is-kakao { background: #fee500; color: #191919; }
   </style>
 </head>
 <body>
@@ -197,6 +209,17 @@
         </div>
       </div>
 
+      <div class="field" id="mapField" style="display:none;">
+        <label>위치 선택 (장소 검색 또는 지도 터치)</label>
+        <div class="map-search-row">
+          <input type="text" id="stuMapSearchInput" placeholder="예: 경복궁, 강남역, 우리 학교" autocomplete="off">
+          <button type="button" class="map-search-btn" id="stuMapSearchBtn">검색</button>
+        </div>
+        <div class="map-results" id="stuMapSearchResults" style="display:none;"></div>
+        <div class="stu-map-box" id="stuMapCanvas"></div>
+        <div class="stu-map-loc" id="stuMapSelectedLabel">지도를 터치하거나 장소를 검색해 핀 위치를 지정해 주세요.</div>
+      </div>
+
       <div class="field">
         <label for="memoInput">생각 · 아이디어 입력</label>
         <textarea id="memoInput" maxlength="500" placeholder="여기에 수업 아이디어나 답변을 적어 주세요..."></textarea>
@@ -209,6 +232,7 @@
     <div class="my-notes" id="myNotes"></div>
   </div>
 
+  <script src="./geo-services.js?v=1.0.0"></script>
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -216,6 +240,9 @@
       var roomId = (params.get('room') || 'default').trim();
       var title = (params.get('title') || '수업 아이디어 모으기').trim();
       var groupsCount = parseInt(params.get('groups') || '0', 10) || 0;
+      var boardMode = (params.get('mode') || '').trim();
+      var selectedLoc = null;
+      var stuMapAdapter = null;
 
       var titleEl = document.getElementById('boardTitle');
       var subEl = document.getElementById('boardSub');
@@ -246,6 +273,56 @@
       if (!apiUrl) {
         subEl.textContent = '연결된 보드 주소(api)가 없습니다. 선생님이 띄운 QR 코드로 다시 접속해 주세요.';
         submitBtn.disabled = true;
+      }
+
+      if (boardMode === 'map' && window.TongGeoServices) {
+        var mapField = document.getElementById('mapField');
+        var mapCanvas = document.getElementById('stuMapCanvas');
+        var locLabel = document.getElementById('stuMapSelectedLabel');
+        var sInp = document.getElementById('stuMapSearchInput');
+        var sBtn = document.getElementById('stuMapSearchBtn');
+        var sRes = document.getElementById('stuMapSearchResults');
+        if (mapField) mapField.style.display = 'block';
+        subEl.textContent = '지도에서 위치를 고르고 메모를 올리면 교실 지도 보드에 실시간 핀이 꽂힙니다.';
+
+        function setStuLoc(loc) {
+          selectedLoc = loc;
+          if (locLabel) locLabel.textContent = '선택된 위치: ' + (loc.place || (loc.lat.toFixed(4) + ', ' + loc.lng.toFixed(4)));
+          if (stuMapAdapter) stuMapAdapter.setTempPin(loc.lat, loc.lng);
+        }
+
+        window.TongGeoServices.createMapAdapter(mapCanvas, { lat: 37.5665, lng: 126.9780, level: 7 }).then(function (ad) {
+          stuMapAdapter = ad;
+          if (!ad) return;
+          ad.onClick(function (loc) { setStuLoc(loc); });
+        });
+
+        async function runStuSearch() {
+          var q = (sInp && sInp.value || '').trim();
+          if (!q || !stuMapAdapter) return;
+          sRes.style.display = 'block';
+          sRes.innerHTML = '<div class="map-res-btn">검색 중...</div>';
+          var list = await stuMapAdapter.searchPlaces(q);
+          if (!list.length) {
+            sRes.innerHTML = '<div class="map-res-btn">검색 결과가 없습니다.</div>';
+            return;
+          }
+          sRes.innerHTML = '';
+          list.forEach(function (it) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'map-res-btn';
+            b.innerHTML = '<b>' + it.place.replace(/</g, '&lt;') + '</b><small>' + (it.address || '').replace(/</g, '&lt;') + '</small>';
+            b.addEventListener('click', function () {
+              setStuLoc({ lat: it.lat, lng: it.lng, place: it.place });
+              stuMapAdapter.setCenter(it.lat, it.lng, 4);
+              sRes.style.display = 'none';
+            });
+            sRes.appendChild(b);
+          });
+        }
+        if (sBtn) sBtn.addEventListener('click', runStuSearch);
+        if (sInp) sInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); runStuSearch(); } });
       }
 
       document.querySelectorAll('#colorPicker .color-btn').forEach(function (btn) {
@@ -291,6 +368,13 @@
           memoEl.focus();
           return;
         }
+        if (boardMode === 'map' && !selectedLoc) {
+          showStatus('지도에서 위치를 먼저 선택(검색 또는 터치)해 주세요.', false);
+          return;
+        }
+        var payloadText = (boardMode === 'map' && selectedLoc && window.TongGeoServices)
+          ? window.TongGeoServices.encodeMapTag(text, selectedLoc)
+          : text;
         submitBtn.disabled = true;
         submitBtn.textContent = '올리는 중...';
         try {
@@ -303,13 +387,13 @@
               group: chosenGroup,
               author: fullAuthor,
               color: selectedColor,
-              text: text
+              text: payloadText
             })
           });
           var data = await res.json();
           if (data && data.success) {
             showStatus('보드에 올라갔습니다! 교실 화면에서 확인해 보세요.', true);
-            addLocalPreview(fullAuthor, selectedColor, text);
+            addLocalPreview(fullAuthor + (selectedLoc && selectedLoc.place ? ' · ' + selectedLoc.place : ''), selectedColor, text);
             memoEl.value = '';
           } else {
             showStatus('저장에 실패했습니다. 선생님께 시트 연결 상태를 확인해 달라고 요청하세요.', false);

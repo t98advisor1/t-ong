@@ -22,6 +22,7 @@ var PRECACHE = [
   '/smart-board.css?v=2.6.2',
   '/smart-board.js?v=2.6.2',
   '/qr-lib.js',
+  '/geo-services.js?v=1.0.0',
   '/libs/jszip.min.js',
   '/libs/pdf-lib.min.js',
   '/libs/pdf.min.js',
@@ -82,6 +83,7 @@ self.addEventListener('fetch', function (event) {
   // 앱 핵심 자산(style.css, app.js, smart-board.*)은 네트워크 우선(no-cache)으로 받아 화면 깨짐/구버전 캐시 고착을 방지합니다 (/ 및 /tong/ 경로 모두 대응).
   var urlPath = new URL(req.url).pathname;
   if (urlPath.endsWith('/style.css') || urlPath.endsWith('/app.js') || urlPath.endsWith('/index.html') ||
+      urlPath.endsWith('/geo-services.js') || urlPath.endsWith('/board.html') ||
       urlPath.endsWith('/smart-board.html') || urlPath.endsWith('/smart-board.css') || urlPath.endsWith('/smart-board.js')) {
     event.respondWith(
       fetch(req, { cache: 'no-cache' })
