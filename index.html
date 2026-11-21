@@ -53,14 +53,28 @@
       <div class="home-wrap">
         <button type="button" class="brand-home" id="homeBtn" aria-label="홈 대시보드 메뉴" title="홈 대시보드 메뉴">🏠</button>
         <div id="homeMenu" class="home-menu">
-          <button type="button" data-home="first">첫 화면 (홈 대시보드)</button>
-          <button type="button" data-home="backup">데이터 백업</button>
-          <button type="button" data-home="guide">사용 설명서</button>
+          <button type="button" class="home-menu-item home-menu-item-primary" data-home="first">
+            <span class="home-menu-icon home-menu-icon-circle" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg>
+            </span>
+            <span class="home-menu-label">홈 대시보드</span>
+          </button>
+          <button type="button" class="home-menu-item" data-home="guide">
+            <span class="home-menu-icon home-menu-icon-guide" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span class="home-menu-label">사용 설명서</span>
+          </button>
+          <button type="button" class="home-menu-item" data-home="backup">
+            <span class="home-menu-icon home-menu-icon-backup" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </span>
+            <span class="home-menu-label">데이터 백업</span>
+          </button>
         </div>
       </div>
       <h1 class="sr-only">T-ong 교무수첩</h1>
       <nav class="mode-tabs" id="modeTabs" aria-label="교무수첩 통합 메뉴">
-        <button type="button" class="mode-tab" id="topDashboardBtn" title="홈 대시보드 (오늘 브리핑 · 시트 메모장)">홈 대시보드</button>
         <button type="button" class="mode-tab" id="topSyncBtn" title="1단계: Google 계정 및 마스터 시트 연동 (PC·모바일 기기간 시간표 통합)"><span class="tab-step-badge">1</span>Google 시트 연동</button>
         <button type="button" class="mode-tab" id="topScheduleBtn" title="2단계: NEIS 학교 검색 및 반별 수업 과목·동아리 시간표 설정"><span class="tab-step-badge">2</span>학교·수업시간표</button>
         <button type="button" class="mode-tab active" data-mode="seat" title="3단계: 학급 명렬표 및 좌석·모둠 배치 관리"><span class="tab-step-badge">3</span>학급 관리(자리)</button>

@@ -2024,6 +2024,7 @@ body { display: block !important; }
   background: rgba(255,255,255,.16); color: #fff; font-size: 1.25rem; cursor: pointer;
   box-shadow: 0 3px 12px rgba(25,28,90,.18); transition: .16s; }
 .brand-home:hover { background: #fff; transform: translateY(-1px); }
+.brand-home.active { background: #fff; border-color: #fff; box-shadow: 0 4px 14px rgba(25,28,90,.28); }
 .header-left { min-width: 0; }
 .header-left .mode-tabs { margin-left: 2px; min-width: 0; }
 .header-help-wrap { position: relative; flex: 0 0 auto; }
@@ -2158,13 +2159,21 @@ body { display: block !important; }
    =================================================================== */
 .home-wrap { position: relative; flex: 0 0 auto; }
 .home-menu { display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 270;
-  width: 170px; padding: 6px; border: 1px solid #e2e5ef; border-radius: 12px;
+  width: 196px; padding: 7px; border: 1px solid #e2e5ef; border-radius: 14px;
   background: #fff; box-shadow: 0 12px 34px rgba(20,26,60,.24); }
 .home-menu.open { display: block; }
-.home-menu button { display: flex; align-items: center; width: 100%; min-height: 40px; padding: 9px 11px;
-  border: 0; border-radius: 8px; background: transparent; color: #303750; text-align: left;
-  font-family: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.home-menu button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 7px 10px;
+  border: 0; border-radius: 10px; background: transparent; color: #303750; text-align: left;
+  font-family: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; transition: background .14s, color .14s; }
 .home-menu button:hover { background: #f1f3fb; color: #4a4fd0; }
+.home-menu-item-primary { margin-bottom: 2px; }
+.home-menu-icon { flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; }
+.home-menu-icon-circle { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff;
+  box-shadow: 0 2px 7px rgba(79,70,229,.32); }
+.home-menu-icon-guide { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.home-menu-icon-backup { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.home-menu-label { line-height: 1.2; white-space: nowrap; }
 .cal-property-control { display: grid; grid-template-columns: minmax(0,1fr) 36px; gap: 5px; margin-top: 4px; }
 .cal-property-control select { margin-top: 0 !important; }
 .cal-property-control button { border: 1px solid #cbd1e4; border-radius: 8px; background: #f3f5ff;

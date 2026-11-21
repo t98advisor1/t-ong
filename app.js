@@ -2453,7 +2453,7 @@ function prepareSeatConfigForm() {
 function showHomeScreen() {
   appMode = 'home';
   document.querySelectorAll('.mode-tab').forEach(function (tab) { tab.classList.remove('active'); });
-  var homeTab = document.getElementById('topDashboardBtn');
+  var homeTab = document.getElementById('topDashboardBtn') || document.getElementById('homeBtn');
   if (homeTab) homeTab.classList.add('active');
   var wizard = document.getElementById('setupWizard');
   var stage = document.getElementById('stage');
@@ -4463,7 +4463,7 @@ function syncHeaderPageState() {
   });
   // 창을 닫으면 원래 보고 있던 화면의 탭 강조가 돌아옵니다.
   var baseTab = appMode === 'home'
-    ? document.getElementById('topDashboardBtn')
+    ? (document.getElementById('topDashboardBtn') || document.getElementById('homeBtn'))
     : document.querySelector('.mode-tab[data-mode="' + appMode + '"]');
   if (baseTab) baseTab.classList.toggle('active', !openId);
 }
@@ -9099,6 +9099,8 @@ var appMode = 'seat';
 
 function setMode(mode) {
   appMode = (mode === 'attend') ? 'attend' : 'seat';
+  var homeBtnEl = document.getElementById('homeBtn');
+  if (homeBtnEl) homeBtnEl.classList.remove('active');
   document.querySelectorAll('.mode-tab').forEach(function (t) {
     t.classList.toggle('active', t.dataset.mode === appMode);
   });
