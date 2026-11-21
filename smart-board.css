@@ -555,6 +555,7 @@ body {
 }
 .sb-board-frame {
   position: relative;
+  flex-shrink: 0;
   width: 1280px;
   height: 720px;
   transform-origin: center center;

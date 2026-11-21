@@ -1533,15 +1533,19 @@
       showToast('PPTX 슬라이드와 애니메이션 액션을 불러오는 중...');
       var zip = await JSZip.loadAsync(await file.arrayBuffer());
       var parser = new DOMParser();
+      function parseXmlSafe(xmlStr) {
+        return parser.parseFromString(String(xmlStr || '').replace(/^\uFEFF/, ''), 'application/xml');
+      }
 
       var presFile = zip.file('ppt/presentation.xml') || zip.file('ppt/Presentation.xml');
       if (!presFile) throw new Error('유효한 PPTX 구조(ppt/presentation.xml)가 아닙니다.');
-      var presDoc = parser.parseFromString(await presFile.async('string'), 'application/xml');
+      var presDoc = parseXmlSafe(await presFile.async('string'));
       var sldSz = qOne(presDoc, 'sldSz');
-      var slideCx = parseInt(xmlAttr(sldSz, 'cx'), 10) || 9144000;
-      var slideCy = parseInt(xmlAttr(sldSz, 'cy'), 10) || 5143500;
+      var slideCx = parseInt(xmlAttr(sldSz, 'cx'), 10) || 12192000;
+      var slideCy = parseInt(xmlAttr(sldSz, 'cy'), 10) || 6858000;
       var bw = 1280;
       var bh = Math.round(bw * (slideCy / slideCx));
+      var pxPerPt = bw / Math.max(200, slideCx / 12700);
 
       // 1) ppt/theme/theme1.xml 에서 실제 테마 색상표(dk1, lt1, accent1~6 등) 추출
       activeThemeMap = {
@@ -1553,7 +1557,7 @@
       };
       var themeFile = zip.file('ppt/theme/theme1.xml');
       if (themeFile) {
-        var tDoc = parser.parseFromString(await themeFile.async('string'), 'application/xml');
+        var tDoc = parseXmlSafe(await themeFile.async('string'));
         var clrScheme = qOne(tDoc, 'clrScheme');
         if (clrScheme && clrScheme.children) {
           Array.from(clrScheme.children).forEach(function (cNode) {
@@ -1577,7 +1581,7 @@
       var masterBgColor = null;
       var masterFile = zip.file('ppt/slideMasters/slideMaster1.xml');
       if (masterFile) {
-        var mDoc = parser.parseFromString(await masterFile.async('string'), 'application/xml');
+        var mDoc = parseXmlSafe(await masterFile.async('string'));
         var clrMap = qOne(mDoc, 'clrMap');
         if (clrMap) {
           ['bg1', 'tx1', 'bg2', 'tx2', 'accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'].forEach(function (k) {
@@ -1610,7 +1614,7 @@
       var presRelsFile = zip.file('ppt/_rels/presentation.xml.rels');
       var relMap = {};
       if (presRelsFile) {
-        var rDoc = parser.parseFromString(await presRelsFile.async('string'), 'application/xml');
+        var rDoc = parseXmlSafe(await presRelsFile.async('string'));
         qAll(rDoc, 'Relationship').forEach(function (rel) { relMap[xmlAttr(rel, 'Id')] = xmlAttr(rel, 'Target'); });
       }
 
@@ -1631,7 +1635,7 @@
       var mediaDataUrlCache = {};
       async function getMediaDataUrl(relTarget, baseDir) {
         if (!relTarget) return null;
-        var norm = relTarget;
+        var norm = String(relTarget).replace(/\\/g, '/');
         if (norm.indexOf('../') === 0) norm = 'ppt/' + norm.replace(/^(\.\.\/)+/, '');
         else if (norm.indexOf('/') === 0) norm = norm.replace(/^\/+/, '');
         else if (norm.indexOf('ppt/') !== 0) norm = (baseDir || 'ppt/slides/') + norm;
@@ -1652,7 +1656,7 @@
         var phBoxes = {};
         var lf = zip.file(layoutPath);
         if (!lf) return { phBoxes: phBoxes, bgColor: null };
-        var lDoc = parser.parseFromString(await lf.async('string'), 'application/xml');
+        var lDoc = parseXmlSafe(await lf.async('string'));
         var lBg = extractFillColor(qOne(lDoc, 'bg'));
         qAll(lDoc, 'sp').forEach(function (sp) {
           var ph = qOne(sp, 'ph');
@@ -1681,18 +1685,19 @@
         var spath = slidePaths[si];
         var sf = zip.file(spath);
         if (!sf) continue;
-        var sDoc = parser.parseFromString(await sf.async('string'), 'application/xml');
+        var sDoc = parseXmlSafe(await sf.async('string'));
 
         var sRelsPath = spath.replace('ppt/slides/', 'ppt/slides/_rels/') + '.rels';
         var sRelMap = {};
         var layoutPath = '';
         if (zip.file(sRelsPath)) {
-          var srDoc = parser.parseFromString(await zip.file(sRelsPath).async('string'), 'application/xml');
+          var srDoc = parseXmlSafe(await zip.file(sRelsPath).async('string'));
           qAll(srDoc, 'Relationship').forEach(function (rel) {
             var tgt = xmlAttr(rel, 'Target');
             sRelMap[xmlAttr(rel, 'Id')] = tgt;
             if (xmlAttr(rel, 'Type').indexOf('/slideLayout') > 0) {
-              layoutPath = 'ppt/' + tgt.replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
+              var cleanLayout = tgt.replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
+              layoutPath = cleanLayout.indexOf('ppt/') === 0 ? cleanLayout : ('ppt/' + cleanLayout);
             }
           });
         }
@@ -1770,9 +1775,10 @@
             var phType = ph ? xmlAttr(ph, 'type') : '';
             var phIdx = ph ? xmlAttr(ph, 'idx') : '';
 
-            var xfrm = qOne(ch, 'xfrm');
-            var off = xfrm ? qOne(xfrm, 'off') : null;
-            var ext = xfrm ? qOne(xfrm, 'ext') : null;
+            var spPrForXfrm = directChild(ch, 'spPr');
+            var xfrm = (spPrForXfrm && directChild(spPrForXfrm, 'xfrm')) || directChild(ch, 'xfrm') || qOne(ch, 'xfrm');
+            var off = xfrm ? (directChild(xfrm, 'off') || qOne(xfrm, 'off')) : null;
+            var ext = xfrm ? (directChild(xfrm, 'ext') || qOne(xfrm, 'ext')) : null;
             var box;
             if (off && ext && xmlAttr(off, 'x') !== '' && xmlAttr(ext, 'cx') !== '') {
               box = mapCoord(
@@ -1850,7 +1856,7 @@
                     var rPr = directChild(rNode, 'rPr');
                     if (rPr) {
                       var sz = parseInt(xmlAttr(rPr, 'sz'), 10);
-                      if (sz > 0) fontSize = Math.max(12, Math.min(68, Math.round((sz / 100) * (bw / 760))));
+                      if (sz > 0) fontSize = Math.max(11, Math.min(68, Math.round((sz / 100) * pxPerPt)));
                       if (xmlAttr(rPr, 'b') === '1') bold = true;
                       var rc = extractFillColor(rPr);
                       if (rc) fontColor = rc;
@@ -1876,6 +1882,30 @@
         var spTree = qOne(sDoc, 'spTree');
         var rootTf = { x: 0, y: 0, w: bw, h: bh, chX: 0, chY: 0, chW: slideCx, chH: slideCy };
         if (spTree) await parseShapeTree(spTree, rootTf);
+
+        // 슬라이드 요소가 우측·하단 경계를 벗어나는 경우(4:3 헤더+16:9 본문 등) 자동 비율 축소 보정
+        var maxR = bw, maxB = bh;
+        elements.forEach(function (elm) {
+          if (!elm || elm.w <= 0 || elm.h <= 0) return;
+          var rEdge = elm.x + elm.w;
+          var bEdge = elm.y + elm.h;
+          if (elm.x >= -bw * 0.15 && rEdge > maxR && rEdge < bw * 2.5) maxR = rEdge;
+          if (elm.y >= -bh * 0.15 && bEdge > maxB && bEdge < bh * 2.5) maxB = bEdge;
+        });
+        if (maxR > bw * 1.04 || maxB > bh * 1.04) {
+          var ovScale = Math.min(bw / maxR, bh / maxB);
+          elements.forEach(function (elm) {
+            elm.x *= ovScale;
+            elm.y *= ovScale;
+            elm.w *= ovScale;
+            elm.h *= ovScale;
+            if (elm.paras && elm.paras.length) {
+              elm.paras.forEach(function (p) {
+                if (p.fontSize) p.fontSize = Math.max(10, Math.round(p.fontSize * ovScale));
+              });
+            }
+          });
+        }
 
         var steps = parseSlideTiming(sDoc);
         var slideObj = { bgColor: bgColor, bgDataUrl: bgDataUrl, elements: elements, steps: steps };
