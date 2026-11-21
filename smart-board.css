@@ -20,13 +20,15 @@ body {
   flex-direction: column;
 }
 
-/* 메인 전체화면 워크스페이스 (상·하단 바 없이 100% 세로 높이 확보) */
+/* 메인 전체화면 워크스페이스 (상·하단 바 없이 100% 세로 높이 확보, 모바일 레이아웃 뷰포트 확장 방지) */
 .sb-workspace {
-  flex: 1 1 auto;
-  width: 100vw;
-  height: 100dvh;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100dvh;
   display: flex;
-  position: relative;
   overflow: hidden;
 }
 
@@ -442,8 +444,10 @@ body {
 /* 중앙 스테이지 (상·하단 여백 최소화) */
 .sb-stage-wrap {
   flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
   min-width: 0;
-  height: 100dvh;
+  min-height: 0;
   position: relative;
   display: flex;
   flex-direction: column;

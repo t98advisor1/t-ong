@@ -102,10 +102,29 @@
     return state.pages[state.pageIndex];
   }
 
+  function getTrueViewportSize() {
+    var vv = window.visualViewport;
+    var candsW = [window.innerWidth, document.documentElement.clientWidth];
+    var candsH = [window.innerHeight, document.documentElement.clientHeight];
+    if (vv && vv.width > 100) candsW.push(vv.width);
+    if (vv && vv.height > 100) candsH.push(vv.height);
+    if (stageWrap) {
+      var sr = stageWrap.getBoundingClientRect();
+      if (sr.width > 100) candsW.push(sr.width);
+      if (sr.height > 100) candsH.push(sr.height);
+    }
+    var validW = candsW.filter(function (v) { return typeof v === 'number' && v > 100; });
+    var validH = candsH.filter(function (v) { return typeof v === 'number' && v > 100; });
+    return {
+      w: validW.length ? Math.min.apply(null, validW) : 1280,
+      h: validH.length ? Math.min.apply(null, validH) : 720
+    };
+  }
+
   function getIdealBoardSize() {
-    var rect = stageWrap ? stageWrap.getBoundingClientRect() : { width: window.innerWidth || 1280, height: window.innerHeight || 800 };
-    var rw = Math.max(320, rect.width || window.innerWidth || 1280);
-    var rh = Math.max(240, rect.height || window.innerHeight || 800);
+    var vp = getTrueViewportSize();
+    var rw = Math.max(320, vp.w);
+    var rh = Math.max(240, vp.h);
     var bw = 1280;
     var bh = state.fillScreen ? Math.round(bw * (rh / rw)) : 720;
     return { w: bw, h: Math.max(400, Math.min(2000, bh)) };
@@ -163,30 +182,35 @@
         cv.height = h;
       }
     });
-    boardFrame.style.width = w + 'px';
-    boardFrame.style.height = h + 'px';
     fitViewport();
   }
 
   function fitViewport() {
     var pg = curPage();
-    var rect = stageWrap.getBoundingClientRect();
-    var rw = Math.max(100, rect.width);
-    var rh = Math.max(100, rect.height);
-    var sx = rw / (pg.width || 1280);
-    var sy = rh / (pg.height || 720);
+    var vp = getTrueViewportSize();
+    var rw = Math.max(100, vp.w);
+    var rh = Math.max(100, vp.h);
+    var w = pg.width || 1280;
+    var h = pg.height || 720;
+    var sx = rw / w;
+    var sy = rh / h;
     // 1:1 정방형 픽셀 비율 유지 (원형 스탬프가 절대 찌그러지지 않으면서 화면을 꽉 채움)
     state.baseScale = state.fillScreen ? Math.max(sx, sy) : Math.min(sx, sy);
     if (pg.kind === 'pdf' || pg.kind === 'pptx' || pg.kind === 'image') {
-      // 문서/슬라이드도 여백 0으로 화면에 꽉 차게 맞춤 (글자 잘림 방지)
+      // 문서/슬라이드는 우측·하단 잘림 없이 100% 화면 안에 들어오도록 비율 맞춤
       state.baseScale = Math.min(sx, sy);
     }
+    // 1280px 고정 DOM 박스로 인한 태블릿(960px 등) 레이아웃 뷰포트 확장·우측 1/4 잘림을 원천 차단하기 위해
+    // boardFrame 의 CSS 크기를 실제 화면 맞춤 픽셀(fitW x fitH)로 직접 지정하고 내부 캔버스(1280x720)만 GPU 스케일링
+    var fitW = Math.max(100, Math.round(w * state.baseScale));
+    var fitH = Math.max(100, Math.round(h * state.baseScale));
+    boardFrame.style.width = fitW + 'px';
+    boardFrame.style.height = fitH + 'px';
     applyTransform();
   }
 
   function applyTransform() {
-    var totalScale = state.baseScale * state.zoomScale;
-    boardFrame.style.transform = 'translate(' + state.panX + 'px, ' + state.panY + 'px) scale(' + totalScale + ')';
+    boardFrame.style.transform = 'translate(' + state.panX + 'px, ' + state.panY + 'px) scale(' + state.zoomScale + ')';
     var zb = el('sbZoomBadge');
     var zt = el('sbZoomText');
     if (zb && zt) {
@@ -868,11 +892,12 @@
   var pendingTextPos = null;
   function openInlineText(bx, by) {
     commitInlineText();
+    var pg = curPage();
     pendingTextPos = { x: bx, y: by };
     var fs = Math.max(18, state.size * 3.8);
-    inlineTextEl.style.left = Math.max(8, bx) + 'px';
-    inlineTextEl.style.top = Math.max(8, by - fs * 0.5) + 'px';
-    inlineTextEl.style.fontSize = fs + 'px';
+    inlineTextEl.style.left = Math.max(0.5, (bx / (pg.width || 1280)) * 100) + '%';
+    inlineTextEl.style.top = Math.max(0.5, ((by - fs * 0.5) / (pg.height || 720)) * 100) + '%';
+    inlineTextEl.style.fontSize = Math.max(14, Math.round(fs * state.baseScale)) + 'px';
     inlineTextEl.style.color = state.color;
     inlineTextEl.value = '';
     inlineTextEl.style.display = 'block';
@@ -2603,11 +2628,21 @@
     renderBackground();
     renderInk();
 
-    window.addEventListener('resize', function () {
+    function handleViewportChange() {
       resizeBoardToPage();
       renderBackground();
       renderInk();
-    });
+      setTimeout(fitViewport, 80);
+      setTimeout(fitViewport, 260);
+      setTimeout(fitViewport, 520);
+    }
+
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('orientationchange', handleViewportChange);
+    document.addEventListener('fullscreenchange', handleViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitViewport);
+    }
 
     // 상단 팔레트 접기/펴기 & 자동 숨김 센서
     if (el('sbFoldPaletteBtn')) el('sbFoldPaletteBtn').addEventListener('click', function () { togglePalette(true); });

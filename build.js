@@ -94,9 +94,13 @@ write('style.css', css);
 
 const rawHtml = minifyHtml(read('index.html'));
 
-// 3) 캐시 버전을 내용 해시로 교체 (sw.js 및 index.html의 ?v= 쿼리 모두 갱신)
+// 3) 캐시 버전을 내용 해시로 교체 (sw.js, index.html, smart-board.html 의 ?v= 쿼리 모두 갱신)
+const sbHtmlRaw = fs.existsSync(path.join(SRC, 'smart-board.html')) ? read('smart-board.html') : '';
+const sbCssRaw = fs.existsSync(path.join(SRC, 'smart-board.css')) ? read('smart-board.css') : '';
+const sbJsRaw = fs.existsSync(path.join(SRC, 'smart-board.js')) ? read('smart-board.js') : '';
 const hash = crypto.createHash('sha1')
   .update(obfuscated).update(css).update(rawHtml)
+  .update(sbHtmlRaw).update(sbCssRaw).update(sbJsRaw)
   .digest('hex').slice(0, 10);
 const html = rawHtml
   .replace(/\/app\.js(\?v=[^"']*)?/g, '/app.js?v=' + hash)
@@ -106,7 +110,9 @@ write('index.html', html);
 const sw = read('sw.js')
   .replace(/var CACHE_VERSION = '[^']*';/, "var CACHE_VERSION = '" + hash + "';")
   .replace(/\/app\.js(\?v=[^"']*)?/g, '/app.js?v=' + hash)
-  .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash);
+  .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash)
+  .replace(/\/smart-board\.js(\?v=[^"']*)?/g, '/smart-board.js?v=' + hash)
+  .replace(/\/smart-board\.css(\?v=[^"']*)?/g, '/smart-board.css?v=' + hash);
 write('sw.js', sw);
 
 // 4) 정적 파일 (매뉴얼, 스마트 판서 보드, 가이드, QR/PDF 라이브러리, 매니페스트, 아이콘 등)
@@ -133,7 +139,14 @@ const rootStaticFiles = [
   'smart-board.webmanifest'
 ];
 rootStaticFiles.forEach((f) => {
-  if (fs.existsSync(path.join(SRC, f))) write(f, read(f));
+  if (!fs.existsSync(path.join(SRC, f))) return;
+  let content = read(f);
+  if (f === 'smart-board.html') {
+    content = content
+      .replace(/smart-board\.js(\?v=[^"']*)?/g, 'smart-board.js?v=' + hash)
+      .replace(/smart-board\.css(\?v=[^"']*)?/g, 'smart-board.css?v=' + hash);
+  }
+  write(f, content);
 });
 const nLibs = copyDir('libs');
 const nGuide = copyDir('guide');

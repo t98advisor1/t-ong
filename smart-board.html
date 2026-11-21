@@ -13,7 +13,14 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.5.0">
+  <link rel="stylesheet" href="./smart-board.css?v=2.6.2">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (r) { r.update(); });
+      }).catch(function () {});
+    }
+  </script>
 </head>
 <body class="sb-theme-dark">
   <!-- 상단 가장자리 마우스/S펜 호버 시 자동 숨김 팔레트를 다시 내려주는 센서 바 -->
@@ -669,6 +676,6 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.5.0"></script>
+  <script src="./smart-board.js?v=2.6.2"></script>
 </body>
 </html>
