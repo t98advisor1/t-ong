@@ -34,8 +34,9 @@
   var state = {
     mode: 'draw',          // 'pin' | 'zoom' | 'draw' | 'edit'
     tool: 'pen',           // 'pen' | 'highlighter' | 'laser' | 'line' | 'rect' | 'fillRect' | 'cover' | 'text' | 'stamp' | 'eraser'
+    penStyle: 'fountain',  // 'fountain' | 'ballpoint' | 'pencil' | 'brush'
     color: '#ef4444',
-    size: 5,
+    size: 2.5,
     bgMode: 'dark',        // 'dark' | 'light' | 'grid'
     palmReject: false,
     spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] <-> [펜] 양방향 스위치
@@ -359,22 +360,101 @@
     if (o.type === 'stroke' || o.type === 'highlighter') {
       var pts = o.points || [];
       if (!pts.length) { ctx.restore(); return; }
+      var baseSize = o.size || 2.5;
+      var pStyle = o.type === 'highlighter' ? 'highlighter' : (o.penStyle || 'ballpoint');
       ctx.strokeStyle = o.color || '#ef4444';
-      ctx.lineWidth = o.type === 'highlighter' ? Math.max(14, (o.size || 5) * 3.2) : (o.size || 5);
-      if (o.type === 'highlighter') ctx.globalAlpha = 0.34;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      if (pts.length === 1) {
-        ctx.lineTo(pts[0].x + 0.1, pts[0].y + 0.1);
-      } else {
-        for (var i = 1; i < pts.length; i++) {
-          var midX = (pts[i - 1].x + pts[i].x) / 2;
-          var midY = (pts[i - 1].y + pts[i].y) / 2;
-          ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, midX, midY);
+
+      if (pStyle === 'highlighter') {
+        ctx.lineWidth = Math.max(12, baseSize * 4.4);
+        ctx.globalAlpha = 0.34;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        if (pts.length === 1) {
+          ctx.lineTo(pts[0].x + 0.1, pts[0].y + 0.1);
+        } else {
+          for (var hi = 1; hi < pts.length; hi++) {
+            var hmx = (pts[hi - 1].x + pts[hi].x) / 2;
+            var hmy = (pts[hi - 1].y + pts[hi].y) / 2;
+            ctx.quadraticCurveTo(pts[hi - 1].x, pts[hi - 1].y, hmx, hmy);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
         }
-        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.stroke();
+      } else if (pStyle === 'fountain' || pStyle === 'brush') {
+        // 삼성노트 만년필/붓펜: 필압·속도 기반 가변 굵기 + 부드러운 2차 베지어 곡선
+        var minMul = pStyle === 'brush' ? 0.42 : 0.68;
+        var maxMul = pStyle === 'brush' ? 1.65 : 1.18;
+        if (pts.length === 1) {
+          ctx.fillStyle = o.color || '#ef4444';
+          ctx.beginPath();
+          ctx.arc(pts[0].x, pts[0].y, Math.max(0.8, baseSize * 0.5), 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          var prevMx = pts[0].x, prevMy = pts[0].y;
+          for (var fi = 1; fi < pts.length; fi++) {
+            var pPrev = pts[fi - 1], pCur = pts[fi];
+            var mx = (pPrev.x + pCur.x) / 2;
+            var my = (pPrev.y + pCur.y) / 2;
+            var pr = typeof pCur.p === 'number' ? pCur.p : 0.5;
+            // 끝단 자연스러운 테이퍼링
+            var endFade = 1;
+            if (fi === 1) endFade = 0.82;
+            else if (fi === pts.length - 1) endFade = 0.72;
+            var segW = Math.max(0.8, baseSize * (minMul + (maxMul - minMul) * pr) * endFade);
+            ctx.lineWidth = segW;
+            ctx.beginPath();
+            ctx.moveTo(prevMx, prevMy);
+            ctx.quadraticCurveTo(pPrev.x, pPrev.y, mx, my);
+            ctx.stroke();
+            prevMx = mx;
+            prevMy = my;
+          }
+        }
+      } else if (pStyle === 'pencil') {
+        // 연필 질감: 부드러운 흑연 투명도 + 미세한 사각 질감 2중 패스
+        ctx.lineWidth = Math.max(0.9, baseSize * 0.9);
+        ctx.globalAlpha = 0.72;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        if (pts.length === 1) {
+          ctx.lineTo(pts[0].x + 0.1, pts[0].y + 0.1);
+        } else {
+          for (var pi = 1; pi < pts.length; pi++) {
+            var pmx = (pts[pi - 1].x + pts[pi].x) / 2;
+            var pmy = (pts[pi - 1].y + pts[pi].y) / 2;
+            ctx.quadraticCurveTo(pts[pi - 1].x, pts[pi - 1].y, pmx, pmy);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        }
+        ctx.stroke();
+        // 미세 흑연 입자감 보조 패스
+        ctx.globalAlpha = 0.24;
+        ctx.lineWidth = Math.max(0.7, baseSize * 0.55);
+        ctx.setLineDash([2, 2.5]);
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x + 0.6, pts[0].y + 0.5);
+        for (var pi2 = 1; pi2 < pts.length; pi2++) {
+          ctx.lineTo(pts[pi2].x + 0.6, pts[pi2].y + 0.5);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else {
+        // 볼펜 (ballpoint): 일정하고 또렷한 선 (작은 글씨·수식 최적)
+        ctx.lineWidth = Math.max(0.9, baseSize * 0.94);
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        if (pts.length === 1) {
+          ctx.lineTo(pts[0].x + 0.1, pts[0].y + 0.1);
+        } else {
+          for (var bi = 1; bi < pts.length; bi++) {
+            var bmx = (pts[bi - 1].x + pts[bi].x) / 2;
+            var bmy = (pts[bi - 1].y + pts[bi].y) / 2;
+            ctx.quadraticCurveTo(pts[bi - 1].x, pts[bi - 1].y, bmx, bmy);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
     } else if (o.type === 'line') {
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
@@ -824,6 +904,37 @@
     document.querySelectorAll('.sb-tool-btn[data-sb-tool]').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-sb-tool') === nextTool);
     });
+    // 펜 통합 버튼(#sbPenMenuBtn) 활성 상태 및 현재 펜 이름 동기화
+    var PEN_STYLE_LABELS = {
+      fountain: '만년필', ballpoint: '볼펜', pencil: '연필', brush: '붓펜', highlighter: '형광펜'
+    };
+    var penBtn = el('sbPenMenuBtn');
+    var penLbl = el('sbPenMenuLabel');
+    if (penBtn && penLbl) {
+      var isPenActive = (nextTool === 'pen' || nextTool === 'highlighter');
+      penBtn.classList.toggle('active', isPenActive);
+      var curStyleKey = nextTool === 'highlighter' ? 'highlighter' : (state.penStyle || 'fountain');
+      penLbl.textContent = PEN_STYLE_LABELS[curStyleKey] || '만년필';
+      document.querySelectorAll('.sb-pen-opt[data-pen-style]').forEach(function (opt) {
+        opt.classList.toggle('active', opt.getAttribute('data-pen-style') === curStyleKey);
+      });
+    }
+    // 도형·스탬프 드롭다운 메뉴 안의 도구가 선택되면 트리거 버튼에 현재 도구 표시
+    var SUB_TOOL_LABELS = {
+      line: '직선', rect: '사각형', circle: '원', fillRect: '채움사각',
+      cover: '가림막', text: '텍스트', stamp: '①스탬프', sqStamp: '▣스탬프'
+    };
+    var moreBtn = el('sbMoreToolsBtn');
+    var moreLbl = el('sbMoreToolsLabel');
+    if (moreBtn && moreLbl) {
+      if (SUB_TOOL_LABELS[nextTool]) {
+        moreBtn.classList.add('has-active');
+        moreLbl.textContent = SUB_TOOL_LABELS[nextTool];
+      } else {
+        moreBtn.classList.remove('has-active');
+        moreLbl.textContent = '도형';
+      }
+    }
     syncWebQuickToolsUi();
     liveCanvas.style.cursor = nextTool === 'select' ? 'default' : (nextTool === 'text' ? 'text' : 'crosshair');
   }
@@ -869,10 +980,45 @@
     if (inlineTextEl.style.display !== 'none') inlineTextEl.style.color = hex;
   }
 
+  var SIZE_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 8, 10, 14, 18, 24, 30];
+
+  function formatSizePt(v) {
+    var r = Math.round(v * 2) / 2;
+    return (r % 1 === 0 ? String(r) : r.toFixed(1)) + 'pt';
+  }
+
   function setSize(px) {
-    state.size = Math.max(2, Math.min(36, Math.round(px)));
-    if (el('sbSizeSlider')) el('sbSizeSlider').value = state.size;
-    if (el('sbSizeLabel')) el('sbSizeLabel').textContent = state.size + 'px';
+    var clamped = Math.max(1, Math.min(30, Math.round(px * 2) / 2));
+    state.size = clamped;
+    if (el('sbSizeLabel')) el('sbSizeLabel').textContent = formatSizePt(state.size);
+    document.querySelectorAll('.sb-size-preset-btn[data-size-preset]').forEach(function (b) {
+      var pv = parseFloat(b.getAttribute('data-size-preset'));
+      b.classList.toggle('active', Math.abs(pv - state.size) < 0.05);
+    });
+  }
+
+  function stepSize(dir) {
+    var cur = state.size;
+    if (dir > 0) {
+      for (var i = 0; i < SIZE_STEPS.length; i++) {
+        if (SIZE_STEPS[i] > cur + 0.01) { setSize(SIZE_STEPS[i]); return; }
+      }
+      setSize(SIZE_STEPS[SIZE_STEPS.length - 1]);
+    } else {
+      for (var j = SIZE_STEPS.length - 1; j >= 0; j--) {
+        if (SIZE_STEPS[j] < cur - 0.01) { setSize(SIZE_STEPS[j]); return; }
+      }
+      setSize(SIZE_STEPS[0]);
+    }
+  }
+
+  function setPenStyle(styleKey) {
+    if (styleKey === 'highlighter') {
+      setTool('highlighter');
+      return;
+    }
+    state.penStyle = styleKey || 'fountain';
+    setTool('pen');
   }
 
   function setBlankBgMode(bgMode) {
@@ -1103,12 +1249,18 @@
       return;
     }
     if (eff === 'pen' || eff === 'highlighter') {
+      var initP = (ev.pointerType === 'pen' && typeof ev.pressure === 'number' && ev.pressure > 0)
+        ? Math.max(0.15, Math.min(1, ev.pressure))
+        : 0.55;
+      pointer.lastMoveTime = Date.now();
+      pointer.lastPressure = initP;
       pointer.currentStroke = {
         id: uid(),
         type: eff === 'highlighter' ? 'highlighter' : 'stroke',
+        penStyle: eff === 'highlighter' ? 'highlighter' : (state.penStyle || 'fountain'),
         color: state.color,
         size: state.size,
-        points: [{ x: pt.x, y: pt.y }]
+        points: [{ x: pt.x, y: pt.y, p: initP }]
       };
     }
   });
@@ -1217,7 +1369,21 @@
       state.laserPoints.push({ x: pt.x, y: pt.y, t: Date.now() });
       if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
     } else if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
-      pointer.currentStroke.points.push({ x: pt.x, y: pt.y });
+      var nowT = Date.now();
+      var dt = Math.max(1, nowT - (pointer.lastMoveTime || nowT));
+      var segDist = Math.hypot(pt.x - pointer.lastX, pt.y - pointer.lastY);
+      var rawP;
+      if (ev.pointerType === 'pen' && typeof ev.pressure === 'number' && ev.pressure > 0) {
+        rawP = Math.max(0.15, Math.min(1, ev.pressure));
+      } else {
+        // 마우스/손가락: 속도 기반 자연스러운 필압 시뮬레이션 (빠를수록 가늘게, 천천히 쓸수록 또렷하게)
+        var vel = segDist / dt; // px per ms
+        rawP = Math.max(0.22, Math.min(0.95, 0.88 - vel * 0.32));
+      }
+      var smoothP = (pointer.lastPressure || 0.55) * 0.65 + rawP * 0.35;
+      pointer.lastPressure = smoothP;
+      pointer.lastMoveTime = nowT;
+      pointer.currentStroke.points.push({ x: pt.x, y: pt.y, p: Math.round(smoothP * 100) / 100 });
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       drawInkObject(liveCtx, pointer.currentStroke);
     } else if (eff === 'line' || eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') {
@@ -1312,7 +1478,7 @@
       if (state.zoomScale <= 1.01) { state.panX = 0; state.panY = 0; }
       applyTransform();
     } else if (state.mode === 'draw') {
-      setSize(state.size + (e.deltaY < 0 ? 1 : -1));
+      stepSize(e.deltaY < 0 ? 1 : -1);
     }
   }, { passive: false });
 
@@ -2898,9 +3064,20 @@
     document.querySelectorAll('#sbColorGroup .sb-color-dot').forEach(function (d) {
       d.addEventListener('click', function () { setColor(d.getAttribute('data-color')); });
     });
-    if (el('sbSizeSlider')) {
-      el('sbSizeSlider').addEventListener('input', function () { setSize(parseInt(this.value, 10)); });
-    }
+    if (el('sbSizeDecBtn')) el('sbSizeDecBtn').addEventListener('click', function () { stepSize(-1); });
+    if (el('sbSizeIncBtn')) el('sbSizeIncBtn').addEventListener('click', function () { stepSize(1); });
+    document.querySelectorAll('.sb-size-preset-btn[data-size-preset]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setSize(parseFloat(b.getAttribute('data-size-preset')) || 2.5);
+        closeAllPopovers();
+      });
+    });
+    document.querySelectorAll('.sb-pen-opt[data-pen-style]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setPenStyle(b.getAttribute('data-pen-style'));
+        closeAllPopovers();
+      });
+    });
 
     // 배경 전환
     document.querySelectorAll('[data-sb-bg]').forEach(function (b) {
@@ -3149,30 +3326,49 @@
     });
 
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
-    // PNG · PDF 저장 선택 팝오버 (#sbSaveMenuBtn / #sbSaveMenu)
-    function closeSaveMenu() {
-      if (el('sbSaveMenu')) el('sbSaveMenu').classList.remove('show');
+    // PNG · PDF 저장 / 펜 종류 / 도형·도구 / 보드 설정 팝오버 통합 제어
+    function closeAllPopovers() {
+      ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu'].forEach(function (id) {
+        if (el(id)) el(id).classList.remove('show');
+      });
     }
-    if (el('sbSaveMenuBtn') && el('sbSaveMenu')) {
-      el('sbSaveMenuBtn').addEventListener('click', function (e) {
+    function bindAnchoredPopover(btnId, menuId, alignRight) {
+      var btn = el(btnId);
+      var menu = el(menuId);
+      if (!btn || !menu) return;
+      btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var menu = el('sbSaveMenu');
         var willOpen = !menu.classList.contains('show');
+        closeAllPopovers();
         if (willOpen) {
-          var rect = this.getBoundingClientRect();
+          var rect = btn.getBoundingClientRect();
           menu.style.top = Math.round(rect.bottom + 6) + 'px';
-          var rightOffset = Math.max(10, Math.round(window.innerWidth - rect.right));
-          menu.style.right = rightOffset + 'px';
+          if (alignRight) {
+            menu.style.left = 'auto';
+            menu.style.right = Math.max(10, Math.round(window.innerWidth - rect.right)) + 'px';
+          } else {
+            menu.style.right = 'auto';
+            var maxLeft = Math.max(10, window.innerWidth - 330);
+            menu.style.left = Math.min(maxLeft, Math.max(10, Math.round(rect.left))) + 'px';
+          }
           menu.classList.add('show');
-        } else {
-          menu.classList.remove('show');
         }
       });
-      el('sbSaveMenu').addEventListener('click', function (e) { e.stopPropagation(); });
-      document.addEventListener('click', closeSaveMenu);
+      menu.addEventListener('click', function (e) { e.stopPropagation(); });
     }
-    if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', function () { closeSaveMenu(); saveCurrentPng(); });
-    if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', function () { closeSaveMenu(); saveMergedPdf(); });
+    bindAnchoredPopover('sbSaveMenuBtn', 'sbSaveMenu', true);
+    bindAnchoredPopover('sbPenMenuBtn', 'sbPenMenu', false);
+    bindAnchoredPopover('sbMoreToolsBtn', 'sbMoreToolsMenu', false);
+    bindAnchoredPopover('sbBoardMoreBtn', 'sbBoardMoreMenu', true);
+    document.addEventListener('click', closeAllPopovers);
+    liveCanvas.addEventListener('pointerdown', closeAllPopovers);
+    if (el('sbMoreToolsMenu')) {
+      el('sbMoreToolsMenu').querySelectorAll('[data-sb-tool]').forEach(function (b) {
+        b.addEventListener('click', closeAllPopovers);
+      });
+    }
+    if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', function () { closeAllPopovers(); saveCurrentPng(); });
+    if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', function () { closeAllPopovers(); saveMergedPdf(); });
     if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () {
       goScSlide(0);
       el('sbShortcutModal').classList.add('show');
@@ -3397,16 +3593,21 @@
 
       if (e.key === 'Escape') {
         document.querySelectorAll('.sb-modal.show').forEach(function (m) { m.classList.remove('show'); });
+        closeAllPopovers();
         clearSelection();
-        if (state.mode !== 'draw') setMode('draw');
         if (state.zoomScale > 1) resetZoom();
+        if (state.webActive && state.webInteract) setWebInteractMode(false);
+        setMode('draw');
+        setTool('pen');
+        showToast('초기 모드(판서 · 펜)로 돌아왔습니다. (ESC)');
         return;
       }
 
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         var k = e.key.toLowerCase();
-        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
+        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
         if (k === 'v') setTool('select');
+        else if (k === 'z') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
         else if (k === 's') setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');
         else if (k === 'q') setTool(state.tool === 'sqStamp' ? (state.lastDrawTool || 'pen') : 'sqStamp');
