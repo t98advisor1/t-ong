@@ -14390,7 +14390,7 @@ window.TodayBriefing = TodayBriefing;
     if (el('spExcelBtn')) el('spExcelBtn').addEventListener('click', exportToExcel);
   }
 
-  function open() {
+  function openUnlocked() {
     var modal = el('scorePlannerModal');
     if (!modal) return;
     bindEvents();
@@ -14398,7 +14398,58 @@ window.TodayBriefing = TodayBriefing;
     modal.classList.add('show');
   }
 
-  window.ScorePlannerModule = { open: open };
+  function open() {
+    var gate = el('spPinGateModal');
+    if (!gate) {
+      gate = document.createElement('div');
+      gate.id = 'spPinGateModal';
+      gate.className = 'modal';
+      gate.innerHTML =
+        '<div class="modal-content small" style="max-width:400px;text-align:center;padding:24px 22px;border-radius:18px;">' +
+          '<div style="font-size:0.78rem;font-weight:900;color:#4f46e5;background:#eef2ff;display:inline-block;padding:4px 12px;border-radius:999px;margin-bottom:8px;">교사용 출제 보안 잠금</div>' +
+          '<h3 style="margin:0 0 6px;font-size:1.22rem;color:#0f172a;">문항별 배점 설계기 비밀번호</h3>' +
+          '<p style="margin:0 0 16px;font-size:0.86rem;color:#475569;line-height:1.5;">수업 중 화면에 배점표가 실수로 공개되는 것을 방지합니다.<br>교사용 비밀번호 4자리를 입력해 주세요.</p>' +
+          '<input type="password" id="spPinGateInput" maxlength="8" inputmode="numeric" placeholder="••••" autocomplete="off" style="width:100%;text-align:center;font-size:1.5rem;font-weight:900;letter-spacing:0.35em;padding:10px 12px;border:2px solid #cbd5e1;border-radius:12px;margin-bottom:8px;">' +
+          '<div id="spPinGateErr" style="display:none;color:#dc2626;font-size:0.82rem;font-weight:800;margin-bottom:10px;">비밀번호가 일치하지 않습니다. 다시 확인해 주세요.</div>' +
+          '<div style="display:flex;gap:8px;justify-content:center;margin-top:6px;">' +
+            '<button type="button" id="spPinGateCancelBtn" class="btn-outline" style="flex:1;padding:10px;border-radius:10px;font-weight:800;">취소</button>' +
+            '<button type="button" id="spPinGateOkBtn" class="btn-primary" style="flex:1;padding:10px;border-radius:10px;font-weight:800;">열기</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(gate);
+
+      function tryUnlock() {
+        var inp = el('spPinGateInput');
+        var err = el('spPinGateErr');
+        var v = (inp && inp.value || '').trim();
+        if (v === '7777') {
+          inp.value = '';
+          if (err) err.style.display = 'none';
+          gate.classList.remove('show');
+          openUnlocked();
+        } else {
+          if (err) err.style.display = 'block';
+          if (inp) { inp.value = ''; inp.focus(); }
+        }
+      }
+      el('spPinGateOkBtn').addEventListener('click', tryUnlock);
+      el('spPinGateCancelBtn').addEventListener('click', function () {
+        gate.classList.remove('show');
+      });
+      el('spPinGateInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); }
+        else if (e.key === 'Escape') { gate.classList.remove('show'); }
+      });
+    }
+    var inpEl = el('spPinGateInput');
+    var errEl = el('spPinGateErr');
+    if (inpEl) inpEl.value = '';
+    if (errEl) errEl.style.display = 'none';
+    gate.classList.add('show');
+    setTimeout(function () { if (inpEl) inpEl.focus(); }, 60);
+  }
+
+  window.ScorePlannerModule = { open: open, openUnlocked: openUnlocked };
 })();
 // ===================================================================
 // 상단 드롭다운 겹침 방지 & 6 교실 도구 · 7 수업 도구 썸네일 접기/펼치기 허브
@@ -14420,7 +14471,7 @@ window.TodayBriefing = TodayBriefing;
     docConverter: { openKey: 'docConverter', tag: '문서 유틸리티', title: '문서 · PDF 올인원 변환기', desc: '한글(.hwpx/.hwp)↔PDF·텍스트 변환, PDF 합치기/나누기, 이미지↔PDF를 설치 없이 처리합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="18" height="24" rx="3" fill="#fff"/><rect x="36" y="28" width="18" height="24" rx="3" fill="#fde047"/><path d="M32 20h10l-4-4M32 44H22l4 4" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
     memoBoard: { title: '수업 메모보드 (패들렛 · 지도 · PDF)', url: 'https://t98advisor1.github.io/tong-padlet/', tag: '독립 사이트 · PDF', desc: '동시 접속에 강한 독립 패들렛 사이트에서 담벼락·모둠 칼럼·지도 보드 실시간 QR 참여와 A4 PDF 출력을 지원합니다.', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
-    mentiBoard: { title: '실시간 투표 · 워드클라우드 (멘티미터)', url: 'https://t98advisor1.github.io/tong-menti/', tag: '워드클라우드 · QR', desc: '학생들이 QR로 참여해 실시간 워드 클라우드, 객관식 투표, 1~5 척도, 자유 Q&A를 송출하고 PDF 보고서로 저장합니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="34" width="10" height="18" rx="3" fill="#a5f3fc"/><rect x="27" y="18" width="10" height="34" rx="3" fill="#fde047"/><rect x="44" y="26" width="10" height="26" rx="3" fill="#fbcfe8"/><path d="M8 54h48" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
+    mentiBoard: { title: '실시간 질문보드 (멘티미터 · 워드클라우드)', url: 'https://t98advisor1.github.io/tong-menti/', tag: '워드클라우드 · QR', desc: '학생들이 QR로 참여해 실시간 워드 클라우드, 객관식 투표, 1~5 척도, 순위·2×2·퀴즈·Q&A를 송출하고 PDF 보고서로 저장합니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="34" width="10" height="18" rx="3" fill="#a5f3fc"/><rect x="27" y="18" width="10" height="34" rx="3" fill="#fde047"/><rect x="44" y="26" width="10" height="26" rx="3" fill="#fbcfe8"/><path d="M8 54h48" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     seoulData: { openKey: 'seoulData', tag: '공공데이터 · 지도', title: '서울 공공데이터 × 카카오맵 탐구', desc: '따릉이·지하철 승하차·문화행사·미세먼지 실시간 데이터를 지도 시각화 및 CSV로 추출합니다.', bg: 'linear-gradient(135deg, #0f766e 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="28" r="14" stroke="#fff" stroke-width="2.8" fill="rgba(255,255,255,0.16)"/><circle cx="32" cy="28" r="4" fill="#fde047"/><path d="M32 42v12M16 54h32" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     timer: { openKey: 'timer', tag: '시간 관리', title: '간편 타이머', desc: '모래시계 시각화와 마지막 10초 알림이 포함된 전체화면·축소 겸용 교실 타이머입니다.', bg: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="20" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="3"/><path d="M26 10h12M32 34V22M32 34l8 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>' },
     praise: { openKey: 'praise', tag: '생활 지도', title: '칭찬 포인트', desc: '알·병아리·닭 4단계 성장 배지로 학생별 칭찬 점수를 기록하고 시트에 동기화합니다.', bg: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><path d="M32 10l6.5 13.5L53 25.5 42.5 36l2.5 14.5L32 43.5l-13 7 2.5-14.5L11 25.5l14.5-2z" fill="#fef08a" stroke="#fff" stroke-width="2.5"/></svg>' },
@@ -14564,7 +14615,7 @@ window.TodayBriefing = TodayBriefing;
   window.ClassroomToolsHubModule = createHubController(
     'classroomToolsHubModal', 'ctHubBody', 'ctHubFoldAllBtn', 'ctHubFullscreenBtn', 'ctHubColBtn',
     [
-      { title: '학급 운영 · 생활 지도', keys: ['smartBoard', 'docConverter', 'praise', 'duty', 'notice', 'memoBoard', 'mentiBoard', 'seoulData', 'timer'] },
+      { title: '학급 운영 · 생활 지도', keys: ['smartBoard', 'memoBoard', 'mentiBoard', 'docConverter', 'praise', 'duty', 'notice', 'seoulData', 'timer'] },
       { title: '발표 · 뽑기 복불복', note: 'QR 참여 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '쉬는시간 · 신체활동 게임', note: 'QR 학생 공유 지원', keys: ['handRush', 'handKart', 'poseChallenge', 'yutnori', 'pangpang', 'turtleNeck', 'singer', 'faceMuscle'] },
       { title: '웹툰 연재 · 체험 활용 앱', note: 'QR 지원', keys: ['toonAi', 'toonEcon', 'tarot', 'kwansang'] }
@@ -14574,7 +14625,7 @@ window.TodayBriefing = TodayBriefing;
   window.LessonToolsHubModule = createHubController(
     'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn', 'ltHubColBtn',
     [
-      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'scorePlanner', 'docConverter', 'memoBoard', 'mentiBoard', 'seoulData', 'timer'] },
+      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'memoBoard', 'mentiBoard', 'scorePlanner', 'docConverter', 'seoulData', 'timer'] },
       { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]

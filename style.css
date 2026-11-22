@@ -8394,6 +8394,157 @@ summary.lt-fold-sum::-webkit-details-marker { display: none; }
   font-size: 0.86rem;
 }
 
+/* ===================================================================
+   v5.18 — 구글 시트 연동 전체화면 1단 대형 안내 + 모든 스크린샷 사용설명서 1단 전체화면 & 큰 글씨 위계 강화
+   =================================================================== */
+#headerSyncMenu.header-sync-menu {
+  padding: 0 !important;
+}
+#headerSyncMenu .header-sync-dialog {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  padding: 24px 32px 48px !important;
+  overflow-y: auto !important;
+}
+#headerSyncMenu .sync-modal-topbar {
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  padding-bottom: 14px;
+}
+#headerSyncMenu .sync-modal-topbar h2 {
+  font-size: 1.55rem !important;
+  font-weight: 900 !important;
+}
+#headerSyncMenu .sync-modal-sub {
+  font-size: 1.05rem !important;
+}
+#headerSyncMenu .sync-modal-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+#headerSyncMenu .sync-workflow-title {
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
+  margin-bottom: 14px !important;
+}
+#headerSyncMenu .sync-step-list li strong {
+  font-size: 1.14rem !important;
+}
+#headerSyncMenu .sync-step-list li p {
+  font-size: 1.02rem !important;
+  line-height: 1.68 !important;
+}
+#headerSyncMenu .sync-guide-viewer {
+  padding: 22px 24px !important;
+  background: #ffffff !important;
+  border: 2px solid #cbd5e1 !important;
+  border-radius: 18px !important;
+}
+#headerSyncMenu .sync-guide-viewer-head strong {
+  font-size: 1.28rem !important;
+}
+#headerSyncMenu .sync-guide-tabs {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  margin: 12px 0 16px !important;
+}
+#headerSyncMenu .sync-guide-tab {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+}
+#headerSyncMenu .sync-guide-img-box {
+  width: 100% !important;
+  background: #0f172a !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+  text-align: center !important;
+}
+#headerSyncMenu #syncGuideViewerImg {
+  width: 100% !important;
+  max-height: 68vh !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+#headerSyncMenu .sync-guide-cap {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin-top: 14px !important;
+  line-height: 1.6 !important;
+}
+
+/* 전체 사용 설명서(#guideModal) 100% 전체화면 · 1단 고정 · 상단 위계 강화 · 큰 글씨 */
+#guideModal.guide-modal {
+  padding: 0 !important;
+}
+#guideModal .guide-content {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+}
+#guideModal .guide-sections {
+  padding: 10px 24px !important;
+  gap: 8px !important;
+  background: #0f172a !important;
+  border-bottom: 1px solid #334155 !important;
+}
+#guideModal .guide-section-btn {
+  font-size: 0.96rem !important;
+  font-weight: 800 !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+}
+#guideModal .guide-slide,
+#guideModal .guide-slide.is-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: 1fr !important;
+  padding: 18px 32px 28px !important;
+  align-items: center !important;
+}
+#guideModal .guide-stage-banner {
+  width: min(1240px, 100%) !important;
+  margin-bottom: 12px !important;
+}
+#guideModal .guide-stage-sub {
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+}
+#guideModal .guide-stage-banner h4 {
+  font-size: 1.45rem !important;
+  font-weight: 900 !important;
+}
+#guideModal .guide-stage-tip {
+  font-size: 0.96rem !important;
+  font-weight: 800 !important;
+}
+#guideModal .guide-stage {
+  width: min(1240px, 100%) !important;
+}
+#guideModal .guide-call-head strong {
+  font-size: 1.05rem !important;
+}
+#guideModal .guide-call-card p {
+  font-size: 0.96rem !important;
+  line-height: 1.55 !important;
+}
+#guideModal .guide-stage-float-desc {
+  font-size: 1.08rem !important;
+  line-height: 1.7 !important;
+}
+
 @media (max-width: 860px) {
   .mb-map-wrap, .sd-split {
     grid-template-columns: 1fr;
