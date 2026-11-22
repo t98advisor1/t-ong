@@ -42,7 +42,7 @@
     spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] <-> [펜] 양방향 스위치
     lastSpenSwitchTime: 0,
     lastDrawTool: 'pen',
-    autoHide: true,        // 상단 팔레트 자동 숨김 (판서 시작 시 자동으로 위로 숨김)
+    autoHide: false,        // 상단 팔레트 자동 숨김 (판서 시작 시 자동으로 위로 숨김)
     fillScreen: true,      // 화면 송출 시 여백 없는 100% 꽉 찬 화면 모드
     stampCounter: 1,
     zoomScale: 1,
@@ -189,6 +189,14 @@
   function fitViewport() {
     var pg = curPage();
     var vp = getTrueViewportSize();
+    if (state.webActive) {
+      var palette = el('sbPalette');
+      var top = palette && !palette.classList.contains('collapsed') ? palette.getBoundingClientRect().height + 8 : 42;
+      var bottom = (webBar ? webBar.getBoundingClientRect().height : 72) + 24;
+      document.documentElement.style.setProperty('--sb-web-top', top + 'px');
+      document.documentElement.style.setProperty('--sb-web-bottom', bottom + 'px');
+      vp = {w: vp.w - 16, h: Math.max(100, vp.h - top - bottom)};
+    }
     var rw = Math.max(100, vp.w);
     var rh = Math.max(100, vp.h);
     var w = pg.width || 1280;
@@ -197,7 +205,7 @@
     var sy = rh / h;
     // 1:1 정방형 픽셀 비율 유지 (원형 스탬프가 절대 찌그러지지 않으면서 화면을 꽉 채움)
     state.baseScale = state.fillScreen ? Math.max(sx, sy) : Math.min(sx, sy);
-    if (pg.kind === 'pdf' || pg.kind === 'pptx' || pg.kind === 'image') {
+    if (state.webActive || pg.kind === 'pdf' || pg.kind === 'pptx' || pg.kind === 'image') {
       // 문서/슬라이드는 우측·하단 잘림 없이 100% 화면 안에 들어오도록 비율 맞춤
       state.baseScale = Math.min(sx, sy);
     }
@@ -642,7 +650,16 @@
 
   function createPinFromBoardRect(rx, ry, rw, rh) {
     if (rw < 18 || rh < 18) return;
-    var comp = createCompositeCanvas();
+    // A cross-origin web frame is not part of either canvas. Never create a
+    // misleading dark placeholder and claim that the web material was captured.
+    if (state.webActive) {
+      showToast('웹 자료 화면은 현재 조각에 담을 수 없습니다. PDF·PPTX 또는 캡처 이미지로 연 뒤 고정해 주세요.');
+      return;
+    }
+    var inkOnly = curPage().kind === 'blank';
+    // A plain board pin is an overlay of handwriting, not an opaque board tile.
+    // File-backed pages retain their source so the selected document stays readable.
+    var comp = inkOnly ? inkCanvas : createCompositeCanvas();
     var sx = Math.max(0, Math.round(rx));
     var sy = Math.max(0, Math.round(ry));
     var sw = Math.min(comp.width - sx, Math.round(rw));
@@ -652,7 +669,19 @@
     var cut = document.createElement('canvas');
     cut.width = sw;
     cut.height = sh;
-    cut.getContext('2d').drawImage(comp, sx, sy, sw, sh, 0, 0, sw, sh);
+    var cutCtx = cut.getContext('2d');
+    cutCtx.drawImage(comp, sx, sy, sw, sh, 0, 0, sw, sh);
+    if (inkOnly) {
+      var pixels = cutCtx.getImageData(0, 0, sw, sh).data;
+      var hasInk = false;
+      for (var ai = 3; ai < pixels.length; ai += 4) {
+        if (pixels[ai] > 0) { hasInk = true; break; }
+      }
+      if (!hasInk) {
+        showToast('선택한 영역에 고정할 필기가 없습니다. 필기 영역을 포함해 다시 선택해 주세요.');
+        return;
+      }
+    }
     var dataUrl = cut.toDataURL('image/png');
 
     var pin = document.createElement('div');
@@ -735,7 +764,7 @@
       resHandle.addEventListener('pointerup', onUp);
     });
 
-    showToast('영역을 게시 조각으로 고정했습니다. (페이지를 넘겨도 유지됩니다)');
+    showToast(inkOnly ? '칠판 배경을 제외한 필기 조각을 고정했습니다. 뒤쪽 글씨가 비쳐 보입니다.' : '자료 영역을 게시 조각으로 고정했습니다. (페이지를 넘겨도 유지됩니다)');
   }
 
   // ===================================================================
@@ -757,6 +786,8 @@
     if (mFile && mFile[1]) return 'https://drive.google.com/file/d/' + mFile[1] + '/preview';
     var mOpen = s.match(/drive\.google\.com\/(?:open|uc)\?[^#]*\bid=([A-Za-z0-9_-]+)/i);
     if (mOpen && mOpen[1]) return 'https://drive.google.com/file/d/' + mOpen[1] + '/preview';
+    var publishedSlides = s.match(/^https:\/\/docs\.google\.com\/presentation\/d\/e\/([A-Za-z0-9_-]+)(?:\/|$)/i);
+    if (publishedSlides) return 'https://docs.google.com/presentation/d/e/' + publishedSlides[1] + '/embed?start=false&loop=false';
     var mSlides = s.match(/docs\.google\.com\/presentation\/d\/([A-Za-z0-9_-]+)/i);
     if (mSlides && mSlides[1]) return 'https://docs.google.com/presentation/d/' + mSlides[1] + '/preview';
     var mDocs = s.match(/docs\.google\.com\/document\/d\/([A-Za-z0-9_-]+)/i);
@@ -780,9 +811,22 @@
     syncWebQuickToolsUi();
   }
 
+  if (typeof ResizeObserver !== 'undefined') {
+    var webLayoutObserver = new ResizeObserver(function () { if (state.webActive) fitViewport(); });
+    if (webBar) webLayoutObserver.observe(webBar);
+    if (el('sbPalette')) webLayoutObserver.observe(el('sbPalette'));
+  }
+
   function openWebBrowser(urlStr) {
     var raw = String(urlStr || (el('sbWebUrlInput') && el('sbWebUrlInput').value) || '').trim();
     if (!raw) raw = 'https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0';
+    // Search portals forbid third-party framing. Keep the board and use a normal tab.
+    if (/^https?:\/\/(?:www\.)?(?:google\.com|naver\.com|daum\.net)(?:\/|$)/i.test(raw)) {
+      window.open(raw, '_blank', 'noopener,noreferrer');
+      showToast('검색 사이트는 새 탭에서 열립니다. 이 탭으로 돌아오면 판서를 계속할 수 있습니다.');
+      return;
+    }
+
     var ytEmbed = convertYoutubeToEmbedUrl(raw);
     var driveEmbed = ytEmbed ? null : convertGoogleDriveToEmbedUrl(raw);
     var targetUrl = ytEmbed || driveEmbed || raw;
@@ -795,11 +839,17 @@
     }
     if (el('sbWebUrlInput')) el('sbWebUrlInput').value = targetUrl;
     state.webActive = true;
+    state.webSlides = /^https:\/\/docs\.google\.com\/presentation\//i.test(targetUrl);
+    document.body.classList.add('sb-web-active');
+    if (el('sbSlidesHelp')) el('sbSlidesHelp').style.display = state.webSlides ? 'block' : 'none';
+    if (el('sbWebInteractToggleBtn')) el('sbWebInteractToggleBtn').textContent = state.webSlides ? '슬라이드 조작' : '웹 조작';
+    resetZoom();
     if (webBar) webBar.style.display = 'flex';
     if (webFrame) {
       webFrame.style.display = 'block';
       webFrame.src = targetUrl;
     }
+    fitViewport();
     // 유튜브·구글 드라이브는 바로 재생/페이지 넘김할 수 있도록 웹 조작 모드로, 일반 웹은 현재 도구 유지
     if (ytEmbed) {
       setWebInteractMode(true);
@@ -815,12 +865,15 @@
 
   function closeWebBrowser() {
     state.webActive = false;
+    state.webSlides = false;
+    document.body.classList.remove('sb-web-active');
     setWebInteractMode(false);
     if (webBar) webBar.style.display = 'none';
     if (webFrame) {
       webFrame.style.display = 'none';
       webFrame.src = 'about:blank';
     }
+    fitViewport();
   }
 
   async function snapshotWebToBoard() {
@@ -3012,7 +3065,8 @@
     if (el('sbWebInteractToggleBtn')) {
       el('sbWebInteractToggleBtn').addEventListener('click', function () {
         setWebInteractMode(true);
-        showToast('웹 조작 모드: 웹페이지 스크롤 및 유튜브 재생 버튼 클릭이 가능합니다.');
+        if (webFrame) webFrame.focus();
+        showToast(state.webSlides ? '슬라이드 조작: 화면 왼쪽 아래 ◀ ▶ 또는 키보드 ← →로 넘기세요. 필기는 [펜 필기]로 전환합니다.' : '웹 조작 모드: 웹페이지 스크롤 및 유튜브 재생 버튼 클릭이 가능합니다.');
       });
     }
     if (el('sbWebPenBtn')) {
@@ -3275,6 +3329,17 @@
 
     // 편집 모드 액션 바
     if (el('sbEditOcrBtn')) el('sbEditOcrBtn').addEventListener('click', runOcrOnSelection);
+    if (el('sbQuickPinBtn')) el('sbQuickPinBtn').addEventListener('click', function () {
+      commitInlineText();
+      if (state.selection) {
+        var selection = state.selection;
+        clearSelection();
+        createPinFromBoardRect(selection.x, selection.y, selection.w, selection.h);
+      } else {
+        setMode('pin');
+        showToast('고정할 영역을 드래그하세요. 선택한 부분을 조각으로 게시합니다.');
+      }
+    });
     if (el('sbEditPinBtn')) el('sbEditPinBtn').addEventListener('click', function () {
       if (!state.selection) return;
       var s = state.selection;
@@ -3567,6 +3632,7 @@
     document.addEventListener('keydown', function (e) {
       var inInput = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT');
       if (inInput) return;
+      if (state.webActive && state.webInteract && document.activeElement === webFrame) return;
 
       if (e.key === 'Tab') { e.preventDefault(); togglePalette(); return; }
       if (e.key === '?' || e.key === 'F1') { e.preventDefault(); el('sbShortcutModal').classList.toggle('show'); return; }

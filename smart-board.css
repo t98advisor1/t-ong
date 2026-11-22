@@ -743,7 +743,7 @@ body {
   border: 2.5px solid #f59e0b;
   border-radius: 8px;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
-  background: #0f172a;
+  background: transparent;
   cursor: move;
   overflow: visible;
   touch-action: none;
@@ -1923,3 +1923,18 @@ kbd {
 @media (max-width: 680px) {
   .sb-filehub-cards { grid-template-columns: 1fr; }
 }
+
+/* Keep embedded navigation outside the board controls, including on tablets. */
+body.sb-web-active #sbViewport {
+  position: fixed;
+  top: var(--sb-web-top, 92px);
+  bottom: var(--sb-web-bottom, 128px);
+  left: 8px;
+  right: 8px;
+  width: auto;
+  height: auto;
+}
+body.sb-web-active .sb-web-bar { width: calc(100vw - 24px); }
+body.sb-web-active #sbMiniNav,
+body.sb-web-active .sb-page-inline { display: none; }
+.sb-slides-help { color: #dbeafe; font-size: 0.8rem; line-height: 1.5; }

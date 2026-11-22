@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.6.5">
+  <link rel="stylesheet" href="./smart-board.css?v=2.6.6">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -76,7 +76,7 @@
         <!-- 내보내기(PNG·PDF) & 자동 숨김 / 접기 제어 -->
         <div class="sb-top-group sb-right-controls">
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-btn-export" id="sbSaveMenuBtn" title="현재 화면 PNG 이미지 또는 전체 페이지 합본 PDF 저장">PNG·PDF ▾</button>
-          <button type="button" class="sb-spen-pill active" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김 ON</button>
+          <button type="button" class="sb-spen-pill" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김 OFF</button>
           <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨김</button>
         </div>
       </div>
@@ -89,6 +89,7 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l7.2 16.2 2.4-6.2 6.2-2.4L4 4z"/></svg>
             <span>선택</span><kbd>V</kbd>
           </button>
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn" id="sbQuickPinBtn" title="선택 영역을 바로 조각으로 고정합니다. 선택이 없으면 드래그할 영역을 지정합니다.">조각 고정</button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-pen-trigger active" id="sbPenMenuBtn" title="펜 종류 선택 (만년필·볼펜·연필·붓펜·형광펜) — 단축키 P / H">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             <span id="sbPenMenuLabel">만년필</span> ▾
@@ -170,13 +171,13 @@
       <!-- 내장 웹 브라우저 하단 슬림 주소·유튜브·스탬프 제어 바 (상단 팔레트와 겹치지 않도록 하단 배치) -->
       <div class="sb-web-bar" id="sbWebBar" style="display:none;">
         <div class="sb-web-presets">
-          <button type="button" class="sb-mini-btn sb-web-yt-btn" id="sbWebYoutubePresetBtn" title="유튜브 링크를 보드 안에서 바로 재생합니다 (youtube.com/watch?v=... 또는 youtu.be/... 붙여넣기 지원)">▶ 유튜브</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://www.geogebra.org/classic?lang=ko">지오지브라</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://www.desmos.com/calculator?lang=ko">데스모스</button>
-          <button type="button" class="sb-mini-btn" data-web-url="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">위키백과</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://ai-math-practice.vercel.app/">인공지능수학</button>
           <button type="button" class="sb-mini-btn" data-web-url="https://go.geomath.workers.dev/">기하벡터</button>
-          <button type="button" class="sb-mini-btn" data-web-url="https://stock-arena-v3.vercel.app/">모의주식</button>
+          <button type="button" class="sb-mini-btn" data-web-url="https://www.google.com/" title="새 탭에서 열기">구글 ↗</button>
+          <button type="button" class="sb-mini-btn" data-web-url="https://www.naver.com/" title="새 탭에서 열기">네이버 ↗</button>
+          <button type="button" class="sb-mini-btn" data-web-url="https://www.daum.net/" title="새 탭에서 열기">다음 ↗</button>
           <button type="button" class="sb-mini-btn sb-web-adblock-btn" id="sbAdBlockGuideBtn" title="모바일(Firefox + uBlock Origin) 및 PC 유튜브 광고제거 스크린샷 설치 매뉴얼">광고제거(?)</button>
           <div class="sb-web-quick-tools" id="sbWebQuickTools">
             <button type="button" class="sb-web-qtool" id="sbWebInteractToggleBtn" data-web-qtool="interact" title="웹페이지·유튜브 클릭 및 스크롤 조작">웹 조작</button>
@@ -186,6 +187,7 @@
             <button type="button" class="sb-web-qtool" id="sbWebEraserBtn" data-web-qtool="eraser" title="웹 화면 위 판서·스탬프 지우기">지우개</button>
           </div>
         </div>
+        <div id="sbSlidesHelp" class="sb-slides-help" style="display:none;" role="status">슬라이드 이동: [슬라이드 조작]을 누른 뒤 화면 왼쪽 아래 ◀ ▶ 또는 키보드 ← →를 사용하세요. 필기는 [펜 필기]로 전환합니다.</div>
         <div class="sb-web-addr-row">
           <input type="text" id="sbWebUrlInput" class="sb-web-input" placeholder="유튜브 영상 링크(youtube.com/watch?v=... / youtu.be/...) 또는 웹 주소 입력 후 Enter" value="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbWebGoBtn">열기</button>
@@ -783,19 +785,19 @@
             <button type="button" class="sb-btn sb-btn-primary" id="sbFileHubOpenUrlBtn" style="white-space:nowrap;">링크 열기</button>
           </div>
           <div class="sb-filehub-presets">
-            <button type="button" class="sb-mini-btn sb-web-yt-btn" data-filehub-yt="1">▶ 유튜브 바로 열기</button>
             <button type="button" class="sb-mini-btn" data-filehub-url="https://www.geogebra.org/classic?lang=ko">지오지브라</button>
             <button type="button" class="sb-mini-btn" data-filehub-url="https://www.desmos.com/calculator?lang=ko">데스모스</button>
-            <button type="button" class="sb-mini-btn" data-filehub-url="https://ko.m.wikipedia.org/wiki/%EC%A1%B0%EA%B1%B4%EB%B6%80_%ED%99%95%EB%A5%A0">위키백과</button>
             <button type="button" class="sb-mini-btn" data-filehub-url="https://ai-math-practice.vercel.app/">인공지능수학</button>
             <button type="button" class="sb-mini-btn" data-filehub-url="https://go.geomath.workers.dev/">기하벡터</button>
-            <button type="button" class="sb-mini-btn" data-filehub-url="https://stock-arena-v3.vercel.app/">모의주식</button>
+          <button type="button" class="sb-mini-btn" data-filehub-url="https://www.google.com/" title="새 탭에서 열기">구글 ↗</button>
+          <button type="button" class="sb-mini-btn" data-filehub-url="https://www.naver.com/" title="새 탭에서 열기">네이버 ↗</button>
+          <button type="button" class="sb-mini-btn" data-filehub-url="https://www.daum.net/" title="새 탭에서 열기">다음 ↗</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.6.5"></script>
+  <script src="./smart-board.js?v=2.6.6"></script>
 </body>
 </html>
