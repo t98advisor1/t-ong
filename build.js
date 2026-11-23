@@ -131,7 +131,6 @@ const rootStaticFiles = [
   'score-planner-guide.html',
   'doc-converter-guide.html',
   'md-converter.html',
-  'md-converter.js',
   'md-converter-guide.html',
   'smart-board.html',
   'smart-board.css',
