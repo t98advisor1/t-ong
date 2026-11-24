@@ -20,7 +20,7 @@ const W = 1280, H = 720;
   for (const ch of CHAPTERS) {
     if (ONLY.length && ONLY.indexOf(ch.id) < 0) continue;
     const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'sbrec-'));
-    const ctx = await browser.newContext({ viewport: { width: W, height: H }, recordVideo: { dir: tmp, size: { width: W, height: H } } });
+    const ctx = await browser.newContext(Object.assign({ viewport: { width: W, height: H }, recordVideo: { dir: tmp, size: { width: W, height: H } } }, ch.contextOptions || {}));
     const t0 = Date.now();
     await ctx.addInitScript(OVERLAY);
     if (ch.routes) await ch.routes(ctx);

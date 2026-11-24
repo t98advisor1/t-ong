@@ -1991,3 +1991,18 @@ body.sb-web-active .sb-page-inline { display: none; }
 @media print {
   .sb-color-dot::after { display: none; }
 }
+
+/* 노트함 — 순서 바꾸기 · 다른 학급으로 복사 */
+.sb-note-order { display: flex; gap: 4px; margin-top: 4px; }
+.sb-note-order .sb-mini-btn { flex: 1; font-size: 0.68rem; padding: 3px 4px; }
+.sb-vault-copy-box { margin: 0 0 10px; padding: 12px 14px; border: 1.5px solid #3b82f6; border-radius: 12px; background: #eff6ff; color: #0f172a; display: flex; flex-direction: column; gap: 8px; }
+.sb-vault-copy-box[hidden] { display: none; }
+.sb-vault-copy-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.sb-vault-copy-row label { display: flex; flex-direction: column; gap: 3px; font-size: 0.78rem; font-weight: 700; color: #334155; flex: 1 1 180px; }
+.sb-vault-copy-row label.sb-vault-copy-opt { flex-direction: row; align-items: center; gap: 6px; font-weight: 600; }
+.sb-vault-copy-opt small { color: #64748b; font-weight: 500; }
+.sb-vault-copy-actions { justify-content: flex-end; }
+#sbZoomHandBtn.active { background: #2563eb; color: #fff; border-color: #60a5fa; }
+.sb-note-order .sb-mini-btn { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 700; }
+.sb-note-order .sb-mini-btn:hover { background: #e2e8f0; }
+.sb-note-thumb-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: #94a3b8; font-size: 0.78rem; font-weight: 700; }
