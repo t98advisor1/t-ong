@@ -44,7 +44,7 @@
     lastDrawTool: 'pen',
     autoHide: false,        // 상단 팔레트 자동 숨김 (판서 시작 시 자동으로 위로 숨김)
     fillScreen: true,      // 화면 송출 시 여백 없는 100% 꽉 찬 화면 모드
-    stampCounter: 1,
+    stampSeries: 0,   // '스탬프 번호 초기화'를 누를 때마다 새 묶음으로 1번부터 다시 셉니다
     zoomScale: 1,
     panX: 0,
     panY: 0,
@@ -569,6 +569,23 @@
     inkCtx.clearRect(0, 0, pg.width, pg.height);
     pg.objects.forEach(function (o) { drawInkObject(inkCtx, o); });
     renderSelectionOverlay();
+    if (el('sbStampNum')) el('sbStampNum').textContent = nextStampNumber();
+  }
+
+  // 다음 번호 스탬프 — 지금 묶음에서 아직 쓰지 않은 가장 작은 번호.
+  // 되돌리기·지우개·선택 삭제로 빠진 번호를 다시 채우고, 여러 쪽에 걸쳐 이어서 셉니다.
+  function nextStampNumber() {
+    var used = {};
+    var stamps = [];
+    state.pages.forEach(function (pg) {
+      (pg.objects || []).forEach(function (o) { if (o.type === 'stamp') stamps.push(o); });
+    });
+    // 저장한 노트를 불러오면 그 노트의 마지막 묶음에 이어서 셉니다.
+    stamps.forEach(function (o) { if ((o.series || 0) > state.stampSeries) state.stampSeries = o.series; });
+    stamps.forEach(function (o) { if ((o.series || 0) === state.stampSeries) used[o.num] = true; });
+    var n = 1;
+    while (used[n]) n++;
+    return n;
   }
 
   function renderSelectionOverlay() {
@@ -968,6 +985,7 @@
       penBtn.classList.toggle('active', isPenActive);
       var curStyleKey = nextTool === 'highlighter' ? 'highlighter' : (state.penStyle || 'fountain');
       penLbl.textContent = PEN_STYLE_LABELS[curStyleKey] || '만년필';
+      if (el('sbPenMenuKey')) el('sbPenMenuKey').textContent = curStyleKey === 'highlighter' ? 'H' : 'P';
       document.querySelectorAll('.sb-pen-opt[data-pen-style]').forEach(function (opt) {
         opt.classList.toggle('active', opt.getAttribute('data-pen-style') === curStyleKey);
       });
@@ -977,8 +995,10 @@
       line: '직선', rect: '사각형', circle: '원', fillRect: '채움사각',
       cover: '가림막', text: '텍스트', stamp: '①스탬프', sqStamp: '▣스탬프'
     };
+    var SUB_TOOL_KEYS = { line: 'L', rect: 'R', circle: 'C', text: 'T', stamp: 'S', sqStamp: 'Q' };
     var moreBtn = el('sbMoreToolsBtn');
     var moreLbl = el('sbMoreToolsLabel');
+    var moreKey = el('sbMoreToolsKey');
     if (moreBtn && moreLbl) {
       if (SUB_TOOL_LABELS[nextTool]) {
         moreBtn.classList.add('has-active');
@@ -987,6 +1007,8 @@
         moreBtn.classList.remove('has-active');
         moreLbl.textContent = '도형';
       }
+      // 지금 고른 도형의 단축키를 버튼 옆에 보여 줍니다(단축키가 없는 도구는 숨김).
+      if (moreKey) { moreKey.textContent = SUB_TOOL_KEYS[nextTool] || ''; moreKey.hidden = !SUB_TOOL_KEYS[nextTool]; }
     }
     syncWebQuickToolsUi();
     liveCanvas.style.cursor = nextTool === 'select' ? 'default' : (nextTool === 'text' ? 'text' : 'crosshair');
@@ -1283,12 +1305,12 @@
         shape: eff === 'sqStamp' ? 'square' : 'circle',
         x: Math.round(pt.x),
         y: Math.round(pt.y),
-        num: state.stampCounter++,
+        num: nextStampNumber(),
+        series: state.stampSeries,
         color: state.color,
         radius: Math.max(18, Math.round(state.size * 2.6))
       });
       pg.redoStack = [];
-      if (el('sbStampNum')) el('sbStampNum').textContent = state.stampCounter;
       renderInk();
       return;
     }
@@ -3381,7 +3403,7 @@
     });
 
     if (el('sbStampResetBtn')) el('sbStampResetBtn').addEventListener('click', function () {
-      state.stampCounter = 1;
+      state.stampSeries++;
       if (el('sbStampNum')) el('sbStampNum').textContent = '1';
       showToast('번호 스탬프를 1번부터 다시 시작합니다.');
     });
