@@ -449,84 +449,22 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- 사용설명서 모달 (#sbHelpModal)
-       - 1단계(기본 진입): 태블릿·모바일에서도 눈이 편한 큰 글씨 텍스트 중심 가독성 요약 뷰
-       - 2단계([전체화면으로 GIF & 상세 과정 보기] 클릭 시): 100% 전체화면 1단 대형 GIF + 단계별 스크린샷 과정 뷰 -->
+  <!-- 사용설명서 모달 (#sbHelpModal) — smart-board-guide.html(영상 매뉴얼)을 창 안에 띄웁니다 -->
   <!-- ================================================================= -->
   <div class="sb-modal" id="sbHelpModal">
     <div class="sb-modal-card sb-modal-guide is-fullscreen" id="sbHelpModalCard">
       <div class="sb-modal-head">
         <div>
-          <span class="sb-guide-kicker">화살표 · 네모 · 번호 스탬프로 한눈에 보는 직관형 사용설명서</span>
-          <h3>스마트 판서 보드 사용설명서 (스크린샷 · GIF)</h3>
+          <span class="sb-guide-kicker">기능마다 30초 안팎의 영상으로 따라 하는 사용 설명서</span>
+          <h3>스마트 판서 사용 설명서</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">매뉴얼 새 창 / 인쇄</a>
+          <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">새 창 / 인쇄</a>
           <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
         </div>
       </div>
-
-      <div class="sb-modal-body sb-guide-modal-body">
-        <div id="sbGuideFullVisualPane" class="sb-guide-visual-pane" style="display:block;">
-          <div class="sb-slide-nav-bar sb-visual-slide-bar">
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisPrevSlideBtn">◀ 이전</button>
-            <div class="sb-slide-tabs" id="sbVisSlideTabs">
-              <button type="button" class="sb-slide-tab active" data-vis-slide="0">1. 상단 팔레트</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="1">2. 선택·이동·스탬프</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="2">3. 파일·링크 열기</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="3">4. 유튜브·웹 스탬프</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="4">5. 스닙페이스트(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="5">6. 번호 스탬프(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="6">7. PDF·칠판(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="7">8. PPTX·OCR(GIF)</button>
-            </div>
-            <span class="sb-slide-counter" id="sbVisSlideCounter">1 / 8</span>
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisNextSlideBtn">다음 ▶</button>
-            <button type="button" class="sb-btn sb-btn-ghost" id="sbVisShowAllToggleBtn">전체 보기</button>
-          </div>
-
-          <div class="sb-visual-single-col sb-visual-slide-deck" id="sbVisSlideContainer">
-            <article class="sb-gcard sb-vis-slide-item active" data-vis-slide-pane="0">
-              <div class="sb-gcard-head"><span class="sb-gstep s1">1 / 8</span><b>상단 팔레트 · 파일·링크 통합 열기 · 자동숨김</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_01_top_filehub.png" alt="상단 팔레트 화살표·스탬프 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="1" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s2">2 / 8</span><b>선택·이동(V) · 원형(S)/사각(Q) 번호 스탬프 · S펜 스위치</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_02_select_stamp_spen.png" alt="선택 이동 및 스탬프 S펜 스위치 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="2" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s3">3 / 8</span><b>파일·링크 열기 팝업 (PDF · PPTX · 이미지 · 유튜브 통합)</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_03_filehub_modal.png" alt="통합 파일 링크 열기 팝업 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="3" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s4">4 / 8</span><b>유튜브 · 내장 웹 브라우저 위 ①원형·▣사각 스탬프 판서</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_04_web_stamp.png" alt="내장 웹 브라우저 유튜브 및 스탬프 판서 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="4" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s3">5 / 8 · GIF</span><b>스닙페이스트(게시 모드 · Alt+`) — 영역 오려 화면 최상단 고정</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_snipaste_pin.gif" alt="스닙페이스트 게시 모드 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="5" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s2">6 / 8 · GIF</span><b>원형 스탬프(S) · 사각 스탬프(Q) 자동 증가 &amp; 정답 가림막</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_number_stamp.gif" alt="번호 스탬프 및 정답 가림막 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="6" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s1">7 / 8 · GIF</span><b>PDF · 칠판 · 모눈 판서 및 도형 단축키(R/C/L)</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pdf_draw.gif" alt="PDF 및 칠판 도형 판서 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="7" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s5">8 / 8 · GIF</span><b>PPTX 클릭 액션 &amp; 손글씨 무료 AI OCR 변환</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pptx_ocr.gif" alt="PPTX 액션 및 무료 OCR 변환 GIF 시연"></div>
-            </article>
-          </div>
-        </div>
+      <div class="sb-modal-body sb-guide-modal-body sb-guide-frame-body">
+        <iframe id="sbHelpFrame" class="sb-guide-frame" title="스마트 판서 사용 설명서" data-src="./smart-board-guide.html?embed=1" loading="lazy"></iframe>
       </div>
     </div>
   </div>

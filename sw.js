@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.2.0-53';
+var CACHE_VERSION = 'v3.2.0-54';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
@@ -58,6 +58,9 @@ self.addEventListener('fetch', function (event) {
     event.respondWith(fetch(req));
     return;
   }
+
+  // 매뉴얼 영상은 구간(Range) 요청으로 받아야 해서 서비스 워커를 거치지 않고 네트워크로 바로 받습니다.
+  if (/\.mp4$/i.test(new URL(req.url).pathname)) return;
 
   // 페이지 이동: 네트워크 우선 (새 버전을 바로 받도록), 실패 시 요청 URL 또는 index.html 캐시
   if (req.mode === 'navigate') {

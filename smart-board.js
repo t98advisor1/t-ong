@@ -2934,7 +2934,7 @@
     }
     if (el('sbFloatingHelpBtn')) {
       el('sbFloatingHelpBtn').addEventListener('click', function () {
-        if (el('sbHelpModal')) el('sbHelpModal').classList.add('show');
+        openHelpGuide();
       });
     }
     if (el('sbFloatingFsBtn')) {
@@ -3466,6 +3466,13 @@
       tb.addEventListener('click', function () { goScSlide(parseInt(tb.getAttribute('data-sc-slide'), 10) || 0); });
     });
 
+    // 사용설명서 창 — 영상 매뉴얼(smart-board-guide.html)은 처음 열 때 불러옵니다
+    function openHelpGuide() {
+      var frame = el('sbHelpFrame');
+      if (frame && !frame.getAttribute('src')) frame.setAttribute('src', frame.getAttribute('data-src'));
+      if (el('sbHelpModal')) el('sbHelpModal').classList.add('show');
+    }
+
     // 사용설명서 전체화면 GIF & 스크린샷 좌우 슬라이드 (1 / 6)
     var visSlideIdx = 0;
     var visShowAll = false;
@@ -3515,10 +3522,7 @@
       }
     }
 
-    if (el('sbHelpBtn')) el('sbHelpBtn').addEventListener('click', function () {
-      goVisSlide(0);
-      el('sbHelpModal').classList.add('show');
-    });
+    if (el('sbHelpBtn')) el('sbHelpBtn').addEventListener('click', openHelpGuide);
     if (el('sbToggleVisualGuideBtn')) el('sbToggleVisualGuideBtn').addEventListener('click', function () {
       var visualPane = el('sbGuideFullVisualPane');
       var isCurrentlyVisual = visualPane && visualPane.style.display !== 'none';

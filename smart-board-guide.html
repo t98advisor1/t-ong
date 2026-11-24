@@ -1,573 +1,430 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>스마트 판서 보드 v2.5 사용설명서 (큰 글씨 요약 &amp; 전체화면 GIF 과정) — T-ong 교무수첩</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 판서 사용 설명서 — T-ong 교무수첩</title>
+  <meta name="description" content="T-ong 스마트 판서 보드의 기능을 짧은 영상과 단계별 설명으로 안내합니다.">
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --border: #334155;
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --accent: #38bdf8;
-      --green: #34d399;
+      --bg: #f4f6fb; --surface: #ffffff; --soft: #eef2ff; --text: #172033; --muted: #5b6478; --line: #e2e6ef;
+      --accent: #2563eb; --accent-soft: #dbe7ff; --ok: #0f9d6b; --warn: #b45309; --dark: #0f172a;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Pretendard', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-    }
-    .wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 20px 68px;
-    }
-    header.hero {
-      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-      border: 1.5px solid #3b82f6;
-      border-radius: 18px;
-      padding: 28px 30px;
-      margin-bottom: 26px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-    }
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: 1.65rem;
-      color: #ffffff;
-    }
-    .hero p {
-      margin: 0;
-      color: #dbeafe;
-      font-size: 1.04rem;
-    }
-    .hero-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 18px;
-      border-radius: 11px;
-      font-weight: 800;
-      font-size: 0.96rem;
-      text-decoration: none;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: #1e293b;
-      color: var(--text);
-    }
-    .btn.primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      border-color: #60a5fa;
-      color: #fff;
-    }
-    .btn.green {
-      background: linear-gradient(135deg, #059669, #047857);
-      border-color: #34d399;
-      color: #ffffff;
-    }
-    .section-title {
-      font-size: 1.32rem;
-      font-weight: 900;
-      color: #f8fafc;
-      margin: 28px 0 16px;
-      padding-left: 14px;
-      border-left: 5px solid var(--accent);
-    }
+    html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Pretendard', 'Noto Sans KR', system-ui, -apple-system, sans-serif; line-height: 1.7; font-size: 17px; }
+    a { color: var(--accent); }
+    kbd { display: inline-block; min-width: 1.7em; padding: 1px 7px; border-radius: 6px; border: 1px solid #c9d1e3; border-bottom-width: 2px; background: #fff;
+      font: 700 0.85em/1.6 ui-monospace, Consolas, monospace; color: var(--dark); text-align: center; }
 
-    /* 1단계: 가볍고 큰 글씨로 읽는 텍스트 2단 요약 (태블릿·모바일에서는 1단 자동 전환) */
-    .quick-text-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-    }
-    .qcard {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      padding: 22px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .qcard-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(56, 189, 248, 0.16);
-      border: 1px solid rgba(56, 189, 248, 0.45);
-      color: var(--accent);
-      font-weight: 900;
-      font-size: 1rem;
-    }
-    .qcard h2 {
-      margin: 0;
-      font-size: 1.24rem;
-      color: #ffffff;
-    }
-    .qcard p {
-      margin: 0;
-      font-size: 1.05rem;
-      color: var(--muted);
-    }
-    .qcard-keys {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 6px;
-    }
-    .qcard-keys span {
-      background: #0f172a;
-      border: 1px solid #475569;
-      border-radius: 8px;
-      padding: 6px 11px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: #e2e8f0;
-    }
+    /* 상단 */
+    .hero { background: linear-gradient(135deg, #1e3a8a, #2563eb 60%, #0ea5e9); color: #fff; }
+    .hero-in { max-width: 1120px; margin: 0 auto; padding: 44px 24px 38px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; align-items: center; }
+    .hero h1 { margin: 0 0 10px; font-size: 2.1rem; line-height: 1.3; letter-spacing: -0.02em; }
+    .hero p { margin: 0 0 22px; color: #dbeafe; font-size: 1.08rem; }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; text-decoration: none; cursor: pointer;
+      border: 1px solid transparent; background: #fff; color: var(--accent); font-family: inherit; }
+    .btn.ghost { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.35); }
+    .hero-video { border-radius: 16px; overflow: hidden; box-shadow: 0 18px 40px rgba(2,6,23,.35); background: #0f172a; aspect-ratio: 16 / 9; }
+    .hero-video video { width: 100%; height: 100%; display: block; }
 
-    /* 단축키 큰 글씨 표 */
-    .shortcut-box {
-      margin-top: 26px;
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      padding: 22px 24px;
-    }
-    .shortcut-box h3 {
-      margin: 0 0 14px;
-      font-size: 1.22rem;
-      color: var(--accent);
-    }
-    .shortcut-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.98rem;
-    }
-    .shortcut-table th, .shortcut-table td {
-      border: 1px solid var(--border);
-      padding: 12px 14px;
-      text-align: left;
-    }
-    .shortcut-table th {
-      background: rgba(15, 23, 42, 0.75);
-      color: #93c5fd;
-    }
-    kbd {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 5px;
-      background: #0f172a;
-      border: 1px solid #64748b;
-      font-family: ui-monospace, monospace;
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: #f8fafc;
-    }
+    /* 장 이동 */
+    .toc { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+    .toc-in { max-width: 1120px; margin: 0 auto; padding: 10px 24px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+    .toc a { flex: 0 0 auto; text-decoration: none; color: var(--muted); font-weight: 700; font-size: 0.86rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; }
+    .toc a.active, .toc a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
-    /* 2단계: 전체화면 진입 시 1단 대형 GIF & 단계별 스크린샷 과정 섹션 */
-    .visual-walkthrough {
-      margin-top: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-    .step-card {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 18px;
-      overflow: hidden;
-    }
-    .step-head {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(15, 23, 42, 0.65);
-    }
-    .step-badge {
-      background: rgba(56, 189, 248, 0.18);
-      color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.45);
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 0.85rem;
-      font-weight: 900;
-    }
-    .step-badge.gif {
-      background: rgba(245, 158, 11, 0.22);
-      color: #fcd34d;
-      border-color: rgba(245, 158, 11, 0.5);
-    }
-    .step-head h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      color: #ffffff;
-    }
-    .step-img-wrap {
-      background: #020617;
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .step-img-wrap img {
-      width: 100%;
-      max-height: 620px;
-      object-fit: contain;
-      display: block;
-      border-radius: 12px;
-      border: 1px solid #334155;
-      margin: 0 auto;
-    }
-    .step-body {
-      padding: 18px 22px 22px;
-      font-size: 1.02rem;
-      color: #e2e8f0;
-    }
-    .step-body ul {
-      margin: 0;
-      padding-left: 20px;
-    }
-    .step-body li {
-      margin-bottom: 8px;
-    }
+    main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; }
+    .group-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin: 40px 0 14px; }
+    .group-title h2 { margin: 0; font-size: 1.45rem; letter-spacing: -0.01em; }
+    .group-title span { color: var(--muted); font-size: 0.95rem; }
+
+    /* 처음 3단계 */
+    .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .quick div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+    .quick > div > b { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+    .quick i { font-style: normal; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; }
+    .quick p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    /* 장 카드 */
+    .chapter { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; margin-bottom: 18px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 24px; }
+    .chapter-video { position: relative; border-radius: 14px; overflow: hidden; background: #0f172a; aspect-ratio: 16 / 9; align-self: start; }
+    .chapter-video video { width: 100%; height: 100%; display: block; }
+    .chapter-num { display: inline-block; font-weight: 800; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 12px; font-size: 0.82rem; margin-bottom: 6px; }
+    .chapter h3 { margin: 0 0 6px; font-size: 1.3rem; line-height: 1.4; letter-spacing: -0.01em; }
+    .chapter .sum { margin: 0 0 14px; color: var(--muted); }
+    .steps { margin: 0 0 14px; padding-left: 0; list-style: none; counter-reset: s; }
+    .steps li { position: relative; padding-left: 34px; margin-bottom: 9px; }
+    .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 2px; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--soft); color: var(--accent); font-weight: 800; font-size: 0.82rem; text-align: center; line-height: 24px; }
+    .keys { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 0.9rem; color: var(--muted); }
+    .tip { margin-top: 12px; background: #fff7e6; border: 1px solid #fde3b0; color: #7a4a00; border-radius: 12px; padding: 10px 14px; font-size: 0.92rem; }
+    .speed { position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; opacity: 0; transition: opacity .2s; }
+    .chapter-video:hover .speed, .chapter-video:focus-within .speed { opacity: 1; }
+    .speed button { border: none; border-radius: 8px; padding: 3px 8px; font: 700 0.78rem/1.4 inherit; background: rgba(15,23,42,.75); color: #fff; cursor: pointer; }
+    .speed button.on { background: var(--accent); }
+
+    /* 단축키 표 */
+    .shortcuts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .sc-box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+    .sc-box h4 { margin: 0 0 8px; font-size: 1rem; }
+    .sc-box table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+    .sc-box td { padding: 5px 0; border-top: 1px solid var(--line); vertical-align: top; }
+    .sc-box tr:first-child td { border-top: none; }
+    .sc-box td:first-child { width: 42%; white-space: nowrap; }
+
+    .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin-bottom: 10px; }
+    .faq summary { cursor: pointer; font-weight: 800; }
+    .faq p, .faq ul { margin: 8px 0 2px; color: var(--muted); }
+    footer { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 24px; }
+
+    /* 판서 보드 안 설명서 창에서 열 때 */
+    body.embed .hero-in { padding: 24px 22px; grid-template-columns: 1fr; }
+    body.embed .hero-video, body.embed .only-page { display: none; }
 
     @media (max-width: 900px) {
-      .quick-text-grid { grid-template-columns: 1fr; }
+      .hero-in, .chapter { grid-template-columns: 1fr; }
+      .quick, .shortcuts { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.7rem; }
     }
     @media print {
-      body { background: #fff; color: #0f172a; }
-      .hero, .qcard, .step-card, .shortcut-box { background: #fff; border-color: #cbd5e1; color: #0f172a; }
-      .hero-actions { display: none; }
-      .step-head h2, .hero h1, .qcard h2 { color: #0f172a; }
-      .step-body, .hero p, .qcard p { color: #334155; }
+      body { background: #fff; font-size: 13px; }
+      .hero { background: #fff; color: var(--text); border-bottom: 2px solid var(--text); }
+      .hero p { color: var(--muted); }
+      .hero-actions, .toc, .hero-video, .speed { display: none !important; }
+      .chapter { break-inside: avoid; border-color: #ccc; }
+      .chapter-video video { display: none; }
+      .chapter-video { background: none; aspect-ratio: auto; }
+      .chapter-video img.print-poster { display: block !important; width: 100%; border: 1px solid #ccc; border-radius: 8px; }
     }
+    .print-poster { display: none; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero">
+  <header class="hero">
+    <div class="hero-in">
       <div>
-        <h1>스마트 판서 보드 v2.5 사용설명서 (큰 글씨 요약 &amp; 전체화면 GIF 과정)</h1>
-        <p>상단 자동숨김 팔레트 · 100% 꽉 찬 송출 화면 · 완벽한 원형(①)/사각(▣) 스탬프 · S펜 지우개↔펜 스위치 · 고호환 PPTX</p>
+        <h1>스마트 판서 사용 설명서</h1>
+        <p>칠판처럼 쓰고, PDF·PPTX·웹 위에 바로 판서하는 T-ong 스마트 판서 보드입니다. 기능마다 30초 안팎의 영상으로 따라 해 보세요.</p>
+        <div class="hero-actions">
+          <a class="btn only-page" href="./smart-board.html">✏️ 스마트 판서 열기</a>
+          <a class="btn ghost" href="#shortcuts">⌨️ 단축키 모아 보기</a>
+          <button type="button" class="btn ghost" onclick="window.print()">🖨️ 인쇄 · PDF</button>
+        </div>
       </div>
-      <div class="hero-actions">
-        <button class="btn green" id="enterFsVisualBtn" type="button">전체화면으로 GIF &amp; 상세 과정 보기</button>
-        <a class="btn primary" href="/smart-board.html">스마트 판서 보드 열기</a>
-        <a class="btn" href="/index.html">교무수첩 홈으로</a>
-        <button class="btn" type="button" onclick="window.print()">인쇄 / PDF 저장</button>
+      <div class="hero-video">
+        <video src="./assets/smartboard_guide/video/01-screen.mp4" poster="./assets/smartboard_guide/video/01-screen.jpg" controls muted playsinline preload="none"></video>
       </div>
-    </header>
-
-    <div class="section-title">1. 핵심 기능 한눈에 보기 (태블릿·모바일 가독성 큰 글씨 요약)</div>
-    <section class="quick-text-grid">
-      <article class="qcard">
-        <div class="qcard-num">01</div>
-        <h2>상단 긴 팔레트 &amp; 판서 시 자동 숨김 (100% 꽉 찬 화면)</h2>
-        <p>사용설명서와 전체화면 버튼을 상단 바 최상단에 배치했습니다. <b>판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져</b> 화면 송출 시 여백 없이 100% 꽉 찬 화면으로 보입니다.</p>
-        <div class="qcard-keys">
-          <span><kbd>Tab</kbd> 상단 팔레트 숨기기/펼치기</span>
-          <span><kbd>F</kbd> 전체화면 송출</span>
-          <span>상단 끝 호버 시 자동 펼침</span>
-        </div>
-      </article>
-
-      <article class="qcard">
-        <div class="qcard-num">02</div>
-        <h2>완벽한 원형 스탬프(S) · 사각 스탬프(Q) · 도형 단축키</h2>
-        <p>1:1 정원 비율로 찍히는 <b>①②③ 원형 스탬프(<kbd>S</kbd>)</b>와 <b>정사각형 스탬프(<kbd>Q</kbd>)</b>를 제공합니다. 사각형(<kbd>R</kbd>), 원(<kbd>C</kbd>), 직선(<kbd>L</kbd>), 텍스트(<kbd>T</kbd>), 지우개(<kbd>E</kbd>), 취소(<kbd>Backspace</kbd>)를 1키로 조작합니다.</p>
-        <div class="qcard-keys">
-          <span><kbd>S</kbd> ①원형스탬프</span>
-          <span><kbd>Q</kbd> ▣사각스탬프</span>
-          <span><kbd>R</kbd> 사각형 · <kbd>C</kbd> 원 · <kbd>L</kbd> 선</span>
-          <span><kbd>⌫ Backspace</kbd> 취소</span>
-        </div>
-      </article>
-
-      <article class="qcard">
-        <div class="qcard-num">03</div>
-        <h2>갤럭시 S펜 옆 버튼: 지우개 ↔ 펜 양방향 스위치</h2>
-        <p>S펜 옆 버튼(또는 에어액션 버튼)을 <b>1번 누르면 [지우개]가 켜지고, 다시 1번 누르면 원래 쓰던 [펜] 모드로 돌아오는 양방향 스위치</b>로 동작합니다.</p>
-        <div class="qcard-keys">
-          <span>S펜 버튼 1회: 지우개 활성</span>
-          <span>S펜 버튼 재클릭: 펜 복귀</span>
-          <span>S펜전용: 손바닥 무시</span>
-        </div>
-      </article>
-
-      <article class="qcard">
-        <div class="qcard-num">04</div>
-        <h2>고호환 PPTX 클릭 액션 · 폴더 노트함 · 내장 웹 브라우저</h2>
-        <p>테마 색상·그라데이션·그룹 도형·트리거 액션이 포함된 <b>PPTX</b>와 <b>PDF</b> 판서, <b>삼성노트형 폴더 노트함</b> 저장, <b>내장 웹 브라우저 위 스탬프 찍기</b> 및 <b>무료 AI 필기 OCR</b>을 지원합니다.</p>
-        <div class="qcard-keys">
-          <span><kbd>Space</kbd> / <kbd>→</kbd> 다음 PPTX 액션</span>
-          <span><kbd>Alt+`</kbd> 스닙페이스트 고정</span>
-          <span><kbd>Alt+3</kbd> 무료 필기 OCR</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="shortcut-box">
-      <h3>키보드 단축키 및 S펜 스위치 전체 일람표 (보드에서 ? 또는 F1 키)</h3>
-      <table class="shortcut-table">
-        <thead>
-          <tr>
-            <th>구분</th>
-            <th>단축키 / 조작</th>
-            <th>동작 설명</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><b>펜 · 지우개 · 텍스트</b></td>
-            <td><kbd>P</kbd> / <kbd>H</kbd> / <kbd>E</kbd> / <kbd>T</kbd></td>
-            <td>자유 곡선 펜(<kbd>P</kbd>) / 형광펜(<kbd>H</kbd>) / 지우개 켜기·끄기 토글(<kbd>E</kbd>) / 한글 텍스트 입력(<kbd>T</kbd>)</td>
-          </tr>
-          <tr>
-            <td><b>원형·사각 번호 스탬프</b></td>
-            <td><kbd>S</kbd> / <kbd>Q</kbd></td>
-            <td><b>①②③ 완벽한 원형 번호 스탬프(<kbd>S</kbd>)</b> / <b>▣ 반듯한 정사각형 번호 스탬프(<kbd>Q</kbd>)</b></td>
-          </tr>
-          <tr>
-            <td><b>도형 그리기 (사각형·원·선)</b></td>
-            <td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td>
-            <td><b>사각형(<kbd>R</kbd>)</b> / <b>원·타원(<kbd>C</kbd>, <kbd>Shift</kbd>+드래그 시 정원)</b> / <b>반듯한 직선(<kbd>L</kbd>)</b></td>
-          </tr>
-          <tr>
-            <td><b>빠른 취소 (되돌리기)</b></td>
-            <td><kbd>Backspace (백스페이스)</kbd> / <kbd>Ctrl + Z</kbd></td>
-            <td><b>마지막 판서·도형·스탬프 즉시 취소(되돌리기)</b> / 편집 모드 선택 영역 삭제</td>
-          </tr>
-          <tr>
-            <td><b>펜 색상 (숫자 1~6)</b></td>
-            <td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd></td>
-            <td>빨강(<kbd>1</kbd>) · 초록(<kbd>2</kbd>) · 파랑(<kbd>3</kbd>) · 노랑(<kbd>4</kbd>) · 아이보리(<kbd>5</kbd>) · 검정(<kbd>6</kbd>)</td>
-          </tr>
-          <tr>
-            <td><b>갤럭시 S펜 버튼 스위치</b></td>
-            <td><b>S펜 옆 버튼 / 에어액션 클릭</b></td>
-            <td><b>[지우개] ↔ [펜] 양방향 스위치</b> (한 번 누르면 지우개, 다시 누르면 펜 모드로 복귀)</td>
-          </tr>
-          <tr>
-            <td><b>4대 모드 &amp; 전체화면</b></td>
-            <td><kbd>Alt+`</kbd> <kbd>Alt+1</kbd> <kbd>Alt+2</kbd> <kbd>Alt+3</kbd> / <kbd>Tab</kbd> / <kbd>F</kbd></td>
-            <td>게시(스닙페이스트) · 확대 · 판서 · 편집(OCR) 모드 / 상단 팔레트 숨김(<kbd>Tab</kbd>) / 꽉 찬 전체화면(<kbd>F</kbd>)</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <div class="section-title" id="visualWalkthroughSection">2. 전체화면 GIF 동적 시연 &amp; 단계별 스크린샷 과정 (좌우 슬라이드 보기)</div>
-    <div style="background:#1e293b;border:1.5px solid #334155;border-radius:14px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <button type="button" class="btn primary" id="sbgPrevSlideBtn">◀ 이전 슬라이드</button>
-      <div id="sbgSlideDots" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;flex:1 1 auto;"></div>
-      <strong id="sbgSlideCount" style="color:#38bdf8;font-size:1.02rem;padding:0 8px;">1 / 8</strong>
-      <button type="button" class="btn primary" id="sbgNextSlideBtn">다음 슬라이드 ▶</button>
-      <button type="button" class="btn" id="sbgToggleAllBtn">전체 연속 보기</button>
     </div>
-    <section class="visual-walkthrough" id="sbgDeck">
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge gif">GIF 과정 1 · 스닙페이스트</span>
-          <h2>게시 모드(Alt+`)로 핵심 문제·공식 화면 최상단 고정</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/gif_snipaste_pin.gif" alt="스닙페이스트 게시 모드 동적 GIF" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li><b>게시 모드(<kbd>Alt+`</kbd>)</b>를 누르고 원하는 문제·도표 영역을 드래그하면 즉시 스티커 조각으로 분리되어 화면 최상단에 고정됩니다.</li>
-            <li>다음 페이지로 넘어가도 항상 맨 위에 유지되며, 드래그 이동·마우스 휠 크기 조절·우클릭 삭제를 지원합니다.</li>
-          </ul>
-        </div>
-      </article>
+  </header>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge gif">GIF 과정 2 · 원형·사각 번호 스탬프</span>
-          <h2>완벽한 정원 스탬프(S)와 정사각형 스탬프(Q) 자동 증가</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/gif_number_stamp.gif" alt="번호 스탬프 동적 GIF" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li><b>①원스탬프(<kbd>S</kbd>)</b>나 <b>▣사각스탬프(<kbd>Q</kbd>)</b>를 켜고 화면을 터치/클릭하면 1, 2, 3, 4... 번호가 정중앙에 맞춰 선명하게 찍힙니다.</li>
-          </ul>
-        </div>
-      </article>
+  <nav class="toc" aria-label="설명서 차례">
+    <div class="toc-in" id="toc"></div>
+  </nav>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge gif">GIF 과정 3 · 상단 자동숨김 &amp; 도형 판서</span>
-          <h2>상단 자동숨김 팔레트 · 도형 단축키(R/C/L) · 100% 꽉 찬 화면 판서</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/gif_pdf_draw.gif" alt="PDF 및 칠판 판서 동적 GIF" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li>판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면 전체가 100% 꽉 찬 칠판이 되며, 상단 끝으로 커서를 가져가거나 <kbd>Tab</kbd>을 누르면 다시 나타납니다.</li>
-          </ul>
-        </div>
-      </article>
+  <main>
+    <div class="group-title"><h2>처음이라면 이 세 가지만</h2><span>1분이면 판서를 시작할 수 있습니다</span></div>
+    <div class="quick">
+      <div><i>1</i><b>바로 쓰기</b><p>보드를 열면 펜이 켜져 있습니다. 화면에 손가락·S펜·마우스로 바로 쓰세요.</p></div>
+      <div><i>2</i><b>수업 자료 열기</b><p>위쪽 <b>열기</b>에서 PDF·PPTX·이미지·유튜브·웹 주소를 불러와 그 위에 씁니다.</p></div>
+      <div><i>3</i><b>저장하기</b><p><b>노트함</b>에 저장하면 다음 수업에 다시 이어서 쓸 수 있습니다.</p></div>
+    </div>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge gif">GIF 과정 4 · 고호환 PPTX 액션 &amp; OCR</span>
-          <h2>고호환 PPTX 클릭 애니메이션 및 무료 AI 손글씨 OCR</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/gif_pptx_ocr.gif" alt="PPTX 클릭 액션 및 필기 OCR 동적 GIF" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li><b>PPTX 클릭 액션</b>: 테마 색상, 그라데이션, 그룹 도형(<code>p:grpSp</code>), 레이아웃/마스터 상속, 문단별·트리거 애니메이션을 파싱해 단계별로 등장시킵니다.</li>
-          </ul>
-        </div>
-      </article>
+    <div class="group-title" id="g-basic"><h2>기본 판서</h2><span>펜 · 도형 · 스탬프 · 쪽</span></div>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge">상세 화면 5 · 상단 통합 팔레트</span>
-          <h2>최상단 사용설명서·전체화면 배치 및 상단 가로형 자동숨김 팔레트</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/step1_load_pptx.png" alt="상단 통합 팔레트 및 PPTX 액션 화면" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li>상단 좌측 최우선 위치에 <b>[사용설명서]</b>와 <b>[전체화면]</b>, <b>[단축키 안내(?)]</b>를 배치하여 수업 중 언제든 즉시 열 수 있습니다.</li>
-          </ul>
-        </div>
-      </article>
+    <article class="chapter" id="ch-01-screen" data-toc="화면 구성">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">1</span>
+        <h3>화면 구성과 도구 팔레트</h3>
+        <p class="sum">위쪽 두 줄이 도구 팔레트입니다. 숨기면 화면 전체가 칠판이 됩니다.</p>
+        <ol class="steps">
+          <li><b>첫 줄</b>: 사용설명서 · 전체화면 · 노트함 · 열기 · 모드(게시·확대·판서·편집) · 저장</li>
+          <li><b>둘째 줄</b>: 선택 · 펜 · 도형 · 레이저 · 지우개 · 색 · 굵기 · 쪽 넘기기 · 설정</li>
+          <li><b>▲ 숨김</b> 또는 <kbd>Tab</kbd>으로 팔레트를 접고 펼칩니다.</li>
+          <li><b>자동숨김</b>을 켜면 쓰기 시작할 때 팔레트가 저절로 올라가고, 화면 맨 위로 가져가면 다시 나옵니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>Tab</kbd> 팔레트</span><span><kbd>F</kbd> 전체화면</span><span><kbd>?</kbd> 단축키 안내</span></div>
+      </div>
+    </article>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge">상세 화면 6 · 삼성노트형 폴더 노트함</span>
-          <h2>로컬 폴더별 노트 저장 · 불러오기 · JSON 백업</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/step3_pin_mode.png" alt="삼성노트형 폴더 보관함 화면" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li><b>[폴더·노트함]</b>에서 학급·과목별 폴더를 생성하고 현재 노트를 썸네일과 함께 기기 내부에 영구 저장합니다.</li>
-          </ul>
-        </div>
-      </article>
+    <article class="chapter" id="ch-02-pen" data-toc="펜·색·굵기">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">2</span>
+        <h3>펜으로 쓰기 · 색 · 굵기 · 되돌리기</h3>
+        <p class="sum">펜 종류와 색, 굵기를 바꾸고 잘못 쓴 것은 되돌립니다.</p>
+        <ol class="steps">
+          <li>색 동그라미를 누르거나 숫자 <kbd>1</kbd>~<kbd>6</kbd>으로 색을 바꿉니다.</li>
+          <li><b>− / +</b> 버튼으로 굵기를 조절합니다.</li>
+          <li><b>펜 종류</b> 메뉴에서 만년필 · 볼펜 · 연필 · 붓펜 · 형광펜을 고릅니다.</li>
+          <li>잘못 썼다면 <b>되돌리기</b>, 되살리려면 <b>다시 실행</b>.</li>
+        </ol>
+        <div class="keys"><span><kbd>P</kbd> 펜</span><span><kbd>H</kbd> 형광펜</span><span><kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기</span><span><kbd>Ctrl</kbd>+<kbd>Y</kbd> 다시 실행</span></div>
+      </div>
+    </article>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge">상세 화면 7 · 내장 웹 브라우저 &amp; 스탬프</span>
-          <h2>보드 안 웹 브라우저 접속 + 웹 화면 위 원형·사각 스탬프 판서</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/step4_zoom_spen.png" alt="내장 웹 브라우저 및 스탬프 판서 화면" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li><b>[웹브라우저]</b>를 켜면 지오지브라·데스모스·위키백과 등 웹 화면 위에 바로 원형·사각 번호 스탬프와 도형 판서를 남길 수 있습니다.</li>
-          </ul>
-        </div>
-      </article>
+    <article class="chapter" id="ch-03-shapes" data-toc="도형·텍스트">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">3</span>
+        <h3>도형 · 직선 · 텍스트</h3>
+        <p class="sum">도형 메뉴나 단축키로 반듯한 도형과 글자를 넣습니다.</p>
+        <ol class="steps">
+          <li><b>도형</b> 메뉴에서 직선 · 사각형 · 원 · 채움사각을 고르고 끌어서 그립니다.</li>
+          <li><kbd>T</kbd>를 누르고 화면을 누르면 글자 입력칸이 열립니다. <kbd>Enter</kbd>로 확정합니다.</li>
+          <li><kbd>P</kbd>를 누르면 다시 펜으로 돌아옵니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>R</kbd> 사각형</span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원</span><span><kbd>L</kbd> 직선</span><span><kbd>T</kbd> 텍스트</span></div>
+      </div>
+    </article>
 
-      <article class="step-card">
-        <div class="step-head">
-          <span class="step-badge">상세 화면 8 · 무료 AI 필기 OCR</span>
-          <h2>무료 AI 필기 OCR 3단계 설정법</h2>
-        </div>
-        <div class="step-img-wrap">
-          <img src="/assets/smartboard_guide/step6_export_ocr_cfg.png" alt="무료 OCR 설정 및 내보내기 화면" />
-        </div>
-        <div class="step-body">
-          <ul>
-            <li>별도 키 없이도 무료 OCR.space 엔진으로 즉시 동작하며, Google AI Studio 무료 키 등록 시 한글 흘림체와 수학 수식까지 정확하게 변환합니다.</li>
-          </ul>
-        </div>
-      </article>
-    </section>
-  </div>
+    <article class="chapter" id="ch-04-stamps" data-toc="스탬프·가림막">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">4</span>
+        <h3>번호 스탬프 · 정답 가림막</h3>
+        <p class="sum">①②③ 번호 스탬프를 찍고, 정답 가림막을 눌러 하나씩 공개합니다.</p>
+        <ol class="steps">
+          <li><kbd>S</kbd> 원형, <kbd>Q</kbd> 사각 번호 스탬프 — 누를 때마다 번호가 하나씩 늘어납니다.</li>
+          <li>번호를 1부터 다시 쓰려면 도형 메뉴의 <b>스탬프 번호 초기화</b>.</li>
+          <li>도형 메뉴의 <b>정답 가림막</b>으로 정답을 덮고, 수업 중에 눌러서 열고 닫습니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>S</kbd> 원형 스탬프</span><span><kbd>Q</kbd> 사각 스탬프</span></div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-05-select" data-toc="선택·레이저·지우개">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">5</span>
+        <h3>선택·이동 · 레이저 · 지우개</h3>
+        <p class="sum">쓴 것을 옮기고, 레이저로 가리키고, 지우개로 지웁니다.</p>
+        <ol class="steps">
+          <li><kbd>V</kbd> 선택 — 쓴 것을 눌러 잡고 끌어서 옮깁니다.</li>
+          <li><kbd>Z</kbd> 레이저 — 잠깐 보였다 사라져서 설명할 때 좋습니다.</li>
+          <li><kbd>E</kbd> 지우개 — 문지른 선이 통째로 지워집니다.</li>
+          <li><kbd>Esc</kbd>를 누르면 언제든 기본 상태(판서 · 펜)로 돌아옵니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>V</kbd> 선택</span><span><kbd>Z</kbd> 레이저</span><span><kbd>E</kbd> 지우개</span><span><kbd>Esc</kbd> 처음으로</span></div>
+        <div class="tip">✍️ 갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다. 설정에서 켜고 끌 수 있습니다.</div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-06-pages" data-toc="쪽·배경">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">6</span>
+        <h3>쪽 추가 · 배경 바꾸기</h3>
+        <p class="sum">+쪽으로 새 칠판을 만들고, 칠판·백지·모눈 배경을 고릅니다.</p>
+        <ol class="steps">
+          <li><b>+쪽</b>으로 새 칠판 쪽을 만듭니다. 쪽마다 판서가 따로 저장됩니다.</li>
+          <li><b>◀ ▶</b> 버튼이나 <kbd>←</kbd> <kbd>→</kbd> 키로 쪽을 넘깁니다.</li>
+          <li><b>설정</b>에서 칠판 · 백지 · 모눈 배경을 고릅니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>K</kbd> 칠판</span><span><kbd>W</kbd> 백지</span><span><kbd>←</kbd><kbd>→</kbd> 쪽 넘기기</span></div>
+      </div>
+    </article>
+
+    <div class="group-title" id="g-material"><h2>수업 자료 위에 판서</h2><span>PDF · PPTX · 유튜브 · 웹</span></div>
+
+    <article class="chapter" id="ch-07-pdf" data-toc="PDF">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">7</span>
+        <h3>PDF 열어서 판서하기</h3>
+        <p class="sum">교과서·활동지 PDF를 열어 그 위에 바로 씁니다.</p>
+        <ol class="steps">
+          <li>위쪽 <b>열기</b> → <b>PDF 열기</b>에서 파일을 고르거나, 파일을 창에 끌어다 놓습니다.</li>
+          <li>PDF 위에 펜 · 도형 · 텍스트로 바로 판서합니다.</li>
+          <li><b>▶</b>로 다음 쪽 — 쪽마다 판서가 따로 저장됩니다.</li>
+        </ol>
+        <div class="tip">🔒 파일은 이 기기 안에서만 열리고 서버로 보내지지 않습니다. 구글 드라이브 공유 링크로도 열 수 있습니다.</div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-08-pptx" data-toc="PPTX">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">8</span>
+        <h3>PPTX 발표 자료 · 클릭 애니메이션</h3>
+        <p class="sum">PPTX를 열면 클릭 애니메이션 순서대로 하나씩 보여 줍니다.</p>
+        <ol class="steps">
+          <li><b>열기</b> → <b>PPTX 열기</b>로 발표 자료를 엽니다.</li>
+          <li><b>다음 ▶</b> 또는 <kbd>Space</kbd> · <kbd>→</kbd>로 다음 장면을 보여 줍니다.</li>
+          <li>파워포인트에서 넣은 <b>클릭 애니메이션</b>이 순서대로 나타납니다.</li>
+          <li><b>전체</b>를 누르면 애니메이션을 건너뛰고 모두 보여 줍니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>Space</kbd> 다음 장면</span><span><kbd>→</kbd> 다음</span><span><kbd>←</kbd> 이전</span></div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-09-web" data-toc="유튜브·웹">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">9</span>
+        <h3>유튜브 · 웹 사이트 위에 판서</h3>
+        <p class="sum">유튜브나 수업용 웹 사이트를 보드 안에 띄우고 그 위에 씁니다.</p>
+        <ol class="steps">
+          <li><b>열기</b> 창 아래쪽에 유튜브 · 웹 주소를 넣고 <b>링크 열기</b>.</li>
+          <li><b>펜 필기</b> · <b>① 원형스탬프</b> · <b>▣ 사각스탬프</b>로 웹 화면 위에 씁니다.</li>
+          <li>영상 재생 · 스크롤처럼 웹을 직접 다룰 때는 <b>웹 조작</b>을 켭니다.</li>
+          <li>지오지브라 · 데스모스 같은 자주 쓰는 사이트는 바로가기 버튼으로 엽니다.</li>
+        </ol>
+        <div class="tip">📺 보드 안에서 열리지 않는 사이트는 <b>새 탭 ↗</b>으로 엽니다. 유튜브 광고 줄이는 방법은 위쪽 <b>광고제거(?)</b> 버튼에 있습니다.</div>
+      </div>
+    </article>
+
+    <div class="group-title" id="g-advanced"><h2>더 잘 쓰기</h2><span>게시 · 저장 · 편집</span></div>
+
+    <article class="chapter" id="ch-10-pin" data-toc="게시 모드">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">10</span>
+        <h3>게시 모드 · 조각 고정</h3>
+        <p class="sum">중요한 문제나 공식을 오려 화면 위에 계속 띄워 둡니다.</p>
+        <ol class="steps">
+          <li><b>게시</b> 모드(<kbd>Alt</kbd>+<kbd>`</kbd>)를 켜고 띄워 둘 영역을 끌어서 고릅니다.</li>
+          <li>고른 부분이 <b>조각</b>이 되어 화면 위에 떠 있습니다. 쪽을 넘겨도 그대로 남습니다.</li>
+          <li>조각은 끌어서 옮기고, 오른쪽 위 <b>×</b>로 닫습니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>Alt</kbd>+<kbd>`</kbd> 게시</span><span><kbd>Alt</kbd>+<kbd>1</kbd> 확대</span><span><kbd>Alt</kbd>+<kbd>2</kbd> 판서</span></div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-11-save" data-toc="저장">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">11</span>
+        <h3>노트 저장 · PNG · PDF</h3>
+        <p class="sum">판서를 폴더별 노트함에 저장하고, 그림이나 PDF로 내보냅니다.</p>
+        <ol class="steps">
+          <li><b>노트함</b>에서 제목과 폴더를 정해 저장합니다. 다음 수업에 다시 불러올 수 있습니다.</li>
+          <li><b>노트저장</b> 버튼(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>)으로 바로 저장할 수도 있습니다.</li>
+          <li><b>PNG·PDF</b>: 지금 화면은 그림으로, 모든 쪽은 PDF 한 파일로 내려받습니다.</li>
+        </ol>
+        <div class="tip">💾 노트는 <b>이 기기의 브라우저</b>에 저장됩니다. 다른 기기로 옮기거나 보관하려면 노트함의 <b>전체 백업(.json)</b>을 내려받아 두세요.</div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-12-edit" data-toc="편집·OCR">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">12</span>
+        <h3>편집 모드 · 손글씨를 글자로 (OCR)</h3>
+        <p class="sum">쓴 부분을 골라 지우거나 조각으로 띄우고, 손글씨를 글자로 바꿉니다.</p>
+        <ol class="steps">
+          <li><b>편집</b> 모드(<kbd>Alt</kbd>+<kbd>3</kbd>)에서 바꿀 판서를 끌어서 고릅니다.</li>
+          <li><b>글씨로 변환(OCR)</b> · <b>게시 조각 고정</b> · <b>선택 삭제</b> 중에서 고릅니다.</li>
+          <li>손글씨 변환은 <b>설정 → AI 손글씨 OCR 설정</b>에서 엔진을 고릅니다. 키 없이도 무료 엔진으로 동작하고, Gemini 키를 넣으면 한글 흘림체와 수식을 더 정확하게 바꿉니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>Alt</kbd>+<kbd>3</kbd> 편집</span><span><kbd>Delete</kbd> 선택 삭제</span></div>
+      </div>
+    </article>
+
+    <div class="group-title" id="shortcuts"><h2>단축키 모아 보기</h2><span>보드에서 <kbd>?</kbd>를 눌러도 볼 수 있습니다</span></div>
+    <div class="shortcuts">
+      <div class="sc-box"><h4>도구</h4><table>
+        <tr><td><kbd>P</kbd> / <kbd>H</kbd></td><td>펜 / 형광펜</td></tr>
+        <tr><td><kbd>E</kbd></td><td>지우개</td></tr>
+        <tr><td><kbd>V</kbd></td><td>선택·이동</td></tr>
+        <tr><td><kbd>Z</kbd></td><td>레이저 포인터</td></tr>
+        <tr><td><kbd>T</kbd></td><td>텍스트</td></tr>
+        <tr><td><kbd>S</kbd> / <kbd>Q</kbd></td><td>원형 / 사각 번호 스탬프</td></tr>
+        <tr><td><kbd>R</kbd> <kbd>C</kbd> <kbd>L</kbd></td><td>사각형 · 원 · 직선</td></tr>
+      </table></div>
+      <div class="sc-box"><h4>색 · 화면</h4><table>
+        <tr><td><kbd>1</kbd>~<kbd>6</kbd></td><td>빨강 · 초록 · 파랑 · 노랑 · 흰색 · 검정</td></tr>
+        <tr><td><kbd>K</kbd> / <kbd>W</kbd></td><td>칠판 / 백지 배경</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>팔레트 접기·펼치기</td></tr>
+        <tr><td><kbd>F</kbd></td><td>전체화면</td></tr>
+        <tr><td><kbd>?</kbd> / <kbd>F1</kbd></td><td>단축키 안내 창</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>기본 상태(판서·펜)로</td></tr>
+      </table></div>
+      <div class="sc-box"><h4>모드 · 쪽 · 저장</h4><table>
+        <tr><td><kbd>Alt</kbd>+<kbd>`</kbd></td><td>게시 모드</td></tr>
+        <tr><td><kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd></td><td>확대 / 판서 / 편집</td></tr>
+        <tr><td><kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd></td><td>쪽 · PPTX 장면 넘기기</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>되돌리기 / 다시 실행</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>현재 화면 PNG 저장</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>노트 저장</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>현재 쪽 판서 전체 삭제</td></tr>
+      </table></div>
+    </div>
+
+    <div class="group-title"><h2>자주 묻는 질문</h2></div>
+    <div class="faq">
+      <details><summary>갤럭시탭 · S펜으로 쓸 때 팁이 있나요?</summary>
+        <ul>
+          <li><b>설정 → S펜전용</b>을 켜면 손바닥이 화면에 닿아도 선이 그어지지 않습니다.</li>
+          <li><b>S펜버튼: 지우개↔펜 스위치</b>가 켜져 있으면 S펜 옆 버튼으로 지우개와 펜을 바로 바꿉니다.</li>
+          <li>화면을 크게 쓰려면 <b>자동숨김</b>과 <b>전체화면</b>을 함께 켜세요.</li>
+        </ul></details>
+      <details><summary>판서한 내용은 어디에 저장되나요?</summary>
+        <p>노트함에 저장한 판서는 지금 쓰는 기기의 브라우저 안에만 저장되고, T-ong 서버로 보내지 않습니다. 브라우저 데이터를 지우면 함께 지워지니 중요한 노트는 <b>전체 백업(.json)</b>이나 <b>PDF</b>로 따로 보관하세요.</p></details>
+      <details><summary>유튜브나 웹 사이트가 보드 안에서 열리지 않아요.</summary>
+        <p>일부 사이트는 다른 화면 안에 띄우는 것을 막아 둡니다. 이럴 때는 <b>새 탭 ↗</b>으로 열거나, <b>스냅샷 고정</b>으로 화면을 그림으로 가져와 그 위에 판서하세요.</p></details>
+      <details><summary>손글씨 변환(OCR)이 잘 안 돼요.</summary>
+        <p>키 없이 쓰는 무료 엔진은 또박또박 쓴 글씨에 맞춰져 있습니다. 흘림체나 수식은 <b>설정 → AI 손글씨 OCR 설정</b>에 Google AI Studio의 Gemini 키를 넣으면 더 정확해집니다.</p></details>
+    </div>
+  </main>
+
+  <footer>T-ong 교무수첩 · 스마트 판서 사용 설명서 · 영상은 실제 판서 보드 화면을 녹화한 것입니다.</footer>
+
   <script>
     (function () {
-      var btn = document.getElementById('enterFsVisualBtn');
-      if (btn) {
-        btn.addEventListener('click', function () {
-          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(function () {});
-          }
-          var target = document.getElementById('visualWalkthroughSection');
-          if (target) target.scrollIntoView({ behavior: 'smooth' });
+      var VIDEO_DIR = './assets/smartboard_guide/video/';
+      if (/[?&]embed=1/.test(location.search)) document.body.classList.add('embed');
+
+      // 장마다 영상과 재생 속도 버튼을 넣습니다. 영상은 화면에 보일 때 불러옵니다.
+      var chapters = Array.prototype.slice.call(document.querySelectorAll('.chapter'));
+      chapters.forEach(function (ch) {
+        var id = ch.id.replace(/^ch-/, ''), box = ch.querySelector('.chapter-video');
+        var video = document.createElement('video');
+        video.controls = true; video.muted = true; video.playsInline = true; video.preload = 'none';
+        video.poster = VIDEO_DIR + id + '.jpg';
+        video.setAttribute('aria-label', ch.querySelector('h3').textContent + ' 영상');
+        video.dataset.src = VIDEO_DIR + id + '.mp4';
+        box.appendChild(video);
+        var poster = document.createElement('img'); poster.className = 'print-poster'; poster.alt = ''; poster.src = VIDEO_DIR + id + '.jpg'; poster.loading = 'lazy';
+        box.appendChild(poster);
+        var speed = document.createElement('div'); speed.className = 'speed';
+        [0.75, 1, 1.5].forEach(function (rate) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = rate + '×'; if (rate === 1) b.className = 'on';
+          b.addEventListener('click', function () { video.playbackRate = rate; speed.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); });
+          speed.appendChild(b);
         });
-      }
+        box.appendChild(speed);
+        // 한 번에 영상 하나만 재생합니다.
+        video.addEventListener('play', function () { document.querySelectorAll('video').forEach(function (v) { if (v !== video) v.pause(); }); });
+      });
+      function load(video) { if (video.dataset.src && !video.src) video.src = video.dataset.src; }
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) { entries.forEach(function (e) { if (e.isIntersecting) { load(e.target); io.unobserve(e.target); } }); }, { rootMargin: '300px' });
+        document.querySelectorAll('.chapter video').forEach(function (v) { io.observe(v); });
+      } else document.querySelectorAll('.chapter video').forEach(load);
 
-      var deck = document.getElementById('sbgDeck');
-      if (!deck) return;
-      var cards = Array.from(deck.querySelectorAll('.step-card'));
-      var dotsWrap = document.getElementById('sbgSlideDots');
-      var countEl = document.getElementById('sbgSlideCount');
-      var prevBtn = document.getElementById('sbgPrevSlideBtn');
-      var nextBtn = document.getElementById('sbgNextSlideBtn');
-      var allBtn = document.getElementById('sbgToggleAllBtn');
-      var cur = 0;
-      var showAll = false;
-
-      if (dotsWrap) {
-        dotsWrap.innerHTML = cards.map(function (c, i) {
-          var badge = c.querySelector('.step-badge');
-          var lbl = badge ? badge.textContent.split('·')[0].trim() : ('화면 ' + (i + 1));
-          return '<button type="button" class="btn" data-sbg-idx="' + i + '" style="padding:6px 12px;font-size:0.84rem;">' + (i + 1) + '. ' + lbl + '</button>';
-        }).join('');
-        dotsWrap.querySelectorAll('[data-sbg-idx]').forEach(function (b) {
-          b.addEventListener('click', function () { go(parseInt(b.getAttribute('data-sbg-idx'), 10) || 0); });
-        });
-      }
-
-      function go(idx) {
-        showAll = false;
-        if (allBtn) allBtn.textContent = '전체 연속 보기';
-        cur = (idx + cards.length) % cards.length;
-        cards.forEach(function (c, i) { c.style.display = i === cur ? 'block' : 'none'; });
-        if (countEl) countEl.textContent = (cur + 1) + ' / ' + cards.length;
-        if (dotsWrap) {
-          dotsWrap.querySelectorAll('[data-sbg-idx]').forEach(function (b, i) {
-            b.className = 'btn' + (i === cur ? ' primary' : '');
+      // 차례
+      var toc = document.getElementById('toc');
+      chapters.forEach(function (ch, i) {
+        var a = document.createElement('a'); a.href = '#' + ch.id; a.textContent = (i + 1) + '. ' + ch.dataset.toc; toc.appendChild(a);
+      });
+      var sc = document.createElement('a'); sc.href = '#shortcuts'; sc.textContent = '⌨️ 단축키'; toc.appendChild(sc);
+      var links = toc.querySelectorAll('a');
+      if ('IntersectionObserver' in window) {
+        var spy = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            links.forEach(function (a) {
+              var on = a.getAttribute('href') === '#' + e.target.id; a.classList.toggle('active', on);
+              if (on && a.scrollIntoView) toc.scrollLeft = a.offsetLeft - 40;
+            });
           });
-        }
+        }, { rootMargin: '-45% 0px -50% 0px' });
+        chapters.forEach(function (ch) { spy.observe(ch); });
       }
-
-      if (prevBtn) prevBtn.addEventListener('click', function () { go(cur - 1); });
-      if (nextBtn) nextBtn.addEventListener('click', function () { go(cur + 1); });
-      if (allBtn) allBtn.addEventListener('click', function () {
-        showAll = !showAll;
-        if (showAll) {
-          cards.forEach(function (c) { c.style.display = 'block'; });
-          allBtn.textContent = '1장씩 슬라이드로 보기';
-        } else {
-          go(cur);
-        }
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight') go(cur + 1);
-        else if (e.key === 'ArrowLeft') go(cur - 1);
-      });
-      go(0);
     })();
   </script>
 </body>
