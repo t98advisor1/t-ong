@@ -24,6 +24,9 @@ module.exports = [
       await d.highlightBox(4, 2, 1272, 40, 2600);
       await d.caption('둘째 줄: <b>선택 · 펜 · 도형 · 레이저 · 지우개 · 색 · 굵기 · 쪽 넘기기</b>', 0);
       await d.highlightBox(4, 44, 1272, 42, 2600);
+      await d.caption('버튼 옆 작은 글자는 <b>단축키</b>입니다 — 색 동그라미의 숫자도 단축키', 0);
+      await d.highlight('#sbPenMenuBtn', 1300);
+      await d.highlight('.sb-color-row, .sb-color-dot[data-key="1"]', 1500).catch(() => d.wait(1500));
       await d.caption('<b>▲ 숨김</b>을 누르면 팔레트가 올라가 화면을 넓게 씁니다', 900);
       await d.click('#sbFoldPaletteBtn', 1600);
       await d.caption('다시 펼칠 때는 <b>Tab</b> 키나 위쪽 <b>▼ 펼치기</b> 버튼', 600);
@@ -104,26 +107,28 @@ module.exports = [
     title: '번호 스탬프 · 정답 가림막',
     summary: '①②③ 번호 스탬프를 찍고, 정답 가림막을 눌러 하나씩 공개합니다.',
     async run(page, d) {
-      await d.caption('<b>S</b> 원형 번호 스탬프 — 누를 때마다 번호가 하나씩 늘어납니다', 300);
+      await d.caption('<b>S</b> 원형 번호 스탬프 — 누를 때마다 다음 번호가 찍힙니다', 300);
       await d.press('s', 'S  원형 스탬프');
-      for (const [x, y] of [[180, 220], [180, 340], [180, 460]]) await d.tapAt(x, y, 500);
-      await d.caption('<b>Q</b> 사각 번호 스탬프도 있습니다', 300);
+      for (const [x, y] of [[170, 200], [170, 300], [170, 400], [170, 500]]) await d.tapAt(x, y, 450);
+      await d.caption('잘못 찍어 <b>되돌리면</b>, 빠진 번호부터 다시 찍힙니다', 300);
+      await d.press('Control+z', 'Ctrl + Z');
+      await d.wait(500);
+      await d.tapAt(320, 500, 900);
+      await d.caption('중간 번호를 <b>지워도</b> 그 번호를 다음에 다시 씁니다', 300);
+      await d.press('e', 'E  지우개');
+      await d.stroke([[150, 300], [190, 300]], 4);
+      await d.press('s', 'S  원형 스탬프');
+      await d.tapAt(320, 300, 1100);
+      await d.caption('<b>Q</b> 사각 번호 스탬프도 같은 번호 순서를 이어 씁니다', 300);
       await d.press('q', 'Q  사각 스탬프');
-      for (const [x, y] of [[480, 220], [480, 340]]) await d.tapAt(x, y, 500);
-      await d.caption('번호를 처음부터 다시 쓰려면 도형 메뉴의 <b>스탬프 번호 초기화</b>', 800);
+      await d.tapAt(470, 200, 500); await d.tapAt(470, 300, 800);
+      await d.caption('번호를 1번부터 새로 시작하려면 도형 메뉴의 <b>스탬프 번호 초기화</b>', 800);
       await d.click('#sbMoreToolsBtn', 900);
       await d.click('#sbStampResetBtn', 700);
       await page.keyboard.press('Escape');
-      await d.press('p', 'P  펜');
-      await d.caption('정답을 가리고 싶을 때는 <b>정답 가림막</b>', 800);
-      await d.setSize(8);
-      await d.click('#sbMoreToolsBtn', 900);
-      await d.click('#sbMoreToolsMenu [data-sb-tool="text"]', 400);
-      await d.tapAt(760, 290, 400);
-      await page.keyboard.type('정답 : 2, 4, 6', { delay: 80 });
-      await page.keyboard.press('Enter');
-      await d.wait(400);
-      await d.setSize(5);
+      await d.wait(300);
+      await d.caption('정답을 가리고 싶을 때는 <b>정답 가림막</b>', 300);
+      await d.typeText(760, 290, '정답 : 2, 4, 6');
       await d.click('#sbMoreToolsBtn', 900);
       await d.click('#sbMoreToolsMenu [data-sb-tool="cover"]', 400);
       await d.drag(720, 260, 1100, 350);
