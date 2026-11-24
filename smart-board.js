@@ -1579,6 +1579,7 @@
       }
       state.pages = newPages;
       state.pageIndex = 0;
+      state.currentNoteId = null;
       state.currentNoteTitle = file.name.replace(/\.pdf$/i, '');
       updateNoteBadge();
       resetZoom();
@@ -2210,6 +2211,7 @@
       state.pages = newPages;
       state.pageIndex = 0;
       state.pptxShowAll = false;
+      state.currentNoteId = null;
       state.currentNoteTitle = file.name.replace(/\.pptx$/i, '');
       updateNoteBadge();
       resetZoom();
@@ -2438,19 +2440,32 @@
   async function dbPutNote(noteRecord) {
     var db = await openIdb();
     if (db) {
-      await new Promise(function (resolve) {
-        var tx = db.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).put(noteRecord);
-        tx.oncomplete = function () { resolve(true); };
-        tx.onerror = function () { resolve(false); };
+      return await new Promise(function (resolve) {
+        try {
+          var tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(noteRecord);
+          tx.oncomplete = function () { resolve({ ok: true, storage: 'indexedDB' }); };
+          tx.onerror = function (ev) {
+            resolve({ ok: false, error: (ev && ev.target && ev.target.error) || tx.error || new Error('IndexedDB 저장 오류') });
+          };
+          tx.onabort = function (ev) {
+            resolve({ ok: false, error: (ev && ev.target && ev.target.error) || tx.error || new Error('IndexedDB 저장 중단(용량 부족 가능)') });
+          };
+        } catch (err) {
+          resolve({ ok: false, error: err });
+        }
       });
-      return;
     }
     var list = await dbGetAllNotes();
     var idx = list.findIndex(function (n) { return n.id === noteRecord.id; });
     if (idx >= 0) list[idx] = noteRecord;
     else list.unshift(noteRecord);
-    try { localStorage.setItem(FALLBACK_NOTES_KEY, JSON.stringify(list)); } catch (e) {}
+    try {
+      localStorage.setItem(FALLBACK_NOTES_KEY, JSON.stringify(list));
+      return { ok: true, storage: 'localStorage' };
+    } catch (e) {
+      return { ok: false, error: e };
+    }
   }
 
   async function dbDeleteNote(id) {
@@ -2472,21 +2487,30 @@
     if (el('sbCurrentNoteBadge')) el('sbCurrentNoteBadge').textContent = state.currentNoteTitle || '미저장 노트';
     if (el('sbOpenerNoteTitle')) el('sbOpenerNoteTitle').textContent = state.currentNoteTitle || '새 판서 노트';
     if (el('sbVaultNoteTitleInput')) el('sbVaultNoteTitleInput').value = state.currentNoteTitle || '새 판서 노트';
+    if (el('sbVaultSaveCurBtn')) {
+      el('sbVaultSaveCurBtn').textContent = state.currentNoteId ? '현재 노트 덮어쓰기 저장' : '이 노트를 보관함에 저장';
+    }
   }
 
   async function serializeCurrentNote(asNew) {
     commitInlineText();
-    var noteId = (!asNew && state.currentNoteId) ? state.currentNoteId : ('note_' + Date.now() + '_' + Math.floor(Math.random() * 1000));
+    var isOverwrite = Boolean(!asNew && state.currentNoteId);
+    var noteId = isOverwrite
+      ? state.currentNoteId
+      : ('note_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
     var titleInput = el('sbVaultNoteTitleInput');
     var folderSel = el('sbVaultFolderSelect');
     var title = (titleInput && titleInput.value.trim()) || state.currentNoteTitle || '새 판서 노트';
     var folder = (folderSel && folderSel.value) || state.currentFolder || loadFolders()[0];
 
     // 1쪽 썸네일 생성 (320x180 JPEG)
-    var thumbCv = document.createElement('canvas');
-    thumbCv.width = 320; thumbCv.height = 180;
-    thumbCv.getContext('2d').drawImage(createCompositeCanvas(state.pages[0]), 0, 0, 320, 180);
-    var thumbUrl = thumbCv.toDataURL('image/jpeg', 0.72);
+    var thumbUrl = '';
+    try {
+      var thumbCv = document.createElement('canvas');
+      thumbCv.width = 320; thumbCv.height = 180;
+      thumbCv.getContext('2d').drawImage(createCompositeCanvas(state.pages[0]), 0, 0, 320, 180);
+      thumbUrl = thumbCv.toDataURL('image/jpeg', 0.72);
+    } catch (e) {}
 
     var serializedPages = [];
     for (var i = 0; i < state.pages.length; i++) {
@@ -2562,13 +2586,18 @@
       updatedStr: new Date().toLocaleString('ko-KR'),
       pages: serializedPages
     };
-    await dbPutNote(record);
+    var saveRes = await dbPutNote(record);
+    if (!saveRes || !saveRes.ok) {
+      var errMsg = (saveRes && saveRes.error && (saveRes.error.message || saveRes.error.name)) || '저장 공간 부족';
+      showToast('노트 저장 실패 (' + errMsg + ') — 불필요한 대용량 노트를 정리하거나 백업(.json) 후 다시 시도하세요.');
+      return;
+    }
     state.currentNoteId = noteId;
     state.currentNoteTitle = title;
     state.currentFolder = folder;
     updateNoteBadge();
     await renderVaultUi();
-    showToast('[' + folder + '] 폴더에 "' + title + '" 노트를 저장했습니다.');
+    showToast('[' + folder + '] 폴더에 "' + title + '" 노트를 ' + (isOverwrite ? '덮어쓰기 저장했습니다.' : '새 노트로 저장했습니다.'));
   }
 
   async function loadNoteFromVault(noteId) {
