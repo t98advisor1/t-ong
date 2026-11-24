@@ -28,9 +28,9 @@
 
   <!-- 팔레트가 숨겨졌을 때 상단 중앙에 뜨는 미니 열기 바 (사용설명서·전체화면 즉시 접근 가능) -->
   <div class="sb-floating-opener" id="sbFloatingOpener" style="display:none;">
-    <button type="button" class="sb-opener-btn" id="sbOpenPaletteBtn" title="상단 도구 팔레트 펼치기 (Tab)">▼ 도구 팔레트 펼치기</button>
+    <button type="button" class="sb-opener-btn" id="sbOpenPaletteBtn" title="상단 도구 팔레트 펼치기 (Tab)">▼ 도구 팔레트 펼치기<kbd class="sb-key">Tab</kbd></button>
     <button type="button" class="sb-opener-quick" id="sbFloatingHelpBtn" title="사용설명서 열기">사용설명서</button>
-    <button type="button" class="sb-opener-quick" id="sbFloatingFsBtn" title="꽉 찬 전체화면 전환 (F)">전체화면</button>
+    <button type="button" class="sb-opener-quick" id="sbFloatingFsBtn" title="꽉 찬 전체화면 전환 (F)">전체화면<kbd class="sb-key">F</kbd></button>
     <span class="sb-opener-note" id="sbOpenerNoteTitle">새 판서 노트</span>
   </div>
 
@@ -44,7 +44,7 @@
         <div class="sb-top-group sb-priority-group">
           <a href="./index.html" class="sb-btn sb-btn-ghost sb-btn-xs" title="T-ong 교무수첩 홈으로 돌아가기">← 홈</a>
           <button type="button" class="sb-btn sb-btn-guide-top" id="sbHelpBtn" title="큰 글씨 핵심 사용법 및 스크린샷 매뉴얼 열기">사용설명서</button>
-          <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F)">전체화면</button>
+          <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F)">전체화면<kbd class="sb-key">F</kbd></button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키(?)</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">광고제거(?)</button>
         </div>
@@ -77,7 +77,7 @@
         <div class="sb-top-group sb-right-controls">
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-btn-export" id="sbSaveMenuBtn" title="현재 화면 PNG 이미지 또는 전체 페이지 합본 PDF 저장">PNG·PDF ▾</button>
           <button type="button" class="sb-spen-pill" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김 OFF</button>
-          <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨김</button>
+          <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨김<kbd class="sb-key">Tab</kbd></button>
         </div>
       </div>
 
@@ -92,11 +92,11 @@
           <button type="button" class="sb-tool-btn sb-tool-icon-btn" id="sbQuickPinBtn" title="선택 영역을 바로 조각으로 고정합니다. 선택이 없으면 드래그할 영역을 지정합니다.">조각 고정</button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-pen-trigger active" id="sbPenMenuBtn" title="펜 종류 선택 (만년필·볼펜·연필·붓펜·형광펜) — 단축키 P / H">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span id="sbPenMenuLabel">만년필</span> ▾
+            <span id="sbPenMenuLabel">만년필</span><kbd id="sbPenMenuKey">P</kbd> ▾
           </button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-more-trigger" id="sbMoreToolsBtn" title="도형(직선·사각형·원·채움사각) · 가림막 · 텍스트 · 번호 스탬프 열기">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><circle cx="17" cy="7" r="4"/><path d="M4 20l6-6 4 4 6-6"/></svg>
-            <span id="sbMoreToolsLabel">도형</span> ▾
+            <span id="sbMoreToolsLabel">도형</span><kbd id="sbMoreToolsKey" hidden></kbd> ▾
           </button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="잔상이 사라지는 레이저 포인터 (단축키 Z)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
@@ -449,84 +449,22 @@
   </div>
 
   <!-- ================================================================= -->
-  <!-- 사용설명서 모달 (#sbHelpModal)
-       - 1단계(기본 진입): 태블릿·모바일에서도 눈이 편한 큰 글씨 텍스트 중심 가독성 요약 뷰
-       - 2단계([전체화면으로 GIF & 상세 과정 보기] 클릭 시): 100% 전체화면 1단 대형 GIF + 단계별 스크린샷 과정 뷰 -->
+  <!-- 사용설명서 모달 (#sbHelpModal) — smart-board-guide.html(영상 매뉴얼)을 창 안에 띄웁니다 -->
   <!-- ================================================================= -->
   <div class="sb-modal" id="sbHelpModal">
     <div class="sb-modal-card sb-modal-guide is-fullscreen" id="sbHelpModalCard">
       <div class="sb-modal-head">
         <div>
-          <span class="sb-guide-kicker">화살표 · 네모 · 번호 스탬프로 한눈에 보는 직관형 사용설명서</span>
-          <h3>스마트 판서 보드 사용설명서 (스크린샷 · GIF)</h3>
+          <span class="sb-guide-kicker">기능마다 30초 안팎의 영상으로 따라 하는 사용 설명서</span>
+          <h3>스마트 판서 사용 설명서</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">매뉴얼 새 창 / 인쇄</a>
+          <a href="./smart-board-guide.html" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary">새 창 / 인쇄</a>
           <button type="button" class="sb-close-btn" data-close="sbHelpModal">&times;</button>
         </div>
       </div>
-
-      <div class="sb-modal-body sb-guide-modal-body">
-        <div id="sbGuideFullVisualPane" class="sb-guide-visual-pane" style="display:block;">
-          <div class="sb-slide-nav-bar sb-visual-slide-bar">
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisPrevSlideBtn">◀ 이전</button>
-            <div class="sb-slide-tabs" id="sbVisSlideTabs">
-              <button type="button" class="sb-slide-tab active" data-vis-slide="0">1. 상단 팔레트</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="1">2. 선택·이동·스탬프</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="2">3. 파일·링크 열기</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="3">4. 유튜브·웹 스탬프</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="4">5. 스닙페이스트(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="5">6. 번호 스탬프(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="6">7. PDF·칠판(GIF)</button>
-              <button type="button" class="sb-slide-tab" data-vis-slide="7">8. PPTX·OCR(GIF)</button>
-            </div>
-            <span class="sb-slide-counter" id="sbVisSlideCounter">1 / 8</span>
-            <button type="button" class="sb-btn sb-btn-primary" id="sbVisNextSlideBtn">다음 ▶</button>
-            <button type="button" class="sb-btn sb-btn-ghost" id="sbVisShowAllToggleBtn">전체 보기</button>
-          </div>
-
-          <div class="sb-visual-single-col sb-visual-slide-deck" id="sbVisSlideContainer">
-            <article class="sb-gcard sb-vis-slide-item active" data-vis-slide-pane="0">
-              <div class="sb-gcard-head"><span class="sb-gstep s1">1 / 8</span><b>상단 팔레트 · 파일·링크 통합 열기 · 자동숨김</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_01_top_filehub.png" alt="상단 팔레트 화살표·스탬프 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="1" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s2">2 / 8</span><b>선택·이동(V) · 원형(S)/사각(Q) 번호 스탬프 · S펜 스위치</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_02_select_stamp_spen.png" alt="선택 이동 및 스탬프 S펜 스위치 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="2" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s3">3 / 8</span><b>파일·링크 열기 팝업 (PDF · PPTX · 이미지 · 유튜브 통합)</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_03_filehub_modal.png" alt="통합 파일 링크 열기 팝업 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard sb-vis-slide-item" data-vis-slide-pane="3" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s4">4 / 8</span><b>유튜브 · 내장 웹 브라우저 위 ①원형·▣사각 스탬프 판서</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/manual_v2_04_web_stamp.png" alt="내장 웹 브라우저 유튜브 및 스탬프 판서 안내 스크린샷"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="4" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s3">5 / 8 · GIF</span><b>스닙페이스트(게시 모드 · Alt+`) — 영역 오려 화면 최상단 고정</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_snipaste_pin.gif" alt="스닙페이스트 게시 모드 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="5" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s2">6 / 8 · GIF</span><b>원형 스탬프(S) · 사각 스탬프(Q) 자동 증가 &amp; 정답 가림막</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_number_stamp.gif" alt="번호 스탬프 및 정답 가림막 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="6" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s1">7 / 8 · GIF</span><b>PDF · 칠판 · 모눈 판서 및 도형 단축키(R/C/L)</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pdf_draw.gif" alt="PDF 및 칠판 도형 판서 GIF 시연"></div>
-            </article>
-
-            <article class="sb-gcard is-gif-card sb-vis-slide-item" data-vis-slide-pane="7" style="display:none;">
-              <div class="sb-gcard-head"><span class="sb-gstep s5">8 / 8 · GIF</span><b>PPTX 클릭 액션 &amp; 손글씨 무료 AI OCR 변환</b></div>
-              <div class="sb-gshot sb-gshot-full"><img src="./assets/smartboard_guide/gif_pptx_ocr.gif" alt="PPTX 액션 및 무료 OCR 변환 GIF 시연"></div>
-            </article>
-          </div>
-        </div>
+      <div class="sb-modal-body sb-guide-modal-body sb-guide-frame-body">
+        <iframe id="sbHelpFrame" class="sb-guide-frame" title="스마트 판서 사용 설명서" data-src="./smart-board-guide.html?embed=1" loading="lazy"></iframe>
       </div>
     </div>
   </div>
@@ -610,7 +548,7 @@
         <span class="sb-pen-opt-ico">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
         </span>
-        <span class="sb-pen-opt-txt"><b>만년필</b><small>필압·속도에 따라 획 끝이 자연스럽게 가늘어지는 필기감</small></span>
+        <span class="sb-pen-opt-txt"><b>만년필 (P)</b><small>필압·속도에 따라 획 끝이 자연스럽게 가늘어지는 필기감</small></span>
       </button>
       <button type="button" class="sb-pen-opt" data-pen-style="ballpoint">
         <span class="sb-pen-opt-ico">
