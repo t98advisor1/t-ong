@@ -164,7 +164,17 @@ module.exports = [
       await d.caption('갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다', 2400);
       await d.caption('<b>Esc</b>를 누르면 언제든 기본 상태(판서 · 펜)로 돌아옵니다', 300);
       await d.press('Escape', 'Esc');
-      await d.wait(1400);
+      await d.wait(900);
+      await d.press('s', 'S  원형 스탬프');
+      for (const x of [880, 960, 1040]) await d.tapAt(x, 560, 300);
+      await d.press('p', 'P  펜');
+      await d.caption('한꺼번에 지울 때는 <b>설정 → 화면 정리</b>', 800);
+      await d.click('#sbBoardMoreBtn', 1000);
+      await d.caption('<b>펜 글씨 전체 지우기</b> · <b>스탬프 전체 지우기</b> · 판서 전체삭제', 600);
+      await d.click('#sbClearPenBtn', 1500);
+      await d.caption('실수로 지웠다면 바로 <b>되돌리기</b> (Ctrl+Z) — 한꺼번에 되살아납니다', 300);
+      await d.press('Control+z', 'Ctrl + Z');
+      await d.wait(1500);
     }
   },
   {
@@ -269,6 +279,52 @@ module.exports = [
     }
   },
   {
+    id: '13-zoom',
+    title: '확대 · 손가락으로 이동',
+    summary: '줌잇처럼 화면 한 부분을 크게 보여 주고, 태블릿에서는 손가락으로 확대·이동합니다.',
+    contextOptions: { hasTouch: true },
+    async run(page, d) {
+      await d.typeText(110, 200, 'y = x² − 4x + 3');
+      await d.stroke(shapes.parabola(330, 560, 170, 260));
+      await d.press('3', '3  파랑');
+      await d.typeText(900, 520, '꼭짓점 (2, −1)');
+      await d.caption('<b>Alt + 1</b> 확대 — 커서를 움직이면 그쪽을 크게 보여 줍니다', 300);
+      await d.moveTo(640, 360, 8);
+      await d.press('Alt+1', 'Alt + 1  확대');
+      await d.moveTo(150, 250, 40);
+      await d.wait(600);
+      await d.moveTo(1150, 560, 50);
+      await d.wait(700);
+      await d.caption('마우스 <b>휠</b>로 배율을 바꿉니다', 300);
+      await page.mouse.wheel(0, -120); await d.wait(400);
+      await page.mouse.wheel(0, -120); await d.wait(600);
+      await page.mouse.wheel(0, 120); await d.wait(500);
+      await d.caption('보고 싶은 곳에서 <b>누르거나 Alt + 2</b> — 그 자리에서 판서합니다', 300);
+      await d.tapAt(1150, 560, 600);
+      await d.click('.sb-color-dot[data-color="#ef4444"]', 300);
+      await d.stroke(shapes.circle(1000, 560, 120, 50));
+      await d.wait(500);
+      await d.caption('<b>M</b> (Move) — 확대한 화면을 끌어서 옮깁니다', 300);
+      await d.press('m', 'M  Move');
+      await d.drag(500, 400, 820, 330);
+      await d.wait(500);
+      await d.drag(800, 360, 420, 420);
+      await d.wait(500);
+      await d.press('m', 'M  펜으로');
+      await d.caption('<b>Alt + 1</b>을 다시 누르면 100% 화면으로 돌아옵니다', 300);
+      await d.press('Alt+1', 'Alt + 1  끄기');
+      await d.wait(900);
+      await d.caption('태블릿에서는 <b>두 손가락</b>을 벌려 확대하면서 이동합니다', 300);
+      await d.fingers([[560, 380], [700, 380]], [[420, 300], [840, 300]]);
+      await d.caption('<b>세 손가락</b>으로 밀면 확대한 화면을 옮깁니다', 300);
+      await d.fingers([[500, 420], [620, 420], [740, 420]], [[760, 300], [880, 300], [1000, 300]]);
+      await d.wait(600);
+      await d.caption('두 손가락을 오므리면 다시 작아집니다', 300);
+      await d.fingers([[400, 360], [880, 360]], [[600, 360], [680, 360]]);
+      await d.wait(1200);
+    }
+  },
+  {
     id: '10-pin',
     title: '게시 모드 · 조각 고정',
     summary: '중요한 문제나 공식을 오려 화면 위에 계속 띄워 둡니다.',
@@ -293,26 +349,33 @@ module.exports = [
   },
   {
     id: '11-save',
-    title: '노트 저장 · PNG · PDF',
-    summary: '판서를 폴더별 노트함에 저장하고, 그림이나 PDF로 내보냅니다.',
+    title: '노트 저장 · 학급별 복사 · 순서 · PNG · PDF',
+    summary: '판서를 학급(폴더)별 노트함에 저장하고, 다른 학급으로 복사하거나 순서를 바꾸고, 그림이나 PDF로 내보냅니다.',
     async run(page, d) {
       await d.stroke(shapes.parabola(400, 470, 160, 200));
       await d.press('3', '3  파랑');
       await d.stroke(shapes.circle(820, 360, 90));
-      await d.caption('<b>노트함</b>에서 제목과 폴더를 정해 판서를 저장합니다', 800);
+      await d.caption('<b>노트함</b>에서 제목과 폴더(학급)를 정해 판서를 저장합니다', 800);
       await d.click('#sbOpenVaultBtn', 1000);
-      await d.click('#sbVaultNoteTitleInput', 200);
-      await page.keyboard.press('Control+A');
-      await page.keyboard.type('3학년 이차함수 판서', { delay: 70 });
-      await d.wait(300);
-      await d.click('#sbVaultSaveNewBtn', 1600);
-      await d.caption('저장한 노트는 <b>이 기기</b>에 남아, 다음 수업에 다시 불러올 수 있습니다', 2200);
+      for (const title of ['이차함수 1차시', '이차함수 2차시']) {
+        await d.click('#sbVaultNoteTitleInput', 200);
+        await page.fill('#sbVaultNoteTitleInput', '');
+        await page.keyboard.type(title, { delay: 70 });
+        await d.wait(300);
+        await d.click('#sbVaultSaveNewBtn', 1300);
+      }
+      await d.caption('<b>◀ 앞으로 · 뒤로 ▶</b>로 노트 순서를 바꿉니다', 600);
+      await d.click('[data-move-note][data-dir="1"] >> nth=0', 1200);
+      await d.caption('<b>복사</b> — 같은 수업을 다른 학급 폴더로 복사합니다', 600);
+      await d.click('[data-copy-note] >> nth=0', 900);
+      await page.selectOption('#sbVaultCopyFolder', { index: 1 });
+      await d.caption('<b>자료만 복사</b>를 고르면 판서는 비우고 PDF·PPTX·배경만 가져갑니다', 1800);
+      await d.click('#sbVaultCopyOkBtn', 1800);
+      await d.caption('저장한 노트는 <b>이 기기</b>에 남아, 다음 수업에 다시 불러올 수 있습니다', 1600);
       await page.keyboard.press('Escape');
       await d.wait(400);
-      await d.caption('<b>노트저장</b> 버튼 (Ctrl+Shift+S)으로 바로 저장할 수도 있습니다', 0);
-      await d.highlight('#sbQuickSaveNoteBtn', 2000);
       await d.caption('<b>PNG·PDF</b> — 지금 화면은 그림으로, 모든 쪽은 PDF 한 파일로 저장합니다', 800);
-      await d.click('#sbSaveMenuBtn', 2600);
+      await d.click('#sbSaveMenuBtn', 2400);
       await page.keyboard.press('Escape');
       await d.wait(600);
     }

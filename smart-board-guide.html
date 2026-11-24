@@ -59,6 +59,7 @@
     .steps li { position: relative; padding-left: 34px; margin-bottom: 9px; }
     .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 2px; width: 24px; height: 24px; border-radius: 50%;
       background: var(--soft); color: var(--accent); font-weight: 800; font-size: 0.82rem; text-align: center; line-height: 24px; }
+    .keys i, .sc-box i { font-style: normal; color: var(--accent); font-weight: 700; font-size: 0.86em; }
     .keys { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 0.9rem; color: var(--muted); }
     .tip { margin-top: 12px; background: #fff7e6; border: 1px solid #fde3b0; color: #7a4a00; border-radius: 12px; padding: 10px 14px; font-size: 0.92rem; }
     .speed { position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; opacity: 0; transition: opacity .2s; }
@@ -147,7 +148,7 @@
           <li><b>▲ 숨김</b> 또는 <kbd>Tab</kbd>으로 팔레트를 접고 펼칩니다.</li>
           <li><b>자동숨김</b>을 켜면 쓰기 시작할 때 팔레트가 저절로 올라가고, 화면 맨 위로 가져가면 다시 나옵니다.</li>
         </ol>
-        <div class="keys"><span><kbd>Tab</kbd> 팔레트</span><span><kbd>F</kbd> 전체화면</span><span><kbd>?</kbd> 단축키 안내</span></div>
+        <div class="keys"><span><kbd>Tab</kbd> 팔레트</span><span><kbd>F</kbd> 전체화면 <i>Fullscreen</i></span><span><kbd>?</kbd> 단축키 안내</span></div>
       </div>
     </article>
 
@@ -163,7 +164,7 @@
           <li><b>펜 종류</b> 메뉴에서 만년필 · 볼펜 · 연필 · 붓펜 · 형광펜을 고릅니다.</li>
           <li>잘못 썼다면 <b>되돌리기</b>, 되살리려면 <b>다시 실행</b>.</li>
         </ol>
-        <div class="keys"><span><kbd>P</kbd> 펜</span><span><kbd>H</kbd> 형광펜</span><span><kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기</span><span><kbd>Ctrl</kbd>+<kbd>Y</kbd> 다시 실행</span></div>
+        <div class="keys"><span><kbd>P</kbd> 펜 <i>Pen</i></span><span><kbd>H</kbd> 형광펜 <i>Highlighter</i></span><span><kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기</span><span><kbd>Ctrl</kbd>+<kbd>Y</kbd> 다시 실행</span></div>
       </div>
     </article>
 
@@ -178,7 +179,7 @@
           <li><kbd>T</kbd>를 누르고 화면을 누르면 글자 입력칸이 열립니다. <kbd>Enter</kbd>로 확정합니다.</li>
           <li><kbd>P</kbd>를 누르면 다시 펜으로 돌아옵니다.</li>
         </ol>
-        <div class="keys"><span><kbd>R</kbd> 사각형</span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원</span><span><kbd>L</kbd> 직선</span><span><kbd>T</kbd> 텍스트</span></div>
+        <div class="keys"><span><kbd>R</kbd> 사각형 <i>Rectangle</i></span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원 <i>Circle</i></span><span><kbd>L</kbd> 직선 <i>Line</i></span><span><kbd>T</kbd> 텍스트 <i>Text</i></span></div>
       </div>
     </article>
 
@@ -194,7 +195,7 @@
           <li>여러 쪽에 걸쳐 번호가 이어집니다. 1번부터 새로 시작하려면 도형 메뉴의 <b>스탬프 번호 초기화</b>.</li>
           <li>도형 메뉴의 <b>정답 가림막</b>으로 정답을 덮고, 수업 중에 눌러서 열고 닫습니다.</li>
         </ol>
-        <div class="keys"><span><kbd>S</kbd> 원형 스탬프</span><span><kbd>Q</kbd> 사각 스탬프</span></div>
+        <div class="keys"><span><kbd>S</kbd> 원형 스탬프 <i>Stamp</i></span><span><kbd>Q</kbd> 사각 스탬프 <i>sQuare</i></span></div>
       </div>
     </article>
 
@@ -210,7 +211,7 @@
           <li><kbd>E</kbd> 지우개 — 문지른 선이 통째로 지워집니다.</li>
           <li><kbd>Esc</kbd>를 누르면 언제든 기본 상태(판서 · 펜)로 돌아옵니다.</li>
         </ol>
-        <div class="keys"><span><kbd>V</kbd> 선택</span><span><kbd>Z</kbd> 레이저</span><span><kbd>E</kbd> 지우개</span><span><kbd>Esc</kbd> 처음으로</span></div>
+        <div class="keys"><span><kbd>V</kbd> 선택 <i>Select</i></span><span><kbd>Z</kbd> 레이저 <i>Zap</i></span><span><kbd>E</kbd> 지우개 <i>Eraser</i></span><span><kbd>Esc</kbd> 처음으로</span></div>
         <div class="tip">✍️ 갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다. 한꺼번에 지우려면 <b>설정 → 화면 정리</b>의 <b>펜 글씨 전체 지우기 · 스탬프 전체 지우기 · 판서 전체삭제</b>를 쓰세요. 실수로 지웠다면 바로 되돌리기(<kbd>Ctrl</kbd>+<kbd>Z</kbd>)로 모두 되살아납니다.</div>
       </div>
     </article>
@@ -226,7 +227,7 @@
           <li><b>◀ ▶</b> 버튼이나 <kbd>←</kbd> <kbd>→</kbd> 키로 쪽을 넘깁니다.</li>
           <li><b>설정</b>에서 칠판 · 백지 · 모눈 배경을 고릅니다.</li>
         </ol>
-        <div class="keys"><span><kbd>K</kbd> 칠판</span><span><kbd>W</kbd> 백지</span><span><kbd>←</kbd><kbd>→</kbd> 쪽 넘기기</span></div>
+        <div class="keys"><span><kbd>K</kbd> 칠판 <i>blacK</i></span><span><kbd>W</kbd> 백지 <i>White</i></span><span><kbd>←</kbd><kbd>→</kbd> 쪽 넘기기</span></div>
       </div>
     </article>
 
@@ -281,10 +282,27 @@
 
     <div class="group-title" id="g-advanced"><h2>더 잘 쓰기</h2><span>게시 · 저장 · 편집</span></div>
 
-    <article class="chapter" id="ch-10-pin" data-toc="게시 모드">
+    <article class="chapter" id="ch-13-zoom" data-toc="확대·이동">
       <div class="chapter-video"></div>
       <div>
         <span class="chapter-num">10</span>
+        <h3>확대 · 손가락으로 이동</h3>
+        <p class="sum">줌잇처럼 화면 한 부분을 크게 보여 주고, 태블릿에서는 손가락으로 확대·이동합니다.</p>
+        <ol class="steps">
+          <li><kbd>Alt</kbd>+<kbd>1</kbd>로 확대를 켜고 커서를 움직여 볼 곳을 고릅니다. 마우스 휠로 배율을 바꿉니다.</li>
+          <li>그 자리에서 누르거나 <kbd>Alt</kbd>+<kbd>2</kbd>를 누르면 확대한 채로 판서합니다.</li>
+          <li><kbd>M</kbd>(<i>Move</i>) 또는 확대 배지의 <b>✋ 이동</b>으로 끌어서 화면을 옮깁니다. 다시 <kbd>M</kbd>을 누르면 펜으로 돌아옵니다.</li>
+          <li>태블릿: <b>두 손가락</b>을 벌리고 오므려 확대·축소하며 이동, <b>세 손가락</b>으로 밀어서 이동합니다.</li>
+          <li><kbd>Alt</kbd>+<kbd>1</kbd>을 다시 누르거나 <kbd>Esc</kbd>, <b>100% 복귀</b>로 원래 크기로 돌아옵니다.</li>
+        </ol>
+        <div class="keys"><span><kbd>Alt</kbd>+<kbd>1</kbd> 확대 켜기·끄기</span><span><kbd>Alt</kbd>+<kbd>2</kbd> 그 자리에서 판서</span><span><kbd>M</kbd> 화면 이동 <i>Move</i></span></div>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-10-pin" data-toc="게시 모드">
+      <div class="chapter-video"></div>
+      <div>
+        <span class="chapter-num">11</span>
         <h3>게시 모드 · 조각 고정</h3>
         <p class="sum">중요한 문제나 공식을 오려 화면 위에 계속 띄워 둡니다.</p>
         <ol class="steps">
@@ -296,14 +314,16 @@
       </div>
     </article>
 
-    <article class="chapter" id="ch-11-save" data-toc="저장">
+    <article class="chapter" id="ch-11-save" data-toc="저장·복사">
       <div class="chapter-video"></div>
       <div>
-        <span class="chapter-num">11</span>
-        <h3>노트 저장 · PNG · PDF</h3>
-        <p class="sum">판서를 폴더별 노트함에 저장하고, 그림이나 PDF로 내보냅니다.</p>
+        <span class="chapter-num">12</span>
+        <h3>노트 저장 · 학급별 복사 · 순서 · PNG · PDF</h3>
+        <p class="sum">판서를 학급(폴더)별 노트함에 저장하고, 다른 학급으로 복사하거나 순서를 바꾸고, 그림이나 PDF로 내보냅니다.</p>
         <ol class="steps">
-          <li><b>노트함</b>에서 제목과 폴더를 정해 저장합니다. 다음 수업에 다시 불러올 수 있습니다.</li>
+          <li><b>노트함</b>에서 제목과 폴더(학급)를 정해 저장합니다. 다음 수업에 다시 불러올 수 있습니다.</li>
+          <li>노트 카드의 <b>◀ 앞으로 · 뒤로 ▶</b>로 순서를 바꿉니다. 바꾼 순서는 이 기기에 기억됩니다.</li>
+          <li><b>복사</b>로 같은 수업을 다른 학급 폴더에 복사합니다. <b>자료만 복사</b>는 판서를 비우고 PDF·PPTX·배경만 가져가고, <b>판서까지 모두 복사</b>도 고를 수 있습니다.</li>
           <li><b>노트저장</b> 버튼(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>)으로 바로 저장할 수도 있습니다.</li>
           <li><b>PNG·PDF</b>: 지금 화면은 그림으로, 모든 쪽은 PDF 한 파일로 내려받습니다.</li>
         </ol>
@@ -314,7 +334,7 @@
     <article class="chapter" id="ch-12-edit" data-toc="편집·OCR">
       <div class="chapter-video"></div>
       <div>
-        <span class="chapter-num">12</span>
+        <span class="chapter-num">13</span>
         <h3>편집 모드 · 손글씨를 글자로 (OCR)</h3>
         <p class="sum">쓴 부분을 골라 지우거나 조각으로 띄우고, 손글씨를 글자로 바꿉니다.</p>
         <ol class="steps">
@@ -329,19 +349,20 @@
     <div class="group-title" id="shortcuts"><h2>단축키 모아 보기</h2><span>보드에서 <kbd>?</kbd>를 눌러도 볼 수 있습니다</span></div>
     <div class="shortcuts">
       <div class="sc-box"><h4>도구</h4><table>
-        <tr><td><kbd>P</kbd> / <kbd>H</kbd></td><td>펜 / 형광펜</td></tr>
-        <tr><td><kbd>E</kbd></td><td>지우개</td></tr>
-        <tr><td><kbd>V</kbd></td><td>선택·이동</td></tr>
-        <tr><td><kbd>Z</kbd></td><td>레이저 포인터</td></tr>
-        <tr><td><kbd>T</kbd></td><td>텍스트</td></tr>
-        <tr><td><kbd>S</kbd> / <kbd>Q</kbd></td><td>원형 / 사각 번호 스탬프</td></tr>
-        <tr><td><kbd>R</kbd> <kbd>C</kbd> <kbd>L</kbd></td><td>사각형 · 원 · 직선</td></tr>
+        <tr><td><kbd>P</kbd> / <kbd>H</kbd></td><td>펜 <i>Pen</i> / 형광펜 <i>Highlighter</i></td></tr>
+        <tr><td><kbd>E</kbd></td><td>지우개 <i>Eraser</i></td></tr>
+        <tr><td><kbd>V</kbd></td><td>선택·옮기기 <i>Select</i></td></tr>
+        <tr><td><kbd>M</kbd></td><td>화면 이동 <i>Move</i> (확대했을 때)</td></tr>
+        <tr><td><kbd>Z</kbd></td><td>레이저 포인터 <i>Zap</i></td></tr>
+        <tr><td><kbd>T</kbd></td><td>텍스트 <i>Text</i></td></tr>
+        <tr><td><kbd>S</kbd> / <kbd>Q</kbd></td><td>원형 <i>Stamp</i> / 사각 <i>sQuare</i> 번호 스탬프</td></tr>
+        <tr><td><kbd>R</kbd> <kbd>C</kbd> <kbd>L</kbd></td><td>사각형 <i>Rectangle</i> · 원 <i>Circle</i> · 직선 <i>Line</i></td></tr>
       </table></div>
       <div class="sc-box"><h4>색 · 화면</h4><table>
         <tr><td><kbd>1</kbd>~<kbd>6</kbd></td><td>빨강 · 초록 · 파랑 · 노랑 · 흰색 · 검정</td></tr>
-        <tr><td><kbd>K</kbd> / <kbd>W</kbd></td><td>칠판 / 백지 배경</td></tr>
+        <tr><td><kbd>K</kbd> / <kbd>W</kbd></td><td>칠판 <i>blacK</i> / 백지 <i>White</i> 배경</td></tr>
         <tr><td><kbd>Tab</kbd></td><td>팔레트 접기·펼치기</td></tr>
-        <tr><td><kbd>F</kbd></td><td>전체화면</td></tr>
+        <tr><td><kbd>F</kbd></td><td>전체화면 <i>Fullscreen</i></td></tr>
         <tr><td><kbd>?</kbd> / <kbd>F1</kbd></td><td>단축키 안내 창</td></tr>
         <tr><td><kbd>Esc</kbd></td><td>기본 상태(판서·펜)로</td></tr>
       </table></div>

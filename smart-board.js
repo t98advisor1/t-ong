@@ -1021,7 +1021,8 @@
 
   function setTool(nextTool) {
     commitInlineText();
-    if (nextTool !== 'eraser') {
+    // 지우개·레이저·선택·이동(손)은 잠깐 쓰는 도구라, 다시 누르면 돌아갈 '마지막 그리기 도구'로 기억하지 않습니다.
+    if (['eraser', 'laser', 'select', 'hand'].indexOf(nextTool) < 0) {
       state.lastDrawTool = nextTool;
     }
     if (nextTool !== 'select') clearSelection();
@@ -1068,7 +1069,8 @@
       if (moreKey) { moreKey.textContent = SUB_TOOL_KEYS[nextTool] || ''; moreKey.hidden = !SUB_TOOL_KEYS[nextTool]; }
     }
     syncWebQuickToolsUi();
-    liveCanvas.style.cursor = nextTool === 'select' ? 'default' : (nextTool === 'text' ? 'text' : 'crosshair');
+    liveCanvas.style.cursor = nextTool === 'select' ? 'default' : nextTool === 'hand' ? 'grab' : (nextTool === 'text' ? 'text' : 'crosshair');
+    if (el('sbZoomHandBtn')) el('sbZoomHandBtn').classList.toggle('active', nextTool === 'hand');
   }
 
   // 갤럭시 S펜 옆 버튼(배럴 버튼: button=2 / buttons bit 2, 지우개 버튼: button=5 / buttons bit 32) 감지
@@ -1318,6 +1320,19 @@
     if (state.mode === 'zoom') {
       setMode('draw');
       showToast('확대 화면을 고정하고 판서 모드로 전환했습니다.');
+      return;
+    }
+
+    // 손 도구(M · Move): 끌어서 확대한 화면을 옮깁니다.
+    if (state.tool === 'hand') {
+      if (state.zoomScale <= 1.02) showToast('확대(Alt+1)한 화면에서 끌어서 옮길 수 있습니다.');
+      pointer.down = true;
+      pointer.activeId = ev.pointerId;
+      pointer.effectiveTool = 'pan';
+      pointer.lastX = ev.clientX;
+      pointer.lastY = ev.clientY;
+      liveCanvas.style.cursor = 'grabbing';
+      try { liveCanvas.setPointerCapture(ev.pointerId); } catch (e) {}
       return;
     }
 
@@ -1574,7 +1589,7 @@
     if (!pointer.down || ev.pointerId !== pointer.activeId) return;
     pointer.down = false;
 
-    if (pointer.effectiveTool === 'pan') return;
+    if (pointer.effectiveTool === 'pan') { if (state.tool === 'hand') liveCanvas.style.cursor = 'grab'; return; }
 
     var pt = clientToBoard(ev.clientX, ev.clientY);
     var curPg = curPage();
@@ -2737,6 +2752,63 @@
     showToast('"' + target.title + '" (' + state.pages.length + '쪽) 노트를 불러왔습니다.');
   }
 
+  // 노트함 순서 — 내가 정한 순서를 기기에 저장합니다. 순서를 정하지 않은 새 노트는 맨 앞(최근순)에 둡니다.
+  var NOTE_ORDER_KEY = 'sbVaultNoteOrder_v1';
+  function loadNoteOrder() { try { var a = JSON.parse(localStorage.getItem(NOTE_ORDER_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function applyNoteOrder(notes) {
+    var order = loadNoteOrder(), pos = {};
+    order.forEach(function (id, i) { pos[id] = i; });
+    var fresh = notes.filter(function (n) { return pos[n.id] == null; });
+    var placed = notes.filter(function (n) { return pos[n.id] != null; }).sort(function (a, b) { return pos[a.id] - pos[b.id]; });
+    return fresh.concat(placed);
+  }
+  // 보이는 목록(폴더) 안에서 바로 옆 노트와 자리를 바꾸고, 전체 순서를 저장합니다.
+  function moveNoteOrder(allIds, visibleIds, id, dir) {
+    var vi = visibleIds.indexOf(id), other = visibleIds[vi + dir];
+    if (vi < 0 || !other) { showToast(dir < 0 ? '이미 맨 앞입니다.' : '이미 맨 뒤입니다.'); return; }
+    var a = allIds.indexOf(id), b = allIds.indexOf(other);
+    allIds[a] = other; allIds[b] = id;
+    try { localStorage.setItem(NOTE_ORDER_KEY, JSON.stringify(allIds)); } catch (e) {}
+  }
+
+  // 노트 복사 — 같은 수업을 다른 학급에서 쓸 수 있게, 자료만(판서 비움) 또는 판서까지 복사합니다.
+  var copyTarget = null;
+  function openNoteCopyBox(note) {
+    if (!note) return;
+    copyTarget = note;
+    var box = el('sbVaultCopyBox');
+    var folders = loadFolders();
+    var sel = el('sbVaultCopyFolder');
+    sel.innerHTML = folders.map(function (f) { return '<option value="' + f.replace(/"/g, '&quot;') + '">' + f + '</option>'; }).join('');
+    sel.value = state.activeVaultFolder !== 'ALL' && folders.indexOf(state.activeVaultFolder) >= 0 ? state.activeVaultFolder : (note.folder || folders[0]);
+    el('sbVaultCopyName').textContent = note.title || '판서 노트';
+    el('sbVaultCopyTitle').value = (note.title || '판서 노트') + ' (복사)';
+    box.hidden = false;
+    box.scrollIntoView({ block: 'nearest' });
+  }
+  async function copyNote() {
+    if (!copyTarget) return;
+    var material = (document.querySelector('input[name="sbVaultCopyMode"]:checked') || {}).value !== 'all';
+    var folder = el('sbVaultCopyFolder').value || copyTarget.folder;
+    var copy = JSON.parse(JSON.stringify(copyTarget));
+    copy.id = 'note_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    copy.title = String(el('sbVaultCopyTitle').value || '').trim() || (copyTarget.title || '판서 노트') + ' (복사)';
+    copy.folder = folder;
+    copy.updatedAt = Date.now();
+    copy.updatedStr = new Date().toLocaleString('ko-KR');
+    if (material) {
+      (copy.pages || []).forEach(function (pg) { pg.objects = []; });
+      copy.thumbUrl = '';   // 미리보기에는 원래 학급의 판서가 담겨 있어 지웁니다. 열어서 저장하면 새로 만들어집니다.
+    }
+    var res = await dbPutNote(copy);
+    if (!res || !res.ok) { showToast('노트를 복사하지 못했습니다 (저장 공간 부족일 수 있습니다).'); return; }
+    el('sbVaultCopyBox').hidden = true;
+    copyTarget = null;
+    state.activeVaultFolder = folder;
+    await renderVaultUi();
+    showToast('[' + folder + '] 폴더에 "' + copy.title + '"을(를) ' + (material ? '자료만' : '판서까지') + ' 복사했습니다.');
+  }
+
   async function renderVaultUi() {
     var folders = loadFolders();
     var sel = el('sbVaultFolderSelect');
@@ -2782,6 +2854,7 @@
       });
     }
 
+    notes = applyNoteOrder(notes);
     var filtered = state.activeVaultFolder === 'ALL'
       ? notes
       : notes.filter(function (n) { return n.folder === state.activeVaultFolder; });
@@ -2796,14 +2869,19 @@
     }
     grid.innerHTML = filtered.map(function (n) {
       return '<div class="sb-note-card">' +
-        '<div class="sb-note-thumb">' + (n.thumbUrl ? '<img src="' + n.thumbUrl + '" alt="">' : '') + '</div>' +
+        '<div class="sb-note-thumb">' + (n.thumbUrl ? '<img src="' + n.thumbUrl + '" alt="">' : '<span class="sb-note-thumb-empty">판서 없음 · 자료만</span>') + '</div>' +
         '<div class="sb-note-meta">' +
           '<strong>' + (n.title || '판서 노트') + '</strong>' +
           '<small>' + (n.folder || '기본') + ' · ' + (n.pageCount || 1) + '쪽</small>' +
           '<small>' + (n.updatedStr || '') + '</small>' +
           '<div class="sb-note-actions">' +
             '<button type="button" class="sb-btn sb-btn-primary sb-btn-xs" style="flex:1;" data-load-note="' + n.id + '">열기</button>' +
+            '<button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" data-copy-note="' + n.id + '" title="다른 학급(폴더)으로 복사">복사</button>' +
             '<button type="button" class="sb-btn sb-btn-danger sb-btn-xs" data-del-note="' + n.id + '">삭제</button>' +
+          '</div>' +
+          '<div class="sb-note-order">' +
+            '<button type="button" class="sb-mini-btn" data-move-note="' + n.id + '" data-dir="-1" title="앞으로">◀ 앞으로</button>' +
+            '<button type="button" class="sb-mini-btn" data-move-note="' + n.id + '" data-dir="1" title="뒤로">뒤로 ▶</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -2811,6 +2889,16 @@
 
     grid.querySelectorAll('[data-load-note]').forEach(function (lb) {
       lb.addEventListener('click', function () { loadNoteFromVault(lb.getAttribute('data-load-note')); });
+    });
+    var visibleIds = filtered.map(function (n) { return n.id; });
+    grid.querySelectorAll('[data-move-note]').forEach(function (mb) {
+      mb.addEventListener('click', function () {
+        moveNoteOrder(notes.map(function (n) { return n.id; }), visibleIds, mb.getAttribute('data-move-note'), parseInt(mb.getAttribute('data-dir'), 10));
+        renderVaultUi();
+      });
+    });
+    grid.querySelectorAll('[data-copy-note]').forEach(function (cb) {
+      cb.addEventListener('click', function () { openNoteCopyBox(notes.find(function (n) { return n.id === cb.getAttribute('data-copy-note'); })); });
     });
     grid.querySelectorAll('[data-del-note]').forEach(function (db) {
       db.addEventListener('click', async function () {
@@ -3097,6 +3185,8 @@
     if (el('sbQuickSaveNoteBtn')) el('sbQuickSaveNoteBtn').addEventListener('click', function () { serializeCurrentNote(false); });
     if (el('sbVaultSaveCurBtn')) el('sbVaultSaveCurBtn').addEventListener('click', function () { serializeCurrentNote(false); });
     if (el('sbVaultSaveNewBtn')) el('sbVaultSaveNewBtn').addEventListener('click', function () { serializeCurrentNote(true); });
+    if (el('sbVaultCopyOkBtn')) el('sbVaultCopyOkBtn').addEventListener('click', copyNote);
+    if (el('sbVaultCopyCancelBtn')) el('sbVaultCopyCancelBtn').addEventListener('click', function () { el('sbVaultCopyBox').hidden = true; copyTarget = null; });
     if (el('sbAddFolderBtn')) el('sbAddFolderBtn').addEventListener('click', function () {
       var row = el('sbNewFolderRow');
       if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
@@ -3497,7 +3587,11 @@
       });
     });
 
-    if (el('sbZoomResetBtn')) el('sbZoomResetBtn').addEventListener('click', function () { resetZoom(); if (state.mode === 'zoom') setMode('draw'); });
+    if (el('sbZoomResetBtn')) el('sbZoomResetBtn').addEventListener('click', function () { resetZoom(); if (state.mode === 'zoom') setMode('draw'); if (state.tool === 'hand') setTool(state.lastDrawTool || 'pen'); });
+    if (el('sbZoomHandBtn')) el('sbZoomHandBtn').addEventListener('click', function () {
+      if (state.mode === 'zoom') setMode('draw');
+      setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
+    });
     inlineTextEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitInlineText(); }
       else if (e.key === 'Escape') { inlineTextEl.style.display = 'none'; pendingTextPos = null; }
@@ -3853,6 +3947,10 @@
         var k = e.key.toLowerCase();
         // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
         if (k === 'v') setTool('select');
+        else if (k === 'm') {
+          setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
+          if (state.tool === 'hand') showToast(state.zoomScale > 1.02 ? '이동(M): 끌어서 확대한 화면을 옮기세요. 다시 M을 누르면 펜으로 돌아갑니다.' : '이동(M): 확대(Alt+1)한 뒤 끌어서 화면을 옮길 수 있습니다.');
+        }
         else if (k === 'z') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
         else if (k === 's') setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');

@@ -44,7 +44,7 @@
         <div class="sb-top-group sb-priority-group">
           <a href="./index.html" class="sb-btn sb-btn-ghost sb-btn-xs" title="T-ong 교무수첩 홈으로 돌아가기">← 홈</a>
           <button type="button" class="sb-btn sb-btn-guide-top" id="sbHelpBtn" title="큰 글씨 핵심 사용법 및 스크린샷 매뉴얼 열기">사용설명서</button>
-          <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F)">전체화면<kbd class="sb-key">F</kbd></button>
+          <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F · Fullscreen)">전체화면<kbd class="sb-key">F</kbd></button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키(?)</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">광고제거(?)</button>
         </div>
@@ -85,12 +85,12 @@
       <div class="sb-top-row sb-top-row-tools">
         <!-- 핵심 도구 + 통합 드롭다운 (펜 통합 / 도형 통합) -->
         <div class="sb-top-group sb-tools-strip">
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="select" title="선택·이동: 필기·도형·스탬프를 클릭/드래그해 이동 (단축키 V)">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="select" title="선택·옮기기: 필기·도형·스탬프를 눌러 끌어서 옮기기 (V · Select)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l7.2 16.2 2.4-6.2 6.2-2.4L4 4z"/></svg>
             <span>선택</span><kbd>V</kbd>
           </button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn" id="sbQuickPinBtn" title="선택 영역을 바로 조각으로 고정합니다. 선택이 없으면 드래그할 영역을 지정합니다.">조각 고정</button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-pen-trigger active" id="sbPenMenuBtn" title="펜 종류 선택 (만년필·볼펜·연필·붓펜·형광펜) — 단축키 P / H">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-pen-trigger active" id="sbPenMenuBtn" title="펜 종류 선택 (만년필·볼펜·연필·붓펜·형광펜) — P · Pen / H · Highlighter">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             <span id="sbPenMenuLabel">만년필</span><kbd id="sbPenMenuKey">P</kbd> ▾
           </button>
@@ -98,11 +98,11 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><circle cx="17" cy="7" r="4"/><path d="M4 20l6-6 4 4 6-6"/></svg>
             <span id="sbMoreToolsLabel">도형</span><kbd id="sbMoreToolsKey" hidden></kbd> ▾
           </button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="잔상이 사라지는 레이저 포인터 (단축키 Z)">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="잔상이 사라지는 레이저 포인터 (Z · Zap)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
             <span>레이저</span><kbd>Z</kbd>
           </button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="eraser" id="sbEraserToolBtn" title="지우개 (단축키 E / S펜 옆 버튼 스위치)">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="eraser" id="sbEraserToolBtn" title="지우개 (E · Eraser / S펜 옆 버튼 스위치)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H7L3 16a2 2 0 0 1 0-2.8l9.6-9.6a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20"/></svg>
             <span>지우개</span><kbd>E</kbd>
           </button>
@@ -199,6 +199,7 @@
 
       <div class="sb-zoom-badge" id="sbZoomBadge" style="display:none;">
         <span id="sbZoomText">확대 2.0x</span>
+        <button type="button" class="sb-mini-btn" id="sbZoomHandBtn" title="손 도구: 끌어서 확대한 화면 옮기기 (M · Move)">✋ 이동 <kbd class="sb-key">M</kbd></button>
         <button type="button" class="sb-mini-btn" id="sbZoomResetBtn">100% 복귀</button>
       </div>
 
@@ -289,6 +290,21 @@
               <strong id="sbVaultActiveFolderTitle">전체 노트</strong>
               <span id="sbVaultNoteCount">0개 노트</span>
             </div>
+            <div class="sb-vault-copy-box" id="sbVaultCopyBox" hidden>
+              <b>📋 노트 복사 — <span id="sbVaultCopyName"></span></b>
+              <div class="sb-vault-copy-row">
+                <label>복사할 폴더(학급)<select id="sbVaultCopyFolder" class="sb-input"></select></label>
+                <label>새 노트 제목<input type="text" id="sbVaultCopyTitle" class="sb-input"></label>
+              </div>
+              <div class="sb-vault-copy-row">
+                <label class="sb-vault-copy-opt"><input type="radio" name="sbVaultCopyMode" value="material" checked> 자료만 복사 <small>PDF·PPTX·배경은 두고 판서는 비움 — 다른 학급 수업용</small></label>
+                <label class="sb-vault-copy-opt"><input type="radio" name="sbVaultCopyMode" value="all"> 판서까지 모두 복사</label>
+              </div>
+              <div class="sb-vault-copy-row sb-vault-copy-actions">
+                <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbVaultCopyCancelBtn">취소</button>
+                <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbVaultCopyOkBtn">복사하기</button>
+              </div>
+            </div>
             <div class="sb-vault-notes-grid" id="sbVaultNotesGrid"></div>
           </div>
         </div>
@@ -362,13 +378,13 @@
               <tr><th>분류</th><th>단축키</th><th>기능 및 동작 설명</th></tr>
             </thead>
             <tbody>
-              <tr><td><b>핵심 도구 1키 전환</b></td><td><kbd>V</kbd> / <kbd>P</kbd> / <kbd>H</kbd> / <kbd>Z</kbd> / <kbd>E</kbd></td><td><b>선택·이동(<kbd>V</kbd>)</b> / <b>펜(<kbd>P</kbd>)</b> / <b>형광펜(<kbd>H</kbd>)</b> / <b>레이저 포인터(<kbd>Z</kbd>)</b> / <b>지우개(<kbd>E</kbd>)</b> 토글</td></tr>
-              <tr><td><b>원형·사각 스탬프 &amp; 텍스트</b></td><td><kbd>S</kbd> / <kbd>Q</kbd> / <kbd>T</kbd></td><td><b>①②③ 완벽한 원형 번호 스탬프(<kbd>S</kbd>)</b> / <b>▣ 정사각형 번호 스탬프(<kbd>Q</kbd>)</b> / <b>한글 텍스트 입력(<kbd>T</kbd>)</b></td></tr>
-              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형 그리기(<kbd>R</kbd>)</b> / <b>원·타원 그리기(<kbd>C</kbd>, <kbd>Shift</kbd> 누른 채 드래그 시 정원)</b> / <b>반듯한 직선 그리기(<kbd>L</kbd>)</b></td></tr>
+              <tr><td><b>핵심 도구 1키 전환</b></td><td><kbd>P</kbd> / <kbd>H</kbd> / <kbd>E</kbd> / <kbd>V</kbd> / <kbd>M</kbd> / <kbd>Z</kbd></td><td><b>펜(<kbd>P</kbd> · Pen)</b> / <b>형광펜(<kbd>H</kbd> · Highlighter)</b> / <b>지우개(<kbd>E</kbd> · Eraser)</b> / <b>선택·옮기기(<kbd>V</kbd> · Select)</b> / <b>화면 이동(<kbd>M</kbd> · Move)</b> / <b>레이저 포인터(<kbd>Z</kbd> · Zap)</b> — 한 번 더 누르면 쓰던 펜으로 돌아갑니다</td></tr>
+              <tr><td><b>원형·사각 스탬프 &amp; 텍스트</b></td><td><kbd>S</kbd> / <kbd>Q</kbd> / <kbd>T</kbd></td><td><b>①②③ 원형 번호 스탬프(<kbd>S</kbd> · Stamp)</b> / <b>▣ 사각 번호 스탬프(<kbd>Q</kbd> · sQuare)</b> / <b>한글 텍스트 입력(<kbd>T</kbd> · Text)</b> — 지운 번호는 다음 스탬프가 다시 채웁니다</td></tr>
+              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형(<kbd>R</kbd> · Rectangle)</b> / <b>원·타원(<kbd>C</kbd> · Circle, <kbd>Shift</kbd> 누른 채 끌면 정원)</b> / <b>직선(<kbd>L</kbd> · Line)</b></td></tr>
               <tr><td><b>빠른 취소 (되돌리기)</b></td><td><kbd>Backspace (백스페이스)</kbd> 또는 <kbd>Ctrl + Z</kbd></td><td><b>마지막 판서·도형·스탬프 동작 즉시 취소(되돌리기)</b> / 편집 모드에서 영역 선택 시 선택 판서 삭제</td></tr>
               <tr><td><b>펜 색상 (숫자 1~6)</b></td><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> / <kbd>5</kbd> / <kbd>6</kbd></td><td>빨강(<kbd>1</kbd>) · 초록(<kbd>2</kbd>) · 파랑(<kbd>3</kbd>) · 노랑(<kbd>4</kbd>) · 아이보리/흰색(<kbd>5</kbd>) · 검정(<kbd>6</kbd>) 즉시 변경</td></tr>
               <tr><td><b>갤럭시 S펜 옆 버튼</b></td><td><b>S펜 옆 버튼 클릭 / 에어액션</b></td><td><b>[지우개] ↔ [펜] 양방향 스위치</b>: 버튼 1회 클릭 시 지우개 활성화, 다시 1회 클릭 시 펜 모드로 즉시 복귀</td></tr>
-              <tr><td><b>4대 모드 전환</b></td><td><kbd>Alt + `</kbd> / <kbd>Alt + 1</kbd> / <kbd>Alt + 2</kbd> / <kbd>Alt + 3</kbd></td><td><b>게시 모드(스닙페이스트)</b> / <b>확대 모드</b> / <b>판서 모드</b> / <b>편집·무료 OCR 모드</b></td></tr>
+              <tr><td><b>4대 모드 전환</b></td><td><kbd>Alt + `</kbd> / <kbd>Alt + 1</kbd> / <kbd>Alt + 2</kbd> / <kbd>Alt + 3</kbd></td><td><b>게시 모드(스닙페이스트)</b> / <b>확대 켜기·끄기(줌잇)</b> / <b>그 자리에서 판서</b> / <b>편집·OCR</b> — 확대 중에는 <kbd>M</kbd>(Move)으로 끌어서 옮기고, 태블릿은 두 손가락(확대·이동)·세 손가락(이동)</td></tr>
               <tr><td><b>팔레트 · 전체화면 · 초기모드</b></td><td><kbd>Tab</kbd> / <kbd>F</kbd> / <kbd>?</kbd> (<kbd>F1</kbd>) / <kbd>Esc</kbd></td><td>상단 팔레트 숨기기·펼치기(<kbd>Tab</kbd>) / 꽉 찬 전체화면(<kbd>F</kbd>) / 단축키 창(<kbd>?</kbd>) / <b>초기 모드(판서·펜) 복귀(<kbd>Esc</kbd>)</b></td></tr>
               <tr><td><b>배경 · 전체삭제 · 저장</b></td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+E</kbd> · <kbd>Ctrl+S</kbd> / <kbd>Ctrl+Shift+S</kbd></td><td>칠판 배경(<kbd>K</kbd>) · 백지 배경(<kbd>W</kbd>) · 현재 쪽 판서 전체삭제(<kbd>Ctrl+E</kbd>) · PNG 저장 · 로컬 폴더 노트함 저장</td></tr>
               <tr><td><b>PPTX 액션 · 페이지 이동</b></td><td><kbd>Space</kbd> / <kbd>←</kbd> <kbd>→</kbd> / <b>마우스 휠</b></td><td>PPTX 다음 클릭 애니메이션 액션 및 슬라이드 이동 / 마우스 휠로 펜·스탬프·지우개 크기 조절</td></tr>
@@ -592,20 +608,20 @@
   <div class="sb-tool-popover" id="sbMoreToolsMenu" role="menu" aria-label="도형 및 추가 판서 도구">
     <div class="sb-pop-sec-title">도형 그리기</div>
     <div class="sb-pop-grid">
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="line" title="반듯한 직선 (단축키 L)"><span>직선</span><kbd>L</kbd></button>
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="rect" title="사각형 테두리 (단축키 R)"><span>사각형</span><kbd>R</kbd></button>
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="circle" title="원/타원 그리기 (단축키 C)"><span>원</span><kbd>C</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="line" title="반듯한 직선 (L · Line)"><span>직선</span><kbd>L</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="rect" title="사각형 테두리 (R · Rectangle)"><span>사각형</span><kbd>R</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="circle" title="원/타원 그리기 (C · Circle)"><span>원</span><kbd>C</kbd></button>
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="fillRect" title="채운 사각형"><span>채움사각</span></button>
     </div>
     <div class="sb-pop-sec-title" style="margin-top:8px;">수업 보조 · 텍스트</div>
     <div class="sb-pop-grid">
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="cover" title="탭하면 열리고 닫히는 정답 가림막"><span>정답 가림막</span></button>
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="text" title="한글 텍스트 입력 (단축키 T)"><span>텍스트</span><kbd>T</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="text" title="한글 텍스트 입력 (T · Text)"><span>텍스트</span><kbd>T</kbd></button>
     </div>
     <div class="sb-pop-sec-title" style="margin-top:8px;">번호 스탬프</div>
     <div class="sb-pop-grid">
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="stamp" id="sbCircleStampBtn" title="완벽한 원 모양 번호 스탬프 ①②③ (단축키 S)"><span>① 원스탬프</span><kbd>S</kbd></button>
-      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="sqStamp" id="sbSquareStampBtn" title="정사각형 번호 스탬프 [1][2][3] (단축키 Q)"><span>▣ 사각스탬프</span><kbd>Q</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="stamp" id="sbCircleStampBtn" title="원 모양 번호 스탬프 ①②③ (S · Stamp)"><span>① 원스탬프</span><kbd>S</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="sqStamp" id="sbSquareStampBtn" title="정사각형 번호 스탬프 [1][2][3] (Q · sQuare)"><span>▣ 사각스탬프</span><kbd>Q</kbd></button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-full-btn" id="sbStampResetBtn" title="원형·사각 번호 스탬프를 1번부터 다시 시작">스탬프 번호 초기화 (현재 <span id="sbStampNum">1</span>번)</button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-full-btn" id="sbClearStampsBtn2" title="현재 페이지의 번호 스탬프만 모두 지우기 (되돌리기로 복구)">스탬프 전체 지우기</button>
     </div>

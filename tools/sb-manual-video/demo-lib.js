@@ -12,6 +12,7 @@ const OVERLAY = () => {
       text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transition:opacity .25s}
     #demoCaption.show{opacity:1}
     #demoCaption b{color:#facc15}
+    .demoTouch{position:fixed;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(250,204,21,.35);border:3px solid #facc15;z-index:2147483646;pointer-events:none}
     #demoKey{position:fixed;right:28px;bottom:110px;z-index:2147483645;pointer-events:none;background:#facc15;color:#111827;
       font:800 26px/1 ui-monospace,Consolas,monospace;padding:12px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;transition:opacity .2s}
     #demoKey.show{opacity:1}
@@ -25,6 +26,12 @@ const OVERLAY = () => {
     const cur = document.getElementById('demoCursor');
     const move = e => { cur.style.transform = `translate(${e.clientX}px,${e.clientY}px)`; };
     window.addEventListener('pointermove', move, true); window.addEventListener('mousemove', move, true);
+    // 손가락(터치) 위치를 노란 동그라미로 보여 줍니다.
+    const touches = {};
+    window.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch') return; const t = touches[e.pointerId] = document.createElement('div'); t.className = 'demoTouch'; t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px'; document.body.appendChild(t); }, true);
+    window.addEventListener('pointermove', e => { const t = touches[e.pointerId]; if (t) { t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px'; } }, true);
+    const lift = e => { const t = touches[e.pointerId]; if (t) { t.remove(); delete touches[e.pointerId]; } };
+    window.addEventListener('pointerup', lift, true); window.addEventListener('pointercancel', lift, true);
     window.addEventListener('pointerdown', e => { const r = document.createElement('div'); r.className = 'demoRipple'; r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px'; document.body.appendChild(r); setTimeout(() => r.remove(), 600); }, true);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add); else add();
@@ -96,6 +103,20 @@ function demo(page) {
       await page.waitForTimeout(300);
       await page.keyboard.press('p');
       await api.setSize(5);
+    },
+    // 여러 손가락 터치(두 손가락 확대, 세 손가락 이동)를 흉내 냅니다. from/to는 손가락별 [x, y] 목록.
+    async fingers(from, to, steps = 24) {
+      const cdp = await page.context().newCDPSession(page);
+      const send = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((q, i) => ({ x: q[0], y: q[1], id: i + 1 })) });
+      for (let n = 1; n <= from.length; n++) { await send('touchStart', from.slice(0, n)); await page.waitForTimeout(40); }
+      await page.waitForTimeout(250);
+      for (let k = 1; k <= steps; k++) {
+        await send('touchMove', from.map((q, i) => [q[0] + (to[i][0] - q[0]) * k / steps, q[1] + (to[i][1] - q[1]) * k / steps]));
+        await page.waitForTimeout(30);
+      }
+      await page.waitForTimeout(300);
+      await send('touchEnd', []);
+      await page.waitForTimeout(300);
     },
     wait: ms => page.waitForTimeout(ms),
   };
