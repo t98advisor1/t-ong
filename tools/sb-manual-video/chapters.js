@@ -99,6 +99,13 @@ module.exports = [
       await d.press('p', 'P  펜');
       await d.setSize(5);
       await d.stroke([[200, 560], [470, 560]]);
+      await d.caption('펜으로 그리다가 끝에서 <b>꾸욱 멈추면</b> 반듯한 도형으로 바뀝니다', 300);
+      const wob = (pts, a) => pts.map(([x, y], i) => [x + Math.sin(i * 1.7) * a, y + Math.cos(i * 1.3) * a]);
+      const holdStroke = async (pts) => { await d.moveTo(pts[0][0], pts[0][1], 10); await page.mouse.down(); for (const q of pts) { await page.mouse.move(q[0], q[1]); await page.waitForTimeout(12); } await page.waitForTimeout(900); await page.mouse.up(); await d.wait(500); };
+      const edge = (a, b, n = 14) => Array.from({ length: n }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
+      await holdStroke(wob(shapes.circle(640, 560, 70, 40), 5));
+      await holdStroke(wob([].concat(edge([800, 490], [960, 495]), edge([960, 495], [955, 630]), edge([955, 630], [798, 625]), edge([798, 625], [802, 492]), [[802, 492]]), 3));
+      await holdStroke(wob([].concat(edge([1050, 630], [1130, 490]), edge([1130, 490], [1210, 632]), edge([1210, 632], [1052, 628]), [[1052, 628]]), 3));
       await d.wait(1200);
     }
   },
@@ -168,10 +175,10 @@ module.exports = [
       await d.press('s', 'S  원형 스탬프');
       for (const x of [880, 960, 1040]) await d.tapAt(x, 560, 300);
       await d.press('p', 'P  펜');
-      await d.caption('한꺼번에 지울 때는 <b>설정 → 화면 정리</b>', 800);
-      await d.click('#sbBoardMoreBtn', 1000);
-      await d.caption('<b>펜 글씨 전체 지우기</b> · <b>스탬프 전체 지우기</b> · 판서 전체삭제', 600);
-      await d.click('#sbClearPenBtn', 1500);
+      await d.caption('한꺼번에 지울 때는 <b>지우개 ▾</b> 메뉴 (지우개를 한 번 더 눌러도 열림)', 800);
+      await d.click('#sbEraserToolBtn .sb-caret', 1000);
+      await d.caption('펜 글씨 <b>Shift+E</b> · 스탬프 <b>Shift+S</b> · 전체 필기 <b>Ctrl+E</b>', 600);
+      await d.click('#sbEraseAllPenBtn', 1500);
       await d.caption('실수로 지웠다면 바로 <b>되돌리기</b> (Ctrl+Z) — 한꺼번에 되살아납니다', 300);
       await d.press('Control+z', 'Ctrl + Z');
       await d.wait(1500);

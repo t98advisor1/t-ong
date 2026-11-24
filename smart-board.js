@@ -1926,7 +1926,7 @@
   // 실제 파워포인트 <p:timing> 클릭 시퀀스 파서 (mainSeq + interactiveSeq 트리거 + 문단 pRg + bldP 완벽 지원)
   function parseSlideTiming(doc) {
     var timing = qOne(doc, 'timing');
-    if (!timing) return [];
+    if (!timing) return { steps: [], autoTargets: [] };
 
     // bldLst(<p:bldP spid="3" build="p"/>) 문단 빌드 대상 파악
     var bldParaMap = {};
@@ -1946,6 +1946,7 @@
     var searchRoots = seqNodes.length ? seqNodes : [timing];
 
     var steps = [];
+    var autoStep = { targets: [] };
     var seenInStep = {};
 
     function extractTargetsFromEffectNode(effectCtn, presetClass) {
@@ -1996,12 +1997,17 @@
         var tgts = extractTargetsFromEffectNode(ctn, pClass);
         if (!tgts.length) return;
 
-        var isClickStart = (nt === 'clickEffect') || !steps.length;
-        if (isClickStart) {
+        // 첫 클릭 전에 '이전 효과와 함께/다음에'로 시작하는 효과는 슬라이드가 열릴 때 저절로 재생됩니다(클릭 단계가 아님).
+        var curStep;
+        if (nt === 'clickEffect') {
           steps.push({ targets: [] });
           seenInStep = {};
+          curStep = steps[steps.length - 1];
+        } else if (!steps.length) {
+          curStep = autoStep;
+        } else {
+          curStep = steps[steps.length - 1];
         }
-        var curStep = steps[steps.length - 1];
         tgts.forEach(function (t) {
           var key = t.spid + ':' + t.pStart + ':' + t.pEnd + ':' + t.presetClass;
           if (!seenInStep[key]) {
@@ -2012,7 +2018,7 @@
       });
     });
 
-    return steps.filter(function (s) { return s.targets.length > 0; });
+    return { steps: steps.filter(function (s) { return s.targets.length > 0; }), autoTargets: autoStep.targets };
   }
 
   function defaultPlaceholderBox(phType, phIdx, bw, bh) {
@@ -2265,7 +2271,13 @@
                   chH: parseInt(xmlAttr(gchExt, 'cy'), 10) || slideCy
                 };
               }
+              // 그룹에 건 애니메이션이 그룹 안 도형에도 적용되도록, 안쪽 도형에 그룹 id를 기록합니다.
+              var grpNv = directChild(ch, 'nvGrpSpPr');
+              var grpCNvPr = grpNv ? directChild(grpNv, 'cNvPr') : null;
+              var grpId = grpCNvPr ? xmlAttr(grpCNvPr, 'id') : '';
+              var grpStart = elements.length;
               await parseShapeTree(ch, nextTf);
+              if (grpId) for (var gi = grpStart; gi < elements.length; gi++) elements[gi].groups = [grpId].concat(elements[gi].groups || []);
               continue;
             }
 
@@ -2320,6 +2332,11 @@
               var noFill = spPr ? directChild(spPr, 'noFill') : null;
               var fillNode = spPr ? (directChild(spPr, 'solidFill') || directChild(spPr, 'gradFill')) : null;
               var fill = noFill ? null : extractFillColor(fillNode);
+              // 도형에 색을 직접 주지 않으면 파워포인트 기본 도형 스타일(<p:style>의 테마 색)을 따릅니다.
+              var shStyle = directChild(ch, 'style');
+              var styleRef = function (name) { var r = shStyle ? directChild(shStyle, name) : null; return r && xmlAttr(r, 'idx') !== '0' ? r : null; };
+              if (!fill && !noFill && !fillNode && styleRef('fillRef')) fill = extractFillColor(styleRef('fillRef'));
+              var styleFontColor = styleRef('fontRef') ? extractFillColor(styleRef('fontRef')) : null;
               // 도형 내부에 그림 채우기(<a:blipFill>)가 있는 경우 이미지 도형으로 추가
               var spBlipFill = spPr ? directChild(spPr, 'blipFill') : null;
               if (spBlipFill) {
@@ -2331,6 +2348,7 @@
               var lnNode = spPr ? directChild(spPr, 'ln') : null;
               var noLine = lnNode ? directChild(lnNode, 'noFill') : null;
               var stroke = (lnNode && !noLine) ? (extractFillColor(lnNode) || (ln === 'cxnSp' ? '#475569' : null)) : null;
+              if (!stroke && !noLine && !(lnNode && extractFillColor(lnNode)) && styleRef('lnRef')) stroke = extractFillColor(styleRef('lnRef'));
               var prstGeom = spPr ? qOne(spPr, 'prstGeom') : null;
               var geom = prstGeom ? xmlAttr(prstGeom, 'prst') : (ln === 'cxnSp' ? 'line' : 'rect');
 
@@ -2351,7 +2369,7 @@
                   var bullet = buChar ? (xmlAttr(buChar, 'char') + ' ') : '';
                   var lineTxt = '';
                   var fontSize = (phType === 'title' || phType === 'ctrTitle') ? 34 : 21;
-                  var fontColor = isDarkBox ? '#f8fafc' : (activeThemeMap.tx1 || '#0f172a');
+                  var fontColor = styleFontColor || (isDarkBox ? '#f8fafc' : (activeThemeMap.tx1 || '#0f172a'));
                   var bold = (phType === 'title' || phType === 'ctrTitle');
 
                   qAll(pNode, 'r').forEach(function (rNode) {
@@ -2409,8 +2427,8 @@
           });
         }
 
-        var steps = parseSlideTiming(sDoc);
-        var slideObj = { bgColor: bgColor, bgDataUrl: bgDataUrl, elements: elements, steps: steps };
+        var timingInfo = parseSlideTiming(sDoc);
+        var slideObj = { bgColor: bgColor, bgDataUrl: bgDataUrl, elements: elements, steps: timingInfo.steps, autoTargets: timingInfo.autoTargets };
         await ensurePptxSlideImages(slideObj);
         newPages.push({
           kind: 'pptx',
@@ -2453,26 +2471,27 @@
     }
   }
 
+  // 애니메이션 효과를 순서대로 다시 재생해 지금 단계에서 각 도형·문단이 보이는지 정합니다.
+  // 첫 효과가 '나타내기'면 처음엔 숨기고, 나타내기/끝내기가 반복되면 마지막 상태를 따릅니다.
   function computePptxVisibility(slide, stepIdx) {
-    var shapeEntr = {}, shapeExit = {}, emphSet = {};
-    var paraEntr = {}, paraExit = {};
-    (slide.steps || []).forEach(function (st, idx) {
-      var stepNum = idx + 1;
-      (st.targets || []).forEach(function (tg) {
-        if (tg.pStart >= 0) {
-          for (var p = tg.pStart; p <= Math.max(tg.pStart, tg.pEnd); p++) {
-            var pk = tg.spid + ':' + p;
-            if (tg.presetClass === 'entr' && !paraEntr[pk]) paraEntr[pk] = stepNum;
-            if (tg.presetClass === 'exit' && !paraExit[pk]) paraExit[pk] = stepNum;
-          }
-        } else {
-          if (tg.presetClass === 'entr' && !shapeEntr[tg.spid]) shapeEntr[tg.spid] = stepNum;
-          if (tg.presetClass === 'exit' && !shapeExit[tg.spid]) shapeExit[tg.spid] = stepNum;
-        }
-        if (tg.presetClass === 'emph' && stepNum === stepIdx) emphSet[tg.spid] = true;
-      });
-    });
-    return { shapeEntr: shapeEntr, shapeExit: shapeExit, paraEntr: paraEntr, paraExit: paraExit, emphSet: emphSet };
+    var events = {}, emphSet = {};
+    function add(key, step, cls) { (events[key] = events[key] || []).push({ step: step, cls: cls }); }
+    function addTarget(tg, stepNum) {
+      if (tg.presetClass === 'emph') { if (stepNum === stepIdx && stepNum > 0) emphSet[tg.spid] = true; return; }
+      if (tg.pStart >= 0) {
+        for (var p = tg.pStart; p <= Math.max(tg.pStart, tg.pEnd); p++) add(tg.spid + ':' + p, stepNum, tg.presetClass);
+      } else add(tg.spid, stepNum, tg.presetClass);
+    }
+    (slide.autoTargets || []).forEach(function (tg) { addTarget(tg, 0); });
+    (slide.steps || []).forEach(function (st, idx) { (st.targets || []).forEach(function (tg) { addTarget(tg, idx + 1); }); });
+    function visible(key) {
+      var ev = events[key];
+      if (!ev || !ev.length) return true;
+      var on = ev[0].cls !== 'entr';
+      ev.forEach(function (e) { if (e.step <= stepIdx) on = e.cls === 'entr'; });
+      return on;
+    }
+    return { visible: visible, emphSet: emphSet };
   }
 
   function wrapCanvasText(ctx, text, maxW) {
@@ -2498,10 +2517,8 @@
 
     var vis = computePptxVisibility(slide, stepIdx);
     (slide.elements || []).forEach(function (elm) {
-      var reqStep = vis.shapeEntr[elm.spid] || 0;
-      if (reqStep > 0 && stepIdx < reqStep) return;
-      var hideStep = vis.shapeExit[elm.spid] || 0;
-      if (hideStep > 0 && stepIdx >= hideStep) return;
+      if (!vis.visible(elm.spid)) return;
+      if ((elm.groups || []).some(function (gid) { return !vis.visible(gid); })) return;   // 숨은 그룹 안의 도형
 
       ctx.save();
       if (elm.kind === 'pic' && elm.img) {
@@ -2561,18 +2578,16 @@
           var maxW = Math.max(40, elm.w - padX * 2);
           elm.paras.forEach(function (p, pIdx) {
             var pk = elm.spid + ':' + (typeof p.pIdx === 'number' ? p.pIdx : pIdx);
-            var pReq = vis.paraEntr[pk] || 0;
-            if (pReq > 0 && stepIdx < pReq) return;
-            var pHide = vis.paraExit[pk] || 0;
-            if (pHide > 0 && stepIdx >= pHide) return;
+            var pShown = vis.visible(pk);
 
             ctx.fillStyle = p.color || '#0f172a';
             ctx.font = (p.bold ? 'bold ' : '') + p.fontSize + 'px Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
             ctx.textBaseline = 'top';
             ctx.textAlign = p.align === 'ctr' ? 'center' : (p.align === 'r' ? 'right' : 'left');
             var tx = p.align === 'ctr' ? (elm.x + elm.w / 2) : (p.align === 'r' ? (elm.x + elm.w - padX) : (elm.x + padX));
+            // 아직 나타나지 않은 문단도 자리는 차지해, 나중 문단이 위로 당겨지지 않게 합니다(파워포인트와 같은 배치).
             wrapCanvasText(ctx, p.text, maxW).forEach(function (ln) {
-              ctx.fillText(ln, tx, py);
+              if (pShown) ctx.fillText(ln, tx, py);
               py += p.fontSize * 1.32;
             });
           });
@@ -2750,6 +2765,7 @@
           bgColor: pg.pptxSlide.bgColor,
           bgDataUrl: pg.pptxSlide.bgDataUrl || null,
           steps: pg.pptxSlide.steps || [],
+          autoTargets: pg.pptxSlide.autoTargets || [],
           elements: (pg.pptxSlide.elements || []).map(function (e) {
             var copy = Object.assign({}, e);
             delete copy.img;

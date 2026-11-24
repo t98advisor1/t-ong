@@ -178,6 +178,7 @@
           <li><b>도형</b> 메뉴에서 직선 · 사각형 · 원 · 채움사각을 고르고 끌어서 그립니다.</li>
           <li><kbd>T</kbd>를 누르고 화면을 누르면 글자 입력칸이 열립니다. <kbd>Enter</kbd>로 확정합니다.</li>
           <li><kbd>P</kbd>를 누르면 다시 펜으로 돌아옵니다.</li>
+          <li><b>그리다가 꾸욱</b>: 펜으로 원·네모·세모·직선을 그리고 끝에서 0.5초쯤 멈추면 반듯한 도형으로 바뀝니다. 멈추지 않고 떼면 손글씨 그대로 남습니다.</li>
         </ol>
         <div class="keys"><span><kbd>R</kbd> 사각형 <i>Rectangle</i></span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원 <i>Circle</i></span><span><kbd>L</kbd> 직선 <i>Line</i></span><span><kbd>T</kbd> 텍스트 <i>Text</i></span></div>
       </div>
@@ -193,6 +194,7 @@
           <li><kbd>S</kbd> 원형, <kbd>Q</kbd> 사각 번호 스탬프 — 누를 때마다 다음 번호가 찍힙니다. 두 스탬프는 번호 순서를 함께 씁니다.</li>
           <li>되돌리기 · 지우개 · 선택 삭제로 <b>중간 번호가 빠지면</b>, 다음 스탬프가 그 빈 번호부터 다시 채웁니다.</li>
           <li>여러 쪽에 걸쳐 번호가 이어집니다. 1번부터 새로 시작하려면 도형 메뉴의 <b>스탬프 번호 초기화</b>.</li>
+          <li>지우개 ▾ 메뉴의 <b>스탬프 전체 지우기</b>(<kbd>Shift</kbd>+<kbd>S</kbd>)로 스탬프만 한꺼번에 지울 수 있습니다.</li>
           <li>도형 메뉴의 <b>정답 가림막</b>으로 정답을 덮고, 수업 중에 눌러서 열고 닫습니다.</li>
         </ol>
         <div class="keys"><span><kbd>S</kbd> 원형 스탬프 <i>Stamp</i></span><span><kbd>Q</kbd> 사각 스탬프 <i>sQuare</i></span></div>
@@ -212,7 +214,7 @@
           <li><kbd>Esc</kbd>를 누르면 언제든 기본 상태(판서 · 펜)로 돌아옵니다.</li>
         </ol>
         <div class="keys"><span><kbd>V</kbd> 선택 <i>Select</i></span><span><kbd>Z</kbd> 레이저 <i>Zap</i></span><span><kbd>E</kbd> 지우개 <i>Eraser</i></span><span><kbd>Esc</kbd> 처음으로</span></div>
-        <div class="tip">✍️ 갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다. 한꺼번에 지우려면 <b>설정 → 화면 정리</b>의 <b>펜 글씨 전체 지우기 · 스탬프 전체 지우기 · 판서 전체삭제</b>를 쓰세요. 실수로 지웠다면 바로 되돌리기(<kbd>Ctrl</kbd>+<kbd>Z</kbd>)로 모두 되살아납니다.</div>
+        <div class="tip">✍️ 갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다. 한꺼번에 지우려면 <b>지우개 ▾</b> 메뉴(지우개를 한 번 더 눌러도 열림)에서 <b>펜 글씨 전체 지우기</b>(<kbd>Shift</kbd>+<kbd>E</kbd>) · <b>스탬프 전체 지우기</b>(<kbd>Shift</kbd>+<kbd>S</kbd>) · <b>전체 필기 지우기</b>(<kbd>Ctrl</kbd>+<kbd>E</kbd>)를 쓰세요. 실수로 지웠다면 바로 되돌리기(<kbd>Ctrl</kbd>+<kbd>Z</kbd>)로 모두 되살아납니다.</div>
       </div>
     </article>
 
@@ -259,6 +261,7 @@
           <li><b>다음 ▶</b> 또는 <kbd>Space</kbd> · <kbd>→</kbd>로 다음 장면을 보여 줍니다.</li>
           <li>파워포인트에서 넣은 <b>클릭 애니메이션</b>이 순서대로 나타납니다.</li>
           <li><b>전체</b>를 누르면 애니메이션을 건너뛰고 모두 보여 줍니다.</li>
+          <li>그룹으로 묶은 도형의 애니메이션, 슬라이드가 열릴 때 저절로 재생되는 효과(이전 효과와 함께/다음에), 나타났다 사라지는 효과를 파워포인트와 같은 순서로 보여 줍니다.</li>
         </ol>
         <div class="keys"><span><kbd>Space</kbd> 다음 장면</span><span><kbd>→</kbd> 다음</span><span><kbd>←</kbd> 이전</span></div>
       </div>
@@ -374,7 +377,8 @@
         <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>되돌리기 / 다시 실행</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>현재 화면 PNG 저장</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>노트 저장</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>현재 쪽 판서 전체 삭제</td></tr>
+        <tr><td><kbd>Shift</kbd>+<kbd>E</kbd> / <kbd>Shift</kbd>+<kbd>S</kbd></td><td>펜 글씨 / 스탬프 전체 지우기</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>현재 쪽 전체 필기 지우기</td></tr>
       </table></div>
     </div>
 
