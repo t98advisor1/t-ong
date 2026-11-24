@@ -102,9 +102,9 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
             <span>레이저</span><kbd>Z</kbd>
           </button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="eraser" id="sbEraserToolBtn" title="지우개 (E · Eraser / S펜 옆 버튼 스위치)">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="eraser" id="sbEraserToolBtn" title="지우개 (E · Eraser / S펜 옆 버튼 스위치) — ▾ 또는 한 번 더 누르면 전체 지우기 메뉴">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H7L3 16a2 2 0 0 1 0-2.8l9.6-9.6a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20"/></svg>
-            <span>지우개</span><kbd>E</kbd>
+            <span>지우개</span><kbd>E</kbd><span class="sb-caret" title="전체 지우기 메뉴">▾</span>
           </button>
         </div>
 
@@ -605,6 +605,20 @@
   <!-- ================================================================= -->
   <!-- 도형 · 스탬프 · 텍스트 카테고리 드롭다운 메뉴 (#sbMoreToolsMenu) -->
   <!-- ================================================================= -->
+  <div class="sb-tool-popover sb-eraser-popover" id="sbEraserMenu" role="menu" aria-label="지우개 및 전체 지우기">
+    <div class="sb-pop-sec-title">지우개</div>
+    <div class="sb-pop-grid">
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn sb-pop-full-btn" data-sb-tool="eraser" title="문지른 선을 지우는 지우개 (E · Eraser)"><span>지우개</span><kbd>E</kbd></button>
+    </div>
+    <div class="sb-pop-sec-title" style="margin-top:8px;">한꺼번에 지우기 · 현재 쪽</div>
+    <div class="sb-pop-list">
+      <button type="button" class="sb-pop-list-btn" id="sbEraseAllPenBtn" title="펜·형광펜 글씨만 모두 지우기 (Shift + E)"><span>펜 글씨 전체 지우기</span><kbd>Shift+E</kbd></button>
+      <button type="button" class="sb-pop-list-btn" id="sbEraseAllStampBtn" title="번호 스탬프만 모두 지우기 (Shift + S)"><span>스탬프 전체 지우기</span><kbd>Shift+S</kbd></button>
+      <button type="button" class="sb-pop-list-btn danger" id="sbEraseAllInkBtn" title="펜·도형·텍스트·스탬프·가림막 모두 지우기 (Ctrl + E)"><span>전체 필기 지우기</span><kbd>Ctrl+E</kbd></button>
+    </div>
+    <p class="sb-pop-note">실수로 지웠다면 바로 되돌리기(Ctrl+Z)로 한꺼번에 되살아납니다.</p>
+  </div>
+
   <div class="sb-tool-popover" id="sbMoreToolsMenu" role="menu" aria-label="도형 및 추가 판서 도구">
     <div class="sb-pop-sec-title">도형 그리기</div>
     <div class="sb-pop-grid">
@@ -646,9 +660,9 @@
     </div>
     <div class="sb-pop-sec-title" style="margin-top:8px;">화면 정리</div>
     <div class="sb-pop-grid">
-      <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbClearPenBtn" title="현재 페이지의 펜·형광펜 글씨만 모두 지우기 (되돌리기로 복구)">펜 글씨 전체 지우기</button>
-      <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbClearStampsBtn" title="현재 페이지의 번호 스탬프만 모두 지우기 (되돌리기로 복구)">스탬프 전체 지우기</button>
-      <button type="button" class="sb-btn sb-btn-danger sb-btn-xs" id="sbClearInkBtn" title="현재 페이지 판서 전체 삭제 (Ctrl+E · 되돌리기로 복구)">판서 전체삭제</button>
+      <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbClearPenBtn" title="현재 페이지의 펜·형광펜 글씨만 모두 지우기 (Shift+E · 되돌리기로 복구)">펜 글씨 전체 지우기</button>
+      <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbClearStampsBtn" title="현재 페이지의 번호 스탬프만 모두 지우기 (Shift+S · 되돌리기로 복구)">스탬프 전체 지우기</button>
+      <button type="button" class="sb-btn sb-btn-danger sb-btn-xs" id="sbClearInkBtn" title="현재 쪽의 펜·도형·텍스트·스탬프·가림막 모두 지우기 (Ctrl+E · 되돌리기로 복구)">전체 필기 지우기</button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbClearPinsBtn" title="화면에 고정된 게시 조각 모두 닫기">고정조각 닫기</button>
     </div>
   </div>
