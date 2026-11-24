@@ -1259,6 +1259,84 @@
     return null;
   }
 
+  // ===================================================================
+  // 그리다가 꾸욱 — 펜으로 그린 뒤 끝에서 잠깐(0.55초) 멈추면 반듯한 도형(직선·삼각형·사각형·원)으로 바꿉니다.
+  // ===================================================================
+  var SHAPE_HOLD_MS = 550;
+  function armShapeHold(pt) {
+    var a = pointer.holdAnchor;
+    if (a && Math.hypot(pt.x - a.x, pt.y - a.y) <= 6) return;   // 손이 거의 멈춰 있으면 타이머를 그대로 둡니다
+    pointer.holdAnchor = { x: pt.x, y: pt.y };
+    clearTimeout(pointer.holdTimer);
+    pointer.holdTimer = setTimeout(snapHeldStroke, SHAPE_HOLD_MS);
+  }
+  function snapHeldStroke() {
+    if (!pointer.down || !pointer.currentStroke || pointer.snapShape || pointer.effectiveTool !== 'pen') return;
+    var shape = recognizeShape(pointer.currentStroke.points);
+    if (!shape) return;
+    shape.id = uid();
+    shape.color = pointer.currentStroke.color;
+    shape.size = Math.max(2, pointer.currentStroke.size);
+    pointer.snapShape = shape;
+    var pg = curPage();
+    liveCtx.clearRect(0, 0, pg.width, pg.height);
+    drawInkObject(liveCtx, shape);
+  }
+  function rdp(points, eps) {
+    if (points.length < 3) return points.slice();
+    var a = points[0], b = points[points.length - 1], maxD = -1, idx = 0;
+    var dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+    for (var i = 1; i < points.length - 1; i++) {
+      var d = Math.abs(dy * points[i].x - dx * points[i].y + b.x * a.y - b.y * a.x) / len;
+      if (d > maxD) { maxD = d; idx = i; }
+    }
+    if (maxD <= eps) return [a, b];
+    return rdp(points.slice(0, idx + 1), eps).slice(0, -1).concat(rdp(points.slice(idx), eps));
+  }
+  function recognizeShape(pts) {
+    if (!pts || pts.length < 6) return null;
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, pathLen = 0;
+    pts.forEach(function (p, i) {
+      minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+      if (i) pathLen += Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y);
+    });
+    var w = maxX - minX, h = maxY - minY, diag = Math.hypot(w, h);
+    if (diag < 24) return null;
+    var s0 = pts[0], s1 = pts[pts.length - 1], chord = Math.hypot(s1.x - s0.x, s1.y - s0.y);
+    // 직선: 거의 곧게 그은 선 — 수평·수직에 가까우면 반듯하게 맞춥니다.
+    if (chord > 0.9 * pathLen) {
+      var x2 = s1.x, y2 = s1.y, ang = Math.abs(Math.atan2(s1.y - s0.y, s1.x - s0.x) * 180 / Math.PI);
+      if (ang < 7 || ang > 173) y2 = s0.y; else if (Math.abs(ang - 90) < 7) x2 = s0.x;
+      return { type: 'line', x1: s0.x, y1: s0.y, x2: x2, y2: y2 };
+    }
+    // 닫힌 도형: 시작점과 끝점이 가까울 때만
+    if (chord > Math.max(40, 0.3 * diag)) return null;
+    // 닫힌 선은 시작점과 가장 먼 점에서 둘로 나눠 꼭짓점을 찾습니다(시작=끝이면 한 번에 계산할 수 없음).
+    var far = 0, farD = -1;
+    pts.forEach(function (p, i) { var dd = Math.hypot(p.x - s0.x, p.y - s0.y); if (dd > farD) { farD = dd; far = i; } });
+    var eps = 0.07 * diag;
+    var poly = rdp(pts.slice(0, far + 1), eps).slice(0, -1).concat(rdp(pts.slice(far).concat([s0]), eps));
+    var corners = [];
+    poly.slice(0, -1).forEach(function (p) {
+      if (!corners.some(function (c) { return Math.hypot(c.x - p.x, c.y - p.y) < 0.15 * diag; })) corners.push(p);
+    });
+    if (corners.length === 3) {
+      // 삼각형 — 변을 따라 점을 촘촘히 두어 반듯한 선으로 그립니다.
+      var tri = [], v = corners.concat([corners[0]]);
+      for (var k = 0; k < 3; k++) for (var t = 0; t < 1; t += 0.05) tri.push({ x: v[k].x + (v[k + 1].x - v[k].x) * t, y: v[k].y + (v[k + 1].y - v[k].y) * t, p: 0.6 });
+      tri.push({ x: v[0].x, y: v[0].y, p: 0.6 });
+      return { type: 'stroke', penStyle: 'ballpoint', points: tri };
+    }
+    if (corners.length === 4) return { type: 'rect', x: minX, y: minY, w: w, h: h };
+    // 그 밖에는 원·타원 — 가로세로가 비슷하면 정원으로
+    var ratio = w / Math.max(1, h);
+    if (ratio > 0.82 && ratio < 1.22) {
+      var r = (w + h) / 2, cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+      return { type: 'circle', x: cx - r / 2, y: cy - r / 2, w: r, h: r };
+    }
+    return { type: 'circle', x: minX, y: minY, w: w, h: h };
+  }
+
   // 터치 제스처 — 두 손가락은 확대·축소와 이동을 함께, 세 손가락 이상은 이동만 합니다.
   function touchPoints() { return Object.keys(pointer.pinchMap).map(function (k) { return pointer.pinchMap[k]; }); }
   function startTouchGesture() {
@@ -1301,6 +1379,7 @@
       if (Object.keys(pointer.pinchMap).length >= 2) {
         // 두 손가락: 벌리고 오므려 확대·축소하며 이동 / 세 손가락: 화면 이동. 쓰던 획은 버립니다.
         if (pointer.down && pointer.effectiveTool !== 'pan') { liveCtx.clearRect(0, 0, curPage().width, curPage().height); pointer.currentStroke = null; }
+        clearTimeout(pointer.holdTimer); pointer.snapShape = null;
         pointer.down = false;
         startTouchGesture();
         return;
@@ -1436,6 +1515,9 @@
         : 0.55;
       pointer.lastMoveTime = Date.now();
       pointer.lastPressure = initP;
+      pointer.snapShape = null;
+      pointer.holdAnchor = null;
+      clearTimeout(pointer.holdTimer);
       pointer.currentStroke = {
         id: uid(),
         type: eff === 'highlighter' ? 'highlighter' : 'stroke',
@@ -1547,6 +1629,8 @@
       state.laserPoints.push({ x: pt.x, y: pt.y, t: Date.now() });
       if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
     } else if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
+      if (pointer.snapShape) return;   // 이미 도형으로 바뀌었으면 손을 뗄 때까지 그대로 둡니다
+      if (eff === 'pen') armShapeHold(pt);
       var nowT = Date.now();
       var dt = Math.max(1, nowT - (pointer.lastMoveTime || nowT));
       var segDist = Math.hypot(pt.x - pointer.lastX, pt.y - pointer.lastY);
@@ -1633,8 +1717,10 @@
     }
 
     var eff = pointer.effectiveTool;
+    clearTimeout(pointer.holdTimer);
     if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
-      curPg.objects.push(pointer.currentStroke);
+      curPg.objects.push(pointer.snapShape || pointer.currentStroke);
+      pointer.snapShape = null;
       curPg.redoStack = [];
       pointer.currentStroke = null;
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
@@ -1840,7 +1926,7 @@
   // 실제 파워포인트 <p:timing> 클릭 시퀀스 파서 (mainSeq + interactiveSeq 트리거 + 문단 pRg + bldP 완벽 지원)
   function parseSlideTiming(doc) {
     var timing = qOne(doc, 'timing');
-    if (!timing) return [];
+    if (!timing) return { steps: [], autoTargets: [] };
 
     // bldLst(<p:bldP spid="3" build="p"/>) 문단 빌드 대상 파악
     var bldParaMap = {};
@@ -1860,6 +1946,7 @@
     var searchRoots = seqNodes.length ? seqNodes : [timing];
 
     var steps = [];
+    var autoStep = { targets: [] };
     var seenInStep = {};
 
     function extractTargetsFromEffectNode(effectCtn, presetClass) {
@@ -1910,12 +1997,17 @@
         var tgts = extractTargetsFromEffectNode(ctn, pClass);
         if (!tgts.length) return;
 
-        var isClickStart = (nt === 'clickEffect') || !steps.length;
-        if (isClickStart) {
+        // 첫 클릭 전에 '이전 효과와 함께/다음에'로 시작하는 효과는 슬라이드가 열릴 때 저절로 재생됩니다(클릭 단계가 아님).
+        var curStep;
+        if (nt === 'clickEffect') {
           steps.push({ targets: [] });
           seenInStep = {};
+          curStep = steps[steps.length - 1];
+        } else if (!steps.length) {
+          curStep = autoStep;
+        } else {
+          curStep = steps[steps.length - 1];
         }
-        var curStep = steps[steps.length - 1];
         tgts.forEach(function (t) {
           var key = t.spid + ':' + t.pStart + ':' + t.pEnd + ':' + t.presetClass;
           if (!seenInStep[key]) {
@@ -1926,7 +2018,7 @@
       });
     });
 
-    return steps.filter(function (s) { return s.targets.length > 0; });
+    return { steps: steps.filter(function (s) { return s.targets.length > 0; }), autoTargets: autoStep.targets };
   }
 
   function defaultPlaceholderBox(phType, phIdx, bw, bh) {
@@ -2179,7 +2271,13 @@
                   chH: parseInt(xmlAttr(gchExt, 'cy'), 10) || slideCy
                 };
               }
+              // 그룹에 건 애니메이션이 그룹 안 도형에도 적용되도록, 안쪽 도형에 그룹 id를 기록합니다.
+              var grpNv = directChild(ch, 'nvGrpSpPr');
+              var grpCNvPr = grpNv ? directChild(grpNv, 'cNvPr') : null;
+              var grpId = grpCNvPr ? xmlAttr(grpCNvPr, 'id') : '';
+              var grpStart = elements.length;
               await parseShapeTree(ch, nextTf);
+              if (grpId) for (var gi = grpStart; gi < elements.length; gi++) elements[gi].groups = [grpId].concat(elements[gi].groups || []);
               continue;
             }
 
@@ -2234,6 +2332,11 @@
               var noFill = spPr ? directChild(spPr, 'noFill') : null;
               var fillNode = spPr ? (directChild(spPr, 'solidFill') || directChild(spPr, 'gradFill')) : null;
               var fill = noFill ? null : extractFillColor(fillNode);
+              // 도형에 색을 직접 주지 않으면 파워포인트 기본 도형 스타일(<p:style>의 테마 색)을 따릅니다.
+              var shStyle = directChild(ch, 'style');
+              var styleRef = function (name) { var r = shStyle ? directChild(shStyle, name) : null; return r && xmlAttr(r, 'idx') !== '0' ? r : null; };
+              if (!fill && !noFill && !fillNode && styleRef('fillRef')) fill = extractFillColor(styleRef('fillRef'));
+              var styleFontColor = styleRef('fontRef') ? extractFillColor(styleRef('fontRef')) : null;
               // 도형 내부에 그림 채우기(<a:blipFill>)가 있는 경우 이미지 도형으로 추가
               var spBlipFill = spPr ? directChild(spPr, 'blipFill') : null;
               if (spBlipFill) {
@@ -2245,6 +2348,7 @@
               var lnNode = spPr ? directChild(spPr, 'ln') : null;
               var noLine = lnNode ? directChild(lnNode, 'noFill') : null;
               var stroke = (lnNode && !noLine) ? (extractFillColor(lnNode) || (ln === 'cxnSp' ? '#475569' : null)) : null;
+              if (!stroke && !noLine && !(lnNode && extractFillColor(lnNode)) && styleRef('lnRef')) stroke = extractFillColor(styleRef('lnRef'));
               var prstGeom = spPr ? qOne(spPr, 'prstGeom') : null;
               var geom = prstGeom ? xmlAttr(prstGeom, 'prst') : (ln === 'cxnSp' ? 'line' : 'rect');
 
@@ -2265,7 +2369,7 @@
                   var bullet = buChar ? (xmlAttr(buChar, 'char') + ' ') : '';
                   var lineTxt = '';
                   var fontSize = (phType === 'title' || phType === 'ctrTitle') ? 34 : 21;
-                  var fontColor = isDarkBox ? '#f8fafc' : (activeThemeMap.tx1 || '#0f172a');
+                  var fontColor = styleFontColor || (isDarkBox ? '#f8fafc' : (activeThemeMap.tx1 || '#0f172a'));
                   var bold = (phType === 'title' || phType === 'ctrTitle');
 
                   qAll(pNode, 'r').forEach(function (rNode) {
@@ -2323,8 +2427,8 @@
           });
         }
 
-        var steps = parseSlideTiming(sDoc);
-        var slideObj = { bgColor: bgColor, bgDataUrl: bgDataUrl, elements: elements, steps: steps };
+        var timingInfo = parseSlideTiming(sDoc);
+        var slideObj = { bgColor: bgColor, bgDataUrl: bgDataUrl, elements: elements, steps: timingInfo.steps, autoTargets: timingInfo.autoTargets };
         await ensurePptxSlideImages(slideObj);
         newPages.push({
           kind: 'pptx',
@@ -2367,26 +2471,27 @@
     }
   }
 
+  // 애니메이션 효과를 순서대로 다시 재생해 지금 단계에서 각 도형·문단이 보이는지 정합니다.
+  // 첫 효과가 '나타내기'면 처음엔 숨기고, 나타내기/끝내기가 반복되면 마지막 상태를 따릅니다.
   function computePptxVisibility(slide, stepIdx) {
-    var shapeEntr = {}, shapeExit = {}, emphSet = {};
-    var paraEntr = {}, paraExit = {};
-    (slide.steps || []).forEach(function (st, idx) {
-      var stepNum = idx + 1;
-      (st.targets || []).forEach(function (tg) {
-        if (tg.pStart >= 0) {
-          for (var p = tg.pStart; p <= Math.max(tg.pStart, tg.pEnd); p++) {
-            var pk = tg.spid + ':' + p;
-            if (tg.presetClass === 'entr' && !paraEntr[pk]) paraEntr[pk] = stepNum;
-            if (tg.presetClass === 'exit' && !paraExit[pk]) paraExit[pk] = stepNum;
-          }
-        } else {
-          if (tg.presetClass === 'entr' && !shapeEntr[tg.spid]) shapeEntr[tg.spid] = stepNum;
-          if (tg.presetClass === 'exit' && !shapeExit[tg.spid]) shapeExit[tg.spid] = stepNum;
-        }
-        if (tg.presetClass === 'emph' && stepNum === stepIdx) emphSet[tg.spid] = true;
-      });
-    });
-    return { shapeEntr: shapeEntr, shapeExit: shapeExit, paraEntr: paraEntr, paraExit: paraExit, emphSet: emphSet };
+    var events = {}, emphSet = {};
+    function add(key, step, cls) { (events[key] = events[key] || []).push({ step: step, cls: cls }); }
+    function addTarget(tg, stepNum) {
+      if (tg.presetClass === 'emph') { if (stepNum === stepIdx && stepNum > 0) emphSet[tg.spid] = true; return; }
+      if (tg.pStart >= 0) {
+        for (var p = tg.pStart; p <= Math.max(tg.pStart, tg.pEnd); p++) add(tg.spid + ':' + p, stepNum, tg.presetClass);
+      } else add(tg.spid, stepNum, tg.presetClass);
+    }
+    (slide.autoTargets || []).forEach(function (tg) { addTarget(tg, 0); });
+    (slide.steps || []).forEach(function (st, idx) { (st.targets || []).forEach(function (tg) { addTarget(tg, idx + 1); }); });
+    function visible(key) {
+      var ev = events[key];
+      if (!ev || !ev.length) return true;
+      var on = ev[0].cls !== 'entr';
+      ev.forEach(function (e) { if (e.step <= stepIdx) on = e.cls === 'entr'; });
+      return on;
+    }
+    return { visible: visible, emphSet: emphSet };
   }
 
   function wrapCanvasText(ctx, text, maxW) {
@@ -2412,10 +2517,8 @@
 
     var vis = computePptxVisibility(slide, stepIdx);
     (slide.elements || []).forEach(function (elm) {
-      var reqStep = vis.shapeEntr[elm.spid] || 0;
-      if (reqStep > 0 && stepIdx < reqStep) return;
-      var hideStep = vis.shapeExit[elm.spid] || 0;
-      if (hideStep > 0 && stepIdx >= hideStep) return;
+      if (!vis.visible(elm.spid)) return;
+      if ((elm.groups || []).some(function (gid) { return !vis.visible(gid); })) return;   // 숨은 그룹 안의 도형
 
       ctx.save();
       if (elm.kind === 'pic' && elm.img) {
@@ -2475,18 +2578,16 @@
           var maxW = Math.max(40, elm.w - padX * 2);
           elm.paras.forEach(function (p, pIdx) {
             var pk = elm.spid + ':' + (typeof p.pIdx === 'number' ? p.pIdx : pIdx);
-            var pReq = vis.paraEntr[pk] || 0;
-            if (pReq > 0 && stepIdx < pReq) return;
-            var pHide = vis.paraExit[pk] || 0;
-            if (pHide > 0 && stepIdx >= pHide) return;
+            var pShown = vis.visible(pk);
 
             ctx.fillStyle = p.color || '#0f172a';
             ctx.font = (p.bold ? 'bold ' : '') + p.fontSize + 'px Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif';
             ctx.textBaseline = 'top';
             ctx.textAlign = p.align === 'ctr' ? 'center' : (p.align === 'r' ? 'right' : 'left');
             var tx = p.align === 'ctr' ? (elm.x + elm.w / 2) : (p.align === 'r' ? (elm.x + elm.w - padX) : (elm.x + padX));
+            // 아직 나타나지 않은 문단도 자리는 차지해, 나중 문단이 위로 당겨지지 않게 합니다(파워포인트와 같은 배치).
             wrapCanvasText(ctx, p.text, maxW).forEach(function (ln) {
-              ctx.fillText(ln, tx, py);
+              if (pShown) ctx.fillText(ln, tx, py);
               py += p.fontSize * 1.32;
             });
           });
@@ -2664,6 +2765,7 @@
           bgColor: pg.pptxSlide.bgColor,
           bgDataUrl: pg.pptxSlide.bgDataUrl || null,
           steps: pg.pptxSlide.steps || [],
+          autoTargets: pg.pptxSlide.autoTargets || [],
           elements: (pg.pptxSlide.elements || []).map(function (e) {
             var copy = Object.assign({}, e);
             delete copy.img;
@@ -3576,7 +3678,7 @@
       showToast(doneMsg.replace('{n}', removed) + ' 되돌리기(Ctrl+Z)로 복구할 수 있습니다.');
     }
     if (el('sbClearInkBtn')) el('sbClearInkBtn').addEventListener('click', function () {
-      bulkClear(function () { return false; }, '현재 페이지 판서 {n}개를 모두 삭제했습니다.', '지울 판서가 없습니다.');
+      bulkClear(function () { return false; }, '현재 쪽의 필기 {n}개를 모두 지웠습니다.', '지울 필기가 없습니다.');
     });
     if (el('sbClearPenBtn')) el('sbClearPenBtn').addEventListener('click', function () {
       bulkClear(function (o) { return o.type !== 'stroke' && o.type !== 'highlighter'; }, '펜 글씨 {n}개를 지웠습니다.', '지울 펜 글씨가 없습니다.');
@@ -3663,7 +3765,7 @@
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
     // PNG · PDF 저장 / 펜 종류 / 도형·도구 / 보드 설정 팝오버 통합 제어
     function closeAllPopovers() {
-      ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu'].forEach(function (id) {
+      ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
         if (el(id)) el(id).classList.remove('show');
       });
     }
@@ -3675,22 +3777,41 @@
         e.stopPropagation();
         var willOpen = !menu.classList.contains('show');
         closeAllPopovers();
-        if (willOpen) {
-          var rect = btn.getBoundingClientRect();
-          menu.style.top = Math.round(rect.bottom + 6) + 'px';
-          if (alignRight) {
-            menu.style.left = 'auto';
-            menu.style.right = Math.max(10, Math.round(window.innerWidth - rect.right)) + 'px';
-          } else {
-            menu.style.right = 'auto';
-            var maxLeft = Math.max(10, window.innerWidth - 330);
-            menu.style.left = Math.min(maxLeft, Math.max(10, Math.round(rect.left))) + 'px';
-          }
-          menu.classList.add('show');
-        }
+        if (willOpen) showAnchoredPopover(btn, menu, alignRight);
       });
       menu.addEventListener('click', function (e) { e.stopPropagation(); });
     }
+    function showAnchoredPopover(btn, menu, alignRight) {
+      var rect = btn.getBoundingClientRect();
+      menu.style.top = Math.round(rect.bottom + 6) + 'px';
+      if (alignRight) {
+        menu.style.left = 'auto';
+        menu.style.right = Math.max(10, Math.round(window.innerWidth - rect.right)) + 'px';
+      } else {
+        menu.style.right = 'auto';
+        var maxLeft = Math.max(10, window.innerWidth - 330);
+        menu.style.left = Math.min(maxLeft, Math.max(10, Math.round(rect.left))) + 'px';
+      }
+      menu.classList.add('show');
+    }
+    // 지우개 버튼: 처음 누르면 지우개, 지우개가 켜진 상태에서 한 번 더 누르거나 ▾를 누르면 전체 지우기 메뉴
+    (function () {
+      var btn = el('sbEraserToolBtn'), menu = el('sbEraserMenu');
+      if (!btn || !menu) return;
+      var wasEraser = false;
+      btn.addEventListener('pointerdown', function () { wasEraser = state.tool === 'eraser'; }, true);
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = menu.classList.contains('show');
+        closeAllPopovers();
+        if (!open && (wasEraser || e.target.closest('.sb-caret'))) showAnchoredPopover(btn, menu, false);
+      });
+      menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      menu.querySelectorAll('[data-sb-tool]').forEach(function (b) { b.addEventListener('click', closeAllPopovers); });
+      [['sbEraseAllPenBtn', 'sbClearPenBtn'], ['sbEraseAllStampBtn', 'sbClearStampsBtn'], ['sbEraseAllInkBtn', 'sbClearInkBtn']].forEach(function (pair) {
+        if (el(pair[0])) el(pair[0]).addEventListener('click', function () { closeAllPopovers(); if (el(pair[1])) el(pair[1]).click(); });
+      });
+    })();
     bindAnchoredPopover('sbSaveMenuBtn', 'sbSaveMenu', true);
     bindAnchoredPopover('sbPenMenuBtn', 'sbPenMenu', false);
     bindAnchoredPopover('sbMoreToolsBtn', 'sbMoreToolsMenu', false);
@@ -3946,7 +4067,9 @@
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         var k = e.key.toLowerCase();
         // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
-        if (k === 'v') setTool('select');
+        if (e.shiftKey && k === 'e') { if (el('sbClearPenBtn')) el('sbClearPenBtn').click(); }
+        else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); }
+        else if (k === 'v') setTool('select');
         else if (k === 'm') {
           setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
           if (state.tool === 'hand') showToast(state.zoomScale > 1.02 ? '이동(M): 끌어서 확대한 화면을 옮기세요. 다시 M을 누르면 펜으로 돌아갑니다.' : '이동(M): 확대(Alt+1)한 뒤 끌어서 화면을 옮길 수 있습니다.');
