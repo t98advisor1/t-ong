@@ -279,8 +279,8 @@
   function toggleZoom() {
     if (state.mode === 'zoom' || state.zoomScale > 1.02) {
       resetZoom();
-      setMode('draw');
-      showToast('확대를 끄고 100% 화면으로 돌아왔습니다.');
+      restorePreZoom();
+      showToast('확대를 끄고 확대 전 화면·도구로 돌아왔습니다.');
     } else {
       setMode('zoom');
     }
@@ -992,7 +992,15 @@
   // ===================================================================
   // 모드 & 도구 전환
   // ===================================================================
+  // 확대 전 모드·도구를 기억했다가, 확대를 끄면(Ctrl+1 한 번 더) 그대로 되돌립니다.
+  function restorePreZoom() {
+    var pz = state.preZoom;
+    state.preZoom = null;
+    if (pz && pz.tool && pz.tool !== state.tool) setTool(pz.tool);
+    setMode(pz && (pz.mode === 'draw' || pz.mode === 'edit') ? pz.mode : 'draw');
+  }
   function setMode(nextMode) {
+    if (nextMode === 'zoom' && state.mode !== 'zoom' && state.zoomScale <= 1.02) state.preZoom = { mode: state.mode, tool: state.tool };
     commitInlineText();
     if (nextMode !== 'edit') clearSelection();
     state.mode = nextMode;
@@ -3355,7 +3363,7 @@
   }
 
   // ===================================================================
-  // PNG 저장 (Ctrl + S) & 전체 페이지 합본 PDF 저장
+  // PNG 저장 & 전체 페이지 합본 PDF 저장
   // ===================================================================
   function saveCurrentPng() {
     var comp = createCompositeCanvas();
@@ -3728,8 +3736,12 @@
     }
 
     // 버전 · 수정 이력 · 이용 현황
-    var SB_VERSION = '2.7.0';
+    var SB_VERSION = '2.7.1';
     var SB_CHANGELOG = [
+      { v: '2.7.1', d: '2026-11-25', items: [
+        '스탬프 전체 지우기 단축키를 Ctrl+S로 변경 (PNG 저장은 PNG·PDF ▾ 버튼)',
+        'Ctrl+1을 두 번 누르면 확대 전 모드·도구(형광펜·레이저 등) 그대로 돌아오기'
+      ] },
       { v: '2.7.0', d: '2026-11-25', items: [
         '판서 1분마다 자동 저장 · 다른 앱으로 갔다 오거나 홈으로 나갈 때도 저장',
         '스마트 판서를 다시 열면 마지막으로 쓰던 노트·쪽으로 바로 돌아오기',
@@ -3967,7 +3979,7 @@
       });
     });
 
-    if (el('sbZoomResetBtn')) el('sbZoomResetBtn').addEventListener('click', function () { resetZoom(); if (state.mode === 'zoom') setMode('draw'); if (state.tool === 'hand') setTool(state.lastDrawTool || 'pen'); });
+    if (el('sbZoomResetBtn')) el('sbZoomResetBtn').addEventListener('click', function () { resetZoom(); if (state.preZoom) restorePreZoom(); else { if (state.mode === 'zoom') setMode('draw'); if (state.tool === 'hand') setTool(state.lastDrawTool || 'pen'); } });
     if (el('sbZoomHandBtn')) el('sbZoomHandBtn').addEventListener('click', function () {
       if (state.mode === 'zoom') setMode('draw');
       setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
@@ -4326,7 +4338,7 @@
       if (modKey && (e.key === '2' || e.code === 'Digit2')) { e.preventDefault(); setMode('draw'); return; }
       if (modKey && (e.key === '3' || e.code === 'Digit3')) { e.preventDefault(); setMode(state.mode === 'edit' ? 'draw' : 'edit'); return; }
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); serializeCurrentNote(false); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveCurrentPng(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); el('sbUndoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); el('sbRedoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); el('sbClearInkBtn').click(); return; }
@@ -4353,7 +4365,7 @@
         var k = e.key.toLowerCase();
         // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
         if (e.shiftKey && k === 'e') { if (el('sbClearPenBtn')) el('sbClearPenBtn').click(); }
-        else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); }
+        else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); } // 예전 단축키(지금은 Ctrl+S)
         else if (k === 'v') setTool('select');
         else if (k === 'm') {
           setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
