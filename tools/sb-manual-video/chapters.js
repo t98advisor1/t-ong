@@ -184,7 +184,7 @@ module.exports = [
       await d.press('p', 'P  펜');
       await d.caption('한꺼번에 지울 때는 <b>지우개 ▾</b> 메뉴 (지우개를 한 번 더 눌러도 열림)', 800);
       await d.click('#sbEraserToolBtn .sb-caret', 1000);
-      await d.caption('펜 글씨 <b>Shift+E</b> · 스탬프 <b>Shift+S</b> · 전체 필기 <b>Ctrl+E</b>', 600);
+      await d.caption('펜 글씨 <b>Shift+E</b> · 스탬프 <b>Ctrl+S</b> · 전체 필기 <b>Ctrl+E</b>', 600);
       await d.click('#sbEraseAllPenBtn', 1500);
       await d.caption('실수로 지웠다면 바로 <b>되돌리기</b> (Ctrl+Z) — 한꺼번에 되살아납니다', 300);
       await d.press('Control+z', 'Ctrl + Z');
