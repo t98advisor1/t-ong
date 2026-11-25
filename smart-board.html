@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.7.1">
+  <link rel="stylesheet" href="./smart-board.css?v=2.7.2">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -75,7 +75,8 @@
 
         <!-- 내보내기(PNG·PDF) & 자동 숨김 / 접기 제어 -->
         <div class="sb-top-group sb-right-controls">
-          <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-btn-export" id="sbSaveMenuBtn" title="현재 화면 PNG 이미지 또는 전체 페이지 합본 PDF 저장">PNG·PDF ▾</button>
+          <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-btn-export" id="sbSaveMenuBtn" title="현재 화면 PNG 이미지(Ctrl+P) 또는 전체 페이지 합본 PDF 저장">PNG·PDF ▾</button>
+          <button type="button" class="sb-btn sb-btn-accent sb-btn-xs sb-btn-share" id="sbShareMenuBtn" title="판서를 PNG·PDF로 공유하거나 복사해 노션·카톡·구글 클래스룸 등에 붙여넣기">공유 ▾</button>
           <button type="button" class="sb-spen-pill" id="sbAutoHideBtn" title="판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 화면을 100% 넓게 씁니다">자동숨김 OFF</button>
           <button type="button" class="sb-pal-fold-btn" id="sbFoldPaletteBtn" title="상단 팔레트 위로 숨기기 (Tab)">▲ 숨김<kbd class="sb-key">Tab</kbd></button>
         </div>
@@ -394,7 +395,7 @@
               <tr><td><b>팔레트 · 전체화면 · 단축키 창</b></td><td><kbd>Tab</kbd> / <kbd>F</kbd> / <kbd>?</kbd> (<kbd>F1</kbd>)</td><td>상단 팔레트 숨기기·펼치기(<kbd>Tab</kbd>) / 꽉 찬 전체화면(<kbd>F</kbd>) / 단축키 창(<kbd>?</kbd>) — 기본 펜으로 돌아가려면 <kbd>P</kbd>(Pen) 또는 <kbd>Ctrl+2</kbd></td></tr>
               <tr><td><b>한꺼번에 지우기 (지우개 ▾)</b></td><td><kbd>Shift + E</kbd> / <kbd>Ctrl + S</kbd> / <kbd>Ctrl + E</kbd></td><td><b>펜 글씨 전체 지우기(<kbd>Shift+E</kbd> · Eraser)</b> / <b>스탬프 전체 지우기(<kbd>Shift+S</kbd> · Stamp)</b> / <b>전체 필기 지우기(<kbd>Ctrl+E</kbd>)</b> — 바로 되돌리기(<kbd>Ctrl+Z</kbd>)로 모두 복구</td></tr>
               <tr><td><b>그리다가 꾸욱 → 도형</b></td><td><b>펜으로 그린 뒤 끝에서 0.5초 멈춤</b></td><td>손으로 그린 원·네모·세모·별(한 붓 별 ☆)·직선이 반듯한 도형으로 바뀝니다. 멈추지 않고 떼면 손글씨 그대로 남습니다.</td></tr>
-              <tr><td><b>배경 · 전체삭제 · 저장</b></td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+E</kbd> · <kbd>Ctrl+Shift+S</kbd></td><td>칠판 배경(<kbd>K</kbd>) · 백지 배경(<kbd>W</kbd>) · 현재 쪽 필기 전체 지우기(<kbd>Ctrl+E</kbd>) · 로컬 폴더 노트함 저장 — PNG 저장은 <b>PNG·PDF ▾</b> 버튼</td></tr>
+              <tr><td><b>배경 · 전체삭제 · 저장</b></td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+E</kbd> · <kbd>Ctrl+P</kbd> / <kbd>Ctrl+Shift+S</kbd></td><td>칠판 배경(<kbd>K</kbd>) · 백지 배경(<kbd>W</kbd>) · 현재 쪽 필기 전체 지우기(<kbd>Ctrl+E</kbd>) · 현재 화면 PNG 저장(<kbd>Ctrl+P</kbd>) · 로컬 폴더 노트함 저장 — 노션 등에 올리려면 <b>공유 ▾</b></td></tr>
               <tr><td><b>PPTX 액션 · 페이지 이동</b></td><td><kbd>Space</kbd> / <kbd>←</kbd> <kbd>→</kbd> / <b>마우스 휠</b></td><td>PPTX 다음 클릭 애니메이션 액션 및 슬라이드 이동 / 마우스 휠로 펜·스탬프·지우개 크기 조절</td></tr>
             </tbody>
           </table>
@@ -706,7 +707,7 @@
     <button type="button" class="sb-save-pop-item" id="sbSavePngBtn" role="menuitem">
       <span class="sb-save-pop-badge is-png">PNG</span>
       <span class="sb-save-pop-text">
-        <b>현재 화면 PNG 저장</b>
+        <b>현재 화면 PNG 저장 <kbd class="sb-key">Ctrl+P</kbd></b>
         <small>지금 보고 있는 판서 화면 1장을 고화질 이미지로 저장</small>
       </span>
     </button>
@@ -717,6 +718,33 @@
         <small>열어 둔 모든 슬라이드와 판서를 1개의 PDF 문서로 묶어 저장</small>
       </span>
     </button>
+  </div>
+
+  <!-- 공유 팝오버 (#sbShareMenu) -->
+  <div class="sb-save-popover" id="sbShareMenu" role="menu" aria-label="PNG 또는 PDF로 공유">
+    <button type="button" class="sb-save-pop-item" id="sbSharePngBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-png">PNG</span>
+      <span class="sb-save-pop-text"><b>현재 화면 PNG로 공유</b><small>공유 창에서 노션·카카오톡·드라이브·메일 등으로 바로 보내기</small></span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbCopyPngBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-png">복사</span>
+      <span class="sb-save-pop-text"><b>현재 화면 이미지 복사</b><small>노션·구글 문서·패들렛에서 Ctrl+V로 바로 붙여넣기</small></span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbSharePdfBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-pdf">PDF</span>
+      <span class="sb-save-pop-text"><b>전체 쪽 PDF로 공유</b><small>모든 쪽을 PDF 한 파일로 묶어 공유 (지원하지 않으면 내려받기)</small></span>
+    </button>
+  </div>
+
+  <!-- 공유 준비 완료 (#sbShareReadyModal) — 파일 만드는 데 오래 걸리면 한 번 더 눌러 공유합니다 -->
+  <div class="sb-modal" id="sbShareReadyModal">
+    <div class="sb-modal-card" style="max-width:380px;">
+      <div class="sb-modal-head"><div><span class="sb-guide-kicker">공유 준비 완료</span><h3 id="sbShareReadyTitle">파일이 준비되었습니다</h3></div></div>
+      <div style="display:flex;gap:8px;padding:14px 20px 20px;">
+        <button type="button" class="sb-btn sb-btn-primary" id="sbShareReadyGo" style="flex:1;">공유하기</button>
+        <button type="button" class="sb-btn sb-btn-ghost" id="sbShareReadyDl">내려받기</button>
+      </div>
+    </div>
   </div>
 
   <!-- ================================================================= -->
@@ -801,6 +829,6 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.7.1"></script>
+  <script src="./smart-board.js?v=2.7.2"></script>
 </body>
 </html>

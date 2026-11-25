@@ -3365,19 +3365,96 @@
   // ===================================================================
   // PNG 저장 & 전체 페이지 합본 PDF 저장
   // ===================================================================
-  function saveCurrentPng() {
-    var comp = createCompositeCanvas();
+  function exportBaseName() {
+    var t = (state.currentNoteTitle || '스마트판서').replace(/[\\/:*?"<>|]+/g, ' ').trim() || '스마트판서';
+    return t + '_' + new Date().toISOString().slice(0, 10);
+  }
+  function pngName() { return exportBaseName() + '_' + (state.pageIndex + 1) + '쪽.png'; }
+  function pdfName() { return exportBaseName() + '.pdf'; }
+  function makePngBlob() {
+    return new Promise(function (resolve, reject) {
+      try { createCompositeCanvas().toBlob(function (b) { b ? resolve(b) : reject(new Error('PNG 생성 실패')); }, 'image/png'); }
+      catch (e) { reject(e); }
+    });
+  }
+  function downloadBlob(blob, name) {
     var a = document.createElement('a');
-    a.href = comp.toDataURL('image/png');
-    a.download = '스마트판서_' + (state.pageIndex + 1) + '쪽_' + new Date().toISOString().slice(0, 10) + '.png';
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
     a.click();
-    showToast('현재 화면을 PNG 이미지로 저장했습니다.');
+    setTimeout(function () { a.remove(); URL.revokeObjectURL(a.href); }, 5000);
+  }
+  async function saveCurrentPng() {
+    try {
+      downloadBlob(await makePngBlob(), pngName());
+      showToast('현재 화면을 PNG 이미지로 저장했습니다. (Ctrl+P)');
+    } catch (e) { showToast('PNG 저장 오류: ' + (e.message || e)); }
+  }
+
+  // 공유 — 휴대폰·태블릿은 공유 창(노션·카톡·드라이브…)으로, 컴퓨터는 이미지 복사(노션에 Ctrl+V) 또는 내려받기
+  var pendingShare = null;
+  function canShareFile(file) {
+    try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { return false; }
+  }
+  async function shareFile(file, label) {
+    try {
+      await navigator.share({ files: [file], title: file.name });
+      showToast(label + ' 공유 창을 열었습니다.');
+      return true;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return true; // 사용자가 공유 창을 닫음
+      if (e && e.name === 'NotAllowedError') {
+        // 파일 만드는 동안 시간이 지나 브라우저가 막은 경우 — 한 번 더 눌러 공유합니다.
+        pendingShare = { file: file, label: label };
+        if (el('sbShareReadyTitle')) el('sbShareReadyTitle').textContent = file.name;
+        el('sbShareReadyModal').classList.add('show');
+        return true;
+      }
+      return false;
+    }
+  }
+  async function copyPngToClipboard(silentFail) {
+    if (!navigator.clipboard || !window.ClipboardItem) { if (!silentFail) showToast('이 브라우저는 이미지 복사를 지원하지 않습니다. PNG로 저장한 뒤 노션에 끌어다 놓으세요.'); return false; }
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': makePngBlob() })]);
+      showToast('현재 화면을 이미지로 복사했습니다. 노션·구글 문서 등에서 Ctrl+V로 붙여넣으세요.');
+      return true;
+    } catch (e) {
+      if (!silentFail) showToast('이미지 복사에 실패했습니다. PNG로 저장한 뒤 노션에 끌어다 놓으세요.');
+      return false;
+    }
+  }
+  async function sharePng() {
+    var blob;
+    try { blob = await makePngBlob(); } catch (e) { showToast('PNG 생성 오류: ' + (e.message || e)); return; }
+    var file = new File([blob], pngName(), { type: 'image/png' });
+    if (canShareFile(file) && await shareFile(file, 'PNG')) return;
+    // 공유 창이 없는 컴퓨터: 이미지 복사로 대신합니다(노션에 바로 붙여넣기).
+    if (await copyPngToClipboard(true)) return;
+    downloadBlob(blob, file.name);
+    showToast('이 브라우저는 공유를 지원하지 않아 PNG로 내려받았습니다. 노션에 끌어다 놓으면 됩니다.');
+  }
+  async function sharePdf() {
+    var blob = await makePdfBlob();
+    if (!blob) return;
+    var file = new File([blob], pdfName(), { type: 'application/pdf' });
+    if (canShareFile(file) && await shareFile(file, 'PDF')) return;
+    downloadBlob(blob, file.name);
+    showToast('이 브라우저는 파일 공유를 지원하지 않아 PDF로 내려받았습니다. 노션에 끌어다 놓거나 첨부하세요.');
   }
 
   async function saveMergedPdf() {
-    if (typeof PDFLib === 'undefined') { showToast('pdf-lib 라이브러리를 불러오지 못했습니다.'); return; }
+    var blob = await makePdfBlob();
+    if (!blob) return;
+    downloadBlob(blob, pdfName());
+    showToast('전체 ' + state.pages.length + '페이지 판서 합본 PDF를 저장했습니다.');
+  }
+
+  async function makePdfBlob() {
+    if (typeof PDFLib === 'undefined') { showToast('pdf-lib 라이브러리를 불러오지 못했습니다.'); return null; }
     try {
-      showToast('전체 ' + state.pages.length + '페이지 판서 합본 PDF를 생성하는 중...');
+      showToast('전체 ' + state.pages.length + '페이지 판서 합본 PDF를 만드는 중...');
       var pdfDoc = await PDFLib.PDFDocument.create();
       for (var i = 0; i < state.pages.length; i++) {
         var pg = state.pages[i];
@@ -3393,15 +3470,10 @@
         pdfPage.drawImage(pngImg, { x: 0, y: 0, width: pg.width * 0.6, height: pg.height * 0.6 });
       }
       var bytes = await pdfDoc.save();
-      var blob = new Blob([bytes], { type: 'application/pdf' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = '스마트판서_합본_' + new Date().toISOString().slice(0, 10) + '.pdf';
-      a.click();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
-      showToast('전체 ' + state.pages.length + '페이지 판서 합본 PDF를 저장했습니다.');
+      return new Blob([bytes], { type: 'application/pdf' });
     } catch (err) {
-      showToast('합본 PDF 저장 오류: ' + (err.message || err));
+      showToast('합본 PDF 만들기 오류: ' + (err.message || err));
+      return null;
     }
   }
 
@@ -3736,8 +3808,13 @@
     }
 
     // 버전 · 수정 이력 · 이용 현황
-    var SB_VERSION = '2.7.1';
+    var SB_VERSION = '2.7.2';
     var SB_CHANGELOG = [
+      { v: '2.7.2', d: '2026-11-25', items: [
+        'PNG 저장 단축키 Ctrl+P',
+        '공유 ▾ 버튼: 현재 화면 PNG 공유 · 이미지 복사(노션에 Ctrl+V) · 전체 쪽 PDF 공유',
+        '저장·공유 파일 이름에 노트 제목 사용'
+      ] },
       { v: '2.7.1', d: '2026-11-25', items: [
         '스탬프 전체 지우기 단축키를 Ctrl+S로 변경 (PNG 저장은 PNG·PDF ▾ 버튼)',
         'Ctrl+1을 두 번 누르면 확대 전 모드·도구(형광펜·레이저 등) 그대로 돌아오기'
@@ -4055,7 +4132,7 @@
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
     // PNG · PDF 저장 / 펜 종류 / 도형·도구 / 보드 설정 팝오버 통합 제어
     function closeAllPopovers() {
-      ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
+      ['sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
         if (el(id)) el(id).classList.remove('show');
       });
     }
@@ -4103,6 +4180,18 @@
       });
     })();
     bindAnchoredPopover('sbSaveMenuBtn', 'sbSaveMenu', true);
+    bindAnchoredPopover('sbShareMenuBtn', 'sbShareMenu', true);
+    if (el('sbSharePngBtn')) el('sbSharePngBtn').addEventListener('click', function () { closeAllPopovers(); sharePng(); });
+    if (el('sbCopyPngBtn')) el('sbCopyPngBtn').addEventListener('click', function () { closeAllPopovers(); copyPngToClipboard(false); });
+    if (el('sbSharePdfBtn')) el('sbSharePdfBtn').addEventListener('click', function () { closeAllPopovers(); sharePdf(); });
+    if (el('sbShareReadyGo')) el('sbShareReadyGo').addEventListener('click', function () {
+      el('sbShareReadyModal').classList.remove('show');
+      if (pendingShare) { var ps = pendingShare; pendingShare = null; navigator.share({ files: [ps.file], title: ps.file.name }).catch(function (e) { if (!e || e.name !== 'AbortError') { downloadBlob(ps.file, ps.file.name); showToast('공유하지 못해 파일로 내려받았습니다.'); } }); }
+    });
+    if (el('sbShareReadyDl')) el('sbShareReadyDl').addEventListener('click', function () {
+      el('sbShareReadyModal').classList.remove('show');
+      if (pendingShare) { downloadBlob(pendingShare.file, pendingShare.file.name); pendingShare = null; }
+    });
     bindAnchoredPopover('sbPenMenuBtn', 'sbPenMenu', false);
     bindAnchoredPopover('sbMoreToolsBtn', 'sbMoreToolsMenu', false);
     bindAnchoredPopover('sbBoardMoreBtn', 'sbBoardMoreMenu', true);
@@ -4339,6 +4428,7 @@
       if (modKey && (e.key === '3' || e.code === 'Digit3')) { e.preventDefault(); setMode(state.mode === 'edit' ? 'draw' : 'edit'); return; }
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); serializeCurrentNote(false); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); return; }
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'p') { e.preventDefault(); saveCurrentPng(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); el('sbUndoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); el('sbRedoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); el('sbClearInkBtn').click(); return; }
@@ -4346,7 +4436,7 @@
       // ESC: 열린 창·메뉴가 있으면 닫고, 없으면 마지막 판서를 되돌립니다(실행 취소).
       if (e.key === 'Escape') {
         var openModals = document.querySelectorAll('.sb-modal.show');
-        var openPops = ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
+        var openPops = ['sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
         if (openModals.length || openPops.length) {
           openModals.forEach(function (m) { m.classList.remove('show'); });
           closeAllPopovers();
