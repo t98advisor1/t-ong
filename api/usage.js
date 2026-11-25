@@ -18,15 +18,19 @@ function send(res,status,body){res.setHeader('Cache-Control','no-store, max-age=
 module.exports=async function handler(req,res){
   if(req.method!=='GET'&&req.method!=='POST'){res.setHeader('Allow','GET, POST');return send(res,405,{error:'METHOD_NOT_ALLOWED'});}
   try{
-    const dayKey=KEY_DAY_PREFIX+koreaDateKey();let commands;
+    // scope=smartboard 이면 스마트 판서 전용 카운터를 씁니다.
+    const scope=String((req.body&&req.body.scope)||(req.query&&req.query.scope)||'')==='smartboard'?'smartboard':'';
+    const prefix=scope?'notetong:'+scope+':':'notetong:';
+    const totalKey=scope?prefix+'total-visits':KEY_TOTAL;
+    const dayKey=(scope?prefix+'daily-visitors:':KEY_DAY_PREFIX)+koreaDateKey();let commands;
     if(req.method==='POST'){
       const token=req.body&&String(req.body.visitorToken||'');
       if(!/^[a-f0-9]{64}$/.test(token))return send(res,400,{error:'INVALID_VISITOR_TOKEN'});
-      commands=[['SADD',dayKey,token],['EXPIRE',dayKey,259200],['INCR',KEY_TOTAL],['SCARD',dayKey]];
+      commands=[['SADD',dayKey,token],['EXPIRE',dayKey,259200],['INCR',totalKey],['SCARD',dayKey]];
       const result=await pipeline(commands);
       return send(res,200,{todayVisitors:Number(result[3]&&result[3].result)||0,totalVisits:Number(result[2]&&result[2].result)||0});
     }
-    commands=[['SCARD',dayKey],['GET',KEY_TOTAL]];
+    commands=[['SCARD',dayKey],['GET',totalKey]];
     const result=await pipeline(commands);
     return send(res,200,{todayVisitors:Number(result[0]&&result[0].result)||0,totalVisits:Number(result[1]&&result[1].result)||0});
   }catch(error){const missing=error&&error.message==='STATS_STORAGE_NOT_CONFIGURED';return send(res,missing?503:500,{error:missing?'STATS_STORAGE_NOT_CONFIGURED':'STATS_UNAVAILABLE'});}

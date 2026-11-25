@@ -2018,3 +2018,17 @@ body.sb-web-active .sb-page-inline { display: none; }
 .sb-pop-list-btn kbd { font-family: inherit; font-size: 0.66rem; padding: 1px 5px; border-radius: 4px; border: none; background: rgba(148,163,184,.2); color: #cbd5e1; }
 .sb-pop-note { margin: 8px 0 0; font-size: 0.72rem; color: #94a3b8; line-height: 1.45; }
 .sb-tool-btn .sb-caret { margin-left: 1px; font-size: 0.7rem; opacity: 0.8; }
+
+/* 버전 · 이용 현황 · 수정 이력 */
+.sb-about-box { display:flex; flex-direction:column; gap:6px; padding:8px 10px; border-radius:10px; background:rgba(148,163,184,0.12); font-size:0.8rem; }
+.sb-about-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.sb-about-stats { display:flex; gap:14px; flex-wrap:wrap; }
+.sb-about-stats b { font-size:0.95rem; }
+.sb-about-box small { color:#94a3b8; font-size:0.72rem; line-height:1.35; }
+.sb-changelog { max-height:min(70vh, 560px); overflow:auto; padding:6px 22px 14px; }
+.sb-changelog-item { padding:10px 0; border-bottom:1px solid rgba(148,163,184,0.25); }
+.sb-changelog-item:last-child { border-bottom:0; }
+.sb-changelog-item h4 { margin:0 0 6px; font-size:0.95rem; }
+.sb-changelog-item h4 small { font-weight:500; color:#64748b; margin-left:6px; }
+.sb-changelog-item ul { margin:0; padding-left:18px; font-size:0.86rem; line-height:1.6; }
+.sb-vault-notes-head { gap:10px; align-items:center; justify-content:flex-start; }

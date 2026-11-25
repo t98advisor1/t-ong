@@ -106,7 +106,11 @@ module.exports = [
       await holdStroke(wob(shapes.circle(640, 560, 70, 40), 5));
       await holdStroke(wob([].concat(edge([800, 490], [960, 495]), edge([960, 495], [955, 630]), edge([955, 630], [798, 625]), edge([798, 625], [802, 492]), [[802, 492]]), 3));
       await holdStroke(wob([].concat(edge([1050, 630], [1130, 490]), edge([1130, 490], [1210, 632]), edge([1210, 632], [1052, 628]), [[1052, 628]]), 3));
-      await d.wait(1200);
+      await d.caption('별도 한 붓으로 그리고 <b>꾸욱</b> — 반듯한 별이 됩니다', 300);
+      const starV = []; for (let i = 0; i <= 5; i++) { const ang = -Math.PI / 2 + i * 4 * Math.PI / 5; starV.push([1130 + 80 * Math.cos(ang), 300 + 80 * Math.sin(ang)]); }
+      let starPts = []; for (let i = 0; i < 5; i++) starPts = starPts.concat(edge(starV[i], starV[i + 1])); starPts.push(starV[5]);
+      await holdStroke(wob(starPts, 3));
+      await d.wait(1400);
     }
   },
   {
@@ -169,9 +173,12 @@ module.exports = [
       await d.stroke([[700, 300], [700, 460]], 6);
       await d.wait(700);
       await d.caption('갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다', 2400);
-      await d.caption('<b>Esc</b>를 누르면 언제든 기본 상태(판서 · 펜)로 돌아옵니다', 300);
-      await d.press('Escape', 'Esc');
+      await d.caption('잘못 지웠다면 <b>Esc</b> — 방금 한 일을 되돌립니다 (Ctrl+Z와 같음)', 300);
+      await d.press('Escape', 'Esc  되돌리기');
       await d.wait(900);
+      await d.caption('<b>P</b>를 누르면 다시 펜 · <b>Backspace</b>는 판서를 저장하고 홈으로', 300);
+      await d.press('p', 'P  펜');
+      await d.wait(700);
       await d.press('s', 'S  원형 스탬프');
       for (const x of [880, 960, 1040]) await d.tapAt(x, 560, 300);
       await d.press('p', 'P  펜');
@@ -295,9 +302,9 @@ module.exports = [
       await d.stroke(shapes.parabola(330, 560, 170, 260));
       await d.press('3', '3  파랑');
       await d.typeText(900, 520, '꼭짓점 (2, −1)');
-      await d.caption('<b>Alt + 1</b> 확대 — 커서를 움직이면 그쪽을 크게 보여 줍니다', 300);
+      await d.caption('<b>Ctrl + 1</b> 확대 — 커서를 움직이면 그쪽을 크게 보여 줍니다', 300);
       await d.moveTo(640, 360, 8);
-      await d.press('Alt+1', 'Alt + 1  확대');
+      await d.press('Control+1', 'Ctrl + 1  확대');
       await d.moveTo(150, 250, 40);
       await d.wait(600);
       await d.moveTo(1150, 560, 50);
@@ -306,7 +313,7 @@ module.exports = [
       await page.mouse.wheel(0, -120); await d.wait(400);
       await page.mouse.wheel(0, -120); await d.wait(600);
       await page.mouse.wheel(0, 120); await d.wait(500);
-      await d.caption('보고 싶은 곳에서 <b>누르거나 Alt + 2</b> — 그 자리에서 판서합니다', 300);
+      await d.caption('보고 싶은 곳에서 <b>누르거나 Ctrl + 2</b> — 그 자리에서 판서합니다', 300);
       await d.tapAt(1150, 560, 600);
       await d.click('.sb-color-dot[data-color="#ef4444"]', 300);
       await d.stroke(shapes.circle(1000, 560, 120, 50));
@@ -318,8 +325,8 @@ module.exports = [
       await d.drag(800, 360, 420, 420);
       await d.wait(500);
       await d.press('m', 'M  펜으로');
-      await d.caption('<b>Alt + 1</b>을 다시 누르면 100% 화면으로 돌아옵니다', 300);
-      await d.press('Alt+1', 'Alt + 1  끄기');
+      await d.caption('<b>Ctrl + 1</b>을 다시 누르면 100% 화면으로 돌아옵니다', 300);
+      await d.press('Control+1', 'Ctrl + 1  끄기');
       await d.wait(900);
       await d.caption('태블릿에서는 <b>두 손가락</b>을 벌려 확대하면서 이동합니다', 300);
       await d.fingers([[560, 380], [700, 380]], [[420, 300], [840, 300]]);
@@ -338,7 +345,7 @@ module.exports = [
     async run(page, d) {
       await d.typeText(150, 210, 'y = a(x − p)² + q');
       await d.stroke(shapes.parabola(320, 520, 150, 220));
-      await d.caption('<b>게시</b> 모드 (Alt + `) — 띄워 둘 영역을 끌어서 고릅니다', 800);
+      await d.caption('<b>게시</b> 모드 (Ctrl + `) — 띄워 둘 영역을 끌어서 고릅니다', 800);
       await d.click('[data-sb-mode="pin"]', 600);
       await d.drag(130, 180, 520, 540);
       await d.wait(900);
@@ -396,7 +403,7 @@ module.exports = [
       await d.stroke([[330, 290], [330, 430]]);
       await d.stroke([[390, 310], [450, 285], [480, 330], [390, 430], [490, 430]]);
       await d.stroke(shapes.circle(620, 360, 70));
-      await d.caption('<b>편집</b> 모드 (Alt+3) — 바꿀 판서를 끌어서 고릅니다', 800);
+      await d.caption('<b>편집</b> 모드 (Ctrl+3) — 바꿀 판서를 끌어서 고릅니다', 800);
       await d.click('[data-sb-mode="edit"]', 600);
       await d.drag(270, 270, 700, 450);
       await d.wait(700);

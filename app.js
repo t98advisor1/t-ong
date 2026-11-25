@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.73';
+var APP_VERSION = '5.17.0-preview.74';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -43,7 +43,8 @@ var draggedSeat = null;
 var assignSeatStudent = null;
 var editingClassIndex = 0;
 var parsedExcelData = null;
-var isTeacherScreenView = false;
+// 자리배치 화면은 기본으로 교탁 시점(선생님 눈높이)으로 보여 주고, 마지막 선택을 기억합니다.
+var isTeacherScreenView = (function() { try { return localStorage.getItem('seatScreenView_v1') !== 'student'; } catch (e) { return true; } })();
 var toastHideTimer = null;
 
 function sortStudentsByName(list) {
@@ -1572,6 +1573,7 @@ function initEventListeners() {
   });
   var screenTeacherViewBtn = document.getElementById('screenTeacherViewBtn');
   if (screenTeacherViewBtn) screenTeacherViewBtn.addEventListener('click', toggleTeacherScreenView);
+  syncTeacherScreenView();
   var spBackupBtn = document.getElementById('spBackupBtn');
   if (spBackupBtn) spBackupBtn.addEventListener('click', openBackupModal);
   var sameGenderSeating = document.getElementById('sameGenderSeating');
@@ -2751,6 +2753,7 @@ function syncTeacherScreenView() {
 
 function toggleTeacherScreenView() {
   isTeacherScreenView = !isTeacherScreenView;
+  try { localStorage.setItem('seatScreenView_v1', isTeacherScreenView ? 'teacher' : 'student'); } catch (e) {}
   syncTeacherScreenView();
   renderSeating();
   showToast(isTeacherScreenView ? '교탁 시점으로 뒤집었습니다' : '학생 시점으로 되돌렸습니다');
@@ -4995,7 +4998,7 @@ var GUIDE_SLIDES = [
     img: 'guide/v11_06_seating_teacher_view.png',
     title: '교탁 시점 — 인쇄하지 않고 교탁 앞 내 시야로 화면을 뒤집습니다',
     desc: '<ul>' +
-      '<li><strong>교탁 시점 원클릭 전환</strong>우측 [7 교탁 시점] 버튼을 누르면 교탁이 아래로 내려오고 좌석표 전체가 180도 반전됩니다.<span class="gd-when">활용: 수업 중 교탁에서 학생 파악</span></li>' +
+      '<li><strong>기본은 교탁 시점</strong>자리배치 화면은 처음부터 교탁 시점(교탁이 아래, 선생님 눈높이)으로 열립니다. [7 학생 시점으로]를 누르면 칠판 기준으로 바뀌고, 마지막으로 고른 시점을 기억합니다.<span class="gd-when">활용: 수업 중 교탁에서 학생 파악</span></li>' +
       '<li><strong>학생 시점과 즉시 전환</strong>학생들에게 프로젝터로 보여줄 때는 한 번 더 눌러 칠판 기준 정방향으로 되돌립니다.</li>' +
       '<li><strong>반전 상태에서도 기록 가능</strong>교탁 시점 그대로 학생 카드를 눌러 출결·칭찬·관찰 메모를 남길 수 있습니다.</li>' +
       '</ul>',
@@ -5670,6 +5673,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.71: 🤖 AI 도우미 추가(내 Claude·ChatGPT·Gemini 구독 계정으로 알림장·조회 멘트·가정통신문·상담 기록 요청, 학생 이름 자동 가림, 답변을 알림장에 바로 넣기) · Google 캘린더 연결 간소화(클라이언트 ID 입력 없이 버튼으로 연결, 이전 계정 한 번에 다시 연결, 만료 시 다시 연결 안내) · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.72: 상단에 🤖 AI 메뉴 추가(AI 도우미 열기·AI 활용 안내·담임 5분 멘트) · AI 활용 안내 창(시작하기·활용 예시·개인정보 주의·AI 도구 모음) · 자리배치 우측 메뉴를 좌측처럼 접어 좌석 화면 넓히기 · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.73: 🤖 AI 비서 채팅 추가(내 Claude API 키로 사이드바에서 대화 · 알림장 저장과 일정 조회·추가를 확인 후 실행 · 학생 이름 자동 가림) · AI 활용 안내에 API 키 발급 방법 탭 추가 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.74: 자리배치 기본 화면을 교탁 시점으로 변경(마지막 선택 기억) · 스마트 판서 1분 자동 저장·마지막 판서 복귀 · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +

@@ -39,6 +39,8 @@
     size: 2.5,
     bgMode: 'dark',        // 'dark' | 'light' | 'grid'
     palmReject: false,
+    spenAuto: (function () { try { return localStorage.getItem('sbSpenAuto_v1') !== 'off'; } catch (e) { return true; } })(), // S펜이 닿으면 S펜 전용 모드를 자동으로 켭니다
+    spenManualOff: false,
     spenEraserOnBtn: true, // 갤럭시 S펜 옆 버튼 누르기 / 에어액션 시 [지우개] <-> [펜] 양방향 스위치
     lastSpenSwitchTime: 0,
     lastDrawTool: 'pen',
@@ -273,7 +275,7 @@
     }
   }
 
-  // 확대 켜기/끄기 (Alt+1 · 확대 버튼) — 확대 중이면 100%로 돌아가 판서 모드로, 아니면 확대 모드로 들어갑니다.
+  // 확대 켜기/끄기 (Ctrl+1 · 확대 버튼) — 확대 중이면 100%로 돌아가 판서 모드로, 아니면 확대 모드로 들어갑니다.
   function toggleZoom() {
     if (state.mode === 'zoom' || state.zoomScale > 1.02) {
       resetZoom();
@@ -984,7 +986,7 @@
     resizeBoardToPage();
     await renderBackground();
     renderInk();
-    showToast('웹 화면을 칠판 이미지로 고정했습니다. 이제 게시(Alt+`)와 PDF 저장에도 모두 포함됩니다.');
+    showToast('웹 화면을 칠판 이미지로 고정했습니다. 이제 게시(Ctrl+`)와 PDF 저장에도 모두 포함됩니다.');
   }
 
   // ===================================================================
@@ -1006,7 +1008,7 @@
         zoomAt(fx, fy, 2.0);
       } else applyTransform();
       liveCanvas.style.cursor = 'zoom-in';
-      showToast('확대 모드: 커서를 움직여 볼 곳을 고르고(휠로 배율) 누르면 그 자리에서 판서합니다. 끄기는 Alt+1 · Esc');
+      showToast('확대 모드: 커서를 움직여 볼 곳을 고르고(휠로 배율) 누르면 그 자리에서 판서합니다. 끄기는 Ctrl+1');
     } else if (nextMode === 'pin') {
       liveCanvas.style.cursor = 'crosshair';
       showToast('게시 모드(스닙페이스트): 화면에 고정할 영역을 드래그하세요.');
@@ -1230,10 +1232,21 @@
   // ===================================================================
   // 포인터 입력 처리 (S펜 / 손가락 핀치 / 마우스)
   // ===================================================================
+  // 되돌리기용 기록 — 지우개 한 번 문지르기 / 전체 지우기를 한꺼번에 되살립니다. (쪽마다 쌓임)
+  var undoSnaps = new WeakMap();
+  function pushUndoSnap(pg, before, after) {
+    var st = undoSnaps.get(pg);
+    if (!st) { st = []; undoSnaps.set(pg, st); }
+    var entry = { before: before, after: after, afterLen: after.length };
+    st.push(entry);
+    if (st.length > 30) st.shift();
+    return entry;
+  }
   function eraseAt(bx, by) {
     var pg = curPage();
     var er = Math.max(12, state.size * 2.6);
     var before = pg.objects.length;
+    var orig = pg.objects;
     pg.objects = pg.objects.filter(function (o) {
       if (o.type === 'stroke' || o.type === 'highlighter') {
         return !o.points.some(function (pt) {
@@ -1244,7 +1257,14 @@
       var b = getObjBounds(o);
       return !(bx >= b.x - er && bx <= b.x + b.w + er && by >= b.y - er && by <= b.y + b.h + er);
     });
-    if (pg.objects.length !== before) renderInk();
+    if (pg.objects.length !== before) {
+      var en = pointer.eraseEntry;
+      if (en && en.pg === pg && en.entry.after === orig) { en.entry.after = pg.objects; en.entry.afterLen = pg.objects.length; }
+      else pointer.eraseEntry = { pg: pg, entry: pushUndoSnap(pg, orig, pg.objects) };
+      renderInk();
+    } else {
+      pg.objects = orig; // 지운 것이 없으면 배열을 그대로 둡니다(되돌리기 기록 유지)
+    }
   }
 
   function hitCoverAt(bx, by) {
@@ -1293,6 +1313,61 @@
     if (maxD <= eps) return [a, b];
     return rdp(points.slice(0, idx + 1), eps).slice(0, -1).concat(rdp(points.slice(idx), eps));
   }
+  // 경로를 같은 간격 n개 점으로 다시 뽑습니다(빨리 그은 곳·천천히 그은 곳의 점 개수 차이를 없앰).
+  function resamplePath(pts, n, pathLen) {
+    var step = pathLen / n, out = [{ x: pts[0].x, y: pts[0].y }], acc = 0;
+    for (var i = 1; i < pts.length && out.length < n; i++) {
+      var a = pts[i - 1], b = pts[i], d = Math.hypot(b.x - a.x, b.y - a.y);
+      while (acc + d >= step && out.length < n) {
+        var t = (step - acc) / d;
+        a = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+        out.push(a);
+        d = Math.hypot(b.x - a.x, b.y - a.y);
+        acc = 0;
+      }
+      acc += d;
+    }
+    return out;
+  }
+  function detectStar(pts, pathLen) {
+    var N = 160, rs = resamplePath(pts, N, pathLen);
+    if (rs.length < N * 0.8) return null;
+    var cx = 0, cy = 0;
+    rs.forEach(function (p) { cx += p.x; cy += p.y; });
+    cx /= rs.length; cy /= rs.length;
+    var raw = rs.map(function (p) { return Math.hypot(p.x - cx, p.y - cy); });
+    var L = raw.length, r = raw.map(function (_, i) { return (raw[(i - 2 + L) % L] + raw[(i - 1 + L) % L] + raw[i] + raw[(i + 1) % L] + raw[(i + 2) % L]) / 5; });
+    var maxR = Math.max.apply(null, r);
+    if (maxR < 20) return null;
+    var minIdx = 0;
+    r.forEach(function (v, i) { if (v < r[minIdx]) minIdx = i; });
+    if (r[minIdx] > 0.6 * maxR) return null;
+    var peaks = [], high = false, best = -1;
+    for (var k = 0; k <= L; k++) {
+      var i = (minIdx + k) % L;
+      if (!high && r[i] > 0.75 * maxR) { high = true; best = i; }
+      else if (high && r[i] > r[best]) best = i;
+      if (high && (r[i] < 0.6 * maxR || k === L)) { high = false; peaks.push(best); }
+    }
+    if (peaks.length !== 5) return null;
+    // 꼭짓점 방향: 가장 위쪽 꼭짓점을 기준으로 반듯한 오각별을 만듭니다.
+    var R = 0;
+    peaks.forEach(function (pi) { R += Math.hypot(rs[pi].x - cx, rs[pi].y - cy); });
+    R /= 5;
+    var top = peaks.reduce(function (a, b) { return rs[b].y < rs[a].y ? b : a; });
+    var rot = Math.atan2(rs[top].y - cy, rs[top].x - cx);
+    var verts = [];
+    for (var v = 0; v < 10; v++) {
+      var rr = v % 2 ? R * 0.4 : R, ang = rot + v * Math.PI / 5;
+      verts.push({ x: cx + rr * Math.cos(ang), y: cy + rr * Math.sin(ang) });
+    }
+    verts.push(verts[0]);
+    var out = [];
+    for (var e = 0; e < 10; e++) for (var t = 0; t < 1; t += 0.08) out.push({ x: verts[e].x + (verts[e + 1].x - verts[e].x) * t, y: verts[e].y + (verts[e + 1].y - verts[e].y) * t, p: 0.6 });
+    out.push({ x: verts[0].x, y: verts[0].y, p: 0.6 });
+    return { type: 'stroke', penStyle: 'ballpoint', points: out };
+  }
+
   function recognizeShape(pts) {
     if (!pts || pts.length < 6) return null;
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, pathLen = 0;
@@ -1311,6 +1386,9 @@
     }
     // 닫힌 도형: 시작점과 끝점이 가까울 때만
     if (chord > Math.max(40, 0.3 * diag)) return null;
+    // 별: 가운데에서 잰 거리가 '멀다-가깝다'를 다섯 번 되풀이하면 별(한 붓 별 ☆ / 테두리 별 모두)
+    var star = detectStar(pts, pathLen);
+    if (star) return star;
     // 닫힌 선은 시작점과 가장 먼 점에서 둘로 나눠 꼭짓점을 찾습니다(시작=끝이면 한 번에 계산할 수 없음).
     var far = 0, farD = -1;
     pts.forEach(function (p, i) { var dd = Math.hypot(p.x - s0.x, p.y - s0.y); if (dd > farD) { farD = dd; far = i; } });
@@ -1373,7 +1451,21 @@
     applyTransform();
   }
 
+  // S펜 자동 — 펜이 화면에 닿거나 가까이 오면 S펜 전용 모드(손바닥 무시·손가락은 확대/이동)를 자동으로 켭니다.
+  function setPalmReject(on, msg) {
+    state.palmReject = !!on;
+    var b = el('sbPalmRejectBtn');
+    if (b) { b.classList.toggle('active', state.palmReject); b.textContent = state.palmReject ? 'S펜전용: 켜짐' : 'S펜전용: 꺼짐'; }
+    if (msg) showToast(msg);
+  }
+  function autoDetectSpen(ev) {
+    if (ev.pointerType !== 'pen' || !state.spenAuto || state.palmReject || state.spenManualOff) return;
+    setPalmReject(true, 'S펜을 감지해 S펜 전용 모드를 자동으로 켰습니다. (손바닥은 무시 · 손가락은 확대·이동)');
+  }
+  liveCanvas.addEventListener('pointerover', autoDetectSpen);
   liveCanvas.addEventListener('pointerdown', function (ev) {
+    autoDetectSpen(ev);
+    pointer.eraseEntry = null;
     if (ev.pointerType === 'touch') {
       pointer.pinchMap[ev.pointerId] = { x: ev.clientX, y: ev.clientY, type: ev.pointerType };
       if (Object.keys(pointer.pinchMap).length >= 2) {
@@ -1404,7 +1496,7 @@
 
     // 손 도구(M · Move): 끌어서 확대한 화면을 옮깁니다.
     if (state.tool === 'hand') {
-      if (state.zoomScale <= 1.02) showToast('확대(Alt+1)한 화면에서 끌어서 옮길 수 있습니다.');
+      if (state.zoomScale <= 1.02) showToast('확대(Ctrl+1)한 화면에서 끌어서 옮길 수 있습니다.');
       pointer.down = true;
       pointer.activeId = ev.pointerId;
       pointer.effectiveTool = 'pan';
@@ -1797,6 +1889,7 @@
       state.pages = newPages;
       state.pageIndex = 0;
       state.currentNoteId = null;
+      forgetLastNote();
       state.currentNoteTitle = file.name.replace(/\.pdf$/i, '');
       updateNoteBadge();
       resetZoom();
@@ -2447,6 +2540,7 @@
       state.pageIndex = 0;
       state.pptxShowAll = false;
       state.currentNoteId = null;
+      forgetLastNote();
       state.currentNoteTitle = file.name.replace(/\.pptx$/i, '');
       updateNoteBadge();
       resetZoom();
@@ -2724,8 +2818,9 @@
     }
   }
 
-  async function serializeCurrentNote(asNew) {
-    commitInlineText();
+  async function serializeCurrentNote(asNew, opts) {
+    opts = opts || {};
+    if (!opts.silent) commitInlineText();
     var isOverwrite = Boolean(!asNew && state.currentNoteId);
     var noteId = isOverwrite
       ? state.currentNoteId
@@ -2821,6 +2916,7 @@
     };
     var saveRes = await dbPutNote(record);
     if (!saveRes || !saveRes.ok) {
+      if (opts.silent) { showToast('자동 저장에 실패했습니다 (저장 공간 부족 가능). 노트함에서 오래된 노트를 정리해 주세요.'); return false; }
       var errMsg = (saveRes && saveRes.error && (saveRes.error.message || saveRes.error.name)) || '저장 공간 부족';
       showToast('노트 저장 실패 (' + errMsg + ') — 불필요한 대용량 노트를 정리하거나 백업(.json) 후 다시 시도하세요.');
       return;
@@ -2828,15 +2924,21 @@
     state.currentNoteId = noteId;
     state.currentNoteTitle = title;
     state.currentFolder = folder;
+    markNoteOpened(noteId);
+    autoSaveSig = boardSignature();
     updateNoteBadge();
+    if (opts.silent) {
+      if (el('sbVaultModal') && el('sbVaultModal').classList.contains('show')) await renderVaultUi();
+      return true;
+    }
     await renderVaultUi();
     showToast('[' + folder + '] 폴더에 "' + title + '" 노트를 ' + (isOverwrite ? '덮어쓰기 저장했습니다.' : '새 노트로 저장했습니다.'));
   }
 
-  async function loadNoteFromVault(noteId) {
+  async function loadNoteFromVault(noteId, opts) {
     var notes = await dbGetAllNotes();
     var target = notes.find(function (n) { return n.id === noteId; });
-    if (!target || !Array.isArray(target.pages) || !target.pages.length) return;
+    if (!target || !Array.isArray(target.pages) || !target.pages.length) return false;
     closeWebBrowser();
     state.currentNoteId = target.id;
     state.currentNoteTitle = target.title;
@@ -2844,14 +2946,93 @@
     state.pages = target.pages.map(function (p) {
       return Object.assign({}, p, { redoStack: [] });
     });
-    state.pageIndex = 0;
+    state.pageIndex = Math.max(0, Math.min(state.pages.length - 1, (opts && opts.pageIndex) || 0));
+    markNoteOpened(target.id);
+    autoSaveSig = boardSignature();
     updateNoteBadge();
     resetZoom();
     resizeBoardToPage();
     await renderBackground();
     renderInk();
     el('sbVaultModal').classList.remove('show');
+    if (opts && opts.resumed) { showToast('지난번 판서로 돌아왔습니다: "' + target.title + '"' + (state.pageIndex ? ' · ' + (state.pageIndex + 1) + '쪽' : '')); return true; }
     showToast('"' + target.title + '" (' + state.pages.length + '쪽) 노트를 불러왔습니다.');
+  }
+
+  // 최근에 연 노트 기록 — 노트함을 최근 연 순서로 정렬하고, 다시 들어오면 마지막 판서로 돌아갑니다.
+  var NOTE_OPENED_KEY = 'sbVaultNoteOpened_v1';
+  var LAST_NOTE_KEY = 'sbLastNote_v1';
+  var NOTE_SORT_KEY = 'sbVaultNoteSort_v1';
+  function loadOpenedMap() { try { var m = JSON.parse(localStorage.getItem(NOTE_OPENED_KEY) || '{}'); return m && typeof m === 'object' ? m : {}; } catch (e) { return {}; } }
+  function markNoteOpened(id) {
+    if (!id) return;
+    var m = loadOpenedMap();
+    m[id] = Date.now();
+    try {
+      localStorage.setItem(NOTE_OPENED_KEY, JSON.stringify(m));
+      localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ id: id, page: state.pageIndex || 0 }));
+    } catch (e) {}
+  }
+  function rememberLastPage() {
+    if (!state.currentNoteId) return;
+    try { localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ id: state.currentNoteId, page: state.pageIndex || 0 })); } catch (e) {}
+  }
+  function forgetLastNote() { try { localStorage.removeItem(LAST_NOTE_KEY); } catch (e) {} }
+  function sortNotesByRecent(notes) {
+    var m = loadOpenedMap();
+    function t(n) { return Math.max(m[n.id] || 0, n.updatedAt || 0); }
+    return notes.slice().sort(function (a, b) { return t(b) - t(a); });
+  }
+  function noteSortMode() { try { return localStorage.getItem(NOTE_SORT_KEY) === 'manual' ? 'manual' : 'recent'; } catch (e) { return 'recent'; } }
+
+  // 1분마다 자동 저장 — 바뀐 내용이 있을 때만 조용히 저장합니다. 아직 저장하지 않은 새 노트는 현재 폴더에 새 노트로 만들어 둡니다.
+  var AUTO_SAVE_MS = 60000;
+  var autoSaveSig = '';
+  var autoSaving = false;
+  function boardSignature() {
+    try {
+      return state.pages.length + '|' + state.pages.map(function (p) {
+        return (p.kind || '') + ':' + (p.label || '') + ':' + JSON.stringify(p.objects || []).length + ':' + hashStr(JSON.stringify(p.objects || []));
+      }).join('|');
+    } catch (e) { return String(Date.now()); }
+  }
+  function hashStr(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+    return h;
+  }
+  function boardHasContent() {
+    return state.pages.some(function (p) { return (p.objects && p.objects.length) || (p.kind && p.kind !== 'blank'); });
+  }
+  async function autoSaveNow(reason) {
+    if (autoSaving) return false;
+    rememberLastPage();
+    var sig = boardSignature();
+    if (sig === autoSaveSig) return true;
+    if (!boardHasContent()) return true;
+    if (pointer && pointer.down) return false;
+    autoSaving = true;
+    try {
+      if (!state.currentNoteId && (!state.currentNoteTitle || state.currentNoteTitle === '새 판서 노트')) {
+        var d = new Date();
+        state.currentNoteTitle = '판서 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        updateNoteBadge();
+      }
+      var ok = await serializeCurrentNote(false, { silent: true, reason: reason });
+      return ok !== false;
+    } catch (e) { return false; }
+    finally { autoSaving = false; }
+  }
+  async function resumeLastNote() {
+    var last = null;
+    try { last = JSON.parse(localStorage.getItem(LAST_NOTE_KEY) || 'null'); } catch (e) {}
+    if (!last || !last.id) return false;
+    return await loadNoteFromVault(last.id, { resumed: true, pageIndex: last.page || 0 });
+  }
+  async function goHomeSaved() {
+    showToast('판서를 저장하고 홈으로 이동합니다…');
+    await autoSaveNow('home');
+    location.href = './index.html';
   }
 
   // 노트함 순서 — 내가 정한 순서를 기기에 저장합니다. 순서를 정하지 않은 새 노트는 맨 앞(최근순)에 둡니다.
@@ -2956,12 +3137,15 @@
       });
     }
 
-    notes = applyNoteOrder(notes);
+    var sortMode = noteSortMode();
+    notes = sortMode === 'manual' ? applyNoteOrder(notes) : sortNotesByRecent(notes);
+    if (el('sbVaultSortSelect')) el('sbVaultSortSelect').value = sortMode;
     var filtered = state.activeVaultFolder === 'ALL'
       ? notes
       : notes.filter(function (n) { return n.folder === state.activeVaultFolder; });
     if (el('sbVaultActiveFolderTitle')) el('sbVaultActiveFolderTitle').textContent = state.activeVaultFolder === 'ALL' ? '전체 노트' : state.activeVaultFolder;
     if (el('sbVaultNoteCount')) el('sbVaultNoteCount').textContent = filtered.length + '개 노트';
+    var openedMap = loadOpenedMap();
 
     var grid = el('sbVaultNotesGrid');
     if (!grid) return;
@@ -2975,13 +3159,13 @@
         '<div class="sb-note-meta">' +
           '<strong>' + (n.title || '판서 노트') + '</strong>' +
           '<small>' + (n.folder || '기본') + ' · ' + (n.pageCount || 1) + '쪽</small>' +
-          '<small>' + (n.updatedStr || '') + '</small>' +
+          '<small>' + (n.id === state.currentNoteId ? '<b style="color:#2563eb;">지금 여는 중</b> · ' : '') + (openedMap[n.id] ? '최근 열람 ' + new Date(openedMap[n.id]).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : (n.updatedStr || '')) + '</small>' +
           '<div class="sb-note-actions">' +
             '<button type="button" class="sb-btn sb-btn-primary sb-btn-xs" style="flex:1;" data-load-note="' + n.id + '">열기</button>' +
             '<button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" data-copy-note="' + n.id + '" title="다른 학급(폴더)으로 복사">복사</button>' +
             '<button type="button" class="sb-btn sb-btn-danger sb-btn-xs" data-del-note="' + n.id + '">삭제</button>' +
           '</div>' +
-          '<div class="sb-note-order">' +
+          '<div class="sb-note-order"' + (sortMode === 'manual' ? '' : ' style="display:none;"') + '>' +
             '<button type="button" class="sb-mini-btn" data-move-note="' + n.id + '" data-dir="-1" title="앞으로">◀ 앞으로</button>' +
             '<button type="button" class="sb-mini-btn" data-move-note="' + n.id + '" data-dir="1" title="뒤로">뒤로 ▶</button>' +
           '</div>' +
@@ -3044,6 +3228,7 @@
     commitInlineText();
     clearSelection();
     state.pageIndex = idx;
+    rememberLastPage();
     resetZoom();
     resizeBoardToPage();
     await renderBackground();
@@ -3222,6 +3407,15 @@
     renderBackground();
     renderInk();
 
+    // 마지막 판서로 돌아오기 + 1분 자동 저장 + 화면을 떠날 때 저장
+    resumeLastNote().then(function () { autoSaveSig = boardSignature(); });
+    setInterval(function () { autoSaveNow('interval'); }, AUTO_SAVE_MS);
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') autoSaveNow('hidden'); });
+    window.addEventListener('pagehide', function () { rememberLastPage(); autoSaveNow('pagehide'); });
+    document.querySelectorAll('a[href="./index.html"]').forEach(function (a) {
+      a.addEventListener('click', function (e) { e.preventDefault(); goHomeSaved(); });
+    });
+
     function handleViewportChange() {
       resizeBoardToPage();
       renderBackground();
@@ -3286,6 +3480,10 @@
     });
     if (el('sbQuickSaveNoteBtn')) el('sbQuickSaveNoteBtn').addEventListener('click', function () { serializeCurrentNote(false); });
     if (el('sbVaultSaveCurBtn')) el('sbVaultSaveCurBtn').addEventListener('click', function () { serializeCurrentNote(false); });
+    if (el('sbVaultSortSelect')) el('sbVaultSortSelect').addEventListener('change', function () {
+      try { localStorage.setItem(NOTE_SORT_KEY, this.value === 'manual' ? 'manual' : 'recent'); } catch (e) {}
+      renderVaultUi();
+    });
     if (el('sbVaultSaveNewBtn')) el('sbVaultSaveNewBtn').addEventListener('click', function () { serializeCurrentNote(true); });
     if (el('sbVaultCopyOkBtn')) el('sbVaultCopyOkBtn').addEventListener('click', copyNote);
     if (el('sbVaultCopyCancelBtn')) el('sbVaultCopyCancelBtn').addEventListener('click', function () { el('sbVaultCopyBox').hidden = true; copyTarget = null; });
@@ -3509,12 +3707,90 @@
     // S펜 전용 토글
     if (el('sbPalmRejectBtn')) {
       el('sbPalmRejectBtn').addEventListener('click', function () {
-        state.palmReject = !state.palmReject;
-        this.classList.toggle('active', state.palmReject);
-        this.textContent = state.palmReject ? 'S펜전용: 켜짐' : 'S펜전용: 꺼짐';
+        setPalmReject(!state.palmReject);
+        state.spenManualOff = !state.palmReject;
         showToast(state.palmReject ? 'S펜 전용 모드 ON (손바닥 무시 · 손가락으로 확대 이동)' : 'S펜 전용 모드 OFF (손가락·펜 모두 필기)');
       });
     }
+
+    if (el('sbSpenAutoBtn')) {
+      var syncSpenAutoBtn = function () {
+        el('sbSpenAutoBtn').classList.toggle('active', state.spenAuto);
+        el('sbSpenAutoBtn').textContent = state.spenAuto ? 'S펜자동: 켜짐' : 'S펜자동: 꺼짐';
+      };
+      syncSpenAutoBtn();
+      el('sbSpenAutoBtn').addEventListener('click', function () {
+        state.spenAuto = !state.spenAuto;
+        try { localStorage.setItem('sbSpenAuto_v1', state.spenAuto ? 'on' : 'off'); } catch (e) {}
+        syncSpenAutoBtn();
+        showToast(state.spenAuto ? 'S펜 자동 ON — S펜이 닿으면 S펜 전용 모드가 자동으로 켜집니다.' : 'S펜 자동 OFF — S펜 전용 모드는 직접 켜고 끕니다.');
+      });
+    }
+
+    // 버전 · 수정 이력 · 이용 현황
+    var SB_VERSION = '2.7.0';
+    var SB_CHANGELOG = [
+      { v: '2.7.0', d: '2026-11-25', items: [
+        '판서 1분마다 자동 저장 · 다른 앱으로 갔다 오거나 홈으로 나갈 때도 저장',
+        '스마트 판서를 다시 열면 마지막으로 쓰던 노트·쪽으로 바로 돌아오기',
+        '노트함을 최근에 연 순서로 정렬 (직접 정한 순서도 선택 가능)',
+        'S펜 자동: S펜이 닿으면 S펜 전용 모드가 자동으로 켜짐',
+        '단축키 변경: ESC = 되돌리기(열린 창이 있으면 닫기), Backspace = 저장 후 홈으로',
+        '모드 단축키를 Ctrl로: Ctrl+` 게시 · Ctrl+1 확대 · Ctrl+2 판서 · Ctrl+3 편집 (Alt도 계속 동작)',
+        '그리다가 꾸욱: 별 모양도 반듯한 별로 바뀜',
+        '설정에 버전 · 수정 이력 · 방문자 수 표시'
+      ] },
+      { v: '2.6.6', d: '2026-11-24', items: [
+        '지우개 ▾ 메뉴: 펜 글씨 전체(Shift+E) · 스탬프 전체(Shift+S) · 전체 필기(Ctrl+E) 지우기',
+        '그리다가 꾸욱 멈추면 직선 · 삼각형 · 사각형 · 원으로 자동 변환',
+        'PPTX 애니메이션 호환 개선: 그룹 · 자동 재생 · 나타남/사라짐 반복 · 문단 자리 · 테마 도형 색'
+      ] },
+      { v: '2.6.5', d: '2026-11-24', items: [
+        '이동 도구(M · Move)와 단축키 영어 설명(Pen, Eraser …) 표시',
+        '노트함 순서 바꾸기 · 다른 학급 폴더로 노트 복사(자료만/판서까지)',
+        '사용설명서 10장 확대 · 이동 추가'
+      ] },
+      { v: '2.6.4', d: '2026-11-24', items: [
+        '확대 화면 검은 여백 수정 · 두 손가락 확대/이동 · 세 손가락 이동',
+        '펜 글씨 · 스탬프 전체 지우기와 한 번에 되돌리기'
+      ] },
+      { v: '2.6.3', d: '2026-11-24', items: [
+        '영상 사용설명서 12장 · 단축키 배지 표시',
+        '번호 스탬프 빈 번호 채우기 · 편집 막대 가림 수정'
+      ] }
+    ];
+    if (el('sbVersionLabel')) el('sbVersionLabel').textContent = 'v' + SB_VERSION;
+    if (el('sbChangelogVersion')) el('sbChangelogVersion').textContent = 'v' + SB_VERSION;
+    if (el('sbChangelogBody')) {
+      el('sbChangelogBody').innerHTML = SB_CHANGELOG.map(function (r) {
+        return '<div class="sb-changelog-item"><h4>v' + r.v + '<small>' + r.d + '</small></h4><ul>' +
+          r.items.map(function (t) { return '<li>' + t.replace(/</g, '&lt;') + '</li>'; }).join('') + '</ul></div>';
+      }).join('');
+    }
+    if (el('sbChangelogBtn')) el('sbChangelogBtn').addEventListener('click', function () {
+      closeAllPopovers();
+      el('sbChangelogModal').classList.add('show');
+    });
+    (async function recordSbVisit() {
+      var h0 = location.hostname;
+      if (h0 === 'localhost' || h0 === '127.0.0.1' || /^192\.168\./.test(h0) || /^10\./.test(h0)) { if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '로컬 실행 중에는 방문 수를 집계하지 않습니다.'; return; }
+      try {
+        var vid = localStorage.getItem('notetongAnonymousVisitor_v1');
+        if (!vid) { vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g, '') : String(Date.now()) + Math.random().toString(36).slice(2); localStorage.setItem('notetongAnonymousVisitor_v1', vid); }
+        var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+        var mp = {}; parts.forEach(function (p) { mp[p.type] = p.value; });
+        var raw = 'smartboard:' + mp.year + '-' + mp.month + '-' + mp.day + ':' + vid;
+        var hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+        var token = Array.from(new Uint8Array(hash)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+        var res = await fetch('/api/usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitorToken: token, scope: 'smartboard' }), cache: 'no-store' });
+        if (!res.ok) throw new Error('usage ' + res.status);
+        var data = await res.json();
+        if (el('sbTodayVisitors')) el('sbTodayVisitors').textContent = Number(data.todayVisitors || 0).toLocaleString('ko-KR');
+        if (el('sbTotalVisits')) el('sbTotalVisits').textContent = Number(data.totalVisits || 0).toLocaleString('ko-KR');
+      } catch (e) {
+        if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '통계 서버 연결 대기 중 · 판서 내용은 전송하지 않습니다.';
+      }
+    })();
 
     // 통합 파일·링크 열기 모달 (#sbFileHubModal)
     function closeFileHubModal() {
@@ -3640,14 +3916,16 @@
 
     // 되돌리기 / 다시실행 / 전체삭제
     // '전체 지우기' 직전 상태 — 노트 저장에 섞이지 않도록 쪽 객체 밖(WeakMap)에 둡니다.
-    var bulkClears = new WeakMap();
+
     if (el('sbUndoBtn')) el('sbUndoBtn').addEventListener('click', function () {
       var pg = curPage();
       // 바로 앞이 '전체 지우기'였다면 지운 것을 한꺼번에 되살립니다.
-      var bulk = bulkClears.get(pg);
-      if (bulk && pg.objects === bulk.after && pg.objects.length === bulk.afterLen) {
+      var st = undoSnaps.get(pg) || [];
+      while (st.length && st[st.length - 1].after !== pg.objects) st.pop(); // 다른 작업으로 바뀐 기록은 버림
+      var bulk = st[st.length - 1];
+      if (bulk && pg.objects.length === bulk.afterLen) {
         pg.objects = bulk.before;
-        bulkClears.delete(pg);
+        st.pop();
         clearSelection();
         renderInk();
         showToast('지운 판서를 되살렸습니다.');
@@ -3669,7 +3947,7 @@
       var after = pg.objects.filter(keep);
       var removed = pg.objects.length - after.length;
       if (!removed) { showToast(emptyMsg); return; }
-      bulkClears.set(pg, { before: pg.objects, after: after, afterLen: after.length });
+      pushUndoSnap(pg, pg.objects, after);
       pg.objects = after;
       pg.redoStack = [];
       clearSelection();
@@ -4031,36 +4309,43 @@
 
       if (e.key === 'Tab') { e.preventDefault(); togglePalette(); return; }
       if (e.key === '?' || e.key === 'F1') { e.preventDefault(); el('sbShortcutModal').classList.toggle('show'); return; }
-      // 백스페이스(Backspace) 또는 Delete: 편집 모드 선택 영역 삭제 또는 마지막 판서 취소(되돌리기)
+      // 백스페이스(Backspace): 선택한 영역이 있으면 삭제, 없으면 판서를 저장하고 홈으로 / Delete: 선택 영역 삭제
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         if ((state.mode === 'edit' || state.tool === 'select') && state.selection && el('sbEditDelBtn')) {
           el('sbEditDelBtn').click();
-        } else if (el('sbUndoBtn')) {
-          el('sbUndoBtn').click();
-          showToast('마지막 판서 동작을 취소했습니다. (Backspace)');
+        } else if (e.key === 'Backspace' && !e.repeat) {
+          goHomeSaved();
         }
         return;
       }
-      if (e.altKey && (e.code === 'Backquote' || e.key === '`')) { e.preventDefault(); setMode(state.mode === 'pin' ? 'draw' : 'pin'); return; }
-      if (e.altKey && e.key === '1') { e.preventDefault(); toggleZoom(); return; }
-      if (e.altKey && e.key === '2') { e.preventDefault(); setMode('draw'); return; }
-      if (e.altKey && e.key === '3') { e.preventDefault(); setMode(state.mode === 'edit' ? 'draw' : 'edit'); return; }
+      // 모드 전환: Ctrl+` 게시 / Ctrl+1 확대 / Ctrl+2 판서 / Ctrl+3 편집 (예전 Alt 조합도 그대로 동작)
+      var modKey = (e.ctrlKey || e.metaKey || e.altKey) && !e.shiftKey;
+      if (modKey && (e.code === 'Backquote' || e.key === '`')) { e.preventDefault(); setMode(state.mode === 'pin' ? 'draw' : 'pin'); return; }
+      if (modKey && (e.key === '1' || e.code === 'Digit1')) { e.preventDefault(); toggleZoom(); return; }
+      if (modKey && (e.key === '2' || e.code === 'Digit2')) { e.preventDefault(); setMode('draw'); return; }
+      if (modKey && (e.key === '3' || e.code === 'Digit3')) { e.preventDefault(); setMode(state.mode === 'edit' ? 'draw' : 'edit'); return; }
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); serializeCurrentNote(false); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveCurrentPng(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); el('sbUndoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); el('sbRedoBtn').click(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); el('sbClearInkBtn').click(); return; }
 
+      // ESC: 열린 창·메뉴가 있으면 닫고, 없으면 마지막 판서를 되돌립니다(실행 취소).
       if (e.key === 'Escape') {
-        document.querySelectorAll('.sb-modal.show').forEach(function (m) { m.classList.remove('show'); });
-        closeAllPopovers();
-        clearSelection();
-        if (state.zoomScale > 1) resetZoom();
-        if (state.webActive && state.webInteract) setWebInteractMode(false);
-        setMode('draw');
-        setTool('pen');
-        showToast('초기 모드(판서 · 펜)로 돌아왔습니다. (ESC)');
+        var openModals = document.querySelectorAll('.sb-modal.show');
+        var openPops = ['sbSaveMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
+        if (openModals.length || openPops.length) {
+          openModals.forEach(function (m) { m.classList.remove('show'); });
+          closeAllPopovers();
+          return;
+        }
+        if (state.selection) { clearSelection(); return; }
+        if (state.webActive && state.webInteract) { setWebInteractMode(false); return; }
+        if (el('sbUndoBtn')) {
+          el('sbUndoBtn').click();
+          showToast('마지막 판서를 되돌렸습니다. (ESC · Ctrl+Z)');
+        }
         return;
       }
 
@@ -4072,7 +4357,7 @@
         else if (k === 'v') setTool('select');
         else if (k === 'm') {
           setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
-          if (state.tool === 'hand') showToast(state.zoomScale > 1.02 ? '이동(M): 끌어서 확대한 화면을 옮기세요. 다시 M을 누르면 펜으로 돌아갑니다.' : '이동(M): 확대(Alt+1)한 뒤 끌어서 화면을 옮길 수 있습니다.');
+          if (state.tool === 'hand') showToast(state.zoomScale > 1.02 ? '이동(M): 끌어서 확대한 화면을 옮기세요. 다시 M을 누르면 펜으로 돌아갑니다.' : '이동(M): 확대(Ctrl+1)한 뒤 끌어서 화면을 옮길 수 있습니다.');
         }
         else if (k === 'z') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
