@@ -3139,7 +3139,8 @@ html[data-theme="night"] .google-oauth-help-btn { background:#293657; border-col
 
 /* v5.17.0-preview.57 — mobile backup access, saved-layout loading, teacher screen view */
 .teacher-screen-btn[aria-pressed="true"] { background:linear-gradient(135deg,#0f8d72,#176f9d) !important; }
-main#mainArea.teacher-screen-view .desk { margin-top:14px !important; margin-bottom:0 !important; }
+.classroom > .seating-area { align-self:flex-start; margin-top:auto; margin-bottom:auto; }
+main#mainArea.teacher-screen-view .desk { margin-top:14px !important; margin-bottom:0 !important; border-radius:18px 18px 0 0; }
 main#mainArea.teacher-screen-view .classroom { order:1; }
 main#mainArea.teacher-screen-view .desk { order:2; }
 

@@ -2166,7 +2166,7 @@ function applyExcelData() {
   
   if (students.length > 0) {
     hideSetupWizard();
-    renderSeating();
+    renderSeating({ anchorView: true });
   }
   
   showToast(classNames.length + '개 학급 업로드 완료!');
@@ -2221,7 +2221,7 @@ function switchClass() {
     showSetupWizard();
   } else {
     hideSetupWizard();
-    renderSeating();
+    renderSeating({ anchorView: true });
   }
 }
 function saveCurrentClassData() {
@@ -2509,6 +2509,7 @@ function hideSetupWizard() {
   // 상단 원본 액션은 좌측 메뉴와 우측 좌석 패널의 프록시 연결용으로만 숨겨 둡니다.
   // 별도 버튼 행을 표시하지 않아 좌석표의 세로 공간을 확보합니다.
   if (appMode === 'seat') setModeScreen(document.querySelector('.action-bar'), false);
+  anchorSeatingScroll();
 }
 
 function adjustDeskCount(delta) {
@@ -2603,7 +2604,7 @@ function applyConfig() {
   initializeEmptySeats();
   saveCurrentClassData();
   hideSetupWizard();
-  renderSeating();
+  renderSeating({ anchorView: true });
   showToast('설정 완료!');
 }
 
@@ -2622,8 +2623,13 @@ function initializeEmptySeats() {
 }
 
 // ===== 자리 배치 렌더링 =====
-function renderSeating() {
+function renderSeating(options) {
   var area = document.getElementById('seatingArea');
+  var mainEl = document.getElementById('mainArea');
+  var classroomEl = mainEl && mainEl.querySelector('.classroom');
+  var scrollEl = document.scrollingElement || document.documentElement;
+  var prevWindowY = window.pageYOffset || (scrollEl ? scrollEl.scrollTop : 0) || 0;
+  var prevClassroomTop = classroomEl ? classroomEl.scrollTop : 0;
   area.innerHTML = '';
   var layout = getCurrentLayout();
   
@@ -2717,6 +2723,89 @@ function renderSeating() {
   initDragAndDrop();
   fitSeatingToViewport();
   if (typeof renderSeatPanel === 'function') renderSeatPanel();
+  if (options && options.anchorView) {
+    anchorSeatingScroll();
+  } else if (isSeatingStageVisible()) {
+    if (classroomEl && classroomEl.scrollHeight > classroomEl.clientHeight + 1) {
+      classroomEl.scrollTop = prevClassroomTop;
+    }
+    if (Math.abs((window.pageYOffset || 0) - prevWindowY) > 1) {
+      setWindowScrollInstant(prevWindowY);
+    }
+  }
+}
+
+var seatingAnchorTimer = null;
+
+function setWindowScrollInstant(y) {
+  var top = Math.max(0, Math.round(y));
+  try {
+    window.scrollTo({ top: top, behavior: 'instant' });
+  } catch (e) {
+    window.scrollTo(0, top);
+  }
+}
+
+function isSeatingStageVisible() {
+  var stage = document.getElementById('stage');
+  if (!stage || stage.hidden || stage.classList.contains('mode-screen-hidden')) return false;
+  if (getComputedStyle(stage).display === 'none') return false;
+  return stage.getBoundingClientRect().height > 0;
+}
+
+function scrollSeatingForScreenView() {
+  if (!isSeatingStageVisible()) return;
+  fitSeatingToViewport();
+  var stage = document.getElementById('stage');
+  var main = document.getElementById('mainArea');
+  var classroom = main && main.querySelector('.classroom');
+  var desk = main && main.querySelector('.desk');
+  if (!main || !desk) return;
+
+  var scrollEl = document.scrollingElement || document.documentElement;
+
+  if (!isTeacherScreenView) {
+    if (classroom) classroom.scrollTop = 0;
+    main.scrollTop = 0;
+    stage.scrollTop = 0;
+    setWindowScrollInstant(0);
+    return;
+  }
+
+  // 교사 모드(교탁 시점): 내부 스크롤 컨테이너가 있으면 최하단(교탁과 마주 보는 앞열)으로 정렬
+  if (classroom && classroom.scrollHeight > classroom.clientHeight + 1) {
+    classroom.scrollTop = classroom.scrollHeight;
+  }
+  if (main.scrollHeight > main.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(main).overflowY)) {
+    main.scrollTop = main.scrollHeight;
+  }
+  if (stage.scrollHeight > stage.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(stage).overflowY)) {
+    stage.scrollTop = stage.scrollHeight;
+  }
+
+  // 페이지 스크롤이 있을 때 교탁이 위치한 화면 가장 하단이 즉시 보이도록 위치 조정
+  var vv = window.visualViewport;
+  var viewportH = (vv && Math.abs(vv.scale - 1) < 0.01) ? vv.height : window.innerHeight;
+  var currentScrollY = window.pageYOffset || (scrollEl ? scrollEl.scrollTop : 0) || 0;
+  var deskRect = desk.getBoundingClientRect();
+  var deskDocBottom = currentScrollY + deskRect.bottom;
+  var bottomPadding = 16;
+  var maxScrollY = scrollEl ? Math.max(0, scrollEl.scrollHeight - viewportH) : 0;
+  var targetY = Math.max(0, Math.min(maxScrollY, Math.ceil(deskDocBottom + bottomPadding - viewportH)));
+  if (Math.abs(currentScrollY - targetY) > 1) {
+    setWindowScrollInstant(targetY);
+  }
+}
+
+function anchorSeatingScroll() {
+  clearTimeout(seatingAnchorTimer);
+  scrollSeatingForScreenView();
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(function() {
+      scrollSeatingForScreenView();
+    });
+  }
+  seatingAnchorTimer = setTimeout(scrollSeatingForScreenView, 80);
 }
 
 function applyTeacherScreenOrder() {
@@ -2739,6 +2828,7 @@ function syncTeacherScreenView() {
   var desk = main && main.querySelector('.desk');
   var classroom = main && main.querySelector('.classroom');
   var button = document.getElementById('screenTeacherViewBtn');
+  var miniBtn = document.querySelector('.sp-mini [data-proxy="screenTeacherViewBtn"]');
   if (main) main.classList.toggle('teacher-screen-view', isTeacherScreenView);
   if (main && desk && classroom) {
     if (isTeacherScreenView) main.insertBefore(desk, classroom.nextSibling);
@@ -2749,13 +2839,19 @@ function syncTeacherScreenView() {
     button.textContent = isTeacherScreenView ? '🧑‍🎓 학생 시점으로' : '👩‍🏫 교탁 시점';
     button.title = isTeacherScreenView ? '학생이 칠판을 보는 방향으로 되돌립니다' : '교탁에서 학생을 마주 보는 방향으로 뒤집습니다';
   }
+  if (miniBtn) {
+    miniBtn.setAttribute('aria-pressed', isTeacherScreenView ? 'true' : 'false');
+    miniBtn.textContent = isTeacherScreenView ? '🧑‍🎓' : '👩‍🏫';
+    miniBtn.title = isTeacherScreenView ? '학생이 칠판을 보는 방향으로 되돌립니다' : '교탁에서 학생을 마주 보는 방향으로 뒤집습니다';
+    miniBtn.setAttribute('aria-label', isTeacherScreenView ? '학생 시점으로 전환' : '교탁 시점으로 전환');
+  }
 }
 
 function toggleTeacherScreenView() {
   isTeacherScreenView = !isTeacherScreenView;
   try { localStorage.setItem('seatScreenView_v1', isTeacherScreenView ? 'teacher' : 'student'); } catch (e) {}
   syncTeacherScreenView();
-  renderSeating();
+  renderSeating({ anchorView: true });
   showToast(isTeacherScreenView ? '교탁 시점으로 뒤집었습니다' : '학생 시점으로 되돌렸습니다');
 }
 
@@ -3255,7 +3351,7 @@ function finishLottery() {
   document.getElementById('ballsArea').innerHTML = '';
   bouncingBalls = [];
   saveCurrentClassData();
-  renderSeating();
+  renderSeating({ anchorView: true });
   showToast('🎉 배치 완료!');
 }
 
@@ -4107,7 +4203,7 @@ function saveRoster() {
   if (editingClassIndex === currentClassIndex) {
     currentSeats = {};
     lockedSeats = {};
-    renderSeating();
+    renderSeating({ anchorView: true });
   }
   
   showToast('명렬표 저장 완료');
@@ -4188,7 +4284,7 @@ function restoreRecord(id) {
     if (r.config) config = JSON.parse(JSON.stringify(r.config));
     if (r.lockedSeats) lockedSeats = JSON.parse(JSON.stringify(r.lockedSeats));
     saveCurrentClassData();
-    renderSeating();
+    renderSeating({ anchorView: true });
     closeModal('historyModal');
     showToast('저장한 자리배치를 불러왔습니다');
   }
@@ -4421,7 +4517,7 @@ function importData() {
       saveToLocalStorage();
       initClassDropdown();
       closeModal('backupModal');
-      renderSeating();
+      renderSeating({ anchorView: true });
       showToast('저장한 자리배치를 불러왔습니다');
     }
   } catch (e) {
