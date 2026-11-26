@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.2.0-62';
+var CACHE_VERSION = 'v3.2.0-63';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
@@ -65,7 +65,7 @@ self.addEventListener('fetch', function (event) {
   // 페이지 이동: 네트워크 우선 (새 버전을 바로 받도록), 실패 시 요청 URL 또는 index.html 캐시
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then(function (res) {
           var copy = res.clone();
           caches.open(CACHE_NAME).then(function (c) { c.put(req, copy); });
@@ -84,7 +84,8 @@ self.addEventListener('fetch', function (event) {
   var urlPath = new URL(req.url).pathname;
   if (urlPath.endsWith('/style.css') || urlPath.endsWith('/app.js') || urlPath.endsWith('/index.html') ||
       urlPath.endsWith('/geo-services.js') || urlPath.endsWith('/board.html') ||
-      urlPath.endsWith('/smart-board.html') || urlPath.endsWith('/smart-board.css') || urlPath.endsWith('/smart-board.js')) {
+      urlPath.endsWith('/smart-board.html') || urlPath.endsWith('/smart-board-guide.html') ||
+      urlPath.endsWith('/smart-board.css') || urlPath.endsWith('/smart-board.js')) {
     event.respondWith(
       fetch(req, { cache: 'no-cache' })
         .then(function (res) {

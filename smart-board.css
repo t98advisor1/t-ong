@@ -1764,6 +1764,37 @@ kbd {
 .sb-save-pop-badge.is-pdf {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
 }
+.sb-save-pop-badge.is-zip {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+.sb-autostamp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 0.73rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sb-autostamp-pill.active {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #34d399;
+  color: #ecfdf5;
+}
+.sb-autostamp-pill kbd {
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #cbd5e1;
+}
 .sb-save-pop-text {
   display: flex;
   flex-direction: column;

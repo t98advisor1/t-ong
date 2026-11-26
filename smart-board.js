@@ -49,6 +49,8 @@
     autoHide: false,        // 상단 팔레트 자동 숨김 (판서 시작 시 자동으로 위로 숨김)
     fillScreen: true,      // 화면 송출 시 여백 없는 100% 꽉 찬 화면 모드
     stampSeries: 0,   // '스탬프 번호 초기화'를 누를 때마다 새 묶음으로 1번부터 다시 셉니다
+    autoStampShape: (function () { try { return localStorage.getItem('sbAutoStampShape_v1') !== 'off'; } catch (e) { return true; } })(),
+    lastStampShape: 'circle',
     zoomScale: 1,
     panX: 0,
     panY: 0,
@@ -58,7 +60,7 @@
     pdfDoc: null,
     pdfCache: {},
     selection: null,
-    laserPoints: [],
+    laserStrokes: [],
     laserRaf: null,
     ocrPendingBox: null,
     pptxShowAll: false,
@@ -736,50 +738,74 @@
   }
 
   // ===================================================================
-  // 레이저 포인터 (약 2초간 선명하게 유지 후 부드럽게 페이드아웃)
+  // 레이저 포인터 (획 단위 독립 분리 + 각 획 3초간 선명하게 유지 후 부드럽게 페이드아웃)
   // ===================================================================
-  var LASER_HOLD_MS = 1600;
+  var LASER_HOLD_MS = 3000;
   var LASER_FADE_MS = 600;
   var LASER_TOTAL_MS = LASER_HOLD_MS + LASER_FADE_MS;
 
   function renderLaserLoop() {
     var now = Date.now();
-    state.laserPoints = state.laserPoints.filter(function (p) { return now - p.t < LASER_TOTAL_MS; });
+    state.laserStrokes = (state.laserStrokes || []).filter(function (s) {
+      if (!s || !s.points || !s.points.length) return false;
+      if (s.active) return true;
+      return (now - (s.endT || s.lastT || now)) < LASER_TOTAL_MS;
+    });
     var pg = curPage();
     liveCtx.clearRect(0, 0, pg.width, pg.height);
-    if (state.laserPoints.length >= 1) {
-      for (var i = 1; i < state.laserPoints.length; i++) {
-        var p0 = state.laserPoints[i - 1], p1 = state.laserPoints[i];
-        var age = now - p1.t;
+    if ((state.mode === 'edit' || state.tool === 'select') && state.selection) {
+      renderSelectionOverlay();
+    }
+    if (state.laserStrokes.length >= 1) {
+      state.laserStrokes.forEach(function (s) {
+        var pts = s.points;
+        var age = s.active ? 0 : Math.max(0, now - (s.endT || s.lastT || now));
         var alpha = age < LASER_HOLD_MS
-          ? (0.96 - (age / LASER_HOLD_MS) * 0.12)
-          : Math.max(0, 0.84 * (1 - (age - LASER_HOLD_MS) / LASER_FADE_MS));
+          ? (0.96 - (age / LASER_HOLD_MS) * 0.08)
+          : Math.max(0, 0.88 * (1 - (age - LASER_HOLD_MS) / LASER_FADE_MS));
+        if (alpha <= 0.01) return;
+
         liveCtx.save();
-        liveCtx.strokeStyle = 'rgba(239, 68, 68, ' + alpha + ')';
-        liveCtx.shadowColor = '#ef4444';
-        liveCtx.shadowBlur = 12;
-        liveCtx.lineWidth = 4.5 * alpha + 2.2;
         liveCtx.lineCap = 'round';
-        liveCtx.beginPath();
-        liveCtx.moveTo(p0.x, p0.y);
-        liveCtx.lineTo(p1.x, p1.y);
-        liveCtx.stroke();
+        liveCtx.lineJoin = 'round';
+        liveCtx.shadowColor = '#ef4444';
+        liveCtx.shadowBlur = 13;
+        liveCtx.strokeStyle = 'rgba(239, 68, 68, ' + alpha + ')';
+        liveCtx.lineWidth = 4.6 * alpha + 2.2;
+
+        if (pts.length === 1) {
+          liveCtx.fillStyle = 'rgba(239, 68, 68, ' + alpha + ')';
+          liveCtx.beginPath();
+          liveCtx.arc(pts[0].x, pts[0].y, 4.5, 0, Math.PI * 2);
+          liveCtx.fill();
+        } else {
+          liveCtx.beginPath();
+          liveCtx.moveTo(pts[0].x, pts[0].y);
+          for (var i = 1; i < pts.length; i++) {
+            liveCtx.lineTo(pts[i].x, pts[i].y);
+          }
+          liveCtx.stroke();
+
+          // 중심부 밝은 코어 선을 한 겹 더해 여러 획이 겹쳐도 선명하게 보이도록 표현
+          liveCtx.shadowBlur = 0;
+          liveCtx.strokeStyle = 'rgba(255, 235, 235, ' + (alpha * 0.72) + ')';
+          liveCtx.lineWidth = Math.max(1.4, 2.0 * alpha);
+          liveCtx.stroke();
+        }
+
+        // 현재 그리고 있는 획 또는 방금 끝난 획 끝에 포인터 광점 표시
+        if (s.active || age < 350) {
+          var head = pts[pts.length - 1];
+          liveCtx.globalAlpha = s.active ? 1 : Math.max(0, 1 - age / 350);
+          liveCtx.fillStyle = '#ffffff';
+          liveCtx.shadowColor = '#ef4444';
+          liveCtx.shadowBlur = 16;
+          liveCtx.beginPath();
+          liveCtx.arc(head.x, head.y, 5.5, 0, Math.PI * 2);
+          liveCtx.fill();
+        }
         liveCtx.restore();
-      }
-      var head = state.laserPoints[state.laserPoints.length - 1];
-      var headAge = now - head.t;
-      var headAlpha = headAge < LASER_HOLD_MS
-        ? 1
-        : Math.max(0, 1 - (headAge - LASER_HOLD_MS) / LASER_FADE_MS);
-      liveCtx.save();
-      liveCtx.globalAlpha = headAlpha;
-      liveCtx.fillStyle = '#ffffff';
-      liveCtx.shadowColor = '#ef4444';
-      liveCtx.shadowBlur = 16;
-      liveCtx.beginPath();
-      liveCtx.arc(head.x, head.y, 6, 0, Math.PI * 2);
-      liveCtx.fill();
-      liveCtx.restore();
+      });
       state.laserRaf = requestAnimationFrame(renderLaserLoop);
     } else {
       state.laserRaf = null;
@@ -1128,6 +1154,8 @@
     if (nextTool !== 'select') clearSelection();
     state.tool = nextTool;
     // 형광펜 기본 6pt ↔ 일반 펜 기본 2pt 개별 굵기 자동 전환
+    if (nextTool === 'stamp') state.lastStampShape = 'circle';
+    else if (nextTool === 'sqStamp') state.lastStampShape = 'square';
     if (nextTool === 'highlighter' && prevTool !== 'highlighter') {
       setSize(state.highlighterSize || 6);
     } else if (nextTool === 'pen' && prevTool !== 'pen') {
@@ -1276,6 +1304,7 @@
     } else {
       state.pages.push(createBlankPage(bgMode));
       state.pageIndex = state.pages.length - 1;
+      resetStampNumber(true);
       resizeBoardToPage();
       renderBackground();
       renderInk();
@@ -1591,6 +1620,7 @@
       if (Object.keys(pointer.pinchMap).length >= 2) {
         // 두 손가락: 벌리고 오므려 확대·축소하며 이동 / 세 손가락: 화면 이동. 쓰던 획은 버립니다.
         if (pointer.down && pointer.effectiveTool !== 'pan') { liveCtx.clearRect(0, 0, curPage().width, curPage().height); pointer.currentStroke = null; }
+        if (pointer.currentLaserStroke) { pointer.currentLaserStroke.active = false; pointer.currentLaserStroke.endT = Date.now(); pointer.currentLaserStroke = null; }
         clearTimeout(pointer.holdTimer); pointer.snapShape = null;
         pointer.down = false;
         startTouchGesture();
@@ -1718,7 +1748,10 @@
       return;
     }
     if (eff === 'laser') {
-      state.laserPoints.push({ x: pt.x, y: pt.y, t: Date.now() });
+      var lNow = Date.now();
+      var newLaserStroke = { points: [{ x: pt.x, y: pt.y, t: lNow }], lastT: lNow, endT: 0, active: true };
+      state.laserStrokes.push(newLaserStroke);
+      pointer.currentLaserStroke = newLaserStroke;
       if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
       return;
     }
@@ -1839,7 +1872,13 @@
     if (eff === 'eraser') {
       eraseAt(pt.x, pt.y);
     } else if (eff === 'laser') {
-      state.laserPoints.push({ x: pt.x, y: pt.y, t: Date.now() });
+      var mNow = Date.now();
+      if (!pointer.currentLaserStroke) {
+        pointer.currentLaserStroke = { points: [], lastT: mNow, endT: 0, active: true };
+        state.laserStrokes.push(pointer.currentLaserStroke);
+      }
+      pointer.currentLaserStroke.points.push({ x: pt.x, y: pt.y, t: mNow });
+      pointer.currentLaserStroke.lastT = mNow;
       if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
     } else if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
       if (pointer.snapShape) {
@@ -1887,6 +1926,101 @@
     pointer.lastY = pt.y;
   });
 
+  // 밑줄(직선) · 원형 도형 좌측 상단에 번호 스탬프 자동 부착 헬퍼
+  function syncAutoStampUi() {
+    var on = !!state.autoStampShape;
+    var topBtn = el('sbAutoStampToggleBtn');
+    var topLbl = el('sbAutoStampToggleLabel');
+    if (topBtn) {
+      topBtn.classList.toggle('active', on);
+      topBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if (topLbl) topLbl.textContent = on ? '자동① ON' : '자동① OFF';
+    var menuBtn = el('sbAutoStampMenuBtn');
+    if (menuBtn) {
+      menuBtn.textContent = '밑줄·원 좌측상단 자동 스탬프: ' + (on ? '켜짐 (A)' : '꺼짐 (A)');
+    }
+  }
+
+  function toggleAutoStampShape() {
+    state.autoStampShape = !state.autoStampShape;
+    try { localStorage.setItem('sbAutoStampShape_v1', state.autoStampShape ? 'on' : 'off'); } catch (e) {}
+    syncAutoStampUi();
+    showToast(state.autoStampShape
+      ? '밑줄·원 좌측 상단 자동 스탬프를 켰습니다. (단축키 A)'
+      : '밑줄·원 자동 스탬프를 껐습니다. (단축키 A)');
+  }
+
+  function pushShapeWithOptionalAutoStamp(pg, shapeObj) {
+    if (!pg || !shapeObj) return;
+    if (!state.autoStampShape || (shapeObj.type !== 'line' && shapeObj.type !== 'circle')) {
+      pg.objects.push(shapeObj);
+      return;
+    }
+
+    var sRad = 18;
+    var sx = 0, sy = 0;
+    if (shapeObj.type === 'line') {
+      var dx = shapeObj.x2 - shapeObj.x1;
+      var dy = shapeObj.y2 - shapeObj.y1;
+      if (Math.hypot(dx, dy) < 22) {
+        pg.objects.push(shapeObj);
+        return;
+      }
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        var leftFirst = shapeObj.x1 <= shapeObj.x2;
+        var lx = leftFirst ? shapeObj.x1 : shapeObj.x2;
+        var ly = leftFirst ? shapeObj.y1 : shapeObj.y2;
+        sx = lx - sRad - 6;
+        sy = ly - sRad - 4;
+        if (sx < sRad + 4) {
+          sx = lx + Math.round(sRad * 0.4);
+          sy = ly - sRad - 10;
+        }
+      } else {
+        var topFirst = shapeObj.y1 <= shapeObj.y2;
+        var tx = topFirst ? shapeObj.x1 : shapeObj.x2;
+        var ty = topFirst ? shapeObj.y1 : shapeObj.y2;
+        sx = tx - sRad - 6;
+        sy = ty;
+      }
+    } else if (shapeObj.type === 'circle') {
+      var cx = shapeObj.x + shapeObj.w / 2;
+      var cy = shapeObj.y + shapeObj.h / 2;
+      var rx = Math.max(1, Math.abs(shapeObj.w) / 2);
+      var ry = Math.max(1, Math.abs(shapeObj.h) / 2);
+      if (shapeObj.perfect) {
+        var pr = Math.max(rx, ry);
+        rx = pr; ry = pr;
+      }
+      if (Math.max(rx * 2, ry * 2) < 20) {
+        pg.objects.push(shapeObj);
+        return;
+      }
+      sx = cx - rx * 0.78 - sRad * 0.45;
+      sy = cy - ry * 0.78 - sRad * 0.45;
+    }
+
+    sx = Math.max(sRad + 4, Math.min((pg.width || 1280) - sRad - 4, Math.round(sx)));
+    sy = Math.max(sRad + 4, Math.min((pg.height || 720) - sRad - 4, Math.round(sy)));
+
+    var gid = uid();
+    shapeObj.groupId = gid;
+    pg.objects.push(shapeObj);
+    pg.objects.push({
+      id: uid(),
+      groupId: gid,
+      type: 'stamp',
+      shape: state.lastStampShape || 'circle',
+      x: sx,
+      y: sy,
+      num: nextStampNumber(),
+      series: getPageStampSeries(pg),
+      color: shapeObj.color || state.color,
+      radius: sRad
+    });
+  }
+
   function finishPointer(ev) {
     var wasGesture = !!pointer.pinchMap[ev.pointerId] && Object.keys(pointer.pinchMap).length >= 2;
     delete pointer.pinchMap[ev.pointerId];
@@ -1899,6 +2033,12 @@
     if (pointer.gesture && !Object.keys(pointer.pinchMap).length) pointer.gesture = null;
     if (!pointer.down || ev.pointerId !== pointer.activeId) return;
     pointer.down = false;
+
+    if (pointer.currentLaserStroke) {
+      pointer.currentLaserStroke.active = false;
+      pointer.currentLaserStroke.endT = Date.now();
+      pointer.currentLaserStroke = null;
+    }
 
     if (pointer.effectiveTool === 'pan') { if (state.tool === 'hand') liveCanvas.style.cursor = 'grab'; return; }
 
@@ -1946,20 +2086,27 @@
     var eff = pointer.effectiveTool;
     clearTimeout(pointer.holdTimer);
     if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
-      curPg.objects.push(pointer.snapShape || pointer.currentStroke);
+      if (pointer.snapShape) {
+        pushShapeWithOptionalAutoStamp(curPg, pointer.snapShape);
+      } else {
+        curPg.objects.push(pointer.currentStroke);
+      }
       pointer.snapShape = null;
       curPg.redoStack = [];
+      redoSnaps.delete(curPg);
       pointer.currentStroke = null;
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       renderInk();
     } else if (eff === 'line' && pointer.moved) {
-      curPg.objects.push({ id: uid(), type: 'line', x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
+      pushShapeWithOptionalAutoStamp(curPg, { id: uid(), type: 'line', x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
       curPg.redoStack = [];
+      redoSnaps.delete(curPg);
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       renderInk();
     } else if ((eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') && pointer.moved) {
-      curPg.objects.push({ id: uid(), type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false, perfect: !!ev.shiftKey });
+      pushShapeWithOptionalAutoStamp(curPg, { id: uid(), type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false, perfect: !!ev.shiftKey });
       curPg.redoStack = [];
+      redoSnaps.delete(curPg);
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       renderInk();
     }
@@ -2678,6 +2825,7 @@
       forgetLastNote();
       state.currentNoteTitle = file.name.replace(/\.pptx$/i, '');
       updateNoteBadge();
+      resetStampNumber(true);
       resetZoom();
       resizeBoardToPage();
       await renderBackground();
@@ -3504,11 +3652,60 @@
   }
   function pngName() { return exportBaseName() + '_' + (state.pageIndex + 1) + '쪽.png'; }
   function pdfName() { return exportBaseName() + '.pdf'; }
-  function makePngBlob() {
+  function zipName() { return exportBaseName() + '_전체PNG(' + state.pages.length + '쪽).zip'; }
+  function canvasToPngBlob(cv) {
     return new Promise(function (resolve, reject) {
-      try { createCompositeCanvas().toBlob(function (b) { b ? resolve(b) : reject(new Error('PNG 생성 실패')); }, 'image/png'); }
+      try { cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('PNG 생성 실패')); }, 'image/png'); }
       catch (e) { reject(e); }
     });
+  }
+  function makePngBlob() {
+    return canvasToPngBlob(createCompositeCanvas());
+  }
+  async function makeAllPagesPngZipBlob() {
+    if (typeof JSZip === 'undefined') {
+      showToast('JSZip 라이브러리를 불러오지 못했습니다.');
+      return null;
+    }
+    try {
+      var total = state.pages.length;
+      showToast('전체 ' + total + '쪽 PNG 압축 파일(ZIP)을 만드는 중...');
+      var zip = new JSZip();
+      var digits = Math.max(2, String(total).length);
+      for (var i = 0; i < total; i++) {
+        var pg = state.pages[i];
+        if (pg.kind === 'pdf' && state.pdfDoc && !state.pdfCache[pg.pdfPageNum]) {
+          state.pdfCache[pg.pdfPageNum] = await renderPdfPageToOffscreen(pg.pdfPageNum);
+        }
+        if (pg.kind === 'pptx' && pg.pptxSlide) {
+          await ensurePptxSlideImages(pg.pptxSlide);
+        }
+        var comp = createCompositeCanvas(pg);
+        var pBlob = await canvasToPngBlob(comp);
+        var numStr = String(i + 1);
+        while (numStr.length < digits) numStr = '0' + numStr;
+        var cleanLbl = String(pg.label || '페이지').replace(/[\\/:*?"<>|]+/g, '_').trim().slice(0, 24) || '페이지';
+        zip.file(numStr + '쪽_' + cleanLbl + '.png', pBlob);
+      }
+      return await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    } catch (err) {
+      showToast('PNG 압축(ZIP) 생성 오류: ' + (err.message || err));
+      return null;
+    }
+  }
+  async function saveAllPngZip() {
+    var blob = await makeAllPagesPngZipBlob();
+    if (!blob) return;
+    downloadBlob(blob, zipName());
+    showToast('전체 ' + state.pages.length + '쪽 PNG 압축 파일(ZIP)을 저장했습니다.');
+  }
+  async function shareAllPngZip() {
+    var blob = await makeAllPagesPngZipBlob();
+    if (!blob) return;
+    var file = new File([blob], zipName(), { type: 'application/zip' });
+    if (canShareFile(file) && await shareFile(file, '전체 쪽 PNG 압축(ZIP)')) return;
+    downloadBlob(blob, file.name);
+    showToast('전체 ' + state.pages.length + '쪽 PNG 압축(ZIP) 파일을 내려받았습니다. 노션·드라이브·메신저에 바로 올려 공유하세요.');
   }
   function downloadBlob(blob, name) {
     var a = document.createElement('a');
@@ -4160,7 +4357,13 @@
         if (keyLabel) showToast('취소할 직전 필기가 없습니다.');
         return false;
       }
-      pg.redoStack.push(pg.objects.pop());
+      var popped = pg.objects.pop();
+      pg.redoStack.push(popped);
+      if (popped && popped.groupId) {
+        while (pg.objects.length && pg.objects[pg.objects.length - 1].groupId === popped.groupId) {
+          pg.redoStack.push(pg.objects.pop());
+        }
+      }
       clearSelection();
       renderInk();
       if (keyLabel) showToast('직전 필기를 취소했습니다. (' + keyLabel + ')');
@@ -4189,7 +4392,13 @@
         if (keyLabel) showToast('다시 실행할 필기가 없습니다.');
         return false;
       }
-      pg.objects.push(pg.redoStack.pop());
+      var restored = pg.redoStack.pop();
+      pg.objects.push(restored);
+      if (restored && restored.groupId) {
+        while (pg.redoStack.length && pg.redoStack[pg.redoStack.length - 1].groupId === restored.groupId) {
+          pg.objects.push(pg.redoStack.pop());
+        }
+      }
       clearSelection();
       renderInk();
       if (keyLabel) showToast('앞으로 다시 실행했습니다. (' + keyLabel + ')');
@@ -4353,6 +4562,7 @@
     bindAnchoredPopover('sbShareMenuBtn', 'sbShareMenu', true);
     if (el('sbSharePngBtn')) el('sbSharePngBtn').addEventListener('click', function () { closeAllPopovers(); sharePng(); });
     if (el('sbCopyPngBtn')) el('sbCopyPngBtn').addEventListener('click', function () { closeAllPopovers(); copyPngToClipboard(false); });
+    if (el('sbSharePngZipBtn')) el('sbSharePngZipBtn').addEventListener('click', function () { closeAllPopovers(); shareAllPngZip(); });
     if (el('sbSharePdfBtn')) el('sbSharePdfBtn').addEventListener('click', function () { closeAllPopovers(); sharePdf(); });
     if (el('sbShareReadyGo')) el('sbShareReadyGo').addEventListener('click', function () {
       el('sbShareReadyModal').classList.remove('show');
@@ -4373,6 +4583,10 @@
       });
     }
     if (el('sbSavePngBtn')) el('sbSavePngBtn').addEventListener('click', function () { closeAllPopovers(); saveCurrentPng(); });
+    if (el('sbSavePngZipBtn')) el('sbSavePngZipBtn').addEventListener('click', function () { closeAllPopovers(); saveAllPngZip(); });
+    if (el('sbAutoStampToggleBtn')) el('sbAutoStampToggleBtn').addEventListener('click', toggleAutoStampShape);
+    if (el('sbAutoStampMenuBtn')) el('sbAutoStampMenuBtn').addEventListener('click', toggleAutoStampShape);
+    syncAutoStampUi();
     if (el('sbSavePdfBtn')) el('sbSavePdfBtn').addEventListener('click', function () { closeAllPopovers(); saveMergedPdf(); });
     if (el('sbShortcutBtn')) el('sbShortcutBtn').addEventListener('click', function () {
       goScSlide(0);
@@ -4665,6 +4879,9 @@
         }
         else if (k === '0') {
           if (!e.repeat) resetStampNumber(false, '스탬프 번호를 1번부터 다시 시작합니다. (단축키 0 · SS)');
+        }
+        else if (k === 'a') {
+          if (!e.repeat) toggleAutoStampShape();
         }
         else if (k === 't') setTool(state.tool === 'text' ? (state.lastDrawTool || 'pen') : 'text');
         else if (k === 'r') setTool(e.shiftKey ? 'fillRect' : 'rect');

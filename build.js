@@ -109,10 +109,10 @@ write('index.html', html);
 
 const sw = read('sw.js')
   .replace(/var CACHE_VERSION = '[^']*';/, "var CACHE_VERSION = '" + hash + "';")
-  .replace(/\/app\.js(\?v=[^"']*)?/g, '/app.js?v=' + hash)
-  .replace(/\/style\.css(\?v=[^"']*)?/g, '/style.css?v=' + hash)
-  .replace(/\/smart-board\.js(\?v=[^"']*)?/g, '/smart-board.js?v=' + hash)
-  .replace(/\/smart-board\.css(\?v=[^"']*)?/g, '/smart-board.css?v=' + hash);
+  .replace(/\/app\.js\?v=[^"']*/g, '/app.js?v=' + hash)
+  .replace(/\/style\.css\?v=[^"']*/g, '/style.css?v=' + hash)
+  .replace(/\/smart-board\.js\?v=[^"']*/g, '/smart-board.js?v=' + hash)
+  .replace(/\/smart-board\.css\?v=[^"']*/g, '/smart-board.css?v=' + hash);
 write('sw.js', sw);
 
 // 4) 정적 파일 (매뉴얼, 스마트 판서 보드, 가이드, QR/PDF 라이브러리, 매니페스트, 아이콘 등)

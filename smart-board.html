@@ -99,7 +99,10 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><circle cx="17" cy="7" r="4"/><path d="M4 20l6-6 4 4 6-6"/></svg>
             <span id="sbMoreToolsLabel">도형</span><kbd id="sbMoreToolsKey" hidden></kbd> ▾
           </button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="잔상이 사라지는 레이저 포인터 (Z · Zap)">
+          <button type="button" class="sb-autostamp-pill active" id="sbAutoStampToggleBtn" aria-pressed="true" title="밑줄(직선)·원 도형을 그릴 때 좌측 상단에 번호 스탬프 자동 표시 켜기/끄기 (단축키 A)">
+            <span id="sbAutoStampToggleLabel">자동① ON</span><kbd>A</kbd>
+          </button>
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="여러 번 필기해도 각각 3초간 유지된 뒤 사라지는 레이저 포인터 (Z · Zap)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
             <span>레이저</span><kbd>Z</kbd>
           </button>
@@ -385,8 +388,8 @@
             </thead>
             <tbody>
               <tr><td><b>핵심 도구 1키 전환</b></td><td><kbd>P</kbd> / <kbd>H</kbd> / <kbd>E</kbd> / <kbd>V</kbd> / <kbd>M</kbd> / <kbd>Z</kbd></td><td><b>펜(<kbd>P</kbd> · Pen)</b> / <b>형광펜(<kbd>H</kbd> · Highlighter)</b> / <b>지우개(<kbd>E</kbd> · Eraser)</b> / <b>선택·옮기기(<kbd>V</kbd> · Select)</b> / <b>화면 이동(<kbd>M</kbd> · Move)</b> / <b>레이저 포인터(<kbd>Z</kbd> · Zap)</b> — 한 번 더 누르면 쓰던 펜으로 돌아갑니다</td></tr>
-              <tr><td><b>원형·사각 스탬프 &amp; 번호 초기화</b></td><td><kbd>S</kbd> (<kbd>SS</kbd>) / <kbd>Q</kbd> (<kbd>QQ</kbd>) / <kbd>0</kbd> / <kbd>T</kbd></td><td><b>①②③ 원형 스탬프(<kbd>S</kbd>)</b> · <b>▣ 사각 스탬프(<kbd>Q</kbd>)</b> · <b>텍스트(<kbd>T</kbd>)</b> — <b>페이지·슬라이드가 바뀌면 자동으로 1번 초기화</b>되며, 같은 페이지 안에서도 <b><kbd>S</kbd> 두 번 연속(<kbd>SS</kbd>)</b>(사각은 <kbd>QQ</kbd>) 또는 <b>숫자 <kbd>0</kbd> 키</b>를 누르면 즉시 1번부터 새로 찍힙니다</td></tr>
-              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형(<kbd>R</kbd> · Rectangle)</b> / <b>원·타원(<kbd>C</kbd> · Circle, <kbd>Shift</kbd> 누른 채 끌면 정원)</b> / <b>직선(<kbd>L</kbd> · Line)</b></td></tr>
+              <tr><td><b>원형·사각 스탬프 &amp; 번호 초기화</b></td><td><kbd>S</kbd> (<kbd>SS</kbd>) / <kbd>Q</kbd> (<kbd>QQ</kbd>) / <kbd>0</kbd> / <kbd>A</kbd></td><td><b>①②③ 원형 스탬프(<kbd>S</kbd>)</b> · <b>▣ 사각 스탬프(<kbd>Q</kbd>)</b> · <b>밑줄·원 좌측상단 자동스탬프 토글(<kbd>A</kbd>)</b> — <b>슬라이드·페이지 전환 시 자동 1번 초기화</b>되며, 같은 페이지 안에서도 <b><kbd>SS</kbd> / <kbd>QQ</kbd></b> 또는 <b><kbd>0</kbd></b>을 누르면 즉시 1번부터 찍힙니다</td></tr>
+              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형(<kbd>R</kbd> · Rectangle)</b> / <b>원·타원(<kbd>C</kbd> · Circle, <kbd>Shift</kbd> 누른 채 끌면 정원)</b> / <b>직선·밑줄(<kbd>L</kbd> · Line)</b> — 자동스탬프(<kbd>A</kbd>)가 켜져 있으면 밑줄·원의 좌측 상단에 번호 스탬프가 함께 찍힙니다</td></tr>
               <tr><td><b>뒤로 취소 · 앞으로 다시 실행</b></td><td><kbd>Esc</kbd> · <kbd>←</kbd> / <kbd>→</kbd> · <kbd>Ctrl+Z</kbd>/<kbd>Y</kbd></td><td><b>직전 필기 즉시 취소(<kbd>Esc</kbd> 또는 <kbd>←</kbd> 왼쪽 방향키 · <kbd>Ctrl+Z</kbd>)</b> / <b>앞으로 다시 실행(<kbd>→</kbd> 오른쪽 방향키 · <kbd>Ctrl+Y</kbd>)</b> — 창·메뉴가 열려 있으면 <kbd>Esc</kbd>는 먼저 창을 닫습니다</td></tr>
               <tr><td><b>홈으로</b></td><td><kbd>Backspace (백스페이스)</kbd></td><td><b>판서를 저장하고 T-ong 홈으로 이동</b> — 다시 스마트 판서를 열면 마지막 판서로 돌아옵니다 / 편집 모드에서 영역을 골랐을 때는 선택 판서 삭제</td></tr>
               <tr><td><b>펜 색상 (숫자 1~6)</b></td><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> / <kbd>5</kbd> / <kbd>6</kbd></td><td>빨강(<kbd>1</kbd>) · 초록(<kbd>2</kbd>) · 파랑(<kbd>3</kbd>) · 노랑(<kbd>4</kbd>) · 아이보리/흰색(<kbd>5</kbd>) · 검정(<kbd>6</kbd>) 즉시 변경</td></tr>
@@ -645,6 +648,7 @@
     <div class="sb-pop-grid">
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="stamp" id="sbCircleStampBtn" title="원 모양 번호 스탬프 ①②③ (S · Stamp)"><span>① 원스탬프</span><kbd>S</kbd></button>
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="sqStamp" id="sbSquareStampBtn" title="정사각형 번호 스탬프 [1][2][3] (Q · sQuare)"><span>▣ 사각스탬프</span><kbd>Q</kbd></button>
+      <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-full-btn" id="sbAutoStampMenuBtn" title="밑줄(직선)·원 도형 좌측 상단에 번호 스탬프 자동 부착 켜기/끄기 (단축키 A)">밑줄·원 좌측상단 자동 스탬프: 켜짐 (A)</button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-full-btn" id="sbStampResetBtn" title="원형·사각 번호 스탬프를 1번부터 다시 시작 (단축키: S 두 번 SS 또는 0)">스탬프 번호 초기화 (현재 <span id="sbStampNum">1</span>번 · SS/0)</button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-full-btn" id="sbClearStampsBtn2" title="현재 페이지의 번호 스탬프만 모두 지우기 (되돌리기로 복구)">스탬프 전체 지우기</button>
     </div>
@@ -711,6 +715,13 @@
         <small>지금 보고 있는 판서 화면 1장을 고화질 이미지로 저장</small>
       </span>
     </button>
+    <button type="button" class="sb-save-pop-item" id="sbSavePngZipBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-zip">ZIP</span>
+      <span class="sb-save-pop-text">
+        <b>전체 쪽 PNG 압축(ZIP) 저장</b>
+        <small>열어 둔 모든 슬라이드·페이지를 고화질 PNG로 묶어 ZIP 압축 저장</small>
+      </span>
+    </button>
     <button type="button" class="sb-save-pop-item" id="sbSavePdfBtn" role="menuitem">
       <span class="sb-save-pop-badge is-pdf">PDF</span>
       <span class="sb-save-pop-text">
@@ -729,6 +740,10 @@
     <button type="button" class="sb-save-pop-item" id="sbCopyPngBtn" role="menuitem">
       <span class="sb-save-pop-badge is-png">복사</span>
       <span class="sb-save-pop-text"><b>현재 화면 이미지 복사</b><small>노션·구글 문서·패들렛에서 Ctrl+V로 바로 붙여넣기</small></span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbSharePngZipBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-zip">ZIP</span>
+      <span class="sb-save-pop-text"><b>전체 쪽 PNG 압축(ZIP) 공유</b><small>모든 쪽 PNG를 하나의 ZIP 압축 파일로 묶어 공유·전송</small></span>
     </button>
     <button type="button" class="sb-save-pop-item" id="sbSharePdfBtn" role="menuitem">
       <span class="sb-save-pop-badge is-pdf">PDF</span>
