@@ -676,20 +676,47 @@
     if (el('sbStampNum')) el('sbStampNum').textContent = nextStampNumber();
   }
 
-  // 다음 번호 스탬프 — 지금 묶음에서 아직 쓰지 않은 가장 작은 번호.
-  // 되돌리기·지우개·선택 삭제로 빠진 번호를 다시 채우고, 여러 쪽에 걸쳐 이어서 셉니다.
-  function nextStampNumber() {
-    var used = {};
-    var stamps = [];
-    state.pages.forEach(function (pg) {
-      (pg.objects || []).forEach(function (o) { if (o.type === 'stamp') stamps.push(o); });
+  // 다음 번호 스탬프 — 현재 페이지(슬라이드)의 현재 묶음에서 아직 쓰지 않은 가장 작은 번호.
+  // 되돌리기·지우개·선택 삭제로 빠진 번호는 다시 채우며, 페이지가 바뀌면 자동으로 1번부터 새로 시작합니다.
+  function getPageStampSeries(pg) {
+    if (!pg) return 0;
+    if (typeof pg.stampSeries !== 'number') pg.stampSeries = 0;
+    (pg.objects || []).forEach(function (o) {
+      if (o.type === 'stamp' && (o.series || 0) > pg.stampSeries) {
+        pg.stampSeries = o.series;
+      }
     });
-    // 저장한 노트를 불러오면 그 노트의 마지막 묶음에 이어서 셉니다.
-    stamps.forEach(function (o) { if ((o.series || 0) > state.stampSeries) state.stampSeries = o.series; });
-    stamps.forEach(function (o) { if ((o.series || 0) === state.stampSeries) used[o.num] = true; });
+    return pg.stampSeries;
+  }
+
+  function nextStampNumber() {
+    var pg = curPage();
+    var series = getPageStampSeries(pg);
+    var used = {};
+    (pg.objects || []).forEach(function (o) {
+      if (o.type === 'stamp' && (o.series || 0) === series) {
+        used[o.num] = true;
+      }
+    });
     var n = 1;
     while (used[n]) n++;
     return n;
+  }
+
+  function resetStampNumber(silent, customMsg) {
+    var pg = curPage();
+    var curSeries = getPageStampSeries(pg);
+    var hasInSeries = (pg.objects || []).some(function (o) {
+      return o.type === 'stamp' && (o.series || 0) === curSeries;
+    });
+    if (hasInSeries) {
+      pg.stampSeries = curSeries + 1;
+    }
+    state.stampSeries = pg.stampSeries;
+    if (el('sbStampNum')) el('sbStampNum').textContent = '1';
+    if (!silent) {
+      showToast(customMsg || '번호 스탬프를 1번부터 다시 시작합니다. (SS · 0)');
+    }
   }
 
   function renderSelectionOverlay() {
@@ -1313,12 +1340,14 @@
   // ===================================================================
   // 되돌리기용 기록 — 지우개 한 번 문지르기 / 전체 지우기를 한꺼번에 되살립니다. (쪽마다 쌓임)
   var undoSnaps = new WeakMap();
+  var redoSnaps = new WeakMap();
   function pushUndoSnap(pg, before, after) {
     var st = undoSnaps.get(pg);
     if (!st) { st = []; undoSnaps.set(pg, st); }
     var entry = { before: before, after: after, afterLen: after.length };
     st.push(entry);
     if (st.length > 30) st.shift();
+    redoSnaps.delete(pg);
     return entry;
   }
   function eraseAt(bx, by) {
@@ -1675,11 +1704,12 @@
         x: Math.round(pt.x),
         y: Math.round(pt.y),
         num: nextStampNumber(),
-        series: state.stampSeries,
+        series: getPageStampSeries(pg),
         color: state.color,
         radius: Math.max(18, Math.round(state.size * 2.6))
       });
       pg.redoStack = [];
+      redoSnaps.delete(pg);
       renderInk();
       return;
     }
@@ -2958,6 +2988,7 @@
           width: pg.width,
           height: pg.height,
           imageDataUrl: pdfImgUrl,
+          stampSeries: pg.stampSeries || 0,
           objects: JSON.parse(JSON.stringify(pg.objects || []))
         });
       } else if (pg.kind === 'pptx' && pg.pptxSlide) {
@@ -2979,6 +3010,7 @@
           height: pg.height,
           pptxSlide: cleanSlide,
           pptxStep: pg.pptxStep || 0,
+          stampSeries: pg.stampSeries || 0,
           objects: JSON.parse(JSON.stringify(pg.objects || []))
         });
       } else if (pg.kind === 'image') {
@@ -2995,6 +3027,7 @@
           width: pg.width,
           height: pg.height,
           imageDataUrl: imgUrl,
+          stampSeries: pg.stampSeries || 0,
           objects: JSON.parse(JSON.stringify(pg.objects || []))
         });
       } else {
@@ -3004,6 +3037,7 @@
           width: pg.width || 1280,
           height: pg.height || 720,
           bgMode: pg.bgMode || 'dark',
+          stampSeries: pg.stampSeries || 0,
           objects: JSON.parse(JSON.stringify(pg.objects || []))
         });
       }
@@ -3330,9 +3364,11 @@
 
   async function goPage(idx) {
     if (idx < 0 || idx >= state.pages.length) return;
+    var pageChanged = (idx !== state.pageIndex);
     commitInlineText();
     clearSelection();
     state.pageIndex = idx;
+    if (pageChanged) resetStampNumber(true);
     rememberLastPage();
     resetZoom();
     resizeBoardToPage();
@@ -4103,29 +4139,68 @@
     // 되돌리기 / 다시실행 / 전체삭제
     // '전체 지우기' 직전 상태 — 노트 저장에 섞이지 않도록 쪽 객체 밖(WeakMap)에 둡니다.
 
-    if (el('sbUndoBtn')) el('sbUndoBtn').addEventListener('click', function () {
+    function performUndo(keyLabel) {
       var pg = curPage();
-      // 바로 앞이 '전체 지우기'였다면 지운 것을 한꺼번에 되살립니다.
+      // 바로 앞이 지우개/전체 지우기였다면 지운 것을 한꺼번에 되살립니다.
       var st = undoSnaps.get(pg) || [];
-      while (st.length && st[st.length - 1].after !== pg.objects) st.pop(); // 다른 작업으로 바뀐 기록은 버림
+      while (st.length && st[st.length - 1].after !== pg.objects) st.pop();
       var bulk = st[st.length - 1];
       if (bulk && pg.objects.length === bulk.afterLen) {
+        var rst = redoSnaps.get(pg);
+        if (!rst) { rst = []; redoSnaps.set(pg, rst); }
+        rst.push({ before: bulk.before, beforeLen: bulk.before.length, after: bulk.after, afterLen: bulk.afterLen });
         pg.objects = bulk.before;
         st.pop();
         clearSelection();
         renderInk();
-        showToast('지운 판서를 되살렸습니다.');
-        return;
+        showToast(keyLabel ? ('지운 판서를 되살렸습니다. (' + keyLabel + ')') : '지운 판서를 되살렸습니다.');
+        return true;
       }
-      if (!pg.objects.length) return;
+      if (!pg.objects.length) {
+        if (keyLabel) showToast('취소할 직전 필기가 없습니다.');
+        return false;
+      }
       pg.redoStack.push(pg.objects.pop());
+      clearSelection();
       renderInk();
+      if (keyLabel) showToast('직전 필기를 취소했습니다. (' + keyLabel + ')');
+      return true;
+    }
+
+    function performRedo(keyLabel) {
+      var pg = curPage();
+      var rst = redoSnaps.get(pg) || [];
+      while (rst.length && (rst[rst.length - 1].before !== pg.objects || rst[rst.length - 1].beforeLen !== pg.objects.length)) {
+        rst.pop();
+      }
+      var rBulk = rst[rst.length - 1];
+      if (rBulk) {
+        var st = undoSnaps.get(pg);
+        if (!st) { st = []; undoSnaps.set(pg, st); }
+        st.push({ before: rBulk.before, after: rBulk.after, afterLen: rBulk.afterLen });
+        pg.objects = rBulk.after;
+        rst.pop();
+        clearSelection();
+        renderInk();
+        if (keyLabel) showToast('취소했던 지우기를 다시 적용했습니다. (' + keyLabel + ')');
+        return true;
+      }
+      if (!pg.redoStack.length) {
+        if (keyLabel) showToast('다시 실행할 필기가 없습니다.');
+        return false;
+      }
+      pg.objects.push(pg.redoStack.pop());
+      clearSelection();
+      renderInk();
+      if (keyLabel) showToast('앞으로 다시 실행했습니다. (' + keyLabel + ')');
+      return true;
+    }
+
+    if (el('sbUndoBtn')) el('sbUndoBtn').addEventListener('click', function () {
+      performUndo('');
     });
     if (el('sbRedoBtn')) el('sbRedoBtn').addEventListener('click', function () {
-      var pg = curPage();
-      if (!pg.redoStack.length) return;
-      pg.objects.push(pg.redoStack.pop());
-      renderInk();
+      performRedo('');
     });
     // 현재 쪽에서 조건에 맞는 판서를 한꺼번에 지웁니다. 바로 되돌리기(Ctrl+Z)하면 모두 되살아납니다.
     function bulkClear(keep, doneMsg, emptyMsg) {
@@ -4160,7 +4235,7 @@
     });
     inlineTextEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitInlineText(); }
-      else if (e.key === 'Escape') { inlineTextEl.style.display = 'none'; pendingTextPos = null; }
+      else if (e.key === 'Escape') { e.stopPropagation(); inlineTextEl.style.display = 'none'; pendingTextPos = null; }
     });
 
     // 편집 모드 액션 바
@@ -4217,9 +4292,7 @@
     });
 
     if (el('sbStampResetBtn')) el('sbStampResetBtn').addEventListener('click', function () {
-      state.stampSeries++;
-      if (el('sbStampNum')) el('sbStampNum').textContent = '1';
-      showToast('번호 스탬프를 1번부터 다시 시작합니다.');
+      resetStampNumber(false);
     });
     if (el('sbClearPinsBtn')) el('sbClearPinsBtn').addEventListener('click', function () {
       pinLayer.innerHTML = '';
@@ -4499,11 +4572,19 @@
       });
     });
 
-    // 전역 단축키
+    // 전역 단축키 (스탬프 동일키 2연타 SS/QQ 감지 포함)
+    var lastStampKeyTap = { key: '', time: 0 };
+    var STAMP_DOUBLE_TAP_MS = 450;
+
     document.addEventListener('keydown', function (e) {
       var inInput = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT');
       if (inInput) return;
       if (state.webActive && state.webInteract && document.activeElement === webFrame) return;
+
+      var rawLower = (e.key || '').toLowerCase();
+      if (rawLower !== 's' && rawLower !== 'q') {
+        lastStampKeyTap.key = '';
+      }
 
       if (e.key === 'Tab') { e.preventDefault(); togglePalette(); return; }
       if (e.key === '?' || e.key === 'F1') { e.preventDefault(); el('sbShortcutModal').classList.toggle('show'); return; }
@@ -4523,14 +4604,15 @@
       if (modKey && (e.key === '1' || e.code === 'Digit1')) { e.preventDefault(); toggleZoom(); return; }
       if (modKey && (e.key === '2' || e.code === 'Digit2')) { e.preventDefault(); setMode('draw'); return; }
       if (modKey && (e.key === '3' || e.code === 'Digit3')) { e.preventDefault(); setMode(state.mode === 'edit' ? 'draw' : 'edit'); return; }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); serializeCurrentNote(false); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); return; }
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'p') { e.preventDefault(); saveCurrentPng(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); el('sbUndoBtn').click(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); el('sbRedoBtn').click(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); el('sbClearInkBtn').click(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && rawLower === 's') { e.preventDefault(); serializeCurrentNote(false); return; }
+      if ((e.ctrlKey || e.metaKey) && rawLower === 's') { e.preventDefault(); if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); return; }
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && rawLower === 'p') { e.preventDefault(); saveCurrentPng(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && rawLower === 'z') { e.preventDefault(); performRedo('Ctrl+Shift+Z'); return; }
+      if ((e.ctrlKey || e.metaKey) && rawLower === 'z') { e.preventDefault(); performUndo('Ctrl+Z'); return; }
+      if ((e.ctrlKey || e.metaKey) && rawLower === 'y') { e.preventDefault(); performRedo('Ctrl+Y'); return; }
+      if ((e.ctrlKey || e.metaKey) && rawLower === 'e') { e.preventDefault(); el('sbClearInkBtn').click(); return; }
 
-      // ESC: 열린 창·메뉴가 있으면 닫고, 없으면 마지막 판서를 되돌립니다(실행 취소).
+      // ESC: 열린 창·메뉴가 있으면 먼저 닫고, 없으면 직전 필기를 취소합니다(실행 취소).
       if (e.key === 'Escape') {
         var openModals = document.querySelectorAll('.sb-modal.show');
         var openPops = ['sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
@@ -4541,18 +4623,17 @@
         }
         if (state.selection) { clearSelection(); return; }
         if (state.webActive && state.webInteract) { setWebInteractMode(false); return; }
-        if (el('sbUndoBtn')) {
-          el('sbUndoBtn').click();
-          showToast('마지막 판서를 되돌렸습니다. (ESC · Ctrl+Z)');
-        }
+        e.preventDefault();
+        performUndo('ESC');
         return;
       }
 
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
-        var k = e.key.toLowerCase();
-        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S), 사각스탬프(Q), 텍스트(T), 사각형(R), 원(C), 직선(L), 펜(P), 형광펜(H)
+        var k = rawLower;
+        var now = Date.now();
+        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S, SS: 번호초기화), 사각스탬프(Q, QQ: 번호초기화), 스탬프초기화(0)
         if (e.shiftKey && k === 'e') { if (el('sbClearPenBtn')) el('sbClearPenBtn').click(); }
-        else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); } // 예전 단축키(지금은 Ctrl+S)
+        else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); }
         else if (k === 'v') setTool('select');
         else if (k === 'm') {
           setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
@@ -4560,8 +4641,31 @@
         }
         else if (k === 'z') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
-        else if (k === 's') setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');
-        else if (k === 'q') setTool(state.tool === 'sqStamp' ? (state.lastDrawTool || 'pen') : 'sqStamp');
+        else if (k === 's') {
+          if (e.repeat) return;
+          if (lastStampKeyTap.key === 's' && (now - lastStampKeyTap.time) <= STAMP_DOUBLE_TAP_MS) {
+            lastStampKeyTap = { key: '', time: 0 };
+            if (state.tool !== 'stamp') setTool('stamp');
+            resetStampNumber(false, '원형 스탬프 번호를 ①번부터 다시 시작합니다. (SS · 0)');
+          } else {
+            lastStampKeyTap = { key: 's', time: now };
+            setTool(state.tool === 'stamp' ? (state.lastDrawTool || 'pen') : 'stamp');
+          }
+        }
+        else if (k === 'q') {
+          if (e.repeat) return;
+          if (lastStampKeyTap.key === 'q' && (now - lastStampKeyTap.time) <= STAMP_DOUBLE_TAP_MS) {
+            lastStampKeyTap = { key: '', time: 0 };
+            if (state.tool !== 'sqStamp') setTool('sqStamp');
+            resetStampNumber(false, '사각 스탬프 번호를 [1]번부터 다시 시작합니다. (QQ · 0)');
+          } else {
+            lastStampKeyTap = { key: 'q', time: now };
+            setTool(state.tool === 'sqStamp' ? (state.lastDrawTool || 'pen') : 'sqStamp');
+          }
+        }
+        else if (k === '0') {
+          if (!e.repeat) resetStampNumber(false, '스탬프 번호를 1번부터 다시 시작합니다. (단축키 0 · SS)');
+        }
         else if (k === 't') setTool(state.tool === 'text' ? (state.lastDrawTool || 'pen') : 'text');
         else if (k === 'r') setTool(e.shiftKey ? 'fillRect' : 'rect');
         else if (k === 'c') setTool('circle');
@@ -4583,7 +4687,47 @@
           e.preventDefault();
           activateSpenEraserButton(true, 'S펜 에어액션 스위치');
         }
-        else if (e.key === ' ' || e.key === 'ArrowRight') {
+        // 좌우 방향키(← / →): 판서 뒤로(실행 취소) / 앞으로(다시 실행) (설명서·단축키 슬라이드가 열려 있으면 슬라이드 이동, Shift+←/→는 쪽 이동)
+        else if (e.key === 'ArrowLeft') {
+          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
+            e.preventDefault();
+            goVisSlide(visSlideIdx - 1);
+            return;
+          }
+          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
+            e.preventDefault();
+            goScSlide(scSlideIdx - 1);
+            return;
+          }
+          e.preventDefault();
+          if (e.shiftKey) {
+            if (curPage().kind === 'pptx') stepPptxAction(-1);
+            else goPage(state.pageIndex - 1);
+          } else {
+            performUndo('←');
+          }
+        }
+        else if (e.key === 'ArrowRight') {
+          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
+            e.preventDefault();
+            goVisSlide(visSlideIdx + 1);
+            return;
+          }
+          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
+            e.preventDefault();
+            goScSlide(scSlideIdx + 1);
+            return;
+          }
+          e.preventDefault();
+          if (e.shiftKey) {
+            if (curPage().kind === 'pptx') stepPptxAction(1);
+            else goPage(state.pageIndex + 1);
+          } else {
+            performRedo('→');
+          }
+        }
+        // 상하 방향키(↑ / ↓) · Space · PageUp/PageDown: 슬라이드·페이지 이동 및 PPTX 액션 진행
+        else if (e.key === ' ' || e.key === 'ArrowDown' || (!state.spenEraserOnBtn && e.key === 'PageDown')) {
           if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
             e.preventDefault();
             goVisSlide(visSlideIdx + 1);
@@ -4595,19 +4739,11 @@
             return;
           }
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(1); }
-          else if (e.key === 'ArrowRight') goPage(state.pageIndex + 1);
-        } else if (e.key === 'ArrowLeft') {
-          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
-            e.preventDefault();
-            goVisSlide(visSlideIdx - 1);
-            return;
-          }
-          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
-            e.preventDefault();
-            goScSlide(scSlideIdx - 1);
-            return;
-          }
-          if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(-1); }
+          else if (e.key !== ' ') { e.preventDefault(); goPage(state.pageIndex + 1); }
+        }
+        else if (e.key === 'ArrowUp' || (!state.spenEraserOnBtn && e.key === 'PageUp')) {
+          e.preventDefault();
+          if (curPage().kind === 'pptx') stepPptxAction(-1);
           else goPage(state.pageIndex - 1);
         }
       }
