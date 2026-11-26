@@ -209,11 +209,11 @@
         <p class="sum">쓴 것을 옮기고, 레이저로 가리키고, 지우개로 지웁니다.</p>
         <ol class="steps">
           <li><kbd>V</kbd> 선택 — 쓴 것을 눌러 잡고 끌어서 옮깁니다.</li>
-          <li><kbd>Z</kbd> 레이저 — 잠깐 보였다 사라져서 설명할 때 좋습니다.</li>
+          <li><kbd>D</kbd> 레이저 — 여러 획을 그어도 각각 3초간 유지된 뒤 사라져서 설명할 때 좋습니다.</li>
           <li><kbd>E</kbd> 지우개 — 문지른 선이 통째로 지워집니다.</li>
-          <li><kbd>Esc</kbd> 또는 <kbd>←</kbd>를 누르면 방금 쓴 판서가 취소되며, <kbd>→</kbd>를 누르면 다시 앞으로 복원됩니다(열린 창이 있으면 <kbd>Esc</kbd>는 창을 먼저 닫음). <kbd>Backspace</kbd>는 판서를 저장하고 홈으로 갑니다.</li>
+          <li><kbd>Z</kbd>(또는 <kbd>Esc</kbd>)를 누르면 방금 쓴 판서가 뒤로 취소되며, <kbd>X</kbd>를 누르면 다시 앞으로 복원됩니다(방향키 옆 <kbd>,</kbd>/<kbd>.</kbd>도 동일 동작 · 열린 창이 있으면 <kbd>Esc</kbd>는 창을 먼저 닫음). <kbd>Backspace</kbd>는 판서를 저장하고 홈으로 갑니다.</li>
         </ol>
-        <div class="keys"><span><kbd>V</kbd> 선택 <i>Select</i></span><span><kbd>Z</kbd> 레이저 <i>Zap</i></span><span><kbd>E</kbd> 지우개 <i>Eraser</i></span><span><kbd>Esc</kbd> / <kbd>←</kbd> 뒤로</span><span><kbd>→</kbd> 앞으로</span><span><kbd>⌫</kbd> 홈으로</span></div>
+        <div class="keys"><span><kbd>V</kbd> 선택 <i>Select</i></span><span><kbd>D</kbd> 레이저 <i>Dot</i></span><span><kbd>E</kbd> 지우개 <i>Eraser</i></span><span><kbd>Z</kbd> / <kbd>Esc</kbd> 뒤로</span><span><kbd>X</kbd> 앞으로</span><span><kbd>⌫</kbd> 홈으로</span></div>
         <div class="tip">✍️ 갤럭시 <b>S펜 옆 버튼</b>을 누르면 지우개 ↔ 펜이 바로 바뀝니다. 한꺼번에 지우려면 <b>지우개 ▾</b> 메뉴(지우개를 한 번 더 눌러도 열림)에서 <b>펜 글씨 전체 지우기</b>(<kbd>Shift</kbd>+<kbd>E</kbd>) · <b>스탬프 전체 지우기</b>(<kbd>Ctrl</kbd>+<kbd>S</kbd>) · <b>전체 필기 지우기</b>(<kbd>Ctrl</kbd>+<kbd>E</kbd>)를 쓰세요. 실수로 지웠다면 바로 되돌리기(<kbd>Ctrl</kbd>+<kbd>Z</kbd>)로 모두 되살아납니다.</div>
       </div>
     </article>
@@ -358,10 +358,11 @@
         <tr><td><kbd>E</kbd></td><td>지우개 <i>Eraser</i></td></tr>
         <tr><td><kbd>V</kbd></td><td>선택·옮기기 <i>Select</i></td></tr>
         <tr><td><kbd>M</kbd></td><td>화면 이동 <i>Move</i> (확대했을 때)</td></tr>
-        <tr><td><kbd>Z</kbd></td><td>레이저 포인터 <i>Zap</i></td></tr>
+        <tr><td><kbd>D</kbd></td><td>3초 다중 레이저 포인터 <i>Dot</i></td></tr>
         <tr><td><kbd>T</kbd></td><td>텍스트 <i>Text</i></td></tr>
         <tr><td><kbd>S</kbd> / <kbd>Q</kbd></td><td>원형 <i>Stamp</i> / 사각 <i>sQuare</i> 번호 스탬프</td></tr>
         <tr><td><kbd>SS</kbd> / <kbd>QQ</kbd> / <kbd>0</kbd></td><td>스탬프 번호 1번 초기화 (쪽 변경 시 자동)</td></tr>
+        <tr><td><kbd>A</kbd></td><td>밑줄·원 좌측 상단 자동 스탬프 켜기·끄기</td></tr>
         <tr><td><kbd>R</kbd> <kbd>C</kbd> <kbd>L</kbd></td><td>사각형 <i>Rectangle</i> · 원 <i>Circle</i> · 직선 <i>Line</i></td></tr>
       </table></div>
       <div class="sc-box"><h4>색 · 화면</h4><table>
@@ -370,15 +371,15 @@
         <tr><td><kbd>Tab</kbd></td><td>팔레트 접기·펼치기</td></tr>
         <tr><td><kbd>F</kbd></td><td>전체화면 <i>Fullscreen</i></td></tr>
         <tr><td><kbd>?</kbd> / <kbd>F1</kbd></td><td>단축키 안내 창</td></tr>
-        <tr><td><kbd>Esc</kbd> / <kbd>←</kbd> · <kbd>→</kbd></td><td>직전 필기 취소(뒤로) / 앞으로 다시 실행</td></tr>
+        <tr><td><kbd>Z</kbd> / <kbd>X</kbd> (<kbd>Esc</kbd>)</td><td>뒤로 취소 / 앞으로 다시 실행 (<kbd>,</kbd> / <kbd>.</kbd> 지원)</td></tr>
         <tr><td><kbd>Backspace</kbd></td><td>판서 저장하고 홈으로</td></tr>
       </table></div>
       <div class="sc-box"><h4>모드 · 쪽 · 저장</h4><table>
         <tr><td><kbd>Ctrl</kbd>+<kbd>`</kbd></td><td>게시 모드</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>1</kbd></td><td>확대 켜기·끄기 (커서로 볼 곳 고르기)</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>2</kbd> / <kbd>3</kbd></td><td>그 자리에서 판서 / 편집</td></tr>
-        <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Space</kbd></td><td>쪽 · PPTX 장면 넘기기 (<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd>)</td></tr>
-        <tr><td><kbd>←</kbd> / <kbd>→</kbd> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd>)</td><td>뒤로 취소 / 앞으로 다시 실행</td></tr>
+        <tr><td><kbd>←</kbd> <kbd>→</kbd> · <kbd>↑</kbd> <kbd>↓</kbd> · <kbd>Space</kbd></td><td>쪽 · PPTX 장면 넘기기</td></tr>
+        <tr><td><kbd>Z</kbd> / <kbd>X</kbd> (<kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd>)</td><td>뒤로 취소 / 앞으로 다시 실행</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>현재 화면 PNG 저장 <i>Png</i></td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>노트 저장</td></tr>
         <tr><td><kbd>Shift</kbd>+<kbd>E</kbd> / <kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>펜 글씨 / 스탬프 전체 지우기</td></tr>

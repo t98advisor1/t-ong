@@ -4909,15 +4909,23 @@
       if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         var k = rawLower;
         var now = Date.now();
-        // 도형 및 도구 1글자 단축키: 선택·이동(V), 지우개(E), 레이저(Z), 원형스탬프(S, SS: 번호초기화), 사각스탬프(Q, QQ: 번호초기화), 스탬프초기화(0)
+        // 도형·도구·취소 단축키: 뒤로취소(Z / ,), 앞으로다시실행(X / .), 레이저(D), 선택(V), 지우개(E), 스탬프(S/Q, 초기화 SS/QQ/0), 자동스탬프(A)
         if (e.shiftKey && k === 'e') { if (el('sbClearPenBtn')) el('sbClearPenBtn').click(); }
         else if (e.shiftKey && k === 's') { if (el('sbClearStampsBtn')) el('sbClearStampsBtn').click(); }
+        else if (k === 'z' || k === ',' || e.key === '<') {
+          e.preventDefault();
+          performUndo(k === 'z' ? 'Z' : '<');
+        }
+        else if (k === 'x' || k === '.' || e.key === '>') {
+          e.preventDefault();
+          performRedo(k === 'x' ? 'X' : '>');
+        }
+        else if (k === 'd') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'v') setTool('select');
         else if (k === 'm') {
           setTool(state.tool === 'hand' ? (state.lastDrawTool || 'pen') : 'hand');
           if (state.tool === 'hand') showToast(state.zoomScale > 1.02 ? '이동(M): 끌어서 확대한 화면을 옮기세요. 다시 M을 누르면 펜으로 돌아갑니다.' : '이동(M): 확대(Ctrl+1)한 뒤 끌어서 화면을 옮길 수 있습니다.');
         }
-        else if (k === 'z') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'e') setTool(state.tool === 'eraser' ? (state.lastDrawTool || 'pen') : 'eraser');
         else if (k === 's') {
           if (e.repeat) return;
@@ -4968,47 +4976,25 @@
           e.preventDefault();
           activateSpenEraserButton(true, 'S펜 에어액션 스위치');
         }
-        // 좌우 방향키(← / →): 판서 뒤로(실행 취소) / 앞으로(다시 실행) (설명서·단축키 슬라이드가 열려 있으면 슬라이드 이동, Shift+←/→는 쪽 이동)
-        else if (e.key === 'ArrowLeft') {
-          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
-            e.preventDefault();
-            goVisSlide(visSlideIdx - 1);
-            return;
-          }
-          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
-            e.preventDefault();
-            goScSlide(scSlideIdx - 1);
-            return;
-          }
-          e.preventDefault();
-          if (e.shiftKey) {
-            if (curPage().kind === 'pptx') stepPptxAction(-1);
-            else goPage(state.pageIndex - 1);
-          } else {
-            performUndo('←');
-          }
-        }
-        else if (e.key === 'ArrowRight') {
-          if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
-            e.preventDefault();
-            goVisSlide(visSlideIdx + 1);
-            return;
-          }
-          if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
-            e.preventDefault();
-            goScSlide(scSlideIdx + 1);
-            return;
+        // 방향키(← / → · ↑ / ↓) · Space · PageUp/PageDown: 슬라이드·페이지 넘기기 및 PPTX 액션 진행
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (!state.spenEraserOnBtn && e.key === 'PageUp')) {
+          if (e.key === 'ArrowLeft') {
+            if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
+              e.preventDefault();
+              goVisSlide(visSlideIdx - 1);
+              return;
+            }
+            if (el('sbShortcutModal') && el('sbShortcutModal').classList.contains('show')) {
+              e.preventDefault();
+              goScSlide(scSlideIdx - 1);
+              return;
+            }
           }
           e.preventDefault();
-          if (e.shiftKey) {
-            if (curPage().kind === 'pptx') stepPptxAction(1);
-            else goPage(state.pageIndex + 1);
-          } else {
-            performRedo('→');
-          }
+          if (curPage().kind === 'pptx') stepPptxAction(-1);
+          else goPage(state.pageIndex - 1);
         }
-        // 상하 방향키(↑ / ↓) · Space · PageUp/PageDown: 슬라이드·페이지 이동 및 PPTX 액션 진행
-        else if (e.key === ' ' || e.key === 'ArrowDown' || (!state.spenEraserOnBtn && e.key === 'PageDown')) {
+        else if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'ArrowDown' || (!state.spenEraserOnBtn && e.key === 'PageDown')) {
           if (el('sbHelpModal') && el('sbHelpModal').classList.contains('show') && el('sbGuideFullVisualPane') && el('sbGuideFullVisualPane').style.display !== 'none') {
             e.preventDefault();
             goVisSlide(visSlideIdx + 1);
@@ -5021,11 +5007,6 @@
           }
           if (curPage().kind === 'pptx') { e.preventDefault(); stepPptxAction(1); }
           else if (e.key !== ' ') { e.preventDefault(); goPage(state.pageIndex + 1); }
-        }
-        else if (e.key === 'ArrowUp' || (!state.spenEraserOnBtn && e.key === 'PageUp')) {
-          e.preventDefault();
-          if (curPage().kind === 'pptx') stepPptxAction(-1);
-          else goPage(state.pageIndex - 1);
         }
       }
     });
