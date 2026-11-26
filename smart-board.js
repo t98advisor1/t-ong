@@ -36,7 +36,9 @@
     tool: 'pen',           // 'pen' | 'highlighter' | 'laser' | 'line' | 'rect' | 'fillRect' | 'cover' | 'text' | 'stamp' | 'eraser'
     penStyle: 'fountain',  // 'fountain' | 'ballpoint' | 'pencil' | 'brush'
     color: '#ef4444',
-    size: 2.5,
+    size: 2,
+    penSize: 2,
+    highlighterSize: 6,
     bgMode: 'dark',        // 'dark' | 'light' | 'grid'
     palmReject: false,
     spenAuto: (function () { try { return localStorage.getItem('sbSpenAuto_v1') !== 'off'; } catch (e) { return true; } })(), // S펜이 닿으면 S펜 전용 모드를 자동으로 켭니다
@@ -422,7 +424,7 @@
     if (o.type === 'stroke' || o.type === 'highlighter') {
       var pts = o.points || [];
       if (!pts.length) { ctx.restore(); return; }
-      var baseSize = o.size || 2.5;
+      var baseSize = o.size || 2;
       var pStyle = o.type === 'highlighter' ? 'highlighter' : (o.penStyle || 'ballpoint');
       ctx.strokeStyle = o.color || '#ef4444';
 
@@ -473,33 +475,78 @@
           }
         }
       } else if (pStyle === 'pencil') {
-        // 연필 질감: 부드러운 흑연 투명도 + 미세한 사각 질감 2중 패스
-        ctx.lineWidth = Math.max(0.9, baseSize * 0.9);
-        ctx.globalAlpha = 0.72;
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
+        // 삼성노트 연필 효과: 필압 반응형 흑연 코어 + 건조한 다중 섬유결 + 종이 요철 미세 흑연 입자(깜빡임 없는 결정론적 해시)
+        var pHash = function (a, b, c) {
+          var v = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453;
+          return v - Math.floor(v);
+        };
+        var pCol = o.color || '#ef4444';
+        ctx.fillStyle = pCol;
         if (pts.length === 1) {
-          ctx.lineTo(pts[0].x + 0.1, pts[0].y + 0.1);
+          ctx.globalAlpha = 0.52;
+          ctx.beginPath();
+          ctx.arc(pts[0].x, pts[0].y, Math.max(0.9, baseSize * 0.55), 0, Math.PI * 2);
+          ctx.fill();
         } else {
+          // 1층: 필압에 따라 농도와 굵기가 변하는 부드러운 흑연 중심선
+          var pPrevMx = pts[0].x, pPrevMy = pts[0].y;
           for (var pi = 1; pi < pts.length; pi++) {
-            var pmx = (pts[pi - 1].x + pts[pi].x) / 2;
-            var pmy = (pts[pi - 1].y + pts[pi].y) / 2;
-            ctx.quadraticCurveTo(pts[pi - 1].x, pts[pi - 1].y, pmx, pmy);
+            var q0 = pts[pi - 1], q1 = pts[pi];
+            var qmx = (q0.x + q1.x) / 2, qmy = (q0.y + q1.y) / 2;
+            var qpr = typeof q1.p === 'number' ? q1.p : 0.55;
+            ctx.globalAlpha = 0.34 + 0.36 * qpr;
+            ctx.lineWidth = Math.max(0.75, baseSize * (0.8 + 0.34 * qpr));
+            ctx.beginPath();
+            ctx.moveTo(pPrevMx, pPrevMy);
+            ctx.quadraticCurveTo(q0.x, q0.y, qmx, qmy);
+            ctx.stroke();
+            pPrevMx = qmx;
+            pPrevMy = qmy;
           }
-          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+          // 2층: 좌우 미세하게 갈라지는 건조한 연필심 섬유결 2가닥
+          var strandSpread = Math.max(0.55, baseSize * 0.44);
+          for (var stIdx = -1; stIdx <= 1; stIdx += 2) {
+            ctx.globalAlpha = 0.17;
+            ctx.lineWidth = Math.max(0.5, baseSize * 0.46);
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x + stIdx * strandSpread * 0.5, pts[0].y - stIdx * strandSpread * 0.5);
+            for (var si = 1; si < pts.length; si++) {
+              var sp0 = pts[si - 1], sp1 = pts[si];
+              var sdx = sp1.x - sp0.x, sdy = sp1.y - sp0.y;
+              var slen = Math.hypot(sdx, sdy) || 1;
+              var nx = -sdy / slen, ny = sdx / slen;
+              var jit = (pHash(si, Math.round(sp1.x), stIdx + 3) - 0.5) * baseSize * 0.38;
+              var off = stIdx * strandSpread + jit;
+              ctx.lineTo(sp1.x + nx * off, sp1.y + ny * off);
+            }
+            ctx.stroke();
+          }
+          // 3층: 종이 결(Paper tooth) 위에 묻어나는 사각거리는 흑연 가루 입자
+          var speckBudget = 900;
+          var speckCount = 0;
+          for (var gi = 1; gi < pts.length && speckCount < speckBudget; gi++) {
+            var g0 = pts[gi - 1], g1 = pts[gi];
+            var gdx = g1.x - g0.x, gdy = g1.y - g0.y;
+            var segL = Math.hypot(gdx, gdy);
+            if (segL < 0.5) continue;
+            var gnx = -gdy / segL, gny = gdx / segL;
+            var gpr = typeof g1.p === 'number' ? g1.p : 0.55;
+            var steps = Math.min(18, Math.max(1, Math.floor(segL / 2.3)));
+            for (var gs = 0; gs < steps && speckCount < speckBudget; gs++) {
+              var gt = (gs + 0.5) / steps;
+              var gx = g0.x + gdx * gt;
+              var gy = g0.y + gdy * gt;
+              var r1 = pHash(gi * 31 + gs, Math.round(gx), Math.round(gy));
+              if (r1 > 0.74) continue; // 자연스러운 종이 빈틈 유지
+              var r2 = pHash(gs * 17 + gi, Math.round(gy), Math.round(gx));
+              var spread = (r2 - 0.5) * 2 * Math.max(1.1, baseSize * 0.82);
+              var sz = Math.max(0.65, baseSize * (0.24 + 0.24 * r1));
+              ctx.globalAlpha = (0.16 + 0.32 * gpr) * (0.55 + 0.45 * r1);
+              ctx.fillRect(gx + gnx * spread - sz * 0.5, gy + gny * spread - sz * 0.5, sz, sz);
+              speckCount++;
+            }
+          }
         }
-        ctx.stroke();
-        // 미세 흑연 입자감 보조 패스
-        ctx.globalAlpha = 0.24;
-        ctx.lineWidth = Math.max(0.7, baseSize * 0.55);
-        ctx.setLineDash([2, 2.5]);
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x + 0.6, pts[0].y + 0.5);
-        for (var pi2 = 1; pi2 < pts.length; pi2++) {
-          ctx.lineTo(pts[pi2].x + 0.6, pts[pi2].y + 0.5);
-        }
-        ctx.stroke();
-        ctx.setLineDash([]);
       } else {
         // 볼펜 (ballpoint): 일정하고 또렷한 선 (작은 글씨·수식 최적)
         ctx.lineWidth = Math.max(0.9, baseSize * 0.94);
@@ -520,6 +567,7 @@
     } else if (o.type === 'line') {
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
+      if (o.isHighlighter) ctx.globalAlpha = 0.34;
       ctx.beginPath();
       ctx.moveTo(o.x1, o.y1);
       ctx.lineTo(o.x2, o.y2);
@@ -527,10 +575,12 @@
     } else if (o.type === 'rect') {
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
+      if (o.isHighlighter) ctx.globalAlpha = 0.34;
       ctx.strokeRect(o.x, o.y, o.w, o.h);
     } else if (o.type === 'circle') {
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
+      if (o.isHighlighter) ctx.globalAlpha = 0.34;
       var cx = o.x + o.w / 2;
       var cy = o.y + o.h / 2;
       var rx = Math.max(1, Math.abs(o.w) / 2);
@@ -659,22 +709,29 @@
   }
 
   // ===================================================================
-  // 레이저 포인터
+  // 레이저 포인터 (약 2초간 선명하게 유지 후 부드럽게 페이드아웃)
   // ===================================================================
+  var LASER_HOLD_MS = 1600;
+  var LASER_FADE_MS = 600;
+  var LASER_TOTAL_MS = LASER_HOLD_MS + LASER_FADE_MS;
+
   function renderLaserLoop() {
     var now = Date.now();
-    state.laserPoints = state.laserPoints.filter(function (p) { return now - p.t < 520; });
+    state.laserPoints = state.laserPoints.filter(function (p) { return now - p.t < LASER_TOTAL_MS; });
     var pg = curPage();
     liveCtx.clearRect(0, 0, pg.width, pg.height);
-    if (state.laserPoints.length > 1) {
+    if (state.laserPoints.length >= 1) {
       for (var i = 1; i < state.laserPoints.length; i++) {
         var p0 = state.laserPoints[i - 1], p1 = state.laserPoints[i];
-        var alpha = Math.max(0, 1 - (now - p1.t) / 520);
+        var age = now - p1.t;
+        var alpha = age < LASER_HOLD_MS
+          ? (0.96 - (age / LASER_HOLD_MS) * 0.12)
+          : Math.max(0, 0.84 * (1 - (age - LASER_HOLD_MS) / LASER_FADE_MS));
         liveCtx.save();
         liveCtx.strokeStyle = 'rgba(239, 68, 68, ' + alpha + ')';
         liveCtx.shadowColor = '#ef4444';
         liveCtx.shadowBlur = 12;
-        liveCtx.lineWidth = 5 * alpha + 2;
+        liveCtx.lineWidth = 4.5 * alpha + 2.2;
         liveCtx.lineCap = 'round';
         liveCtx.beginPath();
         liveCtx.moveTo(p0.x, p0.y);
@@ -683,7 +740,12 @@
         liveCtx.restore();
       }
       var head = state.laserPoints[state.laserPoints.length - 1];
+      var headAge = now - head.t;
+      var headAlpha = headAge < LASER_HOLD_MS
+        ? 1
+        : Math.max(0, 1 - (headAge - LASER_HOLD_MS) / LASER_FADE_MS);
       liveCtx.save();
+      liveCtx.globalAlpha = headAlpha;
       liveCtx.fillStyle = '#ffffff';
       liveCtx.shadowColor = '#ef4444';
       liveCtx.shadowBlur = 16;
@@ -1031,12 +1093,19 @@
 
   function setTool(nextTool) {
     commitInlineText();
+    var prevTool = state.tool;
     // 지우개·레이저·선택·이동(손)은 잠깐 쓰는 도구라, 다시 누르면 돌아갈 '마지막 그리기 도구'로 기억하지 않습니다.
     if (['eraser', 'laser', 'select', 'hand'].indexOf(nextTool) < 0) {
       state.lastDrawTool = nextTool;
     }
     if (nextTool !== 'select') clearSelection();
     state.tool = nextTool;
+    // 형광펜 기본 6pt ↔ 일반 펜 기본 2pt 개별 굵기 자동 전환
+    if (nextTool === 'highlighter' && prevTool !== 'highlighter') {
+      setSize(state.highlighterSize || 6);
+    } else if (nextTool === 'pen' && prevTool !== 'pen') {
+      setSize(state.penSize || 2);
+    }
     if (state.webActive && state.webInteract) setWebInteractMode(false);
     if (state.mode !== 'draw') setMode('draw');
     document.querySelectorAll('.sb-tool-btn[data-sb-tool]').forEach(function (b) {
@@ -1134,6 +1203,8 @@
   function setSize(px) {
     var clamped = Math.max(1, Math.min(30, Math.round(px * 2) / 2));
     state.size = clamped;
+    if (state.tool === 'highlighter') state.highlighterSize = clamped;
+    else if (state.tool === 'pen') state.penSize = clamped;
     if (el('sbSizeLabel')) el('sbSizeLabel').textContent = formatSizePt(state.size);
     document.querySelectorAll('.sb-size-preset-btn[data-size-preset]').forEach(function (b) {
       var pv = parseFloat(b.getAttribute('data-size-preset'));
@@ -1299,12 +1370,24 @@
     pointer.holdTimer = setTimeout(snapHeldStroke, SHAPE_HOLD_MS);
   }
   function snapHeldStroke() {
-    if (!pointer.down || !pointer.currentStroke || pointer.snapShape || pointer.effectiveTool !== 'pen') return;
+    if (!pointer.down || !pointer.currentStroke || pointer.snapShape || (pointer.effectiveTool !== 'pen' && pointer.effectiveTool !== 'highlighter')) return;
     var shape = recognizeShape(pointer.currentStroke.points);
     if (!shape) return;
+    var isHl = pointer.effectiveTool === 'highlighter' || pointer.currentStroke.type === 'highlighter';
     shape.id = uid();
     shape.color = pointer.currentStroke.color;
-    shape.size = Math.max(2, pointer.currentStroke.size);
+    if (isHl) {
+      if (shape.type === 'stroke') {
+        shape.type = 'highlighter';
+        shape.penStyle = 'highlighter';
+        shape.size = pointer.currentStroke.size || 6;
+      } else {
+        shape.isHighlighter = true;
+        shape.size = Math.max(12, (pointer.currentStroke.size || 6) * 4.4);
+      }
+    } else {
+      shape.size = Math.max(2, pointer.currentStroke.size);
+    }
     pointer.snapShape = shape;
     var pg = curPage();
     liveCtx.clearRect(0, 0, pg.width, pg.height);
@@ -1729,8 +1812,22 @@
       state.laserPoints.push({ x: pt.x, y: pt.y, t: Date.now() });
       if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
     } else if ((eff === 'pen' || eff === 'highlighter') && pointer.currentStroke) {
-      if (pointer.snapShape) return;   // 이미 도형으로 바뀌었으면 손을 뗄 때까지 그대로 둡니다
-      if (eff === 'pen') armShapeHold(pt);
+      if (pointer.snapShape) {
+        // 직선으로 변환된 뒤에도 손을 떼기 전까지 끝점 위치·수평/수직 각도를 자유롭게 조절할 수 있도록 유지
+        if (pointer.snapShape.type === 'line') {
+          var sx0 = pointer.snapShape.x1, sy0 = pointer.snapShape.y1;
+          var nx2 = pt.x, ny2 = pt.y;
+          var sang = Math.abs(Math.atan2(ny2 - sy0, nx2 - sx0) * 180 / Math.PI);
+          if (sang < 7 || sang > 173) ny2 = sy0;
+          else if (Math.abs(sang - 90) < 7) nx2 = sx0;
+          pointer.snapShape.x2 = nx2;
+          pointer.snapShape.y2 = ny2;
+          liveCtx.clearRect(0, 0, curPg.width, curPg.height);
+          drawInkObject(liveCtx, pointer.snapShape);
+        }
+        return;
+      }
+      armShapeHold(pt);
       var nowT = Date.now();
       var dt = Math.max(1, nowT - (pointer.lastMoveTime || nowT));
       var segDist = Math.hypot(pt.x - pointer.lastX, pt.y - pointer.lastY);
@@ -3740,7 +3837,7 @@
     if (el('sbSizeIncBtn')) el('sbSizeIncBtn').addEventListener('click', function () { stepSize(1); });
     document.querySelectorAll('.sb-size-preset-btn[data-size-preset]').forEach(function (b) {
       b.addEventListener('click', function () {
-        setSize(parseFloat(b.getAttribute('data-size-preset')) || 2.5);
+        setSize(parseFloat(b.getAttribute('data-size-preset')) || 2);
         closeAllPopovers();
       });
     });
@@ -4048,7 +4145,7 @@
       bulkClear(function () { return false; }, '현재 쪽의 필기 {n}개를 모두 지웠습니다.', '지울 필기가 없습니다.');
     });
     if (el('sbClearPenBtn')) el('sbClearPenBtn').addEventListener('click', function () {
-      bulkClear(function (o) { return o.type !== 'stroke' && o.type !== 'highlighter'; }, '펜 글씨 {n}개를 지웠습니다.', '지울 펜 글씨가 없습니다.');
+      bulkClear(function (o) { return o.type !== 'stroke' && o.type !== 'highlighter' && !o.isHighlighter; }, '펜 글씨 {n}개를 지웠습니다.', '지울 펜 글씨가 없습니다.');
     });
     ['sbClearStampsBtn', 'sbClearStampsBtn2'].forEach(function (id) {
       if (el(id)) el(id).addEventListener('click', function () {
