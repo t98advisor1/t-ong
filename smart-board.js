@@ -226,15 +226,23 @@
   }
 
   // ===================================================================
-  // 확대·이동 — 판서판 왼쪽 위를 기준점으로 확대하고, 이동 범위는 실제 보이는 화면(stageWrap) 기준으로 제한합니다.
-  // 확대한 판이 화면보다 크면 화면 밖 검은 바탕이 보이지 않게, 작으면 가운데에 둡니다.
+  // 확대·이동 — 판서판 왼쪽 위 고정 레이아웃 위치(offsetLeft/offsetTop)를 기준점으로 확대하고,
+  // 이동 범위는 실제 보이는 화면(#sbViewport) 기준으로 제한합니다.
   // ===================================================================
+  function roundSubpx(v) {
+    return Math.round(v * 100) / 100;
+  }
   function zoomGeometry() {
     var vpEl = el('sbViewport') || stageWrap;
     var sr = vpEl.getBoundingClientRect();
-    var fr = boardFrame.getBoundingClientRect();
-    // 확대 전(이동 0) 판의 화면 위치 — 원점이 왼쪽 위라서 지금 위치에서 이동량만 빼면 됩니다.
-    return { sr: sr, fw: boardFrame.offsetWidth, fh: boardFrame.offsetHeight, left0: fr.left - state.panX, top0: fr.top - state.panY };
+    // style.transform 과 무관한 순수 레이아웃 원점을 사용해 확대·터치 이동 중 기준점 진동 및 좌측 쏠림을 원천 차단합니다.
+    return {
+      sr: sr,
+      fw: boardFrame.offsetWidth,
+      fh: boardFrame.offsetHeight,
+      left0: sr.left + boardFrame.offsetLeft,
+      top0: sr.top + boardFrame.offsetTop
+    };
   }
   function panRange(g, z) {
     function axis(viewStart, viewSize, start0, size) {
@@ -247,8 +255,8 @@
   function clampPan() {
     if (state.zoomScale <= 1.02) { state.zoomScale = 1; state.panX = 0; state.panY = 0; return; }
     var r = panRange(zoomGeometry(), state.zoomScale);
-    state.panX = Math.round(Math.min(r.x.hi, Math.max(r.x.lo, state.panX)));
-    state.panY = Math.round(Math.min(r.y.hi, Math.max(r.y.lo, state.panY)));
+    state.panX = roundSubpx(Math.min(r.x.hi, Math.max(r.x.lo, state.panX)));
+    state.panY = roundSubpx(Math.min(r.y.hi, Math.max(r.y.lo, state.panY)));
   }
   // 화면의 한 점(clientX, clientY)을 붙잡은 채 배율을 바꿉니다(휠·두 손가락·확대 시작).
   function zoomAt(clientX, clientY, nextZoom, fromZoom, fromPanX, fromPanY) {
@@ -256,17 +264,22 @@
     var z0 = fromZoom != null ? fromZoom : state.zoomScale;
     var px0 = fromPanX != null ? fromPanX : state.panX, py0 = fromPanY != null ? fromPanY : state.panY;
     var z1 = Math.max(1, Math.min(4, nextZoom));
-    var ux = (clientX - g.left0 - px0) / z0, uy = (clientY - g.top0 - py0) / z0;
+    // 기준 좌표가 판서판 바깥 여백에 찍혀 절반이 한쪽으로 밀리는 현상을 막기 위해 판 영역 안으로 보정합니다.
+    var curLeft = g.left0 + px0, curTop = g.top0 + py0;
+    var curW = g.fw * z0, curH = g.fh * z0;
+    var safeX = Math.min(curLeft + curW, Math.max(curLeft, clientX));
+    var safeY = Math.min(curTop + curH, Math.max(curTop, clientY));
+    var ux = (safeX - g.left0 - px0) / z0, uy = (safeY - g.top0 - py0) / z0;
     state.zoomScale = z1;
-    state.panX = clientX - g.left0 - z1 * ux;
-    state.panY = clientY - g.top0 - z1 * uy;
+    state.panX = safeX - g.left0 - z1 * ux;
+    state.panY = safeY - g.top0 - z1 * uy;
     clampPan();
     applyTransform();
   }
 
   function applyTransform() {
     boardFrame.style.transformOrigin = '0 0';
-    boardFrame.style.transform = 'translate(' + state.panX + 'px, ' + state.panY + 'px) scale(' + state.zoomScale + ')';
+    boardFrame.style.transform = 'translate3d(' + roundSubpx(state.panX) + 'px, ' + roundSubpx(state.panY) + 'px, 0) scale(' + state.zoomScale + ')';
     var zb = el('sbZoomBadge');
     var zt = el('sbZoomText');
     if (zb && zt) {
@@ -1125,13 +1138,21 @@
     });
     if (nextMode === 'zoom') {
       if (state.zoomScale < 1.3) {
-        var zr = stageWrap.getBoundingClientRect();
-        var fx = pointer.lastClientX != null ? pointer.lastClientX : zr.left + zr.width / 2;
-        var fy = pointer.lastClientY != null ? pointer.lastClientY : zr.top + zr.height / 2;
-        zoomAt(fx, fy, 2.0);
+        var zg0 = zoomGeometry();
+        var pg0 = curPage();
+        // 세로형 PDF·문서(가로 여백이 넓은 문서)는 가로 폭에 딱 맞는 풀사이즈 배율로 정중앙 정렬하여 좌우 밀림을 방지합니다.
+        var isPortraitDoc = (pg0.kind === 'pdf' || pg0.kind === 'image') && zg0.fw > 0 && zg0.fw < zg0.sr.width * 0.88;
+        var initZoom = isPortraitDoc
+          ? Math.max(1.8, Math.min(3.2, Math.round(((zg0.sr.width * 0.98) / zg0.fw) * 100) / 100))
+          : 2.0;
+        var fx = isPortraitDoc
+          ? (zg0.left0 + zg0.fw / 2)
+          : (pointer.lastClientX != null ? pointer.lastClientX : (zg0.left0 + zg0.fw / 2));
+        var fy = pointer.lastClientY != null ? pointer.lastClientY : (isPortraitDoc ? zg0.top0 : (zg0.top0 + zg0.fh / 2));
+        zoomAt(fx, fy, initZoom);
       } else applyTransform();
       liveCanvas.style.cursor = 'zoom-in';
-      showToast('확대 모드: 커서를 움직여 볼 곳을 고르고(휠로 배율) 누르면 그 자리에서 판서합니다. 끄기는 Ctrl+1');
+      showToast('확대 모드: 커서를 움직여 볼 곳을 고르고(휠·두 손가락으로 조절) 누르면 그 자리에서 판서합니다. 끄기는 Ctrl+1');
     } else if (nextMode === 'pin') {
       liveCanvas.style.cursor = 'crosshair';
       showToast('게시 모드(스닙페이스트): 화면에 고정할 영역을 드래그하세요.');
@@ -1565,39 +1586,68 @@
   }
 
   // 터치 제스처 — 두 손가락은 확대·축소와 이동을 함께, 세 손가락 이상은 이동만 합니다.
+  // 두 손가락 pointermove 이벤트가 한 프레임에 번갈아 들어오며 파르르 떨리는 현상을 막기 위해
+  // requestAnimationFrame 단위 코얼레싱과 순수 이동 시 핀치 배율 고정 데드존을 적용합니다.
+  var touchGestureRaf = null;
   function touchPoints() { return Object.keys(pointer.pinchMap).map(function (k) { return pointer.pinchMap[k]; }); }
   function startTouchGesture() {
+    if (touchGestureRaf) { cancelAnimationFrame(touchGestureRaf); touchGestureRaf = null; }
     var pts = touchPoints();
+    if (!pts.length) { pointer.gesture = null; return; }
     var cx = 0, cy = 0;
     pts.forEach(function (p) { cx += p.x; cy += p.y; });
     cx /= pts.length; cy /= pts.length;
     pointer.gesture = {
       count: pts.length, cx: cx, cy: cy,
       dist: pts.length === 2 ? Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) : 0,
+      pinchActive: false,
       zoom: state.zoomScale, panX: state.panX, panY: state.panY
     };
   }
   function moveTouchGesture() {
+    touchGestureRaf = null;
     var g = pointer.gesture, pts = touchPoints();
+    if (!g || !pts.length) return;
     if (pts.length !== g.count) { startTouchGesture(); return; }
     var cx = 0, cy = 0;
     pts.forEach(function (p) { cx += p.x; cy += p.y; });
     cx /= pts.length; cy /= pts.length;
-    if (pts.length === 2 && g.dist > 10) {
+    if (pts.length === 2 && g.dist > 14) {
       var dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      // 시작할 때 두 손가락 가운데에 있던 판의 점이 지금 손가락 가운데를 따라오도록 확대·이동합니다.
-      var z1 = Math.max(1, Math.min(4, g.zoom * dist / g.dist));
-      var geo = zoomGeometry();
-      var ux = (g.cx - geo.left0 - g.panX) / g.zoom, uy = (g.cy - geo.top0 - g.panY) / g.zoom;
-      state.zoomScale = z1;
-      state.panX = cx - geo.left0 - z1 * ux;
-      state.panY = cy - geo.top0 - z1 * uy;
+      var distDelta = Math.abs(dist - g.dist);
+      // 두 손가락을 나란히 쓸어 넘길 때 미세한 간격 변화로 화면이 떨리지 않도록 데드존(12px 및 7%) 안에서는 배율을 고정합니다.
+      if (!g.pinchActive && distDelta >= Math.max(12, g.dist * 0.07)) {
+        g.pinchActive = true;
+        g.dist = dist;
+        g.cx = cx;
+        g.cy = cy;
+        g.zoom = state.zoomScale;
+        g.panX = state.panX;
+        g.panY = state.panY;
+      }
+      if (g.pinchActive) {
+        var rawZ = g.zoom * (dist / g.dist);
+        var z1 = Math.max(1, Math.min(4, rawZ));
+        var geo = zoomGeometry();
+        var ux = (g.cx - geo.left0 - g.panX) / g.zoom, uy = (g.cy - geo.top0 - g.panY) / g.zoom;
+        state.zoomScale = z1;
+        state.panX = cx - geo.left0 - z1 * ux;
+        state.panY = cy - geo.top0 - z1 * uy;
+      } else {
+        state.panX = g.panX + (cx - g.cx);
+        state.panY = g.panY + (cy - g.cy);
+      }
     } else {
       state.panX = g.panX + (cx - g.cx);
       state.panY = g.panY + (cy - g.cy);
     }
     clampPan();
     applyTransform();
+  }
+  function scheduleTouchGestureMove() {
+    if (!touchGestureRaf) {
+      touchGestureRaf = requestAnimationFrame(moveTouchGesture);
+    }
   }
 
   // S펜 자동 — 펜이 화면에 닿거나 가까이 오면 S펜 전용 모드(손바닥 무시·손가락은 확대/이동)를 자동으로 켭니다.
@@ -1640,6 +1690,16 @@
 
     if (state.mode === 'zoom') {
       setMode('draw');
+      // 터치로 확대 화면을 쓸어 넘기려는 경우(S펜 전용 모드 또는 손 도구) 첫 터치부터 끊김 없이 바로 이동을 시작합니다.
+      if (ev.pointerType === 'touch' && (state.palmReject || state.tool === 'hand')) {
+        pointer.down = true;
+        pointer.activeId = ev.pointerId;
+        pointer.effectiveTool = 'pan';
+        pointer.lastX = ev.clientX;
+        pointer.lastY = ev.clientY;
+        try { liveCanvas.setPointerCapture(ev.pointerId); } catch (e) {}
+        return;
+      }
       showToast('확대 화면을 고정하고 판서 모드로 전환했습니다.');
       return;
     }
@@ -1780,20 +1840,22 @@
       pointer.pinchMap[ev.pointerId].x = ev.clientX;
       pointer.pinchMap[ev.pointerId].y = ev.clientY;
     }
-    pointer.lastClientX = ev.clientX;
-    pointer.lastClientY = ev.clientY;
+    if (ev.pointerType !== 'touch') {
+      pointer.lastClientX = ev.clientX;
+      pointer.lastClientY = ev.clientY;
+    }
     if (pointer.gesture && Object.keys(pointer.pinchMap).length >= 2) {
-      moveTouchGesture();
+      scheduleTouchGestureMove();
       return;
     }
 
-    if (state.mode === 'zoom' && !pointer.down) {
-      // 줌잇처럼 커서 위치가 화면의 어디쯤인지에 맞춰 확대한 판의 같은 부분을 보여 줍니다(가장자리까지 닿음).
+    if (state.mode === 'zoom' && !pointer.down && ev.pointerType !== 'touch') {
+      // 줌잇처럼 마우스·호버 펜 위치가 화면의 어디쯤인지에 맞춰 확대한 판의 같은 부분을 보여 줍니다(가장자리까지 닿음).
       var zg = zoomGeometry(), zrange = panRange(zg, state.zoomScale);
       var fxr = Math.min(1, Math.max(0, (ev.clientX - zg.sr.left) / zg.sr.width));
       var fyr = Math.min(1, Math.max(0, (ev.clientY - zg.sr.top) / zg.sr.height));
-      state.panX = Math.round(zrange.x.hi - fxr * (zrange.x.hi - zrange.x.lo));
-      state.panY = Math.round(zrange.y.hi - fyr * (zrange.y.hi - zrange.y.lo));
+      state.panX = roundSubpx(zrange.x.hi - fxr * (zrange.x.hi - zrange.x.lo));
+      state.panY = roundSubpx(zrange.y.hi - fyr * (zrange.y.hi - zrange.y.lo));
       applyTransform();
       return;
     }
@@ -2023,10 +2085,12 @@
 
   function finishPointer(ev) {
     var wasGesture = !!pointer.pinchMap[ev.pointerId] && Object.keys(pointer.pinchMap).length >= 2;
+    if (wasGesture && touchGestureRaf) moveTouchGesture();
     delete pointer.pinchMap[ev.pointerId];
     if (wasGesture) {
       // 남은 손가락으로 다시 기준을 잡습니다. 한 손가락만 남으면 제스처를 끝내고 판서하지 않습니다.
-      if (Object.keys(pointer.pinchMap).length >= 2) startTouchGesture(); else pointer.gesture = null;
+      if (Object.keys(pointer.pinchMap).length >= 2) startTouchGesture();
+      else { if (touchGestureRaf) { cancelAnimationFrame(touchGestureRaf); touchGestureRaf = null; } pointer.gesture = null; }
       pointer.down = false;
       return;
     }
