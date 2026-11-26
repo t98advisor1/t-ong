@@ -836,7 +836,16 @@ body {
   max-height: 92dvh;
 }
 .sb-modal-wide { max-width: 840px; }
-.sb-modal-vault { max-width: 1020px; height: 86dvh; }
+#sbVaultModal {
+  padding: 0;
+}
+.sb-modal-vault {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
+}
 .sb-modal-guide {
   max-width: 1180px;
   max-height: 94dvh;
@@ -880,6 +889,9 @@ body {
 
 /* 삼성노트형 폴더 보관함 스타일 */
 .sb-vault-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -913,9 +925,10 @@ body {
 }
 .sb-vault-layout {
   flex: 1 1 auto;
-  min-height: 320px;
+  min-height: 0;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: 230px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 14px;
 }
 .sb-vault-folders {
