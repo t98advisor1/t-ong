@@ -320,6 +320,8 @@ body {
 .sb-btn-ghost { background: rgba(30, 41, 59, 0.78); }
 .sb-btn-vault { background: #4c1d95; border-color: #8b5cf6; color: #f3e8ff; }
 .sb-btn-vault:hover { background: #5b21b6; }
+.sb-btn-backup { background: #0f766e; border-color: #14b8a6; color: #ccfbf1; }
+.sb-btn-backup:hover { background: #0d9488; }
 .sb-btn-file { background: #1e3a8a; border-color: #2563eb; color: #dbeafe; }
 .sb-btn-file:hover { background: #1d4ed8; }
 .sb-btn-pptx { background: #7c2d12; border-color: #ea580c; color: #ffedd5; }
@@ -896,6 +898,36 @@ body {
   flex-direction: column;
   gap: 14px;
   background: #f8fafc;
+}
+.sb-vault-backup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%);
+  border: 1.5px solid #67e8f9;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.sb-vault-backup-copy {
+  flex: 1 1 360px;
+  font-size: 0.8rem;
+  color: #0f172a;
+  line-height: 1.45;
+}
+.sb-vault-backup-copy strong {
+  display: inline-block;
+  color: #0f766e;
+  margin-right: 6px;
+  font-size: 0.84rem;
+}
+.sb-vault-backup-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .sb-vault-save-bar {
   display: flex;
@@ -1767,6 +1799,12 @@ kbd {
 .sb-save-pop-badge.is-zip {
   background: linear-gradient(135deg, #7c3aed, #5b21b6);
 }
+.sb-save-pop-badge.is-json {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+}
+.sb-save-pop-badge.is-link {
+  background: linear-gradient(135deg, #4f46e5, #3730a3);
+}
 .sb-autostamp-pill {
   display: inline-flex;
   align-items: center;
@@ -1914,7 +1952,7 @@ kbd {
 .sb-filehub-drop span { font-size: 0.78rem; color: #475569; }
 .sb-filehub-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 .sb-filehub-card {
@@ -1935,6 +1973,10 @@ kbd {
 .sb-filehub-card.is-pptx {
   border-color: #fdba74;
   background: #fff7ed;
+}
+.sb-filehub-card.is-backup {
+  border-color: #5eead4;
+  background: #f0fdfa;
 }
 .sb-filehub-card b { font-size: 0.86rem; color: #0f172a; }
 .sb-filehub-card small { font-size: 0.74rem; color: #64748b; }
@@ -1967,7 +2009,10 @@ kbd {
 .sb-filehub-presets .sb-web-yt-btn:hover {
   background: #b91c1c;
 }
-@media (max-width: 680px) {
+@media (max-width: 860px) {
+  .sb-filehub-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
   .sb-filehub-cards { grid-template-columns: 1fr; }
 }
 

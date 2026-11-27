@@ -7,13 +7,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>스마트 판서 보드 v2.5 (상단 자동숨김 팔레트 · 고호환 PPTX · S펜 스위치 · OCR)</title>
+  <title>스마트 판서 보드 v2.8 (상단 자동숨김 팔레트 · 노트 백업·복원 · 고호환 PPTX · S펜 스위치 · OCR)</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="manifest" href="./smart-board.webmanifest">
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.7.2">
+  <link rel="stylesheet" href="./smart-board.css?v=2.8.0">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -51,11 +51,12 @@
 
         <div class="sb-top-divider"></div>
 
-        <!-- 노트 보관함 & 통합 열기 -->
+        <!-- 노트 보관함 & 백업·복원 & 통합 열기 -->
         <div class="sb-top-group">
           <button type="button" class="sb-btn sb-btn-vault sb-btn-xs" id="sbOpenVaultBtn" title="삼성노트형 로컬 폴더별 판서 노트 보관함">노트함</button>
           <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbQuickSaveNoteBtn" title="현재 판서 노트를 로컬 폴더에 즉시 저장 (Ctrl+Shift+S)">노트저장</button>
-          <button type="button" class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs sb-btn-open-hub" id="sbOpenFileHubBtn" title="PDF · PPTX · 이미지 · 구글 드라이브 · 유튜브 · 웹 링크 열기">
+          <button type="button" class="sb-btn sb-btn-backup sb-btn-xs" id="sbBackupMenuBtn" title="저장된 판서 노트 필기 백업(.json) 내려받기 및 복원하기">백업·복원 ▾</button>
+          <button type="button" class="sb-btn sb-btn-file sb-btn-pptx sb-btn-xs sb-btn-open-hub" id="sbOpenFileHubBtn" title="PDF · PPTX · 이미지 · 백업파일(.json) · 구글 드라이브 · 유튜브 · 웹 링크 열기">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v1H2V6z"/><path d="M2 10h20l-2 9a2 2 0 0 1-2 1H6a2 2 0 0 1-2-1l-2-9z"/></svg>
             <span>열기</span>
           </button>
@@ -251,16 +252,27 @@
           <span class="sb-guide-kicker">삼성노트 스타일 로컬 보관함 (동기화 없이 이 기기에 즉시 저장)</span>
           <h3>폴더별 판서 노트 보관함</h3>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbVaultExportJsonBtn">전체 백업(.json)</button>
-          <label class="sb-btn sb-btn-ghost sb-btn-xs" style="cursor:pointer;">
-            백업 불러오기
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="sb-btn sb-btn-primary sb-btn-xs" id="sbVaultExportJsonBtn" title="모든 폴더와 저장된 판서 노트를 하나의 백업 파일(.json)로 내려받습니다">전체 노트 백업(.json)</button>
+          <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbVaultExportCurJsonBtn" title="현재 화면에 열려 있는 판서 노트 1개만 백업 파일(.json)로 내려받습니다">현재 노트만 백업</button>
+          <label class="sb-btn sb-btn-accent sb-btn-xs" style="cursor:pointer;" title="내려받은 백업 파일(.json)을 선택해 폴더와 판서 노트를 그대로 복원합니다">
+            백업 파일 복원(.json)
             <input type="file" id="sbVaultImportJsonInput" accept=".json,application/json" hidden>
           </label>
           <button type="button" class="sb-close-btn" data-close="sbVaultModal">&times;</button>
         </div>
       </div>
       <div class="sb-modal-body sb-vault-body">
+        <div class="sb-vault-backup-banner" id="sbVaultBackupBanner">
+          <div class="sb-vault-backup-copy">
+            <strong>노트 필기 백업 · 복원 안내</strong>
+            <span>판서 노트는 이 기기의 브라우저 내부에 자동 저장됩니다. 다른 기기나 새 주소로 옮길 때는 <b>[전체 노트 백업(.json)]</b>(또는 개별 노트의 <b>[백업]</b>)으로 내려받은 뒤 <b>[백업 파일 복원(.json)]</b>으로 불러오세요.</span>
+          </div>
+          <div class="sb-vault-backup-links" id="sbVaultGoBoardTongWrap" style="display:none;">
+            <a href="https://t98advisor1.github.io/board-tong/" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-primary sb-btn-xs">새 독립 판서보드(GitHub) 열기 ↗</a>
+            <a href="https://boardtong.vercel.app/" target="_blank" rel="noopener noreferrer" class="sb-btn sb-btn-ghost sb-btn-xs">보조 주소(Vercel) 열기 ↗</a>
+          </div>
+        </div>
         <div class="sb-vault-save-bar">
           <div class="sb-vault-save-field">
             <label for="sbVaultNoteTitleInput">현재 판서 노트 제목</label>
@@ -342,39 +354,54 @@
           <div class="sb-slide-nav-bar">
             <button type="button" class="sb-btn sb-btn-primary" id="sbScPrevSlideBtn">◀ 이전 화면</button>
             <div class="sb-slide-tabs" id="sbScSlideTabs">
-              <button type="button" class="sb-slide-tab active" data-sc-slide="0">화면 1 · 상단 자동숨김 팔레트 &amp; 1글자 단축키</button>
-              <button type="button" class="sb-slide-tab" data-sc-slide="1">화면 2 · 원형(S)/사각(Q) 스탬프 &amp; 도형(R/C/L) · S펜 스위치</button>
+              <button type="button" class="sb-slide-tab active" data-sc-slide="0">화면 1 · 변경된 핵심 단축키 (Z/X 취소 · 방향키 쪽이동 · D 레이저)</button>
+              <button type="button" class="sb-slide-tab" data-sc-slide="1">화면 2 · 노트 필기 백업(.json) 및 새 보드 복원</button>
+              <button type="button" class="sb-slide-tab" data-sc-slide="2">화면 3 · 밑줄·원 자동스탬프(A) · 초기화(SS/0) · PNG ZIP 공유</button>
             </div>
-            <span class="sb-slide-counter" id="sbScSlideCounter">1 / 2</span>
+            <span class="sb-slide-counter" id="sbScSlideCounter">1 / 3</span>
             <button type="button" class="sb-btn sb-btn-primary" id="sbScNextSlideBtn">다음 화면 ▶</button>
           </div>
 
           <div class="sb-slide-viewport">
             <article class="sb-gcard sb-slide-item active" data-sc-slide-pane="0">
               <div class="sb-gcard-head">
-                <span class="sb-gstep s1">화면 1 / 2</span>
-                <b>상단 자동숨김 통합 팔레트 &amp; 도형·스탬프 1글자 단축키 배치 (전체화면 보기)</b>
+                <span class="sb-gstep s1">화면 1 / 3</span>
+                <b>상단 팔레트 &amp; 최신 단축키 배치 — 취소(Z/Esc)·다시실행(X), 쪽이동(←/→), 3초 다중 레이저(D), 펜 2pt·형광펜 6pt</b>
               </div>
               <div class="sb-gshot sb-gshot-full">
-                <img src="./assets/smartboard_guide/step1_load_pptx.png" alt="상단 통합 팔레트 및 단축키 화면">
+                <img src="./assets/smartboard_guide/manual_v4_01_shortcuts_toolbar.png" alt="상단 팔레트 최신 단축키 및 백업·복원 버튼 안내">
               </div>
               <ul>
-                <li>상단 바의 모든 도구는 <b>키보드 1글자 단축키</b>(<kbd>P</kbd> 펜, <kbd>H</kbd> 형광펜, <kbd>D</kbd> 레이저, <kbd>L</kbd> 직선, <kbd>R</kbd> 사각형, <kbd>C</kbd> 원, <kbd>T</kbd> 텍스트, <kbd>S</kbd> ①원형스탬프, <kbd>Q</kbd> ▣사각스탬프, <kbd>E</kbd> 지우개, <kbd>Z</kbd>·<kbd>Esc</kbd> 뒤로취소 / <kbd>X</kbd> 다시실행, <kbd>←</kbd>·<kbd>→</kbd> 쪽이동)로 즉시 동작합니다.</li>
-                <li>판서를 시작하면 상단 팔레트가 자동으로 위로 숨겨져 100% 꽉 찬 화면이 되며, 상단 끝으로 커서를 가져가거나 <kbd>Tab</kbd> 키를 누르면 즉시 내려옵니다.</li>
+                <li><b>뒤로 취소(<kbd>Z</kbd> · <kbd>Esc</kbd> · <kbd>,</kbd>) / 앞으로 다시 실행(<kbd>X</kbd> · <kbd>.</kbd>)</b>으로 왼손·오른손 어디서나 빠르게 판서를 되돌리고, <b>방향키(<kbd>←</kbd> <kbd>→</kbd> · <kbd>↑</kbd> <kbd>↓</kbd>)</b>로 슬라이드와 PDF 페이지를 넘깁니다.</li>
+                <li>일반 펜(만년필·볼펜·삼성노트 질감 연필·붓펜)은 <b>기본 2pt</b>, 형광펜(<kbd>H</kbd>)은 <b>기본 6pt</b>로 시작하며, 펜과 형광펜 모두 그리다가 끝에서 <b>0.5초 멈추면 반듯한 직선·도형</b>으로 변환됩니다. 레이저(<kbd>D</kbd>)는 여러 획을 연속 필기해도 선이 이어지지 않고 각각 <b>3초간 유지</b>됩니다.</li>
               </ul>
             </article>
 
             <article class="sb-gcard sb-slide-item" data-sc-slide-pane="1" style="display:none;">
               <div class="sb-gcard-head">
-                <span class="sb-gstep s2">화면 2 / 2</span>
-                <b>완벽한 원형 스탬프(S) · 사각 스탬프(Q) · 도형(R/C/L) · S펜 스위치 작동 화면 (전체화면 보기)</b>
+                <span class="sb-gstep s2">화면 2 / 3</span>
+                <b>기존 스마트 판서 노트 백업(.json) 내려받기 &amp; 새 독립 보드(board-tong)에서 1초 복원하기</b>
               </div>
               <div class="sb-gshot sb-gshot-full">
-                <img src="./assets/smartboard_guide/step4_zoom_spen.png" alt="원형 및 사각 스탬프와 도형 단축키 작동 화면">
+                <img src="./assets/smartboard_guide/manual_v4_02_backup_restore.png" alt="노트함 및 상단 백업·복원 메뉴를 통한 판서 노트 백업과 복원 화면">
               </div>
               <ul>
-                <li><kbd>S</kbd> 키를 누르고 클릭하면 <b>완벽한 정원 모양의 ①, ②, ③ 스탬프</b>가, <kbd>Q</kbd> 키를 누르고 클릭하면 <b>반듯한 정사각형 [1], [2], [3] 스탬프</b>가 찍히며, <b>페이지가 바뀌거나 <kbd>S</kbd> 두 번(<kbd>SS</kbd>) · <kbd>0</kbd> 키</b>를 누르면 1번으로 초기화됩니다.</li>
-                <li><b>갤럭시 S펜 옆 버튼 스위치</b>: 펜 옆 버튼을 한 번 누르면 <b>[지우개]</b>로 활성화되고, 다시 한 번 누르면 이전에 쓰던 <b>[펜] 모드</b>로 즉시 복귀합니다.</li>
+                <li>상단 <b>[백업·복원 ▾]</b> 또는 <b>[노트함]</b> 우측 상단의 <b>[전체 노트 백업(.json)]</b>(개별 노트는 카드 내 <b>[백업]</b>)을 누르면 현재 화면 판서까지 자동 저장된 뒤 내 기기 <code>다운로드</code> 폴더에 백업 파일이 저장됩니다.</li>
+                <li>새 독립 주소(<code>board-tong</code>)나 다른 태블릿·교실 PC에서 <b>[백업 파일 복원(.json)]</b>을 누르거나 <b>[열기]</b> 창에 백업 파일을 끌어다 놓으면 모든 폴더·슬라이드·필기가 그대로 복원됩니다.</li>
+              </ul>
+            </article>
+
+            <article class="sb-gcard sb-slide-item" data-sc-slide-pane="2" style="display:none;">
+              <div class="sb-gcard-head">
+                <span class="sb-gstep s3">화면 3 / 3</span>
+                <b>밑줄·원 좌측 상단 자동 번호 스탬프(A) · 스탬프 초기화(SS/0) · 전체 쪽 PNG 압축(ZIP) 저장·공유</b>
+              </div>
+              <div class="sb-gshot sb-gshot-full">
+                <img src="./assets/smartboard_guide/manual_v4_03_autostamp_zip.png" alt="자동 번호 스탬프 A 토글 및 전체 쪽 PNG 압축 ZIP 저장·공유 화면">
+              </div>
+              <ul>
+                <li><b>[자동① ON] (<kbd>A</kbd>)</b>이 켜져 있으면 밑줄(직선 <kbd>L</kbd> 또는 0.5초 멈춤 직선)이나 원(<kbd>C</kbd> 또는 0.5초 멈춤 원)을 그릴 때 좌측 상단에 ①, ②, ③ 번호 스탬프가 함께 찍히며, 페이지가 바뀌거나 <b><kbd>SS</kbd> / <kbd>QQ</kbd> / <kbd>0</kbd></b>을 누르면 즉시 1번으로 초기화됩니다.</li>
+                <li>상단 우측 <b>[PNG·PDF ▾]</b> 및 <b>[공유 ▾]</b>에서 <b>[전체 쪽 PNG 압축(ZIP)]</b>을 선택하면 모든 슬라이드·페이지 판서를 고화질 PNG ZIP 한 파일로 묶어 저장·공유합니다.</li>
               </ul>
             </article>
           </div>
@@ -396,9 +423,10 @@
               <tr><td><b>갤럭시 S펜 옆 버튼</b></td><td><b>S펜 옆 버튼 클릭 / 에어액션</b></td><td><b>[지우개] ↔ [펜] 양방향 스위치</b>: 버튼 1회 클릭 시 지우개 활성화, 다시 1회 클릭 시 펜 모드로 즉시 복귀</td></tr>
               <tr><td><b>4대 모드 전환</b></td><td><kbd>Ctrl + `</kbd> / <kbd>Ctrl + 1</kbd> / <kbd>Ctrl + 2</kbd> / <kbd>Ctrl + 3</kbd></td><td><b>게시 모드(스닙페이스트)</b> / <b>확대 켜기·끄기(줌잇)</b> / <b>그 자리에서 판서</b> / <b>편집·OCR</b> — 확대 중에는 <kbd>M</kbd>(Move)으로 끌어서 옮기고, 태블릿은 두 손가락(확대·이동)·세 손가락(이동)</td></tr>
               <tr><td><b>팔레트 · 전체화면 · 단축키 창</b></td><td><kbd>Tab</kbd> / <kbd>F</kbd> / <kbd>?</kbd> (<kbd>F1</kbd>)</td><td>상단 팔레트 숨기기·펼치기(<kbd>Tab</kbd>) / 꽉 찬 전체화면(<kbd>F</kbd>) / 단축키 창(<kbd>?</kbd>) — 기본 펜으로 돌아가려면 <kbd>P</kbd>(Pen) 또는 <kbd>Ctrl+2</kbd></td></tr>
-              <tr><td><b>한꺼번에 지우기 (지우개 ▾)</b></td><td><kbd>Shift + E</kbd> / <kbd>Ctrl + S</kbd> / <kbd>Ctrl + E</kbd></td><td><b>펜 글씨 전체 지우기(<kbd>Shift+E</kbd> · Eraser)</b> / <b>스탬프 전체 지우기(<kbd>Shift+S</kbd> · Stamp)</b> / <b>전체 필기 지우기(<kbd>Ctrl+E</kbd>)</b> — 바로 되돌리기(<kbd>Ctrl+Z</kbd>)로 모두 복구</td></tr>
-              <tr><td><b>그리다가 꾸욱 → 도형</b></td><td><b>펜으로 그린 뒤 끝에서 0.5초 멈춤</b></td><td>손으로 그린 원·네모·세모·별(한 붓 별 ☆)·직선이 반듯한 도형으로 바뀝니다. 멈추지 않고 떼면 손글씨 그대로 남습니다.</td></tr>
-              <tr><td><b>배경 · 전체삭제 · 저장</b></td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+E</kbd> · <kbd>Ctrl+P</kbd> / <kbd>Ctrl+Shift+S</kbd></td><td>칠판 배경(<kbd>K</kbd>) · 백지 배경(<kbd>W</kbd>) · 현재 쪽 필기 전체 지우기(<kbd>Ctrl+E</kbd>) · 현재 화면 PNG 저장(<kbd>Ctrl+P</kbd>) · 로컬 폴더 노트함 저장 — 노션 등에 올리려면 <b>공유 ▾</b></td></tr>
+              <tr><td><b>한꺼번에 지우기 (지우개 ▾)</b></td><td><kbd>Shift + E</kbd> / <kbd>Ctrl + S</kbd> / <kbd>Ctrl + E</kbd></td><td><b>펜 글씨 전체 지우기(<kbd>Shift+E</kbd> · Eraser)</b> / <b>스탬프 전체 지우기(<kbd>Ctrl+S</kbd> · Stamp)</b> / <b>전체 필기 지우기(<kbd>Ctrl+E</kbd>)</b> — 바로 되돌리기(<kbd>Z</kbd> · <kbd>Ctrl+Z</kbd>)로 모두 복구</td></tr>
+              <tr><td><b>그리다가 꾸욱 → 도형</b></td><td><b>펜·형광펜 끝에서 0.5초 멈춤</b></td><td>만년필·볼펜·연필·붓펜뿐 아니라 <b>형광펜(<kbd>H</kbd>)</b>으로 그린 원·네모·세모·별(☆)·직선도 반듯한 도형으로 바뀌며, 직선·원은 <b>자동①(<kbd>A</kbd>)</b> 설정에 따라 번호 스탬프가 함께 찍힙니다.</td></tr>
+              <tr><td><b>노트 필기 백업 · 복원</b></td><td><b>상단 [백업·복원 ▾] · [노트함]</b></td><td><b>전체 노트함 백업(.json)</b> · <b>현재/개별 노트 1개 백업(.json)</b> · <b>백업 파일 복원(.json)</b> — 기존 주소(<code>smart-board.html</code>)의 필기를 <code>board-tong</code>이나 다른 기기로 손실 없이 이전</td></tr>
+              <tr><td><b>배경 · 내보내기 · 저장</b></td><td><kbd>K</kbd> / <kbd>W</kbd> · <kbd>Ctrl+P</kbd> · <kbd>Ctrl+Shift+S</kbd></td><td>칠판 배경(<kbd>K</kbd>) · 백지 배경(<kbd>W</kbd>) · 현재 화면 PNG(<kbd>Ctrl+P</kbd>) · <b>전체 쪽 PNG 압축(ZIP)</b> · 합본 PDF 저장 및 공유 · 로컬 노트함 저장(<kbd>Ctrl+Shift+S</kbd>)</td></tr>
               <tr><td><b>PPTX 액션 · 페이지 이동</b></td><td><kbd>←</kbd> <kbd>→</kbd> · <kbd>↑</kbd> <kbd>↓</kbd> · <kbd>Space</kbd></td><td><b>슬라이드·페이지 이전/다음 넘기기(<kbd>←</kbd> <kbd>→</kbd> 및 <kbd>↑</kbd> <kbd>↓</kbd>)</b> · PPTX 다음 클릭 애니메이션 액션(<kbd>Space</kbd> · <kbd>→</kbd>) / 마우스 휠로 펜·스탬프·지우개 크기 조절</td></tr>
             </tbody>
           </table>
@@ -705,6 +733,40 @@
   </div>
 
   <!-- ================================================================= -->
+  <!-- 노트 필기 백업 · 복원 빠른 팝오버 (#sbBackupMenu) -->
+  <!-- ================================================================= -->
+  <div class="sb-save-popover" id="sbBackupMenu" role="menu" aria-label="판서 노트 백업 및 복원">
+    <button type="button" class="sb-save-pop-item" id="sbMenuBackupAllBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-json">백업</span>
+      <span class="sb-save-pop-text">
+        <b>전체 노트함 백업 저장 (.json)</b>
+        <small>지금 화면 판서까지 자동 저장한 뒤 모든 폴더·노트를 내 기기에 보관</small>
+      </span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbMenuBackupCurBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-png">1개</span>
+      <span class="sb-save-pop-text">
+        <b>현재 판서 노트 1개만 백업 (.json)</b>
+        <small>지금 열려 있는 수업 노트 1개만 파일로 내보내기 (기기 이동·공유용)</small>
+      </span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbMenuRestoreBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-zip">복원</span>
+      <span class="sb-save-pop-text">
+        <b>백업 파일 불러오기 / 복원 (.json)</b>
+        <small>저장해 둔 전체 백업 또는 개별 노트(.json) 파일을 선택해 즉시 복원</small>
+      </span>
+    </button>
+    <a href="https://t98advisor1.github.io/board-tong/" target="_blank" rel="noopener noreferrer" class="sb-save-pop-item" id="sbMenuBoardTongItem" role="menuitem" style="display:none;text-decoration:none;color:inherit;">
+      <span class="sb-save-pop-badge is-link">이동</span>
+      <span class="sb-save-pop-text">
+        <b>새 독립 스마트 판서(board-tong) 열기 ↗</b>
+        <small>위에서 백업(.json)을 받은 뒤 새 주소에서 [백업 파일 복원]을 눌러 주세요</small>
+      </span>
+    </a>
+  </div>
+
+  <!-- ================================================================= -->
   <!-- PNG · PDF 저장 선택 팝오버 (#sbSaveMenu) -->
   <!-- ================================================================= -->
   <div class="sb-save-popover" id="sbSaveMenu" role="menu" aria-label="PNG 또는 PDF로 저장">
@@ -727,6 +789,13 @@
       <span class="sb-save-pop-text">
         <b>전체 페이지 합본 PDF 저장</b>
         <small>열어 둔 모든 슬라이드와 판서를 1개의 PDF 문서로 묶어 저장</small>
+      </span>
+    </button>
+    <button type="button" class="sb-save-pop-item" id="sbSaveJsonBackupBtn" role="menuitem">
+      <span class="sb-save-pop-badge is-json">백업</span>
+      <span class="sb-save-pop-text">
+        <b>판서 노트 원본 백업 (.json)</b>
+        <small>나중에 다시 열어 필기를 수정·이어쓰기할 수 있는 노트함 백업 저장</small>
       </span>
     </button>
   </div>
@@ -778,13 +847,13 @@
         <!-- 1. 파일 업로드 섹션 -->
         <div class="sb-filehub-sec">
           <div class="sb-filehub-sec-head">
-            <div class="sb-filehub-title">1. 내 기기에서 수업 파일 올리기 (PDF · PPTX · 이미지)</div>
-            <p class="sb-filehub-desc">교과서 PDF, 수업 PPTX, 문제 캡처 이미지를 불러와 바로 위에 판서할 수 있습니다. (모든 파일은 기기 안에서만 안전하게 처리됩니다.)</p>
+            <div class="sb-filehub-title">1. 내 기기에서 수업 파일 올리기 (PDF · PPTX · 이미지 · 노트 백업 .json)</div>
+            <p class="sb-filehub-desc">교과서 PDF, 수업 PPTX, 문제 캡처 이미지 또는 백업해 둔 판서 노트(<code>.json</code>)를 불러옵니다. (모든 파일은 기기 안에서만 안전하게 처리됩니다.)</p>
           </div>
           <label class="sb-filehub-drop" id="sbFileHubDropzone">
             <strong>여기를 클릭하거나 파일을 끌어다 놓으세요</strong>
-            <span>PDF 문서, PPTX 발표자료(클릭 액션 지원), PNG·JPG 이미지를 자동으로 판별해 엽니다.</span>
-            <input type="file" id="sbUnifiedFileInput" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/*" hidden>
+            <span>PDF 문서, PPTX 발표자료(클릭 액션 지원), PNG·JPG 이미지, 판서 백업(.json)을 자동으로 판별해 엽니다.</span>
+            <input type="file" id="sbUnifiedFileInput" accept=".pdf,.pptx,.json,application/pdf,application/json,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/*" hidden>
           </label>
           <div class="sb-filehub-cards">
             <label class="sb-filehub-card">
@@ -801,6 +870,11 @@
               <b>이미지 열기</b>
               <small>사진·캡처 (Ctrl+V 가능)</small>
               <input type="file" id="sbImgInput" accept="image/*" hidden>
+            </label>
+            <label class="sb-filehub-card is-backup">
+              <b>백업 복원 (.json)</b>
+              <small>저장한 판서 노트 불러오기</small>
+              <input type="file" id="sbHubBackupJsonInput" accept=".json,application/json" hidden>
             </label>
           </div>
         </div>
@@ -844,6 +918,6 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.7.2"></script>
+  <script src="./smart-board.js?v=2.8.0"></script>
 </body>
 </html>

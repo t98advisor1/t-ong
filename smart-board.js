@@ -3443,6 +3443,163 @@
     showToast('[' + folder + '] 폴더에 "' + copy.title + '"을(를) ' + (material ? '자료만' : '판서까지') + ' 복사했습니다.');
   }
 
+  // 판서 노트 백업(.json) 및 복원 — 전체 노트함 백업 + 개별 노트 백업 + 폴더 비파괴 병합 복원
+  function safeFilePart(s) {
+    return String(s || '판서노트').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_').slice(0, 48) || '판서노트';
+  }
+  async function exportAllVaultJson() {
+    await autoSaveNow('backup');
+    var notes = await dbGetAllNotes();
+    if (!notes.length && boardHasContent()) {
+      await serializeCurrentNote(false, { silent: true, reason: 'backup' });
+      notes = await dbGetAllNotes();
+    }
+    var folders = loadFolders();
+    if (!notes.length) {
+      showToast('저장된 판서 노트가 없습니다. 먼저 필기하거나 노트를 저장한 뒤 백업해 주세요.');
+      return false;
+    }
+    var payload = {
+      kind: 'smartboard-vault-backup',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      origin: location.origin,
+      folders: folders,
+      notes: notes,
+      noteOrder: loadNoteOrder(),
+      openedMap: loadOpenedMap(),
+      sortMode: noteSortMode(),
+      lastNoteId: state.currentNoteId || null
+    };
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    downloadBlob(blob, '스마트판서_노트보관함_전체백업_' + dateStr + '.json');
+    showToast('전체 백업 완료: 폴더 ' + folders.length + '개 · 판서 노트 ' + notes.length + '개를 다운로드 폴더에 저장했습니다.');
+    return true;
+  }
+  async function exportSingleNoteJson(noteId) {
+    var target = null;
+    if (noteId) {
+      var all = await dbGetAllNotes();
+      target = all.find(function (n) { return n.id === noteId; }) || null;
+    } else {
+      await autoSaveNow('backup-single');
+      if (!state.currentNoteId) {
+        await serializeCurrentNote(false, { silent: true, reason: 'backup-single' });
+      }
+      if (state.currentNoteId) {
+        var allCur = await dbGetAllNotes();
+        target = allCur.find(function (n) { return n.id === state.currentNoteId; }) || null;
+      }
+    }
+    if (!target) {
+      showToast('백업할 판서 노트를 찾지 못했습니다.');
+      return false;
+    }
+    var payload = {
+      kind: 'smartboard-single-note',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      origin: location.origin,
+      folders: [target.folder || loadFolders()[0] || '기본'],
+      notes: [target]
+    };
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    downloadBlob(blob, '스마트판서_노트_' + safeFilePart(target.title) + '_' + dateStr + '.json');
+    showToast('"' + (target.title || '판서 노트') + '" 노트 백업(.json)을 다운로드했습니다.');
+    return true;
+  }
+  async function importVaultJsonFile(f) {
+    if (!f) return false;
+    return await new Promise(function (resolve) {
+      var fr = new FileReader();
+      fr.onload = async function () {
+        try {
+          var data = JSON.parse(fr.result);
+          var rawNotes = [];
+          if (data && Array.isArray(data.notes)) {
+            rawNotes = data.notes;
+          } else if (data && data.id && Array.isArray(data.pages)) {
+            rawNotes = [data];
+          } else if (Array.isArray(data)) {
+            rawNotes = data;
+          } else {
+            showToast('스마트 판서 백업 파일(.json) 형식이 아닙니다.');
+            resolve(false);
+            return;
+          }
+          var validNotes = rawNotes.filter(function (n) { return n && n.id && Array.isArray(n.pages) && n.pages.length; });
+          if (!validNotes.length) {
+            showToast('백업 파일 안에 복원할 판서 노트가 없습니다.');
+            resolve(false);
+            return;
+          }
+
+          // 기존 폴더를 지우지 않고 백업 폴더 + 노트 소속 폴더를 중복 없이 병합
+          var mergedFolders = loadFolders().slice();
+          function ensureFolder(fname) {
+            var clean = String(fname || '').trim();
+            if (clean && mergedFolders.indexOf(clean) < 0) mergedFolders.push(clean);
+          }
+          if (Array.isArray(data.folders)) data.folders.forEach(ensureFolder);
+          validNotes.forEach(function (n) {
+            if (!n.folder) n.folder = mergedFolders[0] || '1학년 수학';
+            ensureFolder(n.folder);
+          });
+          if (mergedFolders.length) saveFolders(mergedFolders);
+
+          var savedCount = 0;
+          for (var i = 0; i < validNotes.length; i++) {
+            var res = await dbPutNote(validNotes[i]);
+            if (res && res.ok) savedCount++;
+          }
+
+          if (data.openedMap && typeof data.openedMap === 'object') {
+            var curOpened = loadOpenedMap();
+            Object.keys(data.openedMap).forEach(function (k) {
+              var v = Number(data.openedMap[k]) || 0;
+              if (v > (curOpened[k] || 0)) curOpened[k] = v;
+            });
+            try { localStorage.setItem(NOTE_OPENED_KEY, JSON.stringify(curOpened)); } catch (e) {}
+          }
+          if (Array.isArray(data.noteOrder) && data.noteOrder.length) {
+            var curOrder = loadNoteOrder();
+            data.noteOrder.forEach(function (id) {
+              if (id && curOrder.indexOf(id) < 0) curOrder.push(id);
+            });
+            try { localStorage.setItem(NOTE_ORDER_KEY, JSON.stringify(curOrder)); } catch (e) {}
+          }
+
+          state.activeVaultFolder = 'ALL';
+          await renderVaultUi();
+
+          var wasBlank = !boardHasContent();
+          if (validNotes.length === 1 || wasBlank) {
+            var sorted = validNotes.slice().sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+            var pickId = (data.lastNoteId && validNotes.some(function (n) { return n.id === data.lastNoteId; }))
+              ? data.lastNoteId
+              : sorted[0].id;
+            await loadNoteFromVault(pickId);
+            showToast('백업 복원 완료: 판서 노트 ' + savedCount + '개를 불러와 화면에 열었습니다.');
+          } else {
+            if (el('sbVaultModal')) el('sbVaultModal').classList.add('show');
+            showToast('백업 복원 완료: 판서 노트 ' + savedCount + '개를 노트함에 복원했습니다.');
+          }
+          resolve(true);
+        } catch (err) {
+          showToast('백업 파일 형식이 올바르지 않습니다.');
+          resolve(false);
+        }
+      };
+      fr.onerror = function () {
+        showToast('백업 파일을 읽는 중 오류가 발생했습니다.');
+        resolve(false);
+      };
+      fr.readAsText(f);
+    });
+  }
+
   async function renderVaultUi() {
     var folders = loadFolders();
     var sel = el('sbVaultFolderSelect');
@@ -3514,6 +3671,7 @@
           '<div class="sb-note-actions">' +
             '<button type="button" class="sb-btn sb-btn-primary sb-btn-xs" style="flex:1;" data-load-note="' + n.id + '">열기</button>' +
             '<button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" data-copy-note="' + n.id + '" title="다른 학급(폴더)으로 복사">복사</button>' +
+            '<button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" data-export-note="' + n.id + '" title="이 노트 1개만 백업 파일(.json)로 내려받기">백업</button>' +
             '<button type="button" class="sb-btn sb-btn-danger sb-btn-xs" data-del-note="' + n.id + '">삭제</button>' +
           '</div>' +
           '<div class="sb-note-order"' + (sortMode === 'manual' ? '' : ' style="display:none;"') + '>' +
@@ -3536,6 +3694,9 @@
     });
     grid.querySelectorAll('[data-copy-note]').forEach(function (cb) {
       cb.addEventListener('click', function () { openNoteCopyBox(notes.find(function (n) { return n.id === cb.getAttribute('data-copy-note'); })); });
+    });
+    grid.querySelectorAll('[data-export-note]').forEach(function (eb) {
+      eb.addEventListener('click', function () { exportSingleNoteJson(eb.getAttribute('data-export-note')); });
     });
     grid.querySelectorAll('[data-del-note]').forEach(function (db) {
       db.addEventListener('click', async function () {
@@ -3982,33 +4143,25 @@
       renderVaultUi();
       showToast('새 폴더 [' + name + ']를 추가했습니다.');
     });
-    if (el('sbVaultExportJsonBtn')) el('sbVaultExportJsonBtn').addEventListener('click', async function () {
-      var payload = { folders: loadFolders(), notes: await dbGetAllNotes() };
-      var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = '스마트판서_노트보관함_백업_' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-      showToast('노트 보관함 전체 백업(.json)을 다운로드했습니다.');
+    if (el('sbVaultExportJsonBtn')) el('sbVaultExportJsonBtn').addEventListener('click', function () {
+      exportAllVaultJson();
+    });
+    if (el('sbVaultExportCurJsonBtn')) el('sbVaultExportCurJsonBtn').addEventListener('click', function () {
+      exportSingleNoteJson(null);
     });
     if (el('sbVaultImportJsonInput')) el('sbVaultImportJsonInput').addEventListener('change', function () {
       var f = this.files && this.files[0];
-      if (!f) return;
-      var fr = new FileReader();
-      fr.onload = async function () {
-        try {
-          var data = JSON.parse(fr.result);
-          if (Array.isArray(data.folders) && data.folders.length) saveFolders(data.folders);
-          if (Array.isArray(data.notes)) {
-            for (var i = 0; i < data.notes.length; i++) await dbPutNote(data.notes[i]);
-          }
-          await renderVaultUi();
-          showToast('백업 파일에서 노트를 복원했습니다.');
-        } catch (err) { showToast('백업 파일 형식이 올바르지 않습니다.'); }
-      };
-      fr.readAsText(f);
+      if (f) importVaultJsonFile(f);
       this.value = '';
     });
+    // 기존 경로(/smart-board.html)에서 접속한 경우 새 독립 판서보드(board-tong) 이동 버튼 자동 노출
+    (function () {
+      var isLegacyBoard = /smart-board\.html/i.test(location.pathname || '') || /^(t-ong|neis-help|reponeishelp)\./i.test(location.hostname || '');
+      if (isLegacyBoard) {
+        if (el('sbVaultGoBoardTongWrap')) el('sbVaultGoBoardTongWrap').style.display = 'flex';
+        if (el('sbMenuBoardTongItem')) el('sbMenuBoardTongItem').style.display = 'flex';
+      }
+    })();
 
     // 내장 웹 브라우저 + 유튜브 + 광고제거 안내 + 웹 위 스탬프/필기 빠른 전환
     if (el('sbOpenWebBtn')) el('sbOpenWebBtn').addEventListener('click', function () { openWebBrowser(); });
@@ -4202,8 +4355,16 @@
     }
 
     // 버전 · 수정 이력 · 이용 현황
-    var SB_VERSION = '2.7.2';
+    var SB_VERSION = '2.8.0';
     var SB_CHANGELOG = [
+      { v: '2.8.0', d: '2026-11-27', items: [
+        '상단 [백업·복원 ▾] 메뉴 및 노트함 전체·개별 판서 노트 백업(.json) / 비파괴 병합 복원 기능 추가',
+        '단축키 개선: 뒤로 취소(Z · Esc · ,) / 앞으로 다시 실행(X · .), 방향키(← → · ↑ ↓) 슬라이드·페이지 이동, 레이저(D)',
+        '밑줄(직선)·원 도형 좌측 상단 자동 번호 스탬프 부착(자동① ON · 단축키 A) 및 슬라이드 전환·SS/0 스탬프 1번 초기화',
+        '전체 쪽 PNG 압축(ZIP) 저장 및 공유 메뉴 추가 · PDF 가로 맞춤(Ctrl+1) 중앙 정렬 및 터치 이동 떨림 제거',
+        '일반 펜 기본 2pt · 형광펜 기본 6pt · 삼성노트 질감 연필 모드 · 형광펜 0.5초 멈춤 도형화 · 3초 다중 레이저 포인터',
+        '독립 도메인(board-tong / boardtong.vercel.app) 분리 배포 및 시각 사용설명서 업그레이드'
+      ] },
       { v: '2.7.2', d: '2026-11-25', items: [
         'PNG 저장 단축키 Ctrl+P',
         '공유 ▾ 버튼: 현재 화면 PNG 공유 · 이미지 복사(노션에 Ctrl+V) · 전체 쪽 PDF 공유',
@@ -4283,7 +4444,9 @@
       if (!f) return;
       closeFileHubModal();
       var name = String(f.name || '').toLowerCase();
-      if (name.endsWith('.pdf') || f.type === 'application/pdf') {
+      if (name.endsWith('.json') || f.type === 'application/json') {
+        importVaultJsonFile(f);
+      } else if (name.endsWith('.pdf') || f.type === 'application/pdf') {
         loadPdfFile(f);
       } else if (name.endsWith('.pptx')) {
         loadPptxFile(f);
@@ -4292,8 +4455,30 @@
         fr.onload = function () { loadImageFromDataUrl(fr.result, f.name); };
         fr.readAsDataURL(f);
       } else {
-        showToast('지원 형식은 PDF, PPTX, 이미지(PNG/JPG)입니다.');
+        showToast('지원 형식은 PDF, PPTX, 이미지(PNG/JPG), 판서 백업(.json)입니다.');
       }
+    }
+    if (el('sbHubBackupJsonInput')) {
+      el('sbHubBackupJsonInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+          closeFileHubModal();
+          importVaultJsonFile(this.files[0]);
+        }
+        this.value = '';
+      });
+    }
+    if (stageWrap) {
+      stageWrap.addEventListener('dragover', function (e) {
+        if (e.dataTransfer && e.dataTransfer.types && Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') >= 0) {
+          e.preventDefault();
+        }
+      });
+      stageWrap.addEventListener('drop', function (e) {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          e.preventDefault();
+          handleUnifiedFile(e.dataTransfer.files[0]);
+        }
+      });
     }
     if (el('sbOpenFileHubBtn')) {
       el('sbOpenFileHubBtn').addEventListener('click', function () {
@@ -4575,7 +4760,7 @@
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
     // PNG · PDF 저장 / 펜 종류 / 도형·도구 / 보드 설정 팝오버 통합 제어
     function closeAllPopovers() {
-      ['sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
+      ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
         if (el(id)) el(id).classList.remove('show');
       });
     }
@@ -4622,8 +4807,16 @@
         if (el(pair[0])) el(pair[0]).addEventListener('click', function () { closeAllPopovers(); if (el(pair[1])) el(pair[1]).click(); });
       });
     })();
+    bindAnchoredPopover('sbBackupMenuBtn', 'sbBackupMenu', false);
     bindAnchoredPopover('sbSaveMenuBtn', 'sbSaveMenu', true);
     bindAnchoredPopover('sbShareMenuBtn', 'sbShareMenu', true);
+    if (el('sbMenuBackupAllBtn')) el('sbMenuBackupAllBtn').addEventListener('click', function () { closeAllPopovers(); exportAllVaultJson(); });
+    if (el('sbMenuBackupCurBtn')) el('sbMenuBackupCurBtn').addEventListener('click', function () { closeAllPopovers(); exportSingleNoteJson(null); });
+    if (el('sbMenuRestoreBtn')) el('sbMenuRestoreBtn').addEventListener('click', function () {
+      closeAllPopovers();
+      if (el('sbVaultImportJsonInput')) el('sbVaultImportJsonInput').click();
+    });
+    if (el('sbSaveJsonBackupBtn')) el('sbSaveJsonBackupBtn').addEventListener('click', function () { closeAllPopovers(); exportAllVaultJson(); });
     if (el('sbSharePngBtn')) el('sbSharePngBtn').addEventListener('click', function () { closeAllPopovers(); sharePng(); });
     if (el('sbCopyPngBtn')) el('sbCopyPngBtn').addEventListener('click', function () { closeAllPopovers(); copyPngToClipboard(false); });
     if (el('sbSharePngZipBtn')) el('sbSharePngZipBtn').addEventListener('click', function () { closeAllPopovers(); shareAllPngZip(); });
@@ -4893,7 +5086,7 @@
       // ESC: 열린 창·메뉴가 있으면 먼저 닫고, 없으면 직전 필기를 취소합니다(실행 취소).
       if (e.key === 'Escape') {
         var openModals = document.querySelectorAll('.sb-modal.show');
-        var openPops = ['sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
+        var openPops = ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
         if (openModals.length || openPops.length) {
           openModals.forEach(function (m) { m.classList.remove('show'); });
           closeAllPopovers();

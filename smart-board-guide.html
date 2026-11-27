@@ -48,6 +48,30 @@
       font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; }
     .quick p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
+    /* 1단 풀스크린 핵심 시각 매뉴얼 (신규 단축키 · 기존 판서 백업·복원) */
+    .vguide-wrap { background: var(--surface); border: 2px solid #bfdbfe; border-radius: 20px; padding: 22px; margin-bottom: 26px; box-shadow: 0 10px 28px rgba(37,99,235,.07); }
+    .vguide-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .vguide-badge { display: inline-block; background: #dc2626; color: #fff; font-weight: 800; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 4px; }
+    .vguide-top h3 { margin: 0; font-size: 1.35rem; letter-spacing: -0.01em; }
+    .vguide-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #f8fafc; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 14px; }
+    .vguide-tabs { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 auto; }
+    .vguide-tab { border: 1px solid #cbd5e1; background: #fff; color: #334155; border-radius: 999px; padding: 6px 13px; font: 700 0.85rem/1.3 inherit; cursor: pointer; }
+    .vguide-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .vguide-btn { border: 1px solid #cbd5e1; background: #fff; color: var(--dark); border-radius: 10px; padding: 6px 12px; font: 800 0.84rem/1.3 inherit; cursor: pointer; }
+    .vguide-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .vguide-counter { font-weight: 800; font-size: 0.88rem; color: var(--accent); padding: 0 4px; }
+    .vguide-card { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #fff; margin-bottom: 16px; }
+    .vguide-card:last-child { margin-bottom: 0; }
+    .vguide-shot { width: 100%; display: block; border-bottom: 1px solid var(--line); background: #0f172a; }
+    .vguide-body { padding: 16px 20px; }
+    .vguide-body ul { margin: 0; padding-left: 20px; }
+    .vguide-body li { margin-bottom: 6px; }
+    .migration-box { margin-top: 14px; background: linear-gradient(135deg, #ecfeff 0%, #eff6ff 100%); border: 1.5px solid #67e8f9; border-radius: 14px; padding: 14px 18px; font-size: 0.94rem; }
+    .migration-box strong { color: #0f766e; display: block; margin-bottom: 6px; font-size: 1rem; }
+    .migration-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .migration-links a { display: inline-flex; align-items: center; padding: 7px 13px; border-radius: 10px; font-weight: 800; font-size: 0.86rem; text-decoration: none; border: 1px solid #93c5fd; background: #fff; color: #1d4ed8; }
+    .migration-links a.primary { background: #0f766e; border-color: #0f766e; color: #fff; }
+
     /* 장 카드 */
     .chapter { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px; margin-bottom: 18px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 24px; }
     .chapter-video { position: relative; border-radius: 14px; overflow: hidden; background: #0f172a; aspect-ratio: 16 / 9; align-self: start; }
@@ -95,7 +119,9 @@
       .hero { background: #fff; color: var(--text); border-bottom: 2px solid var(--text); }
       .hero p { color: var(--muted); }
       .hero-actions, .toc, .hero-video, .speed { display: none !important; }
-      .chapter { break-inside: avoid; border-color: #ccc; }
+      .vguide-nav { display: none !important; }
+      .vguide-card { display: block !important; break-inside: avoid; margin-bottom: 16px; }
+      .chapter { break-inside: avoid; border-color: #ccc; } }
       .chapter-video video { display: none; }
       .chapter-video { background: none; aspect-ratio: auto; }
       .chapter-video img.print-poster { display: block !important; width: 100%; border: 1px solid #ccc; border-radius: 8px; }
@@ -128,10 +154,74 @@
   <main>
     <div class="group-title"><h2>처음이라면 이 세 가지만</h2><span>1분이면 판서를 시작할 수 있습니다</span></div>
     <div class="quick">
-      <div><i>1</i><b>바로 쓰기</b><p>보드를 열면 펜이 켜져 있습니다. 화면에 손가락·S펜·마우스로 바로 쓰세요.</p></div>
-      <div><i>2</i><b>수업 자료 열기</b><p>위쪽 <b>열기</b>에서 PDF·PPTX·이미지·유튜브·웹 주소를 불러와 그 위에 씁니다.</p></div>
-      <div><i>3</i><b>저장하기</b><p><b>노트함</b>에 저장하면 다음 수업에 다시 이어서 쓸 수 있습니다.</p></div>
+      <div><i>1</i><b>바로 쓰기 (펜 2pt · 형광펜 6pt)</b><p>보드를 열면 만년필(2pt)이 켜져 있습니다. 손가락·S펜·마우스로 바로 쓰고 <kbd>Z</kbd>로 취소합니다.</p></div>
+      <div><i>2</i><b>수업 자료 · 백업 열기</b><p>위쪽 <b>열기</b>에서 PDF·PPTX·이미지·백업(<code>.json</code>)·유튜브·웹 주소를 불러와 판서합니다.</p></div>
+      <div><i>3</i><b>자동 저장 · 백업·복원</b><p>1분마다 자동 저장되며, 상단 <b>백업·복원 ▾</b>으로 내 기기에 백업 파일을 내려받아 보관·이전합니다.</p></div>
     </div>
+
+    <div class="group-title" id="g-upgrade"><h2>한눈에 보는 최신 단축키 &amp; 기존 판서 백업·복원 가이드</h2><span>실제 화면 위 빨간 강조 박스와 번호 순서대로 따라 해 보세요</span></div>
+    <section class="vguide-wrap" id="ch-00-backup" data-toc="백업·신규단축키">
+      <div class="vguide-top">
+        <div>
+          <span class="vguide-badge">필독 · v2.8 업그레이드 시각 매뉴얼</span>
+          <h3>바뀐 핵심 단축키 · 기존 스마트 판서 필기 백업(.json) 및 새 보드 복원</h3>
+        </div>
+        <button type="button" class="vguide-btn" id="vgToggleAllBtn">3장 연속으로 펼쳐 보기</button>
+      </div>
+      <div class="vguide-nav">
+        <button type="button" class="vguide-btn primary" id="vgPrevBtn">◀ 이전</button>
+        <span class="vguide-counter" id="vgCounter">STEP 1 / 3</span>
+        <button type="button" class="vguide-btn primary" id="vgNextBtn">다음 ▶</button>
+        <div class="vguide-tabs" id="vgTabs">
+          <button type="button" class="vguide-tab active" data-vg-idx="0">STEP 1 · 변경된 단축키 &amp; 상단 팔레트</button>
+          <button type="button" class="vguide-tab" data-vg-idx="1">STEP 2 · 기존 판서 노트 백업(.json) 및 복원</button>
+          <button type="button" class="vguide-tab" data-vg-idx="2">STEP 3 · 밑줄·원 자동스탬프(A) &amp; 전체 PNG ZIP</button>
+        </div>
+      </div>
+
+      <article class="vguide-card" data-vg-pane="0">
+        <img class="vguide-shot" src="./assets/smartboard_guide/manual_v4_01_shortcuts_toolbar.png" alt="STEP 1 변경된 단축키 Z X 방향키 레이저 D 및 상단 백업·복원 버튼 시각 안내">
+        <div class="vguide-body">
+          <ul>
+            <li><b>뒤로 취소(<kbd>Z</kbd> · <kbd>Esc</kbd> · <kbd>,</kbd>) / 앞으로 다시 실행(<kbd>X</kbd> · <kbd>.</kbd>)</b>: 왼손(<kbd>Z</kbd>/<kbd>X</kbd>)과 오른손(<kbd>,</kbd>/<kbd>.</kbd>) 어디서든 직전 필기를 즉시 취소·복원합니다.</li>
+            <li><b>방향키(<kbd>←</kbd> <kbd>→</kbd> · <kbd>↑</kbd> <kbd>↓</kbd>) 쪽 넘기기</b>: PPTX 슬라이드와 PDF 페이지를 키보드 방향키로 바로 넘깁니다.</li>
+            <li><b>3초 다중 레이저(<kbd>D</kbd>) · 펜 2pt / 형광펜 6pt · 삼성노트 연필 질감</b>: 레이저는 여러 번 필기해도 선이 이어지지 않고 각각 3초간 유지됩니다. 펜과 형광펜(<kbd>H</kbd>) 모두 그리다가 끝에서 <b>0.5초 멈추면 반듯한 직선·도형</b>으로 고정됩니다.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="vguide-card" data-vg-pane="1" style="display:none;">
+        <img class="vguide-shot" src="./assets/smartboard_guide/manual_v4_02_backup_restore.png" alt="STEP 2 노트함 및 상단 백업·복원 메뉴에서 전체·개별 판서 백업 및 복원 안내">
+        <div class="vguide-body">
+          <ul>
+            <li><b>1단계 (기존 필기 백업 저장)</b>: 상단 <b>[백업·복원 ▾]</b> 또는 <b>[노트함]</b> 창 우측 상단의 <b>[전체 노트 백업(.json)]</b>을 누르면 현재 화면 판서까지 자동 저장된 후 내 기기 <code>다운로드(Downloads)</code> 폴더에 백업 파일이 저장됩니다. (원하는 수업 1개만 꺼낼 때는 노트 카드의 <b>[백업]</b> 클릭)</li>
+            <li><b>2단계 (새 주소·다른 기기에서 복원)</b>: 새 독립 스마트 판서(<code>board-tong</code>)나 교실 PC에서 <b>[백업·복원 ▾] → [백업 파일 불러오기 / 복원(.json)]</b>(또는 <b>[열기]</b> 창에 파일 끌어놓기)을 선택하면 기존 폴더를 지우지 않고 모든 슬라이드·필기를 그대로 복원합니다.</li>
+          </ul>
+          <div class="migration-box">
+            <strong>기존 교무수첩에서 작성했던 판서 노트는 어디에서 확인하나요?</strong>
+            이전에 작성한 노트는 삭제되지 않고 <b>당시 사용했던 기기·브라우저의 기존 주소 저장소</b>에 그대로 보관되어 있습니다. 필기하셨던 것과 <b>동일한 기기·브라우저</b>에서 아래 기존 직행 링크를 열어 <b>[전체 노트 백업(.json)]</b>을 내려받은 뒤, 새 독립 보드에서 <b>[백업 파일 복원(.json)]</b>으로 불러오세요.
+            <div class="migration-links">
+              <a href="https://t-ong.vercel.app/smart-board.html" target="_blank" rel="noopener noreferrer" class="primary">기존 T-ong 판서 직행 링크 열기 ↗</a>
+              <a href="https://neis-help-one.vercel.app/tong/smart-board.html" target="_blank" rel="noopener noreferrer">기존 NEIS 도움말 허브 판서 1 ↗</a>
+              <a href="https://reponeishelp.vercel.app/tong/smart-board.html" target="_blank" rel="noopener noreferrer">기존 NEIS 도움말 허브 판서 2 ↗</a>
+              <a href="https://t98advisor1.github.io/board-tong/" target="_blank" rel="noopener noreferrer">새 독립 보드 (GitHub 메인) ↗</a>
+              <a href="https://boardtong.vercel.app/" target="_blank" rel="noopener noreferrer">새 독립 보드 (Vercel 보조) ↗</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="vguide-card" data-vg-pane="2" style="display:none;">
+        <img class="vguide-shot" src="./assets/smartboard_guide/manual_v4_03_autostamp_zip.png" alt="STEP 3 밑줄·원 좌측 상단 자동 번호 스탬프 A 및 전체 쪽 PNG 압축 ZIP 저장·공유 안내">
+        <div class="vguide-body">
+          <ul>
+            <li><b>밑줄·원 좌측 상단 자동 번호 스탬프(<kbd>A</kbd> · [자동① ON])</b>: 직선(<kbd>L</kbd>)·원(<kbd>C</kbd>) 도구를 쓰거나 펜·형광펜으로 선·원을 그리고 0.5초 멈추면 도형 좌측 상단에 ①, ②, ③ 스탬프가 자동 부착됩니다. 실행 취소(<kbd>Z</kbd>) 시 도형과 스탬프가 한 번에 같이 취소됩니다.</li>
+            <li><b>스탬프 번호 자동·수동 초기화(<kbd>SS</kbd> / <kbd>QQ</kbd> / <kbd>0</kbd>)</b>: PPTX 슬라이드나 PDF 쪽이 넘어갈 때마다 스탬프 번호가 자동으로 1번부터 다시 시작하며, 같은 페이지 안에서도 <kbd>S</kbd> 두 번(<kbd>SS</kbd>) 또는 숫자 <kbd>0</kbd>을 누르면 즉시 1번으로 초기화됩니다.</li>
+            <li><b>전체 쪽 PNG 압축(ZIP) 저장·공유</b>: 상단 우측 <b>[PNG·PDF ▾]</b>와 <b>[공유 ▾]</b>에서 모든 슬라이드·페이지 판서를 고화질 PNG ZIP 한 파일로 묶어 저장하거나 바로 공유할 수 있습니다.</li>
+          </ul>
+        </div>
+      </article>
+    </section>
 
     <div class="group-title" id="g-basic"><h2>기본 판서</h2><span>펜 · 도형 · 스탬프 · 쪽</span></div>
 
@@ -142,8 +232,8 @@
         <h3>화면 구성과 도구 팔레트</h3>
         <p class="sum">위쪽 두 줄이 도구 팔레트입니다. 숨기면 화면 전체가 칠판이 됩니다.</p>
         <ol class="steps">
-          <li><b>첫 줄</b>: 사용설명서 · 전체화면 · 노트함 · 열기 · 모드(게시·확대·판서·편집) · 저장</li>
-          <li><b>둘째 줄</b>: 선택 · 펜 · 도형 · 레이저 · 지우개 · 색 · 굵기 · 쪽 넘기기 · 설정</li>
+          <li><b>첫 줄</b>: 사용설명서 · 전체화면 · 노트함 · 노트저장 · <b>백업·복원 ▾</b> · 열기 · 모드(게시·확대·판서·편집) · PNG·PDF · 공유</li>
+          <li><b>둘째 줄</b>: 선택(<kbd>V</kbd>) · 펜(<kbd>P</kbd>) · 도형 · <b>자동① ON(<kbd>A</kbd>)</b> · 레이저(<kbd>D</kbd>) · 지우개(<kbd>E</kbd>) · 색 · 굵기 · 취소(<kbd>Z</kbd>)/다시실행(<kbd>X</kbd>) · 쪽 넘기기(<kbd>←</kbd><kbd>→</kbd>) · 설정</li>
           <li>버튼 옆의 작은 글자(<kbd>P</kbd> <kbd>V</kbd> <kbd>E</kbd> …)와 색 동그라미의 숫자는 <b>단축키</b>입니다. 태블릿처럼 좁은 화면에서는 첫 줄 단축키가 숨겨집니다.</li>
           <li><b>▲ 숨김</b> 또는 <kbd>Tab</kbd>으로 팔레트를 접고 펼칩니다.</li>
           <li><b>자동숨김</b>을 켜면 쓰기 시작할 때 팔레트가 저절로 올라가고, 화면 맨 위로 가져가면 다시 나옵니다.</li>
@@ -160,11 +250,11 @@
         <p class="sum">펜 종류와 색, 굵기를 바꾸고 잘못 쓴 것은 되돌립니다.</p>
         <ol class="steps">
           <li>색 동그라미를 누르거나 숫자 <kbd>1</kbd>~<kbd>6</kbd>으로 색을 바꿉니다.</li>
-          <li><b>− / +</b> 버튼으로 굵기를 조절합니다.</li>
-          <li><b>펜 종류</b> 메뉴에서 만년필 · 볼펜 · 연필 · 붓펜 · 형광펜을 고릅니다.</li>
-          <li>잘못 썼다면 <b>되돌리기</b>, 되살리려면 <b>다시 실행</b>.</li>
+          <li>일반 펜은 <b>기본 2pt</b>, 형광펜(<kbd>H</kbd>)은 <b>기본 6pt</b>로 설정되어 있으며 <b>− / +</b> 버튼이나 마우스 휠로 굵기를 조절합니다.</li>
+          <li><b>펜 종류</b> 메뉴에서 만년필 · 볼펜 · <b>연필(삼성노트 사각거리는 흑연 질감)</b> · 붓펜 · 형광펜을 고릅니다.</li>
+          <li>잘못 썼다면 <kbd>Z</kbd>(또는 <kbd>Esc</kbd> · <kbd>,</kbd>), 다시 앞으로 되살리려면 <kbd>X</kbd>(또는 <kbd>.</kbd>)를 누릅니다.</li>
         </ol>
-        <div class="keys"><span><kbd>P</kbd> 펜 <i>Pen</i></span><span><kbd>H</kbd> 형광펜 <i>Highlighter</i></span><span><kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기</span><span><kbd>Ctrl</kbd>+<kbd>Y</kbd> 다시 실행</span></div>
+        <div class="keys"><span><kbd>P</kbd> 펜 2pt <i>Pen</i></span><span><kbd>H</kbd> 형광펜 6pt <i>Highlighter</i></span><span><kbd>Z</kbd> / <kbd>Esc</kbd> 뒤로 취소</span><span><kbd>X</kbd> 다시 실행</span></div>
       </div>
     </article>
 
@@ -178,9 +268,9 @@
           <li><b>도형</b> 메뉴에서 직선 · 사각형 · 원 · 채움사각을 고르고 끌어서 그립니다.</li>
           <li><kbd>T</kbd>를 누르고 화면을 누르면 글자 입력칸이 열립니다. <kbd>Enter</kbd>로 확정합니다.</li>
           <li><kbd>P</kbd>를 누르면 다시 펜으로 돌아옵니다.</li>
-          <li><b>그리다가 꾸욱</b>: 펜으로 원·네모·세모·별·직선을 그리고 끝에서 0.5초쯤 멈추면 반듯한 도형으로 바뀝니다. 멈추지 않고 떼면 손글씨 그대로 남습니다.</li>
+          <li><b>그리다가 꾸욱</b>: 일반 펜과 <b>형광펜(<kbd>H</kbd>)</b> 모두 원·네모·세모·별·직선을 그리고 끝에서 0.5초쯤 멈추면 반듯한 도형으로 바뀝니다. <b>자동① ON(<kbd>A</kbd>)</b> 상태에서는 직선(밑줄)과 원의 좌측 상단에 번호 스탬프가 자동으로 함께 찍힙니다.</li>
         </ol>
-        <div class="keys"><span><kbd>R</kbd> 사각형 <i>Rectangle</i></span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원 <i>Circle</i></span><span><kbd>L</kbd> 직선 <i>Line</i></span><span><kbd>T</kbd> 텍스트 <i>Text</i></span></div>
+        <div class="keys"><span><kbd>R</kbd> 사각형 <i>Rectangle</i></span><span><kbd>Shift</kbd>+<kbd>R</kbd> 채움사각</span><span><kbd>C</kbd> 원 <i>Circle</i></span><span><kbd>L</kbd> 직선 <i>Line</i></span><span><kbd>A</kbd> 밑줄·원 자동스탬프</span><span><kbd>T</kbd> 텍스트 <i>Text</i></span></div>
       </div>
     </article>
 
@@ -193,11 +283,12 @@
         <ol class="steps">
           <li><kbd>S</kbd> 원형, <kbd>Q</kbd> 사각 번호 스탬프 — 누를 때마다 다음 번호가 찍힙니다. 두 스탬프는 번호 순서를 함께 씁니다.</li>
           <li>되돌리기 · 지우개 · 선택 삭제로 <b>중간 번호가 빠지면</b>, 다음 스탬프가 그 빈 번호부터 다시 채웁니다.</li>
+          <li>상단 둘째 줄의 <b>자동① ON</b>(<kbd>A</kbd>)이 켜져 있으면 밑줄(직선)이나 원 도형을 그릴 때 좌측 상단에 ①, ②, ③ 스탬프가 자동으로 함께 찍힙니다.</li>
           <li><b>페이지·슬라이드가 바뀌면 자동으로 1번부터 초기화</b>됩니다. 같은 페이지 안에서 1번부터 새로 찍으려면 <b><kbd>S</kbd>를 연속 두 번(<kbd>SS</kbd>, 사각은 <kbd>QQ</kbd>)</b> 누르거나 <b>숫자 <kbd>0</kbd> 키</b>를 누르세요.</li>
           <li>지우개 ▾ 메뉴의 <b>스탬프 전체 지우기</b>(<kbd>Ctrl</kbd>+<kbd>S</kbd>)로 스탬프만 한꺼번에 지울 수 있습니다.</li>
           <li>도형 메뉴의 <b>정답 가림막</b>으로 정답을 덮고, 수업 중에 눌러서 열고 닫습니다.</li>
         </ol>
-        <div class="keys"><span><kbd>S</kbd> 원형 스탬프 <i>Stamp</i></span><span><kbd>Q</kbd> 사각 스탬프 <i>sQuare</i></span><span><kbd>SS</kbd> / <kbd>0</kbd> 번호 1번 초기화</span></div>
+        <div class="keys"><span><kbd>S</kbd> 원형 스탬프 <i>Stamp</i></span><span><kbd>Q</kbd> 사각 스탬프 <i>sQuare</i></span><span><kbd>A</kbd> 밑줄·원 자동①</span><span><kbd>SS</kbd> / <kbd>0</kbd> 번호 1번 초기화</span></div>
       </div>
     </article>
 
@@ -321,18 +412,18 @@
       <div class="chapter-video"></div>
       <div>
         <span class="chapter-num">12</span>
-        <h3>노트 저장 · 학급별 복사 · 순서 · PNG · PDF</h3>
-        <p class="sum">판서를 학급(폴더)별 노트함에 저장하고, 다른 학급으로 복사하거나 순서를 바꾸고, 그림이나 PDF로 내보냅니다.</p>
+        <h3>노트 저장 · 백업·복원(.json) · 학급별 복사 · PNG · ZIP · PDF</h3>
+        <p class="sum">판서를 학급(폴더)별 노트함에 자동 저장·백업하고, 다른 기기나 새 주소로 복원하거나 PNG·ZIP·PDF로 내보냅니다.</p>
         <ol class="steps">
           <li><b>노트함</b>에서 제목과 폴더(학급)를 정해 저장합니다. 다음 수업에 다시 불러올 수 있습니다.</li>
           <li><b>자동 저장</b>: 판서는 1분마다, 그리고 다른 앱으로 가거나 홈으로 나갈 때(<kbd>Backspace</kbd>) 자동으로 저장됩니다. 스마트 판서를 다시 열면 <b>마지막으로 쓰던 노트·쪽</b>으로 바로 돌아옵니다.</li>
+          <li><b>노트 필기 백업·복원(.json)</b>: 상단 <b>백업·복원 ▾</b> 또는 노트함 우측 상단의 <b>전체 노트 백업(.json)</b>(개별 노트는 카드 내 <b>백업</b>)으로 백업 파일을 받아 두고, 다른 기기나 새 독립 주소(<code>board-tong</code>)에서 <b>백업 파일 복원(.json)</b>(또는 <b>열기</b> 창 드래그)으로 그대로 불러옵니다.</li>
           <li>노트함은 <b>최근에 연 순서</b>로 정렬됩니다. 오른쪽 위에서 <b>직접 정한 순서</b>를 고르면 노트 카드의 <b>◀ 앞으로 · 뒤로 ▶</b>로 순서를 바꿀 수 있습니다.</li>
           <li><b>복사</b>로 같은 수업을 다른 학급 폴더에 복사합니다. <b>자료만 복사</b>는 판서를 비우고 PDF·PPTX·배경만 가져가고, <b>판서까지 모두 복사</b>도 고를 수 있습니다.</li>
-          <li><b>노트저장</b> 버튼(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>)으로 바로 저장할 수도 있습니다.</li>
-          <li><b>PNG·PDF</b>: 지금 화면은 그림(<kbd>Ctrl</kbd>+<kbd>P</kbd>)으로, 모든 쪽은 PDF 한 파일로 내려받습니다.</li>
-          <li><b>공유 ▾</b>: <b>PNG로 공유</b>·<b>PDF로 공유</b>를 누르면 태블릿·휴대폰의 공유 창이 열려 노션·카카오톡·드라이브로 바로 보냅니다. 컴퓨터에서는 <b>이미지 복사</b> 후 노션·구글 문서에서 <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙여넣으세요.</li>
+          <li><b>PNG·PDF ▾</b>: 지금 화면 1장은 PNG(<kbd>Ctrl</kbd>+<kbd>P</kbd>)로, 모든 슬라이드·페이지는 <b>전체 쪽 PNG 압축(ZIP)</b> 또는 <b>합본 PDF</b>, 수정 가능한 원본은 <b>판서 노트 원본 백업(.json)</b>으로 내려받습니다.</li>
+          <li><b>공유 ▾</b>: <b>현재 화면 PNG</b> · <b>전체 쪽 PNG 압축(ZIP)</b> · <b>전체 쪽 PDF</b>를 태블릿·휴대폰 공유 창으로 노션·카카오톡·드라이브에 바로 보냅니다. 컴퓨터에서는 <b>이미지 복사</b> 후 노션·구글 문서에서 <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙여넣으세요.</li>
         </ol>
-        <div class="tip">💾 노트는 <b>이 기기의 브라우저</b>에 저장됩니다. 다른 기기로 옮기거나 보관하려면 노트함의 <b>전체 백업(.json)</b>을 내려받아 두세요.</div>
+        <div class="tip">💾 노트는 <b>이 기기의 접속 주소별 브라우저 저장소</b>에 저장됩니다. 기기를 바꾸거나 기존 주소(<code>smart-board.html</code>)에서 새 주소(<code>board-tong</code>)로 옮길 때는 <b>전체 노트 백업(.json)</b>으로 내려받아 복원하세요.</div>
       </div>
     </article>
 
@@ -389,7 +480,13 @@
 
     <div class="group-title"><h2>자주 묻는 질문</h2></div>
     <div class="faq">
-      <details open><summary>이 영상 설명서는 어디에서 다시 볼 수 있나요?</summary>
+      <details open><summary>기존 교무수첩에서 쓰던 판서 노트를 새 독립 주소(board-tong)로 어떻게 백업·이전하나요?</summary>
+        <ul>
+          <li>이전에 작성하신 판서는 삭제되지 않고 <b>당시 필기하셨던 기기·브라우저의 기존 주소 저장소(IndexedDB)</b>에 안전하게 남아 있습니다.</li>
+          <li>같은 기기·브라우저에서 기존 직행 링크(<a href="https://t-ong.vercel.app/smart-board.html" target="_blank" rel="noopener noreferrer">t-ong.vercel.app/smart-board.html</a> 또는 <a href="https://neis-help-one.vercel.app/tong/smart-board.html" target="_blank" rel="noopener noreferrer">neis-help-one.vercel.app/tong/smart-board.html</a>)를 연 뒤 상단 <b>백업·복원 ▾ → 전체 노트함 백업 저장(.json)</b>을 눌러 백업 파일을 내려받으세요.</li>
+          <li>이어서 새 주소(<a href="https://t98advisor1.github.io/board-tong/" target="_blank" rel="noopener noreferrer">t98advisor1.github.io/board-tong</a> 또는 보조 <a href="https://boardtong.vercel.app/" target="_blank" rel="noopener noreferrer">boardtong.vercel.app</a>)에서 <b>백업·복원 ▾ → 백업 파일 불러오기 / 복원(.json)</b>을 선택하면 모든 폴더와 필기가 그대로 복원됩니다.</li>
+        </ul></details>
+      <details><summary>이 영상·시각 설명서는 어디에서 다시 볼 수 있나요?</summary>
         <ul>
           <li>스마트 판서 보드 위쪽 첫 줄의 <b>사용설명서</b> 버튼 — 보드 위에 이 설명서가 창으로 열립니다.</li>
           <li>팔레트를 숨겼을 때 화면 위쪽에 나오는 <b>사용설명서</b> 버튼도 같습니다.</li>
@@ -446,8 +543,37 @@
         document.querySelectorAll('.chapter video').forEach(function (v) { io.observe(v); });
       } else document.querySelectorAll('.chapter video').forEach(load);
 
+      // 상단 1단 풀스크린 시각 매뉴얼 슬라이드 제어
+      var vgIdx = 0, vgAll = false;
+      var vgPanes = Array.prototype.slice.call(document.querySelectorAll('[data-vg-pane]'));
+      var vgTabs = Array.prototype.slice.call(document.querySelectorAll('[data-vg-idx]'));
+      var vgCounter = document.getElementById('vgCounter');
+      var vgToggleBtn = document.getElementById('vgToggleAllBtn');
+      function renderVgSlide(idx) {
+        if (!vgPanes.length) return;
+        vgAll = false;
+        if (vgToggleBtn) vgToggleBtn.textContent = '3장 연속으로 펼쳐 보기';
+        vgIdx = (idx + vgPanes.length) % vgPanes.length;
+        vgPanes.forEach(function (p, i) { p.style.display = i === vgIdx ? 'block' : 'none'; });
+        vgTabs.forEach(function (t, i) { t.classList.toggle('active', i === vgIdx); });
+        if (vgCounter) vgCounter.textContent = 'STEP ' + (vgIdx + 1) + ' / ' + vgPanes.length;
+      }
+      if (document.getElementById('vgPrevBtn')) document.getElementById('vgPrevBtn').addEventListener('click', function () { renderVgSlide(vgIdx - 1); });
+      if (document.getElementById('vgNextBtn')) document.getElementById('vgNextBtn').addEventListener('click', function () { renderVgSlide(vgIdx + 1); });
+      vgTabs.forEach(function (tb) { tb.addEventListener('click', function () { renderVgSlide(parseInt(tb.getAttribute('data-vg-idx'), 10) || 0); }); });
+      if (vgToggleBtn) vgToggleBtn.addEventListener('click', function () {
+        vgAll = !vgAll;
+        if (vgAll) {
+          vgPanes.forEach(function (p) { p.style.display = 'block'; });
+          vgToggleBtn.textContent = '1장씩 슬라이드로 보기';
+        } else {
+          renderVgSlide(vgIdx);
+        }
+      });
+
       // 차례
       var toc = document.getElementById('toc');
+      var upLink = document.createElement('a'); upLink.href = '#ch-00-backup'; upLink.textContent = '★ 백업·신규단축키'; toc.appendChild(upLink);
       chapters.forEach(function (ch, i) {
         var a = document.createElement('a'); a.href = '#' + ch.id; a.textContent = (i + 1) + '. ' + ch.dataset.toc; toc.appendChild(a);
       });
