@@ -13,7 +13,7 @@
   <script src="./libs/jszip.min.js"></script>
   <script src="./libs/pdf-lib.min.js"></script>
   <script src="./libs/pdf.min.js"></script>
-  <link rel="stylesheet" href="./smart-board.css?v=2.8.0">
+  <link rel="stylesheet" href="./smart-board.css?v=2.8.1">
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (regs) {
@@ -47,6 +47,7 @@
           <button type="button" class="sb-btn sb-btn-fs-top" id="sbFullscreenBtn" title="화면 송출용 100% 꽉 찬 전체화면 전환 (F · Fullscreen)">전체화면<kbd class="sb-key">F</kbd></button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbShortcutBtn" title="전체창 키보드 단축키 및 스크린샷 안내 (? 또는 F1)">단축키(?)</button>
           <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs" id="sbTopAdBlockGuideBtn" title="모바일(갤럭시탭) Firefox + uBlock Origin 유튜브 광고 제거 스크린샷 매뉴얼">광고제거(?)</button>
+          <button type="button" class="sb-visitor-pill" id="sbTopVisitorPill" title="스마트 판서 익명 방문 통계 (클릭 시 버전·이용 현황 보기 · 판서 내용은 서버에 전송되지 않습니다)">오늘 <b id="sbTopTodayVisitors">–</b> · 총 <b id="sbTopTotalVisits">–</b></button>
         </div>
 
         <div class="sb-top-divider"></div>
@@ -918,6 +919,6 @@
     </div>
   </div>
 
-  <script src="./smart-board.js?v=2.8.0"></script>
+  <script src="./smart-board.js?v=2.8.1"></script>
 </body>
 </html>

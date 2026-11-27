@@ -26,6 +26,8 @@
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; text-decoration: none; cursor: pointer;
       border: 1px solid transparent; background: #fff; color: var(--accent); font-family: inherit; }
     .btn.ghost { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.35); }
+    .hero-visit-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; background: rgba(15,23,42,.34); border: 1px solid rgba(255,255,255,.28); color: #e2e8f0; font-size: 0.86rem; font-weight: 700; }
+    .hero-visit-pill b { color: #fde047; font-weight: 800; }
     .hero-video { border-radius: 16px; overflow: hidden; box-shadow: 0 18px 40px rgba(2,6,23,.35); background: #0f172a; aspect-ratio: 16 / 9; }
     .hero-video video { width: 100%; height: 100%; display: block; }
 
@@ -139,6 +141,7 @@
           <a class="btn only-page" href="./smart-board.html">✏️ 스마트 판서 열기</a>
           <a class="btn ghost" href="#shortcuts">⌨️ 단축키 모아 보기</a>
           <button type="button" class="btn ghost" onclick="window.print()">🖨️ 인쇄 · PDF</button>
+          <span class="hero-visit-pill" title="스마트 판서 보드 익명 방문 현황 (판서 내용은 서버에 전송되지 않습니다)">스마트 판서 오늘 방문자 <b id="guideTodayVisitors">–</b>명 · 총 이용 <b id="guideTotalVisits">–</b>회</span>
         </div>
       </div>
       <div class="hero-video">
@@ -508,7 +511,7 @@
     </div>
   </main>
 
-  <footer>T-ong 교무수첩 · 스마트 판서 사용 설명서 · 영상은 실제 판서 보드 화면을 녹화한 것입니다.</footer>
+  <footer>T-ong 교무수첩 · 스마트 판서 사용 설명서 · 영상은 실제 판서 보드 화면을 녹화한 것입니다. · <span id="guideFooterVisits">익명 통계 연결 중</span></footer>
 
   <script>
     (function () {
@@ -591,6 +594,29 @@
         }, { rootMargin: '-45% 0px -50% 0px' });
         chapters.forEach(function (ch) { spy.observe(ch); });
       }
+
+      // 스마트 판서 익명 방문 통계 표시
+      (async function loadGuideVisitStats() {
+        var h0 = location.hostname;
+        if (h0 === 'localhost' || h0 === '127.0.0.1') {
+          var fv0 = document.getElementById('guideFooterVisits');
+          if (fv0) fv0.textContent = '로컬 실행 중 (익명 통계 비활성)';
+          return;
+        }
+        try {
+          var ep = /^t-ong\.vercel\.app$/i.test(h0) ? '/api/usage?scope=smartboard' : 'https://t-ong.vercel.app/api/usage?scope=smartboard';
+          var r = await fetch(ep, { cache: 'no-store' });
+          if (!r.ok) throw new Error('status ' + r.status);
+          var d = await r.json();
+          var td = Number(d.todayVisitors || 0).toLocaleString('ko-KR');
+          var tt = Number(d.totalVisits || 0).toLocaleString('ko-KR');
+          if (document.getElementById('guideTodayVisitors')) document.getElementById('guideTodayVisitors').textContent = td;
+          if (document.getElementById('guideTotalVisits')) document.getElementById('guideTotalVisits').textContent = tt;
+          if (document.getElementById('guideFooterVisits')) document.getElementById('guideFooterVisits').textContent = '오늘 방문자 ' + td + '명 · 총 이용 ' + tt + '회 (익명 집계)';
+        } catch (err) {
+          if (document.getElementById('guideFooterVisits')) document.getElementById('guideFooterVisits').textContent = '판서 내용은 이 기기에만 저장됩니다';
+        }
+      })();
     })();
   </script>
 </body>

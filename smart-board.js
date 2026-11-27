@@ -4355,7 +4355,7 @@
     }
 
     // 버전 · 수정 이력 · 이용 현황
-    var SB_VERSION = '2.8.0';
+    var SB_VERSION = '2.8.1';
     var SB_CHANGELOG = [
       { v: '2.8.0', d: '2026-11-27', items: [
         '상단 [백업·복원 ▾] 메뉴 및 노트함 전체·개별 판서 노트 백업(.json) / 비파괴 병합 복원 기능 추가',
@@ -4415,23 +4415,57 @@
       closeAllPopovers();
       el('sbChangelogModal').classList.add('show');
     });
+    if (el('sbTopVisitorPill')) el('sbTopVisitorPill').addEventListener('click', function (e) {
+      e.stopPropagation();
+      var moreBtn = el('sbBoardMoreBtn'), moreMenu = el('sbBoardMoreMenu');
+      if (moreBtn && moreMenu) {
+        var willOpen = !moreMenu.classList.contains('show');
+        closeAllPopovers();
+        if (willOpen) showAnchoredPopover(moreBtn, moreMenu, true);
+      }
+    });
     (async function recordSbVisit() {
       var h0 = location.hostname;
-      if (h0 === 'localhost' || h0 === '127.0.0.1' || /^192\.168\./.test(h0) || /^10\./.test(h0)) { if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '로컬 실행 중에는 방문 수를 집계하지 않습니다.'; return; }
+      if (h0 === 'localhost' || h0 === '127.0.0.1' || /^192\.168\./.test(h0) || /^10\./.test(h0)) {
+        if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '로컬 실행 중에는 방문 수를 집계하지 않습니다.';
+        return;
+      }
+      var usageEndpoint = /^t-ong\.vercel\.app$/i.test(h0) ? '/api/usage' : 'https://t-ong.vercel.app/api/usage';
+      function applySbCounts(data) {
+        var td = Number(data && data.todayVisitors || 0).toLocaleString('ko-KR');
+        var tt = Number(data && data.totalVisits || 0).toLocaleString('ko-KR');
+        if (el('sbTodayVisitors')) el('sbTodayVisitors').textContent = td;
+        if (el('sbTotalVisits')) el('sbTotalVisits').textContent = tt;
+        if (el('sbTopTodayVisitors')) el('sbTopTodayVisitors').textContent = td;
+        if (el('sbTopTotalVisits')) el('sbTopTotalVisits').textContent = tt;
+        if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '방문 수만 익명으로 집계 · 판서 내용은 이 브라우저에만 저장';
+      }
       try {
         var vid = localStorage.getItem('notetongAnonymousVisitor_v1');
-        if (!vid) { vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID().replace(/-/g, '') : String(Date.now()) + Math.random().toString(36).slice(2); localStorage.setItem('notetongAnonymousVisitor_v1', vid); }
+        if (!vid) {
+          vid = (window.crypto && crypto.randomUUID)
+            ? crypto.randomUUID().replace(/-/g, '')
+            : String(Date.now()) + Math.random().toString(36).slice(2);
+          localStorage.setItem('notetongAnonymousVisitor_v1', vid);
+        }
         var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
         var mp = {}; parts.forEach(function (p) { mp[p.type] = p.value; });
         var raw = 'smartboard:' + mp.year + '-' + mp.month + '-' + mp.day + ':' + vid;
         var hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
         var token = Array.from(new Uint8Array(hash)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
-        var res = await fetch('/api/usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitorToken: token, scope: 'smartboard' }), cache: 'no-store' });
+        var res = await fetch(usageEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visitorToken: token, scope: 'smartboard' }),
+          cache: 'no-store'
+        });
         if (!res.ok) throw new Error('usage ' + res.status);
-        var data = await res.json();
-        if (el('sbTodayVisitors')) el('sbTodayVisitors').textContent = Number(data.todayVisitors || 0).toLocaleString('ko-KR');
-        if (el('sbTotalVisits')) el('sbTotalVisits').textContent = Number(data.totalVisits || 0).toLocaleString('ko-KR');
+        applySbCounts(await res.json());
       } catch (e) {
+        try {
+          var gRes = await fetch(usageEndpoint + '?scope=smartboard', { cache: 'no-store' });
+          if (gRes.ok) { applySbCounts(await gRes.json()); return; }
+        } catch (e2) {}
         if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '통계 서버 연결 대기 중 · 판서 내용은 전송하지 않습니다.';
       }
     })();
