@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>스마트 판서 단축키 핸드아웃</title>
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { width: 297mm; height: 210mm; font-family: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif; color: #0f172a; background: #fff; }
+  .sheet { width: 297mm; height: 210mm; padding: 9mm 10mm 8mm; display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 14px; padding-bottom: 5mm; border-bottom: 3px solid #2563eb; }
+  header .logo { width: 15mm; height: 15mm; border-radius: 4mm; background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 8mm; }
+  header h1 { margin: 0; font-size: 9.5mm; letter-spacing: -0.03em; line-height: 1.1; }
+  header p { margin: 1.2mm 0 0; color: #475569; font-size: 4mm; font-weight: 600; }
+  header .sp { flex: 1; }
+  header .start { text-align: right; font-size: 3.6mm; color: #334155; line-height: 1.5; font-weight: 700; }
+  header .start b { color: #2563eb; }
+  .grid { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm; margin-top: 5mm; }
+  .col { border-radius: 4mm; padding: 4mm 3.6mm 3mm; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+  .col h2 { margin: 0 0 3mm; font-size: 5.2mm; display: flex; align-items: center; gap: 2mm; }
+  .col h2 span { display: inline-flex; width: 7mm; height: 7mm; border-radius: 50%; color: #fff; font-size: 3.6mm; align-items: center; justify-content: center; }
+  .row { display: flex; flex-direction: column; align-items: flex-start; gap: 1.3mm; padding: 2.4mm 0 2.2mm; border-top: 1px dashed #cbd5e1; }
+  .row:first-of-type { border-top: 0; }
+  .k { display: flex; gap: 1mm; flex-wrap: wrap; align-items: center; }
+  .k i { font-style: normal; color: #94a3b8; font-weight: 800; font-size: 3.4mm; margin: 0 0.6mm; }
+  kbd { display: inline-block; min-width: 7.4mm; padding: 0.8mm 1.8mm; border-radius: 1.6mm; border: 1px solid #94a3b8; border-bottom-width: 2.4px; background: #fff;
+    font: 800 4.1mm/1.25 ui-monospace, Consolas, monospace; text-align: center; color: #0f172a; white-space: nowrap; }
+  kbd.w { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; font-size: 3.4mm; }
+  .d { font-size: 3.9mm; font-weight: 700; line-height: 1.3; }
+  .d em { display: inline; margin-left: 1.5mm; font-style: normal; color: #2563eb; font-size: 2.9mm; font-weight: 800; }
+  .c1 h2 span { background: #ef4444; } .c2 h2 span { background: #f59e0b; } .c3 h2 span { background: #10b981; } .c4 h2 span { background: #3b82f6; } .c5 h2 span { background: #8b5cf6; }
+  footer { margin-top: 4mm; display: flex; align-items: center; gap: 5mm; padding: 3mm 4mm; border-radius: 4mm; background: #eff6ff; border: 1px solid #bfdbfe; }
+  footer .tips { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2mm 5mm; font-size: 3.3mm; font-weight: 600; color: #1e293b; line-height: 1.4; }
+  footer .tips b { color: #1d4ed8; }
+  footer .qr { display: flex; align-items: center; gap: 2.5mm; font-size: 3mm; font-weight: 700; color: #334155; line-height: 1.35; }
+  footer .qr svg { width: 19mm; height: 19mm; }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header>
+    <div class="logo">✏️</div>
+    <div><h1>스마트 판서 단축키</h1><p>교탁 · 갤럭시탭 옆에 두고 보는 한 장 정리 (v2.8)</p></div>
+    <div class="sp"></div>
+    <div class="start">모르면 <kbd>?</kbd> 키 → 단축키 창<br>틀리면 <b>Z</b> · 다시 살리기 <b>X</b><br>판서는 <b>1분마다 자동 저장</b></div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>
+    <div class="tips">
+      <div><b>꾹 멈춤</b> — 그린 원·네모·별이 반듯하게</div>
+      <div><b>S펜 옆 버튼</b> — 지우개 ↔ 펜 바로 바꾸기</div>
+      <div><b>두 손가락</b> 확대·이동 · <b>세 손가락</b> 화면 이동</div>
+      <div><b>공유 ▾</b> — 노션·카톡으로 PNG·PDF 보내기</div>
+      <div><b>백업·복원 ▾</b> — 다른 기기로 노트 옮기기(.json)</div>
+      <div><b>Ctrl+1 두 번</b> — 확대 후 쓰던 도구 그대로 복귀</div>
+    </div>
+    <div class="qr"><div id="qr"></div><div>영상 사용설명서<br>(음성 해설)<br>QR로 바로 보기</div></div>
+  </footer>
+</div>
+<script src="../../qr-lib.js"></script>
+<script>
+  var GUIDE_URL = 'https://t98advisor1.github.io/board-tong/smart-board-guide.html';
+  var COLS = [
+    ['쓰기', [['P', '펜', 'Pen'], ['H', '형광펜', 'Highlighter'], ['1~6', '색 바꾸기', '빨·초·파·노·흰·검'], ['T', '텍스트', 'Text'], ['R|C|L', '사각형 · 원 · 직선'], ['＋|－', '굵기 (버튼 · 휠)']]],
+    ['고치기', [['Z|Esc', '되돌리기'], ['X', '다시 실행'], ['E', '지우개', 'Eraser'], ['Shift+E', '펜 글씨만 전체 지우기'], ['Ctrl+E', '전체 필기 지우기'], ['V', '선택해서 옮기기', 'Select']]],
+    ['수업 진행', [['D', '레이저', '3초 뒤 사라짐'], ['S|Q', '번호 스탬프', '원형 · 사각'], ['SS|0', '번호 1번부터'], ['A', '밑줄·원 자동 번호', 'Auto'], ['Ctrl+S', '스탬프 전체 지우기'], ['Space|→|←', '다음 · 이전', '쪽 · PPTX 장면']]],
+    ['화면', [['Ctrl+1', '확대 · 원래대로'], ['M', '확대 화면 이동', 'Move'], ['Ctrl+`', '게시 (조각 고정)'], ['Ctrl+3', '편집 · 손글씨 변환'], ['Tab', '도구 줄 숨기기'], ['F', '전체화면']]],
+    ['저장 · 나가기', [['Ctrl+P', '지금 화면 PNG 저장'], ['Ctrl+Shift+S', '노트 저장'], ['Backspace', '저장하고 나가기'], ['K|W', '칠판 · 백지 배경'], ['Ctrl+2', '판서 모드로'], ['?', '단축키 창']]]
+  ];
+  function kb(s) { return s.split('|').map(function (x) { return x.split('+').map(function (y) { return '<kbd' + (y.length > 4 ? ' class="w"' : '') + '>' + y + '</kbd>'; }).join('<i>+</i>'); }).join('<i>·</i>'); }
+  document.getElementById('grid').innerHTML = COLS.map(function (c, i) {
+    return '<section class="col c' + (i + 1) + '"><h2><span>' + (i + 1) + '</span>' + c[0] + '</h2>' + c[1].map(function (r) {
+      return '<div class="row"><div class="k">' + kb(r[0]) + '</div><div class="d">' + r[1] + (r[2] ? '<em>' + r[2] + '</em>' : '') + '</div></div>';
+    }).join('') + '</section>';
+  }).join('');
+  var q = qrcode(0, 'M'); q.addData(GUIDE_URL); q.make();
+  document.getElementById('qr').innerHTML = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true });
+</script>
+</body>
+</html>
