@@ -5697,8 +5697,22 @@ var ThemeManager = (function () {
 
 var UsageStats = (function () {
   var VISITOR_KEY = 'notetongAnonymousVisitor_v1';
+  var CACHE_COUNTS_KEY = 'notetongLastVisitCounts_v1';
   function isLocal() { return location.hostname === 'localhost' || location.hostname === '127.0.0.1' || /^192\.168\./.test(location.hostname) || /^10\./.test(location.hostname); }
   function setStatus(text) { var status=document.getElementById('usageStatsStatus'); if(status)status.textContent=text; }
+  function saveCachedCounts(today, total) {
+    if (!Number.isFinite(today) || !Number.isFinite(total)) return;
+    try { localStorage.setItem(CACHE_COUNTS_KEY, JSON.stringify({ today: today, total: total, ts: Date.now() })); } catch (e) {}
+  }
+  function loadCachedCounts() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CACHE_COUNTS_KEY) || 'null');
+      if (c && Number.isFinite(Number(c.today)) && Number.isFinite(Number(c.total))) {
+        return { today: Number(c.today), total: Number(c.total) };
+      }
+    } catch (e) {}
+    return null;
+  }
   function setCounts(today,total) {
     var todayEl=document.getElementById('todayVisitorCount'), totalEl=document.getElementById('totalVisitCount');
     var footerToday=document.getElementById('footerTodayVisitorCount'), footerTotal=document.getElementById('footerTotalVisitCount');
@@ -5708,6 +5722,7 @@ var UsageStats = (function () {
     if(totalEl)totalEl.textContent=hasTotal?totalText+'회':'__';
     if(footerToday)footerToday.textContent=todayText;
     if(footerTotal)footerTotal.textContent=totalText;
+    if(hasToday&&hasTotal)saveCachedCounts(today,total);
   }
   function koreaDateKey() {
     var parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
@@ -5728,16 +5743,88 @@ var UsageStats = (function () {
     }
     return Array.from(raw).reduce(function(a,c){return ((a<<5)-a+c.charCodeAt(0))|0;},0).toString(16).replace('-','').padEnd(64,'0').slice(0,64);
   }
-  async function recordVisit() {
-    if(isLocal()){setCounts(NaN,NaN);setStatus('');return;}
+  async function fetchWithTimeout(url, opts, ms) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, ms || 8000) : null;
     try {
-      var response=await fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorToken:await dailyToken()}),cache:'no-store'});
-      if(!response.ok)throw new Error('usage api '+response.status);
-      var data=await response.json();setCounts(Number(data.todayVisitors),Number(data.totalVisits));
-      setStatus('날짜별 익명 방문 수와 총 접속 횟수만 집계 · 학생 자료는 포함하지 않음');
-    } catch(e){setCounts(NaN,NaN);setStatus('통계 저장소 연결 대기 중 · 학생 자료는 전송하지 않음');}
+      var merged = Object.assign({}, opts || {});
+      if (ctrl) merged.signal = ctrl.signal;
+      return await fetch(url, merged);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
-  function init(){recordVisit();}
+  async function tryEndpoints(token) {
+    var base = /^t-ong\.vercel\.app$/i.test(location.hostname) ? '' : 'https://t-ong.vercel.app';
+    var attempts = [
+      function () {
+        return fetchWithTimeout(base + '/api/classroom-hello', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ t: token }),
+          cache: 'no-store'
+        }, 8000);
+      },
+      function () {
+        return fetchWithTimeout(base + '/api/classroom-hello?t=' + encodeURIComponent(token) + '&_=' + Date.now(), {
+          method: 'GET',
+          cache: 'no-store'
+        }, 8000);
+      },
+      function () {
+        return fetchWithTimeout(base + '/api/usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify({ visitorToken: token }),
+          cache: 'no-store'
+        }, 8000);
+      }
+    ];
+    for (var i = 0; i < attempts.length; i++) {
+      try {
+        var r = await attempts[i]();
+        if (r && r.ok) {
+          var d = await r.json();
+          var td = Number(d.todayVisitors != null ? d.todayVisitors : d.d);
+          var tt = Number(d.totalVisits != null ? d.totalVisits : d.v);
+          if (Number.isFinite(td) && Number.isFinite(tt)) return { today: td, total: tt };
+        }
+      } catch (err) {}
+    }
+    throw new Error('all_endpoints_failed');
+  }
+  async function recordVisit(isRetry) {
+    if(isLocal()){setCounts(NaN,NaN);setStatus('');return;}
+    var cached = loadCachedCounts();
+    if (cached && !isRetry) setCounts(cached.today, cached.total);
+    try {
+      var tok = await dailyToken();
+      var res = await tryEndpoints(tok);
+      setCounts(res.today, res.total);
+      setStatus('날짜별 익명 방문 수와 총 접속 횟수만 집계 · 학생 자료는 포함하지 않음');
+    } catch(e) {
+      if (!isRetry) {
+        setTimeout(function () { recordVisit(true); }, 2500);
+      } else if (!cached) {
+        setCounts(NaN,NaN);
+        setStatus('통계 저장소 연결 대기 중 · 학생 자료는 전송하지 않음');
+      }
+    }
+  }
+  function init(){
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (r) { try { r.update(); } catch (e) {} });
+      }).catch(function () {});
+    }
+    var footerBox = document.querySelector('.footer-visit-stats');
+    if (footerBox) {
+      footerBox.style.cursor = 'pointer';
+      footerBox.title = '클릭하여 방문 통계 새로고침';
+      footerBox.addEventListener('click', function () { recordVisit(true); });
+    }
+    recordVisit(false);
+  }
   return { init:init };
 })();
 

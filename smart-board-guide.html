@@ -433,12 +433,13 @@
       var h0 = location.hostname;
       if (h0 === 'localhost' || h0 === '127.0.0.1') return;
       try {
-        var ep = /^t-ong\.vercel\.app$/i.test(h0) ? '/api/usage?scope=smartboard' : 'https://t-ong.vercel.app/api/usage?scope=smartboard';
-        var r = await fetch(ep, { cache: 'no-store' });
+        var base = /^t-ong\.vercel\.app$/i.test(h0) ? '' : 'https://t-ong.vercel.app';
+        var r = await fetch(base + '/api/classroom-hello?m=smartboard&_=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) r = await fetch(base + '/api/usage?scope=smartboard', { cache: 'no-store' });
         if (!r.ok) throw new Error('status ' + r.status);
         var d = await r.json();
-        document.getElementById('guideTodayVisitors').textContent = Number(d.todayVisitors || 0).toLocaleString('ko-KR');
-        document.getElementById('guideTotalVisits').textContent = Number(d.totalVisits || 0).toLocaleString('ko-KR');
+        document.getElementById('guideTodayVisitors').textContent = Number(d.todayVisitors != null ? d.todayVisitors : d.d || 0).toLocaleString('ko-KR');
+        document.getElementById('guideTotalVisits').textContent = Number(d.totalVisits != null ? d.totalVisits : d.v || 0).toLocaleString('ko-KR');
       } catch (err) {}
     })();
   })();

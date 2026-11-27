@@ -4438,44 +4438,60 @@
         if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '로컬 실행 중에는 방문 수를 집계하지 않습니다.';
         return;
       }
-      var usageEndpoint = /^t-ong\.vercel\.app$/i.test(h0) ? '/api/usage' : 'https://t-ong.vercel.app/api/usage';
-      function applySbCounts(data) {
-        var td = Number(data && data.todayVisitors || 0).toLocaleString('ko-KR');
-        var tt = Number(data && data.totalVisits || 0).toLocaleString('ko-KR');
+      var apiBase = /^t-ong\.vercel\.app$/i.test(h0) ? '' : 'https://t-ong.vercel.app';
+      var SB_CACHE_STATS_KEY = 'sbLastVisitCounts_v1';
+      function applySbCounts(data, fromCache) {
+        var rawTd = Number(data && (data.todayVisitors != null ? data.todayVisitors : data.d) || 0);
+        var rawTt = Number(data && (data.totalVisits != null ? data.totalVisits : data.v) || 0);
+        if (!rawTd && !rawTt) return false;
+        var td = rawTd.toLocaleString('ko-KR');
+        var tt = rawTt.toLocaleString('ko-KR');
         if (el('sbTodayVisitors')) el('sbTodayVisitors').textContent = td;
         if (el('sbTotalVisits')) el('sbTotalVisits').textContent = tt;
         if (el('sbTopTodayVisitors')) el('sbTopTodayVisitors').textContent = td;
         if (el('sbTopTotalVisits')) el('sbTopTotalVisits').textContent = tt;
         if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '방문 수만 익명으로 집계 · 판서 내용은 이 브라우저에만 저장';
+        if (!fromCache) {
+          try { localStorage.setItem(SB_CACHE_STATS_KEY, JSON.stringify({ d: rawTd, v: rawTt })); } catch (e) {}
+        }
+        return true;
       }
       try {
-        var vid = localStorage.getItem('notetongAnonymousVisitor_v1');
-        if (!vid) {
-          vid = (window.crypto && crypto.randomUUID)
-            ? crypto.randomUUID().replace(/-/g, '')
-            : String(Date.now()) + Math.random().toString(36).slice(2);
-          localStorage.setItem('notetongAnonymousVisitor_v1', vid);
-        }
-        var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-        var mp = {}; parts.forEach(function (p) { mp[p.type] = p.value; });
-        var raw = 'smartboard:' + mp.year + '-' + mp.month + '-' + mp.day + ':' + vid;
-        var hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
-        var token = Array.from(new Uint8Array(hash)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
-        var res = await fetch(usageEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ visitorToken: token, scope: 'smartboard' }),
-          cache: 'no-store'
-        });
-        if (!res.ok) throw new Error('usage ' + res.status);
-        applySbCounts(await res.json());
-      } catch (e) {
+        var cachedSb = JSON.parse(localStorage.getItem(SB_CACHE_STATS_KEY) || 'null');
+        if (cachedSb) applySbCounts(cachedSb, true);
+      } catch (e0) {}
+      async function attemptRecord(isRetry) {
         try {
-          var gRes = await fetch(usageEndpoint + '?scope=smartboard', { cache: 'no-store' });
-          if (gRes.ok) { applySbCounts(await gRes.json()); return; }
-        } catch (e2) {}
-        if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '통계 서버 연결 대기 중 · 판서 내용은 전송하지 않습니다.';
+          var vid = localStorage.getItem('notetongAnonymousVisitor_v1');
+          if (!vid) {
+            vid = (window.crypto && crypto.randomUUID)
+              ? crypto.randomUUID().replace(/-/g, '')
+              : String(Date.now()) + Math.random().toString(36).slice(2);
+            localStorage.setItem('notetongAnonymousVisitor_v1', vid);
+          }
+          var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+          var mp = {}; parts.forEach(function (p) { mp[p.type] = p.value; });
+          var raw = 'smartboard:' + mp.year + '-' + mp.month + '-' + mp.day + ':' + vid;
+          var hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+          var token = Array.from(new Uint8Array(hash)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+          var urls = [
+            { u: apiBase + '/api/classroom-hello', opts: { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ t: token, m: 'smartboard' }), cache: 'no-store' } },
+            { u: apiBase + '/api/classroom-hello?m=smartboard&t=' + encodeURIComponent(token) + '&_=' + Date.now(), opts: { method: 'GET', cache: 'no-store' } },
+            { u: apiBase + '/api/usage', opts: { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ visitorToken: token, scope: 'smartboard' }), cache: 'no-store' } }
+          ];
+          for (var i = 0; i < urls.length; i++) {
+            try {
+              var res = await fetch(urls[i].u, urls[i].opts);
+              if (res && res.ok && applySbCounts(await res.json(), false)) return;
+            } catch (inner) {}
+          }
+          throw new Error('sb_stats_failed');
+        } catch (e) {
+          if (!isRetry) setTimeout(function () { attemptRecord(true); }, 2500);
+          else if (el('sbUsageStatus')) el('sbUsageStatus').textContent = '통계 서버 연결 대기 중 · 판서 내용은 전송하지 않습니다.';
+        }
       }
+      attemptRecord(false);
     })();
 
     // 통합 파일·링크 열기 모달 (#sbFileHubModal)

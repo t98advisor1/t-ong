@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.2.0-70';
+var CACHE_VERSION = 'v3.2.0-71';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
@@ -51,13 +51,9 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   var req = event.request;
+  // 실시간 API 요청(/api/*)은 서비스 워커를 거치지 않고 브라우저가 직접 통신합니다.
+  if (new URL(req.url).pathname.indexOf('/api/') === 0) return;
   if (req.method !== 'GET') return;
-
-  // 실시간 통계 API는 캐시하지 않습니다.
-  if (new URL(req.url).pathname.indexOf('/api/') === 0) {
-    event.respondWith(fetch(req));
-    return;
-  }
 
   // 매뉴얼 영상은 구간(Range) 요청으로 받아야 해서 서비스 워커를 거치지 않고 네트워크로 바로 받습니다.
   if (/\.mp4$/i.test(new URL(req.url).pathname)) return;
