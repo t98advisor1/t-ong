@@ -346,7 +346,11 @@ body {
   color: #fde047;
   font-weight: 800;
 }
-@media (max-width: 1220px) {
+@media (max-width: 1460px) {
+  .sb-top-row-primary kbd,
+  .sb-top-row-primary .sb-key { display: none; }
+}
+@media (max-width: 1120px) {
   .sb-visitor-pill { display: none; }
 }
 .sb-btn-file { background: #1e3a8a; border-color: #2563eb; color: #dbeafe; }
