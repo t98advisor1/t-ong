@@ -7,7 +7,7 @@ const OVERLAY = () => {
       background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'%3E%3Cpath d='M3 2l16 9-7 2-3 7z' fill='white' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat}
     .demoRipple{position:fixed;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid #facc15;z-index:2147483646;pointer-events:none;animation:demoRip .55s ease-out forwards}
     @keyframes demoRip{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
-    #demoCaption{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);max-width:88%;z-index:2147483645;pointer-events:none;
+    #demoCaption{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);max-width:88%;z-index:2147483645;pointer-events:none;
       background:rgba(2,6,23,.86);color:#fff;font:700 24px/1.45 'Pretendard','Noto Sans KR',sans-serif;padding:12px 26px;border-radius:14px;
       text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transition:opacity .25s}
     #demoCaption.show{opacity:1}
@@ -17,12 +17,16 @@ const OVERLAY = () => {
       font:800 26px/1 ui-monospace,Consolas,monospace;padding:12px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);opacity:0;transition:opacity .2s}
     #demoKey.show{opacity:1}
     .demoHi{position:fixed;z-index:2147483644;pointer-events:none;border:3px solid #facc15;border-radius:10px;box-shadow:0 0 0 9999px rgba(2,6,23,.45);transition:opacity .25s}
-    #demoChapter{position:fixed;left:24px;top:50%;transform:translateY(-50%);z-index:2147483645;pointer-events:none;opacity:0;transition:opacity .3s}
-    #demoChapter.show{opacity:1}`;
+    #demoTitle{position:fixed;inset:0;z-index:2147483646;pointer-events:none;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,.78);opacity:0;transition:opacity .35s}
+    #demoTitle.show{opacity:1}
+    #demoTitle div{background:#fff;color:#0f172a;border-radius:22px;padding:30px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45);font-family:'Pretendard','Noto Sans KR',sans-serif}
+    #demoTitle small{display:inline-block;background:#2563eb;color:#fff;font:800 20px/1 'Pretendard','Noto Sans KR',sans-serif;padding:8px 16px;border-radius:999px;margin-bottom:14px}
+    #demoTitle b{display:block;font:900 44px/1.25 'Pretendard','Noto Sans KR',sans-serif}
+    #demoTitle span{display:block;margin-top:10px;font:600 22px/1.4 'Pretendard','Noto Sans KR',sans-serif;color:#475569}`;
   const add = () => {
     if (document.getElementById('demoCursor')) return;
     const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-    for (const id of ['demoCursor', 'demoCaption', 'demoKey']) { const d = document.createElement('div'); d.id = id; document.body.appendChild(d); }
+    for (const id of ['demoCursor', 'demoCaption', 'demoKey', 'demoTitle']) { const d = document.createElement('div'); d.id = id; document.body.appendChild(d); }
     const cur = document.getElementById('demoCursor');
     const move = e => { cur.style.transform = `translate(${e.clientX}px,${e.clientY}px)`; };
     window.addEventListener('pointermove', move, true); window.addEventListener('mousemove', move, true);
@@ -37,9 +41,33 @@ const OVERLAY = () => {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add); else add();
 };
 
-function demo(page) {
+// narr: { t0, durations: {md5: 초}, list: [] } — say()로 말한 문장과 시각을 list에 모아, 녹화 뒤 음성을 영상에 붙입니다.
+function demo(page, narr) {
   let mx = 640, my = 400;
+  let busyUntil = 0;
+  const md5 = t => require('crypto').createHash('md5').update(t).digest('hex');
+  const waitBusy = async () => { while (Date.now() < busyUntil) await page.waitForTimeout(Math.min(200, busyUntil - Date.now())); };
   const api = {
+    // 자막을 띄우고 음성을 재생합니다. 음성이 나오는 동안 다음 동작은 계속 진행되고, 다음 say()는 앞 음성이 끝날 때까지 기다립니다.
+    async say(html, speech, opts = {}) {
+      await waitBusy();
+      await page.evaluate(h => { const c = document.getElementById('demoCaption'); c.innerHTML = h; c.classList.toggle('show', !!h); }, html);
+      if (speech && narr) {
+        const h = md5(speech), dur = narr.durations[h];
+        if (dur == null) throw new Error('음성 없음: ' + speech);
+        narr.list.push({ h, t: Date.now() - narr.t0 });
+        busyUntil = Date.now() + dur * 1000 + (opts.gap != null ? opts.gap : 250);
+      }
+      if (opts.wait) await waitBusy();
+      if (opts.ms) await page.waitForTimeout(opts.ms);
+    },
+    async done(extra = 700) { await waitBusy(); await page.waitForTimeout(extra); },
+    async titleCard(num, title, sub, speech) {
+      await page.evaluate(([n, t, s]) => { const d = document.getElementById('demoTitle'); d.innerHTML = '<div><small>' + n + '</small><b>' + t + '</b>' + (s ? '<span>' + s + '</span>' : '') + '</div>'; d.classList.add('show'); document.getElementById('demoCursor').style.opacity = '0'; }, [num, title, sub || '']);
+      await api.say('', speech, { wait: true });
+      await page.evaluate(() => { document.getElementById('demoTitle').classList.remove('show'); document.getElementById('demoCursor').style.opacity = ''; });
+      await page.waitForTimeout(400);
+    },
     async caption(html, ms = 2200) {
       await page.evaluate(h => { const c = document.getElementById('demoCaption'); c.innerHTML = h; c.classList.toggle('show', !!h); }, html);
       if (ms) await page.waitForTimeout(ms);
