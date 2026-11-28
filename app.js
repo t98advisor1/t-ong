@@ -9634,6 +9634,7 @@ var TeacherSchedule = (function () {
   var selectedSchool = null;
   var availableClasses = [];
   var isNonHomeroom = false; // 담임 없음(비담임·교과전담) 여부
+  var homeroomGradePick = null; // 담임 학년만 고르고 아직 반을 고르지 않은 상태
   var selectedHomeroom = null;
   var selectedSubjects = [];
   var activePickerClass = null; // 현재 과목 선택 박스에 표시 중인 학급
@@ -10075,12 +10076,20 @@ var TeacherSchedule = (function () {
 
   // 오른쪽 패널: 고른 학급과 그 학급에 추가한 담당 수업
   function renderAssignedPanel() {
+    // ① 담임 여부(비담임 / 1·2·3학년 담임) → ② 그 학년의 학급만 보여 줍니다.
+    var gradeSelect = el('tsHomeroomGrade');
     var select = el('tsHomeroomSelect');
+    var classRow = el('tsHomeroomClassRow');
+    var curGrade = homeroomGradePick || ((!isNonHomeroom && selectedHomeroom) ? String(selectedHomeroom.grade) : 'NONE');
+    if (gradeSelect) gradeSelect.value = curGrade;
+    if (classRow) classRow.hidden = curGrade === 'NONE';
     if (select) {
-      select.innerHTML = '<option value="NONE">담임 없음 (비담임·교과전담)</option>' + availableClasses.map(function (c) {
+      var gradeClasses = availableClasses.filter(function (c) { return String(c.grade) === curGrade; });
+      var hasCur = !isNonHomeroom && selectedHomeroom && String(selectedHomeroom.grade) === curGrade;
+      select.innerHTML = (hasCur ? '' : '<option value="">반을 고르세요</option>') + gradeClasses.map(function (c) {
         return '<option value="' + escapeHtml(c.short) + '">' + escapeHtml(c.label) + '</option>';
       }).join('');
-      select.value = (!isNonHomeroom && selectedHomeroom) ? selectedHomeroom.short : 'NONE';
+      select.value = hasCur ? selectedHomeroom.short : '';
     }
 
     var listEl = el('tsSelectedClassList');
@@ -11319,7 +11328,14 @@ var TeacherSchedule = (function () {
       if (removeLessonBtn) removeLesson(removeLessonBtn.getAttribute('data-lesson-class'), removeLessonBtn.getAttribute('data-remove-lesson'));
     });
     var homeroomSelect = el('tsHomeroomSelect');
-    if (homeroomSelect) homeroomSelect.addEventListener('change', function () { setHomeroom(this.value); });
+    if (homeroomSelect) homeroomSelect.addEventListener('change', function () { if (this.value) { homeroomGradePick = null; setHomeroom(this.value); } });
+    var homeroomGrade = el('tsHomeroomGrade');
+    if (homeroomGrade) homeroomGrade.addEventListener('change', function () {
+      if (this.value === 'NONE') { homeroomGradePick = null; setHomeroom('NONE'); return; }
+      homeroomGradePick = this.value;   // 학급을 고를 때까지 기존 담임 설정은 그대로 둡니다.
+      renderAssignedPanel();
+      var cs = el('tsHomeroomSelect'); if (cs) cs.focus();
+    });
 
     // 기타: 직접 입력으로 추가
     var etcAddBtn = el('tsEtcAddBtn');

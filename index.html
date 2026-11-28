@@ -2576,10 +2576,20 @@
                 <strong>추가한 담당 수업</strong>
                 <span id="tsLessonCount" class="ts-panel-count">0</span>
               </div>
-              <label class="ts-homeroom-row" for="tsHomeroomSelect">
-                <span>담임 학급</span>
+              <div class="ts-homeroom-row ts-homeroom-two">
+                <span>① 담임 여부</span>
+                <select id="tsHomeroomGrade" aria-label="담임 학년 또는 비담임 선택">
+                  <option value="NONE">비담임 (교과전담)</option>
+                  <option value="1">1학년 담임</option>
+                  <option value="2">2학년 담임</option>
+                  <option value="3">3학년 담임</option>
+                </select>
+              </div>
+              <label class="ts-homeroom-row" for="tsHomeroomSelect" id="tsHomeroomClassRow">
+                <span>② 담임 학급</span>
                 <select id="tsHomeroomSelect"></select>
               </label>
+              <p class="ts-homeroom-hint">교과 수업(선택과목 통합반 포함)과 동아리는 왼쪽에서 따로 골라 추가합니다.</p>
               <div id="tsSelectedClassList" class="ts-selected-list">
                 <p class="ts-panel-empty">아직 추가한 담당 수업이 없습니다.</p>
               </div>

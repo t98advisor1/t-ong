@@ -8560,3 +8560,8 @@ summary.lt-fold-sum::-webkit-details-marker { display: none; }
 .sync-faq summary { cursor: pointer; font-weight: 800; font-size: 0.82rem; color: #1e293b; }
 .sync-faq ul { margin: 6px 0 2px; padding-left: 18px; font-size: 0.78rem; line-height: 1.55; color: #334155; }
 .sync-faq li { margin: 3px 0; }
+
+/* 담임 여부(학년) → 담임 학급 두 단계 선택 */
+.ts-homeroom-two { margin-bottom: 6px; }
+#tsHomeroomClassRow[hidden] { display: none; }
+.ts-homeroom-hint { margin: 6px 2px 8px; font-size: 0.72rem; color: #64748b; line-height: 1.45; }
