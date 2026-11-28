@@ -1720,6 +1720,12 @@ function doPost(e) {
           var eid = String(rVals[ri][0] || "").trim();
           if (eid) existingIds[eid] = true;
         }
+        // H열 = 수업 학급(T-ong에서 보낸 반 이름, 예: 2-2 · 5W). 선택과목 통합반 수업에서 학생이 어느 반 수업인지 구분합니다.
+        var clsLabel = String(body.className || "").trim();
+        var hasClassHeader = String((rVals[3] && rVals[3][7]) || "").trim() !== "";
+        if (!hasClassHeader) rosterSheet.getRange(4, 8).setValue("수업 학급");
+        var rowById = {};
+        for (var rj = 4; rj < rVals.length; rj++) { var rid = String(rVals[rj][0] || "").trim(); if (rid) rowById[rid] = rj; }
         var newRosterRows = [];
         for (var si = 0; si < body.students.length; si++) {
           var st = body.students[si];
@@ -1727,7 +1733,16 @@ function doPost(e) {
           var stName = String(st.name || "").trim();
           if (stId && stName && !existingIds[stId]) {
             existingIds[stId] = true;
-            newRosterRows.push([stId, stName, st.gender || "", "", "", "", "", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[대시보드로 이동]\")"]);
+            newRosterRows.push([stId, stName, st.gender || "", "", "", "", "", clsLabel]);
+          } else if (stId && clsLabel && rowById[stId] != null) {
+            // 이미 있는 학생: 수업 학급 칸에 이 반이 없으면 덧붙입니다. (예: "2-2, 5W")
+            var curCls = String(rVals[rowById[stId]][7] || "").trim();
+            if (/^=|대시보드로 이동/.test(curCls)) curCls = "";
+            var list = curCls ? curCls.split(/\s*,\s*/) : [];
+            if (list.indexOf(clsLabel) < 0) {
+              list.push(clsLabel);
+              rosterSheet.getRange(rowById[stId] + 1, 8).setValue(list.join(", "));
+            }
           }
         }
         if (newRosterRows.length > 0) {
