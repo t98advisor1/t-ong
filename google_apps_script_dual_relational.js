@@ -1745,8 +1745,24 @@ function doPost(e) {
             }
           }
         }
+        // J열 = 수업 학급 목록(H열 드롭다운 항목). 처음 보는 반 이름이면 목록 아래에 추가합니다.
+        if (clsLabel) {
+          var listVals = rosterSheet.getMaxColumns() >= 10 ? rosterSheet.getRange(5, 10, 36, 1).getValues() : null;
+          if (listVals) {
+            var inList = false, emptyAt = -1;
+            for (var li = 0; li < listVals.length; li++) {
+              var lv = String(listVals[li][0] || "").trim();
+              if (lv === clsLabel) { inList = true; break; }
+              if (!lv && emptyAt < 0) emptyAt = li;
+            }
+            if (!inList && emptyAt >= 0) rosterSheet.getRange(5 + emptyAt, 10).setValue(clsLabel);
+          }
+        }
         if (newRosterRows.length > 0) {
-          var startR = Math.max(5, rosterSheet.getLastRow() + 1);
+          // 마지막 학생 줄은 A열(학번) 기준으로 찾습니다. (J열 목록 때문에 아래로 밀리지 않도록)
+          var lastIdRow = 4;
+          for (var ra = 4; ra < rVals.length; ra++) { if (String(rVals[ra][0] || "").trim()) lastIdRow = ra + 1; }
+          var startR = Math.max(5, lastIdRow + 1);
           rosterSheet.getRange(startR, 1, newRosterRows.length, 8).setValues(newRosterRows);
         }
       }
