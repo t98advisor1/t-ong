@@ -1221,6 +1221,17 @@
     if (nextMode !== 'zoom') applyTransform();   // 확대 배지 글자(확대 모드 → 확대 고정) 갱신
   }
 
+  // 단축키 설정에서 바꾼 키를 버튼 글자에 보여 주기 위한 함수(단축키 설정 코드가 실제 내용으로 바꿔 끼웁니다)
+  var scDisplayKey = function (defKey) { return String(defKey || '').toUpperCase(); };
+  function setKbd(kb, defKey, prefix) {
+    if (!kb) return;
+    kb.setAttribute('data-sc-def', defKey);
+    kb.setAttribute('data-sc-pre', prefix || ''); kb.setAttribute('data-sc-post', '');
+    var shown = scDisplayKey(defKey);
+    kb.textContent = shown ? (prefix || '') + shown : '';
+    kb.hidden = !shown;
+  }
+
   function setTool(nextTool) {
     commitInlineText();
     var prevTool = state.tool;
@@ -1255,7 +1266,7 @@
       penBtn.classList.toggle('active', isPenActive);
       var curStyleKey = nextTool === 'highlighter' ? 'highlighter' : (state.penStyle || 'fountain');
       penLbl.textContent = PEN_STYLE_LABELS[curStyleKey] || '만년필';
-      if (el('sbPenMenuKey')) el('sbPenMenuKey').textContent = curStyleKey === 'highlighter' ? 'H' : 'P';
+      setKbd(el('sbPenMenuKey'), curStyleKey === 'highlighter' ? 'h' : 'p');
       document.querySelectorAll('.sb-pen-opt[data-pen-style]').forEach(function (opt) {
         opt.classList.toggle('active', opt.getAttribute('data-pen-style') === curStyleKey);
       });
@@ -1265,7 +1276,7 @@
       line: '직선', arrow: '화살표', arrow2: '양쪽화살표', rect: '사각형', circle: '원', fillRect: '채움사각',
       cover: '가림막', text: '텍스트', stamp: '①스탬프', sqStamp: '▣스탬프'
     };
-    var SUB_TOOL_KEYS = { line: 'L', arrow: '⇧L', arrow2: '⇧L²', rect: 'R', circle: 'C', text: 'T', stamp: 'S', sqStamp: 'Q' };
+    var SUB_TOOL_KEYS = { line: 'l', arrow: 'l', arrow2: 'l', rect: 'r', circle: 'c', text: 't', stamp: 's', sqStamp: 'q' };
     var moreBtn = el('sbMoreToolsBtn');
     var moreLbl = el('sbMoreToolsLabel');
     var moreKey = el('sbMoreToolsKey');
@@ -1278,7 +1289,10 @@
         moreLbl.textContent = '도형';
       }
       // 지금 고른 도형의 단축키를 버튼 옆에 보여 줍니다(단축키가 없는 도구는 숨김).
-      if (moreKey) { moreKey.textContent = SUB_TOOL_KEYS[nextTool] || ''; moreKey.hidden = !SUB_TOOL_KEYS[nextTool]; }
+      if (moreKey) {
+        if (SUB_TOOL_KEYS[nextTool]) setKbd(moreKey, SUB_TOOL_KEYS[nextTool], (nextTool === 'arrow' || nextTool === 'arrow2') ? '⇧' : '');
+        else { moreKey.textContent = ''; moreKey.hidden = true; moreKey.removeAttribute('data-sc-def'); }
+      }
     }
     syncWebQuickToolsUi();
     liveCanvas.style.cursor = nextTool === 'select' ? 'default' : nextTool === 'hand' ? 'grab' : (nextTool === 'text' ? 'text' : 'crosshair');
@@ -5184,6 +5198,141 @@
       });
     });
 
+    // ===================================================================
+    // 단축키 내 마음대로 설정 (위젯처럼 카드에서 키를 바꾸거나 끄기 · 초기화)
+    // ===================================================================
+    var SC_ACTIONS = [
+      { g: '필기 도구', k: 'p', n: '펜', i: '✏️' },
+      { g: '필기 도구', k: 'h', n: '형광펜', i: '🖍️' },
+      { g: '필기 도구', k: 'e', n: '지우개', i: '🧽', sh: 'Shift: 펜 글씨 전체 지우기' },
+      { g: '필기 도구', k: 'd', n: '레이저', i: '🔴', sh: 'Shift: 레이저 유지 시간 바꾸기' },
+      { g: '필기 도구', k: 'v', n: '선택·옮기기', i: '🖱️' },
+      { g: '필기 도구', k: 'm', n: '화면 이동(손)', i: '✋' },
+      { g: '필기 도구', k: 't', n: '텍스트', i: '🔤' },
+      { g: '도형', k: 'l', n: '직선', i: '📏', sh: 'Shift: 화살표 → 양쪽화살표' },
+      { g: '도형', k: 'r', n: '사각형', i: '▭', sh: 'Shift: 채움 사각형' },
+      { g: '도형', k: 'c', n: '원', i: '◯' },
+      { g: '번호 스탬프', k: 's', n: '원 스탬프 ①', i: '①', sh: '두 번: 번호 초기화 · Shift: 스탬프 전체 지우기' },
+      { g: '번호 스탬프', k: 'q', n: '사각 스탬프 [1]', i: '▣', sh: '두 번: 번호 초기화' },
+      { g: '번호 스탬프', k: '0', n: '스탬프 번호 초기화', i: '↺' },
+      { g: '번호 스탬프', k: 'a', n: '자동① 켜기/끄기', i: '🅰️' },
+      { g: '실행', k: 'z', n: '실행 취소', i: '↶' },
+      { g: '실행', k: 'x', n: '다시 실행', i: '↷' },
+      { g: '실행', k: 'f', n: '전체화면', i: '⛶' },
+      { g: '배경', k: 'k', n: '칠판 배경', i: '⬛' },
+      { g: '배경', k: 'w', n: '백지 배경', i: '⬜' },
+      { g: '펜 색상', k: '1', n: '빨강', i: '🟥' },
+      { g: '펜 색상', k: '2', n: '초록', i: '🟩' },
+      { g: '펜 색상', k: '3', n: '파랑', i: '🟦' },
+      { g: '펜 색상', k: '4', n: '노랑', i: '🟨' },
+      { g: '펜 색상', k: '5', n: '흰색', i: '⬜' },
+      { g: '펜 색상', k: '6', n: '검정', i: '⬛' }
+    ];
+    var SC_STORE = 'sbShortcutMap_v1';
+    var scMap = {};   // 기본키 → 사용자 키('' = 끔). 없으면 기본키 그대로
+    try { scMap = JSON.parse(localStorage.getItem(SC_STORE) || '{}') || {}; } catch (e) { scMap = {}; }
+    function scKeyOf(defKey) { return Object.prototype.hasOwnProperty.call(scMap, defKey) ? scMap[defKey] : defKey; }
+    function remapShortcutKey(pressed) {
+      if (!pressed || pressed.length !== 1) return pressed;
+      for (var i = 0; i < SC_ACTIONS.length; i++) { if (scKeyOf(SC_ACTIONS[i].k) === pressed) return SC_ACTIONS[i].k; }
+      // 다른 키로 옮겼거나 끈 기능의 원래 키는 무시합니다.
+      for (var j = 0; j < SC_ACTIONS.length; j++) { if (SC_ACTIONS[j].k === pressed) return ''; }
+      return pressed;
+    }
+    function scLabel(key) { return key ? key.toUpperCase() : '끔'; }
+    scDisplayKey = function (defKey) { var c = scKeyOf(defKey); return c ? c.toUpperCase() : ''; };
+    function saveScMap() {
+      // 기본값과 같은 항목은 지워서 저장을 가볍게 합니다.
+      Object.keys(scMap).forEach(function (k) { if (scMap[k] === k) delete scMap[k]; });
+      try { localStorage.setItem(SC_STORE, JSON.stringify(scMap)); } catch (e) {}
+      applyScToButtons();
+    }
+    // 도구 버튼 옆 작은 글자(kbd)도 바꾼 키로 보이게 합니다.
+    function applyScToButtons() {
+      document.querySelectorAll('.sb-top-group kbd, .sb-tool-popover kbd').forEach(function (kb) {
+        var t = (kb.textContent || '').trim();
+        if (!kb.hasAttribute('data-sc-def')) {
+          var m = /^(⇧)?([A-Z0-9])(²)?$/.exec(t);
+          if (!m) return;
+          kb.setAttribute('data-sc-def', m[2].toLowerCase());
+          kb.setAttribute('data-sc-pre', m[1] || ''); kb.setAttribute('data-sc-post', m[3] || '');
+        }
+        var d = kb.getAttribute('data-sc-def');
+        var isAction = SC_ACTIONS.some(function (a) { return a.k === d; });
+        if (!isAction) return;
+        var cur = scKeyOf(d);
+        if (kb.id === 'sbMoreToolsKey' && !t) return;   // 도형 버튼: 도형 도구가 선택되지 않았으면 숨김 유지
+        kb.textContent = cur ? (kb.getAttribute('data-sc-pre') || '') + cur.toUpperCase() + (kb.getAttribute('data-sc-post') || '') : '';
+        kb.hidden = !cur;
+      });
+    }
+    var scCapture = null;  // 키 입력을 기다리는 기본키
+    function renderScGrid() {
+      var box = el('sbScGrid'); if (!box) return;
+      var groups = [];
+      SC_ACTIONS.forEach(function (a) { if (groups.indexOf(a.g) < 0) groups.push(a.g); });
+      box.innerHTML = groups.map(function (g) {
+        return '<div class="sb-sc-group"><div class="sb-sc-gtitle">' + g + '</div><div class="sb-sc-cards">' +
+          SC_ACTIONS.filter(function (a) { return a.g === g; }).map(function (a) {
+            var cur = scKeyOf(a.k), changed = cur !== a.k, off = !cur, wait = scCapture === a.k;
+            return '<div class="sb-sc-card' + (off ? ' off' : '') + (changed ? ' changed' : '') + (wait ? ' wait' : '') + '" data-sc="' + a.k + '">' +
+              '<span class="sb-sc-ico">' + a.i + '</span>' +
+              '<span class="sb-sc-name"><b>' + a.n + '</b>' + (a.sh ? '<small>' + a.sh + '</small>' : '') + (changed ? '<small class="sb-sc-def">기본 ' + a.k.toUpperCase() + '</small>' : '') + '</span>' +
+              '<button type="button" class="sb-sc-key" data-sc-set="' + a.k + '" title="눌러서 새 키 정하기">' + (wait ? '키를 누르세요…' : scLabel(cur)) + '</button>' +
+              '<label class="sb-sc-sw" title="이 단축키 켜기/끄기"><input type="checkbox" data-sc-on="' + a.k + '"' + (off ? '' : ' checked') + '><i></i></label>' +
+            '</div>';
+          }).join('') + '</div></div>';
+      }).join('');
+      box.querySelectorAll('[data-sc-set]').forEach(function (b) {
+        b.onclick = function () { scCapture = scCapture === b.getAttribute('data-sc-set') ? null : b.getAttribute('data-sc-set'); renderScGrid(); };
+      });
+      box.querySelectorAll('[data-sc-on]').forEach(function (c) {
+        c.onchange = function () {
+          var d = c.getAttribute('data-sc-on');
+          if (c.checked) {
+            // 다시 켤 때 기본키가 다른 기능에 쓰이고 있으면 키를 새로 고르게 합니다.
+            var taken = SC_ACTIONS.some(function (a) { return a.k !== d && scKeyOf(a.k) === d; });
+            if (taken) { scMap[d] = ''; scCapture = d; showToast('기본 키 ' + d.toUpperCase() + '는 다른 기능에 쓰이고 있어요. 새 키를 눌러 주세요.'); }
+            else delete scMap[d];
+          } else { scMap[d] = ''; if (scCapture === d) scCapture = null; }
+          saveScMap(); renderScGrid();
+        };
+      });
+    }
+    function setScKey(defKey, newKey) {
+      var msg = '';
+      SC_ACTIONS.forEach(function (a) {
+        if (a.k !== defKey && scKeyOf(a.k) === newKey) {
+          // 이미 쓰는 키면 서로 맞바꿉니다.
+          scMap[a.k] = scKeyOf(defKey);
+          msg = ' · [' + a.n + ']는 ' + scLabel(scMap[a.k]) + '로 바뀌었습니다';
+        }
+      });
+      scMap[defKey] = newKey;
+      saveScMap();
+      var act = SC_ACTIONS.filter(function (a) { return a.k === defKey; })[0];
+      showToast('[' + (act ? act.n : '') + '] 단축키를 ' + newKey.toUpperCase() + '로 바꿨습니다' + msg + '.');
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!scCapture) return;
+      if (!el('sbScModal') || !el('sbScModal').classList.contains('show')) { scCapture = null; return; }
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (e.key === 'Escape') { scCapture = null; renderScGrid(); return; }
+      var key = (e.key || '').toLowerCase();
+      if (e.ctrlKey || e.altKey || e.metaKey || !/^[a-z0-9]$/.test(key)) { showToast('영문자(A~Z) 또는 숫자(0~9) 한 개를 눌러 주세요. (Esc: 취소)'); return; }
+      var d = scCapture; scCapture = null;
+      setScKey(d, key);
+      renderScGrid();
+    }, true);
+    function openScModal() { scCapture = null; renderScGrid(); el('sbScModal').classList.add('show'); }
+    if (el('sbScOpenBtn')) el('sbScOpenBtn').addEventListener('click', function () { closeAllPopovers(); openScModal(); });
+    if (el('sbScOpenBtn2')) el('sbScOpenBtn2').addEventListener('click', function () { el('sbShortcutModal').classList.remove('show'); openScModal(); });
+    if (el('sbScResetBtn')) el('sbScResetBtn').addEventListener('click', function () {
+      if (!confirm('모든 단축키를 처음(기본값)으로 되돌릴까요?')) return;
+      scMap = {}; scCapture = null; saveScMap(); renderScGrid(); showToast('단축키를 기본값으로 초기화했습니다.');
+    });
+    applyScToButtons();
+
     // 전역 단축키 (스탬프 동일키 2연타 SS/QQ 감지 포함)
     var lastStampKeyTap = { key: '', time: 0 };
     var STAMP_DOUBLE_TAP_MS = 450;
@@ -5194,6 +5343,8 @@
       if (state.webActive && state.webInteract && document.activeElement === webFrame) return;
 
       var rawLower = (e.key || '').toLowerCase();
+      // 사용자가 바꾼 단축키를 원래(기본) 키로 바꿔 아래 처리 코드가 그대로 동작하게 합니다.
+      if (!e.ctrlKey && !e.altKey && !e.metaKey) rawLower = remapShortcutKey(rawLower);
       if (rawLower !== 's' && rawLower !== 'q') {
         lastStampKeyTap.key = '';
       }

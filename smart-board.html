@@ -345,6 +345,7 @@
           <h3>스마트 판서 보드 키보드 단축키 &amp; S펜 버튼 스위치 완벽 안내</h3>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="sb-btn sb-btn-primary" id="sbScOpenBtn2">⌨️ 단축키 바꾸기</button>
           <button type="button" class="sb-btn sb-btn-ghost" id="sbShortcutToggleFsBtn">창 크기로 보기</button>
           <button type="button" class="sb-close-btn" id="sbCloseShortcutBtn" data-close="sbShortcutModal">&times;</button>
         </div>
@@ -718,6 +719,7 @@
       <button type="button" class="sb-spen-pill active sb-pop-row-btn" id="sbSpenAutoBtn" title="S펜이 화면에 닿으면 S펜 전용 모드를 자동으로 켭니다">S펜자동: 켜짐</button>
       <button type="button" class="sb-spen-pill sb-pop-row-btn" id="sbPalmRejectBtn" title="갤럭시탭 S펜 전용 필기 (손바닥 터치 무시)">S펜전용: 꺼짐</button>
       <button type="button" class="sb-btn sb-btn-ghost sb-btn-xs sb-pop-row-btn" id="sbOcrCfgBtn" title="무료 AI 손글씨 OCR 설정 및 안내">AI 손글씨 OCR 설정</button>
+      <button type="button" class="sb-btn sb-btn-primary sb-btn-xs sb-pop-row-btn" id="sbScOpenBtn" title="기능마다 단축키를 바꾸거나 끄기 · 초기화">⌨️ 단축키 내 마음대로 설정</button>
     </div>
     <div class="sb-pop-sec-title" style="margin-top:8px;">화면 정리</div>
     <div class="sb-pop-grid">
@@ -734,6 +736,31 @@
         <span>총 이용 <b id="sbTotalVisits">–</b>회</span>
       </div>
       <small id="sbUsageStatus">방문 수만 익명으로 집계 · 판서 내용은 이 브라우저에만 저장</small>
+    </div>
+  </div>
+
+  <!-- 단축키 내 마음대로 설정 모달 (#sbScModal) -->
+  <div class="sb-modal" id="sbScModal">
+    <div class="sb-modal-card sb-modal-wide sb-sc-modal">
+      <div class="sb-modal-head">
+        <div>
+          <span class="sb-guide-kicker">위젯처럼 골라 쓰는 단축키</span>
+          <h3>⌨️ 단축키 내 마음대로 설정</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="sb-btn sb-btn-danger" id="sbScResetBtn">↺ 기본값으로 초기화</button>
+          <button type="button" class="sb-close-btn" data-close="sbScModal">&times;</button>
+        </div>
+      </div>
+      <div class="sb-modal-body">
+        <ol class="sb-sc-how">
+          <li><b>키 바꾸기</b> — 카드 오른쪽 <span class="sb-sc-key demo">P</span>를 누른 뒤 원하는 영문자나 숫자를 누릅니다.</li>
+          <li><b>끄기</b> — 스위치를 끄면 그 기능은 키보드로 실행되지 않습니다(버튼으로는 그대로 사용).</li>
+          <li><b>겹치면 맞바꿈</b> — 이미 쓰는 키를 고르면 두 기능의 키가 서로 바뀝니다.</li>
+        </ol>
+        <div id="sbScGrid"></div>
+        <p class="sb-pop-note" style="margin-top:10px;">Shift와 함께 쓰는 기능(Shift+L 화살표, Shift+D 레이저 시간 등)은 바꾼 키에 Shift를 더해 그대로 쓸 수 있습니다. Ctrl 단축키, 방향키·Space·Esc·Tab은 바뀌지 않습니다. 설정은 이 브라우저에 저장됩니다.</p>
+      </div>
     </div>
   </div>
 
