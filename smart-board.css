@@ -2152,3 +2152,9 @@ body.sb-web-active .sb-page-inline { display: none; }
 .sb-changelog-item h4 small { font-weight:500; color:#64748b; margin-left:6px; }
 .sb-changelog-item ul { margin:0; padding-left:18px; font-size:0.86rem; line-height:1.6; }
 .sb-vault-notes-head { gap:10px; align-items:center; justify-content:flex-start; }
+
+/* 레이저 유지 시간 배지 · 메뉴 */
+.sb-laser-hold-badge { font-size: 0.66rem; font-weight: 800; background: rgba(239,68,68,.16); color: #ef4444; border-radius: 6px; padding: 0 4px; margin-left: 2px; }
+.sb-laser-popover { width: 300px; }
+.sb-laser-hold-row { grid-template-columns: repeat(3, 1fr); }
+.sb-tool-laser-btn.active .sb-laser-hold-badge { background: rgba(255,255,255,.92); color: #b91c1c; }

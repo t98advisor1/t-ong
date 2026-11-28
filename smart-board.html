@@ -104,9 +104,9 @@
           <button type="button" class="sb-autostamp-pill active" id="sbAutoStampToggleBtn" aria-pressed="true" title="밑줄(직선)·원 도형을 그릴 때 좌측 상단에 번호 스탬프 자동 표시 켜기/끄기 (단축키 A)">
             <span id="sbAutoStampToggleLabel">자동① ON</span><kbd>A</kbd>
           </button>
-          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="여러 번 필기해도 각각 3초간 유지된 뒤 사라지는 레이저 포인터 (D)">
+          <button type="button" class="sb-tool-btn sb-tool-icon-btn sb-tool-laser-btn" data-sb-tool="laser" title="레이저 포인터 (D) — 다시 누르거나 ▾를 누르면 유지 시간 선택 (Shift+D)">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
-            <span>레이저</span><kbd>D</kbd>
+            <span>레이저</span><small class="sb-laser-hold-badge" id="sbLaserHoldBadge">3초</small><kbd>D</kbd><span class="sb-caret" title="레이저 유지 시간">▾</span>
           </button>
           <button type="button" class="sb-tool-btn sb-tool-icon-btn" data-sb-tool="eraser" id="sbEraserToolBtn" title="지우개 (E · Eraser / S펜 옆 버튼 스위치) — ▾ 또는 한 번 더 누르면 전체 지우기 메뉴">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H7L3 16a2 2 0 0 1 0-2.8l9.6-9.6a2 2 0 0 1 2.8 0l5.2 5.2a2 2 0 0 1 0 2.8L12 20"/></svg>
@@ -374,7 +374,7 @@
               </div>
               <ul>
                 <li><b>뒤로 취소(<kbd>Z</kbd> · <kbd>Esc</kbd> · <kbd>,</kbd>) / 앞으로 다시 실행(<kbd>X</kbd> · <kbd>.</kbd>)</b>으로 왼손·오른손 어디서나 빠르게 판서를 되돌리고, <b>방향키(<kbd>←</kbd> <kbd>→</kbd> · <kbd>↑</kbd> <kbd>↓</kbd>)</b>로 슬라이드와 PDF 페이지를 넘깁니다.</li>
-                <li>일반 펜(만년필·볼펜·삼성노트 질감 연필·붓펜)은 <b>기본 2pt</b>, 형광펜(<kbd>H</kbd>)은 <b>기본 6pt</b>로 시작하며, 펜과 형광펜 모두 그리다가 끝에서 <b>0.5초 멈추면 반듯한 직선·도형</b>으로 변환됩니다. 레이저(<kbd>D</kbd>)는 여러 획을 연속 필기해도 선이 이어지지 않고 각각 <b>3초간 유지</b>됩니다.</li>
+                <li>일반 펜(만년필·볼펜·삼성노트 질감 연필·붓펜)은 <b>기본 2pt</b>, 형광펜(<kbd>H</kbd>)은 <b>기본 6pt</b>로 시작하며, 펜과 형광펜 모두 그리다가 끝에서 <b>0.5초 멈추면 반듯한 직선·도형</b>으로 변환됩니다. 레이저(<kbd>D</kbd>)는 여러 획을 연속 필기해도 선이 이어지지 않고 각각 <b>정한 시간(기본 3초, 1~10초·계속)</b> 동안 유지됩니다.</li>
               </ul>
             </article>
 
@@ -415,9 +415,9 @@
               <tr><th>분류</th><th>단축키</th><th>기능 및 동작 설명</th></tr>
             </thead>
             <tbody>
-              <tr><td><b>핵심 도구 1키 전환</b></td><td><kbd>P</kbd> / <kbd>H</kbd> / <kbd>E</kbd> / <kbd>V</kbd> / <kbd>M</kbd> / <kbd>D</kbd></td><td><b>펜(<kbd>P</kbd> · Pen)</b> / <b>형광펜(<kbd>H</kbd> · Highlighter)</b> / <b>지우개(<kbd>E</kbd> · Eraser)</b> / <b>선택·옮기기(<kbd>V</kbd> · Select)</b> / <b>화면 이동(<kbd>M</kbd> · Move)</b> / <b>3초 다중 레이저 포인터(<kbd>D</kbd> · Dot)</b> — 한 번 더 누르면 쓰던 펜으로 돌아갑니다</td></tr>
+              <tr><td><b>핵심 도구 1키 전환</b></td><td><kbd>P</kbd> / <kbd>H</kbd> / <kbd>E</kbd> / <kbd>V</kbd> / <kbd>M</kbd> / <kbd>D</kbd></td><td><b>펜(<kbd>P</kbd> · Pen)</b> / <b>형광펜(<kbd>H</kbd> · Highlighter)</b> / <b>지우개(<kbd>E</kbd> · Eraser)</b> / <b>선택·옮기기(<kbd>V</kbd> · Select)</b> / <b>화면 이동(<kbd>M</kbd> · Move)</b> / <b>다중 레이저 포인터(<kbd>D</kbd> · Dot)</b> — 한 번 더 누르면 쓰던 펜으로 돌아갑니다. 레이저 유지 시간(1·2·3·5·10초·계속)은 <kbd>Shift</kbd>+<kbd>D</kbd> 또는 레이저 버튼 ▾에서 바꿉니다</td></tr>
               <tr><td><b>원형·사각 스탬프 &amp; 번호 초기화</b></td><td><kbd>S</kbd> (<kbd>SS</kbd>) / <kbd>Q</kbd> (<kbd>QQ</kbd>) / <kbd>0</kbd> / <kbd>A</kbd></td><td><b>①②③ 원형 스탬프(<kbd>S</kbd>)</b> · <b>▣ 사각 스탬프(<kbd>Q</kbd>)</b> · <b>밑줄·원 좌측상단 자동스탬프 토글(<kbd>A</kbd>)</b> — <b>슬라이드·페이지 전환 시 자동 1번 초기화</b>되며, 같은 페이지 안에서도 <b><kbd>SS</kbd> / <kbd>QQ</kbd></b> 또는 <b><kbd>0</kbd></b>을 누르면 즉시 1번부터 찍힙니다</td></tr>
-              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형(<kbd>R</kbd> · Rectangle)</b> / <b>원·타원(<kbd>C</kbd> · Circle, <kbd>Shift</kbd> 누른 채 끌면 정원)</b> / <b>직선·밑줄(<kbd>L</kbd> · Line)</b> — 자동스탬프(<kbd>A</kbd>)가 켜져 있으면 밑줄·원의 좌측 상단에 번호 스탬프가 함께 찍힙니다</td></tr>
+              <tr><td><b>도형 그리기 (사각형·원·선)</b></td><td><kbd>R</kbd> / <kbd>C</kbd> / <kbd>L</kbd></td><td><b>사각형(<kbd>R</kbd> · Rectangle)</b> / <b>원·타원(<kbd>C</kbd> · Circle, <kbd>Shift</kbd> 누른 채 끌면 정원)</b> / <b>직선·밑줄(<kbd>L</kbd> · Line)</b> / <b>화살표(<kbd>Shift</kbd>+<kbd>L</kbd>, 한 번 더 누르면 양쪽 화살표)</b> — 자동스탬프(<kbd>A</kbd>)가 켜져 있으면 밑줄·원의 좌측 상단에 번호 스탬프가 함께 찍힙니다</td></tr>
               <tr><td><b>뒤로 취소 · 앞으로 다시 실행</b></td><td><kbd>Z</kbd> / <kbd>X</kbd> · <kbd>Esc</kbd> · <kbd>,</kbd>/<kbd>.</kbd></td><td><b>직전 필기 즉시 취소(<kbd>Z</kbd> 또는 <kbd>Esc</kbd> · 방향키 옆 <kbd>,</kbd> · <kbd>Ctrl+Z</kbd>)</b> / <b>앞으로 다시 실행(<kbd>X</kbd> · 방향키 옆 <kbd>.</kbd> · <kbd>Ctrl+Y</kbd>)</b> — 창·메뉴가 열려 있으면 <kbd>Esc</kbd>는 먼저 창을 닫습니다</td></tr>
               <tr><td><b>홈으로</b></td><td><kbd>Backspace (백스페이스)</kbd></td><td><b>판서를 저장하고 T-ong 홈으로 이동</b> — 다시 스마트 판서를 열면 마지막 판서로 돌아옵니다 / 편집 모드에서 영역을 골랐을 때는 선택 판서 삭제</td></tr>
               <tr><td><b>펜 색상 (숫자 1~6)</b></td><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> / <kbd>5</kbd> / <kbd>6</kbd></td><td>빨강(<kbd>1</kbd>) · 초록(<kbd>2</kbd>) · 파랑(<kbd>3</kbd>) · 노랑(<kbd>4</kbd>) · 아이보리/흰색(<kbd>5</kbd>) · 검정(<kbd>6</kbd>) 즉시 변경</td></tr>
@@ -660,10 +660,28 @@
     <p class="sb-pop-note">실수로 지웠다면 바로 되돌리기(Ctrl+Z)로 한꺼번에 되살아납니다.</p>
   </div>
 
+  <div class="sb-tool-popover sb-laser-popover" id="sbLaserMenu" role="menu" aria-label="레이저 유지 시간">
+    <div class="sb-pop-sec-title">레이저 선이 남아 있는 시간</div>
+    <div class="sb-size-presets sb-laser-hold-row">
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="1000">1초</button>
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="2000">2초</button>
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="3000">3초</button>
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="5000">5초</button>
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="10000">10초</button>
+      <button type="button" class="sb-size-preset-btn" data-laser-hold="0">계속</button>
+    </div>
+    <div class="sb-pop-list" style="margin-top:8px;">
+      <button type="button" class="sb-pop-list-btn" id="sbLaserClearBtn"><span>레이저 선 지금 지우기</span></button>
+    </div>
+    <p class="sb-pop-note">짧게: 가리키기만 할 때 · 길게: 설명하는 동안 남겨 둘 때<br>[계속]은 다른 도구로 바꾸거나 [지금 지우기]를 누르면 사라집니다. Shift+D로 시간을 바로 바꿀 수 있습니다.</p>
+  </div>
+
   <div class="sb-tool-popover" id="sbMoreToolsMenu" role="menu" aria-label="도형 및 추가 판서 도구">
     <div class="sb-pop-sec-title">도형 그리기</div>
     <div class="sb-pop-grid">
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="line" title="반듯한 직선 (L · Line)"><span>직선</span><kbd>L</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="arrow" title="끝에 화살촉이 있는 화살표 (Shift+L)"><span>→ 화살표</span><kbd>⇧L</kbd></button>
+      <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="arrow2" title="양쪽 끝에 화살촉이 있는 화살표 (Shift+L 두 번)"><span>↔ 양쪽화살표</span><kbd>⇧L²</kbd></button>
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="rect" title="사각형 테두리 (R · Rectangle)"><span>사각형</span><kbd>R</kbd></button>
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="circle" title="원/타원 그리기 (C · Circle)"><span>원</span><kbd>C</kbd></button>
       <button type="button" class="sb-tool-btn sb-pop-tool-btn" data-sb-tool="fillRect" title="채운 사각형"><span>채움사각</span></button>

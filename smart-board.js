@@ -400,7 +400,8 @@
     }
     if (o.type === 'line') {
       var lx = Math.min(o.x1, o.x2), ly = Math.min(o.y1, o.y2);
-      return { x: lx - 6, y: ly - 6, w: Math.abs(o.x2 - o.x1) + 12, h: Math.abs(o.y2 - o.y1) + 12 };
+      var lp = o.arrow ? arrowHeadSize(o) + 4 : 6;
+      return { x: lx - lp, y: ly - lp, w: Math.abs(o.x2 - o.x1) + lp * 2, h: Math.abs(o.y2 - o.y1) + lp * 2 };
     }
     if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover' || o.type === 'circle') {
       return { x: Math.min(o.x, o.x + o.w), y: Math.min(o.y, o.y + o.h), w: Math.abs(o.w), h: Math.abs(o.h) };
@@ -430,6 +431,31 @@
     } else if (o.type === 'rect' || o.type === 'fillRect' || o.type === 'cover' || o.type === 'circle' || o.type === 'stamp' || o.type === 'text') {
       o.x += dx; o.y += dy;
     }
+  }
+
+  // 화살표: 직선(line) 객체에 arrow = 1(한쪽) / 2(양쪽)을 붙여 그립니다. 선택·이동·지우개는 직선과 똑같이 동작합니다.
+  function arrowHeadSize(o) { return Math.max(20, (o.size || 5) * 4.2); }
+  function drawArrowLine(ctx, o) {
+    var dx = o.x2 - o.x1, dy = o.y2 - o.y1, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var ux = dx / len, uy = dy / len, hs = Math.min(arrowHeadSize(o), len * 0.6);
+    var sx = o.x1, sy = o.y1, ex = o.x2, ey = o.y2;
+    // 선 끝이 화살촉 밖으로 삐져나오지 않도록 촉 길이의 절반만큼 줄여서 긋습니다.
+    ex -= ux * hs * 0.5; ey -= uy * hs * 0.5;
+    if (o.arrow === 2) { sx += ux * hs * 0.5; sy += uy * hs * 0.5; }
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = o.color || '#ef4444';
+    function head(tx, ty, vx, vy) {
+      var bx = tx - vx * hs, by = ty - vy * hs, w = hs * 0.55;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(bx - vy * w, by + vx * w);
+      ctx.lineTo(bx + vy * w, by - vx * w);
+      ctx.closePath();
+      ctx.fill();
+    }
+    head(o.x2, o.y2, ux, uy);
+    if (o.arrow === 2) head(o.x1, o.y1, -ux, -uy);
   }
 
   function drawInkObject(ctx, o) {
@@ -583,10 +609,13 @@
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
       if (o.isHighlighter) ctx.globalAlpha = 0.34;
-      ctx.beginPath();
-      ctx.moveTo(o.x1, o.y1);
-      ctx.lineTo(o.x2, o.y2);
-      ctx.stroke();
+      if (o.arrow) { drawArrowLine(ctx, o); }
+      else {
+        ctx.beginPath();
+        ctx.moveTo(o.x1, o.y1);
+        ctx.lineTo(o.x2, o.y2);
+        ctx.stroke();
+      }
     } else if (o.type === 'rect') {
       ctx.strokeStyle = o.color || '#ef4444';
       ctx.lineWidth = o.size || 5;
@@ -753,16 +782,43 @@
   // ===================================================================
   // 레이저 포인터 (획 단위 독립 분리 + 각 획 3초간 선명하게 유지 후 부드럽게 페이드아웃)
   // ===================================================================
+  // 레이저 유지 시간: 1·2·3·5·10초 또는 0(계속 유지 — 도구를 바꾸거나 [레이저 지우기]·Esc를 누를 때까지)
+  var LASER_HOLD_OPTIONS = [1000, 2000, 3000, 5000, 10000, 0];
   var LASER_HOLD_MS = 3000;
+  try { var _lh = parseInt(localStorage.getItem('sbLaserHold_v1'), 10); if (LASER_HOLD_OPTIONS.indexOf(_lh) >= 0) LASER_HOLD_MS = _lh; } catch (e) {}
   var LASER_FADE_MS = 600;
-  var LASER_TOTAL_MS = LASER_HOLD_MS + LASER_FADE_MS;
+  function laserHoldLabel(ms) { return ms ? (ms / 1000) + '초' : '계속 유지'; }
+  function setLaserHold(ms, quiet) {
+    LASER_HOLD_MS = ms;
+    try { localStorage.setItem('sbLaserHold_v1', String(ms)); } catch (e) {}
+    // 이미 화면에 남아 있는 레이저 획도 새 시간 기준으로 사라지도록 끝난 시각을 지금으로 맞춥니다.
+    var now = Date.now();
+    (state.laserStrokes || []).forEach(function (s) { if (!s.active) s.endT = now; });
+    syncLaserHoldUi();
+    if (!quiet) showToast('레이저 유지 시간: ' + laserHoldLabel(ms) + (ms ? '' : ' (도구를 바꾸거나 Esc·[레이저 지우기]로 지움)'));
+  }
+  function syncLaserHoldUi() {
+    document.querySelectorAll('[data-laser-hold]').forEach(function (b) { b.classList.toggle('active', +b.getAttribute('data-laser-hold') === LASER_HOLD_MS); });
+    var lb = el('sbLaserHoldBadge'); if (lb) lb.textContent = LASER_HOLD_MS ? (LASER_HOLD_MS / 1000) + '초' : '∞';
+    var btn = document.querySelector('.sb-tool-laser-btn');
+    if (btn) btn.title = '레이저 포인터 (D) — 그린 선이 ' + (LASER_HOLD_MS ? (LASER_HOLD_MS / 1000) + '초 뒤 사라집니다' : '지울 때까지 남습니다') + '. 다시 누르거나 ▾를 누르면 유지 시간 선택 (Shift+D: 시간 바꾸기)';
+  }
+  function cycleLaserHold() {
+    var i = LASER_HOLD_OPTIONS.indexOf(LASER_HOLD_MS);
+    setLaserHold(LASER_HOLD_OPTIONS[(i + 1) % LASER_HOLD_OPTIONS.length]);
+  }
+  function clearLaserStrokes() {
+    state.laserStrokes = (state.laserStrokes || []).filter(function (s) { return s.active; });
+    if (!state.laserRaf) state.laserRaf = requestAnimationFrame(renderLaserLoop);
+  }
 
   function renderLaserLoop() {
     var now = Date.now();
     state.laserStrokes = (state.laserStrokes || []).filter(function (s) {
       if (!s || !s.points || !s.points.length) return false;
       if (s.active) return true;
-      return (now - (s.endT || s.lastT || now)) < LASER_TOTAL_MS;
+      if (!LASER_HOLD_MS) return true;
+      return (now - (s.endT || s.lastT || now)) < LASER_HOLD_MS + LASER_FADE_MS;
     });
     var pg = curPage();
     liveCtx.clearRect(0, 0, pg.width, pg.height);
@@ -773,7 +829,7 @@
       state.laserStrokes.forEach(function (s) {
         var pts = s.points;
         var age = s.active ? 0 : Math.max(0, now - (s.endT || s.lastT || now));
-        var alpha = age < LASER_HOLD_MS
+        var alpha = !LASER_HOLD_MS ? 0.96 : age < LASER_HOLD_MS
           ? (0.96 - (age / LASER_HOLD_MS) * 0.08)
           : Math.max(0, 0.88 * (1 - (age - LASER_HOLD_MS) / LASER_FADE_MS));
         if (alpha <= 0.01) return;
@@ -1173,6 +1229,7 @@
       state.lastDrawTool = nextTool;
     }
     if (nextTool !== 'select') clearSelection();
+    if (prevTool === 'laser' && nextTool !== 'laser' && !LASER_HOLD_MS && state.laserStrokes && state.laserStrokes.length) clearLaserStrokes();
     state.tool = nextTool;
     // 형광펜 기본 6pt ↔ 일반 펜 기본 2pt 개별 굵기 자동 전환
     if (nextTool === 'stamp') state.lastStampShape = 'circle';
@@ -1205,10 +1262,10 @@
     }
     // 도형·스탬프 드롭다운 메뉴 안의 도구가 선택되면 트리거 버튼에 현재 도구 표시
     var SUB_TOOL_LABELS = {
-      line: '직선', rect: '사각형', circle: '원', fillRect: '채움사각',
+      line: '직선', arrow: '화살표', arrow2: '양쪽화살표', rect: '사각형', circle: '원', fillRect: '채움사각',
       cover: '가림막', text: '텍스트', stamp: '①스탬프', sqStamp: '▣스탬프'
     };
-    var SUB_TOOL_KEYS = { line: 'L', rect: 'R', circle: 'C', text: 'T', stamp: 'S', sqStamp: 'Q' };
+    var SUB_TOOL_KEYS = { line: 'L', arrow: '⇧L', arrow2: '⇧L²', rect: 'R', circle: 'C', text: 'T', stamp: 'S', sqStamp: 'Q' };
     var moreBtn = el('sbMoreToolsBtn');
     var moreLbl = el('sbMoreToolsLabel');
     var moreKey = el('sbMoreToolsKey');
@@ -1776,7 +1833,7 @@
     var eff = state.tool;
     if (ev.ctrlKey && ev.shiftKey) eff = 'fillRect';
     else if (ev.ctrlKey) eff = 'rect';
-    else if (ev.shiftKey && eff !== 'circle') eff = 'line';
+    else if (ev.shiftKey && eff !== 'circle' && eff !== 'arrow' && eff !== 'arrow2') eff = 'line';
     pointer.effectiveTool = eff;
 
     if (eff === 'text') {
@@ -1976,10 +2033,10 @@
       pointer.currentStroke.points.push({ x: pt.x, y: pt.y, p: Math.round(smoothP * 100) / 100 });
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
       drawInkObject(liveCtx, pointer.currentStroke);
-    } else if (eff === 'line' || eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') {
+    } else if (eff === 'line' || eff === 'arrow' || eff === 'arrow2' || eff === 'rect' || eff === 'fillRect' || eff === 'cover' || eff === 'circle') {
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
-      if (eff === 'line') {
-        drawInkObject(liveCtx, { type: 'line', x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
+      if (eff === 'line' || eff === 'arrow' || eff === 'arrow2') {
+        drawInkObject(liveCtx, { type: 'line', arrow: eff === 'arrow' ? 1 : eff === 'arrow2' ? 2 : 0, x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
       } else {
         drawInkObject(liveCtx, { type: eff, x: pointer.startX, y: pointer.startY, w: pt.x - pointer.startX, h: pt.y - pointer.startY, color: state.color, size: state.size, revealed: false, perfect: !!ev.shiftKey });
       }
@@ -2163,6 +2220,13 @@
       renderInk();
     } else if (eff === 'line' && pointer.moved) {
       pushShapeWithOptionalAutoStamp(curPg, { id: uid(), type: 'line', x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: state.size });
+      curPg.redoStack = [];
+      redoSnaps.delete(curPg);
+      liveCtx.clearRect(0, 0, curPg.width, curPg.height);
+      renderInk();
+    } else if ((eff === 'arrow' || eff === 'arrow2') && pointer.moved) {
+      // 화살표는 자동 번호 스탬프를 붙이지 않습니다.
+      curPg.objects.push({ id: uid(), type: 'line', arrow: eff === 'arrow' ? 1 : 2, x1: pointer.startX, y1: pointer.startY, x2: pt.x, y2: pt.y, color: state.color, size: Math.max(2, state.size) });
       curPg.redoStack = [];
       redoSnaps.delete(curPg);
       liveCtx.clearRect(0, 0, curPg.width, curPg.height);
@@ -4818,7 +4882,7 @@
     // 저장 / 단축키 전체창(좌우 슬라이드) / 사용설명서 2단계 뷰(큰 글씨 요약 <-> 전체화면 GIF 좌우 슬라이드 과정)
     // PNG · PDF 저장 / 펜 종류 / 도형·도구 / 보드 설정 팝오버 통합 제어
     function closeAllPopovers() {
-      ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].forEach(function (id) {
+      ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu', 'sbLaserMenu'].forEach(function (id) {
         if (el(id)) el(id).classList.remove('show');
       });
     }
@@ -4864,6 +4928,25 @@
       [['sbEraseAllPenBtn', 'sbClearPenBtn'], ['sbEraseAllStampBtn', 'sbClearStampsBtn'], ['sbEraseAllInkBtn', 'sbClearInkBtn']].forEach(function (pair) {
         if (el(pair[0])) el(pair[0]).addEventListener('click', function () { closeAllPopovers(); if (el(pair[1])) el(pair[1]).click(); });
       });
+    })();
+    // 레이저 버튼: 처음 누르면 레이저, 레이저가 켜진 상태에서 한 번 더 누르거나 ▾를 누르면 유지 시간 메뉴
+    (function () {
+      var btn = document.querySelector('.sb-tool-laser-btn'), menu = el('sbLaserMenu');
+      if (!btn || !menu) return;
+      var wasLaser = false;
+      btn.addEventListener('pointerdown', function () { wasLaser = state.tool === 'laser'; }, true);
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = menu.classList.contains('show');
+        closeAllPopovers();
+        if (!open && (wasLaser || e.target.closest('.sb-caret'))) showAnchoredPopover(btn, menu, false);
+      });
+      menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      menu.querySelectorAll('[data-laser-hold]').forEach(function (b) {
+        b.addEventListener('click', function () { setLaserHold(+b.getAttribute('data-laser-hold')); closeAllPopovers(); if (state.tool !== 'laser') setTool('laser'); });
+      });
+      if (el('sbLaserClearBtn')) el('sbLaserClearBtn').addEventListener('click', function () { clearLaserStrokes(); closeAllPopovers(); showToast('레이저 선을 모두 지웠습니다.'); });
+      syncLaserHoldUi();
     })();
     bindAnchoredPopover('sbBackupMenuBtn', 'sbBackupMenu', false);
     bindAnchoredPopover('sbSaveMenuBtn', 'sbSaveMenu', true);
@@ -5144,13 +5227,14 @@
       // ESC: 열린 창·메뉴가 있으면 먼저 닫고, 없으면 직전 필기를 취소합니다(실행 취소).
       if (e.key === 'Escape') {
         var openModals = document.querySelectorAll('.sb-modal.show');
-        var openPops = ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
+        var openPops = ['sbBackupMenu', 'sbSaveMenu', 'sbShareMenu', 'sbPenMenu', 'sbMoreToolsMenu', 'sbBoardMoreMenu', 'sbEraserMenu', 'sbLaserMenu'].filter(function (id) { return el(id) && el(id).classList.contains('show'); });
         if (openModals.length || openPops.length) {
           openModals.forEach(function (m) { m.classList.remove('show'); });
           closeAllPopovers();
           return;
         }
         if (state.selection) { clearSelection(); return; }
+        if (state.tool === 'laser' && state.laserStrokes && state.laserStrokes.some(function (x) { return !x.active; })) { clearLaserStrokes(); return; }
         if (state.webActive && state.webInteract) { setWebInteractMode(false); return; }
         e.preventDefault();
         performUndo('ESC');
@@ -5171,6 +5255,7 @@
           e.preventDefault();
           performRedo(k === 'x' ? 'X' : '>');
         }
+        else if (e.shiftKey && k === 'd') { if (!e.repeat) cycleLaserHold(); }
         else if (k === 'd') setTool(state.tool === 'laser' ? (state.lastDrawTool || 'pen') : 'laser');
         else if (k === 'v') setTool('select');
         else if (k === 'm') {
@@ -5209,6 +5294,7 @@
         else if (k === 't') setTool(state.tool === 'text' ? (state.lastDrawTool || 'pen') : 'text');
         else if (k === 'r') setTool(e.shiftKey ? 'fillRect' : 'rect');
         else if (k === 'c') setTool('circle');
+        else if (e.shiftKey && k === 'l') setTool(state.tool === 'arrow' ? 'arrow2' : 'arrow');
         else if (k === 'l') setTool('line');
         else if (k === 'p') setTool('pen');
         else if (k === 'h') setTool('highlighter');
