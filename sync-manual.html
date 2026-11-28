@@ -1770,7 +1770,7 @@ body.all-units-mode .unit-pager {
         </summary>
         <div class="fbody">
           <p>
-            시트 셀 안에 <code>=AI_HAENGTEUK()</code>이나 <code>=AI_SETUK()</code> 같은 비공식 함수를 넣으면 
+            시트 셀 안에 비공식 AI 함수를 직접 넣으면 
             할당량 초과나 시트 열람 시 <code>#ERROR!</code>가 발생하는 문제가 있습니다.
           </p>
           <div class="tip">
@@ -4496,7 +4496,7 @@ function doGet(e) {
   if (action === "pull_tong_notebook") {
     var profileSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
     var teacherProfile = null;
-    if (profileSheet && profileSheet.getLastRow() &gt;= 2) {
+    if (profileSheet &amp;&amp; profileSheet.getLastRow() &gt;= 2) {
       var jsonRaw = String(profileSheet.getRange("J9").getValue() || "").trim();
       if (!jsonRaw) {
         var legacyRaw = String(profileSheet.getRange("J2").getValue() || "").trim();
@@ -4707,6 +4707,33 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  if (action === "board_list") {
+    var room = String((e &amp;&amp; e.parameter &amp;&amp; e.parameter.room) || "default").trim();
+    var bSh = ss.getSheetByName("_수업메모보드");
+    var notes = [];
+    if (bSh &amp;&amp; bSh.getLastRow() &gt;= 2) {
+      var bVals = bSh.getDataRange().getValues();
+      for (var bi = 1; bi &lt; bVals.length; bi++) {
+        var rId = String(bVals[bi][1] || "").trim();
+        if (rId !== room) continue;
+        notes.push({
+          id: String(bVals[bi][0] || ""),
+          room: rId,
+          author: String(bVals[bi][2] || "익명"),
+          color: String(bVals[bi][3] || "#fef3c7"),
+          text: String(bVals[bi][4] || ""),
+          likes: Number(bVals[bi][5] || 0),
+          createdAt: String(bVals[bi][6] || "")
+        });
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      room: room,
+      notes: notes
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   return ContentService.createTextOutput(JSON.stringify({ success: false, error: "알 수 없는 action" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -4797,6 +4824,282 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
 
+    if (action === "create_score_planner_sheet") {
+      var shName = "문항배점설계";
+      var sh = ss.getSheetByName(shName);
+      if (!sh) {
+        sh = ss.insertSheet(shName);
+        try { sh.setTabColor("#a855f7"); } catch (err) {}
+      }
+      sh.clear();
+
+      var totalScore = Number(body.totalScore || 100);
+      var itemCount = Number(body.itemCount || 25);
+      var minScore = Number(body.minScore || 3);
+      var maxScore = Number(body.maxScore || 5);
+      var stepScore = Number(body.stepScore || 0.1);
+      var sortLabel = body.sortOrder === "desc" ? "내림차순" : "오름차순";
+      var items = Array.isArray(body.items) ? body.items : [];
+      var dist = Array.isArray(body.dist) ? body.dist : [];
+
+      sh.getRange("A1:H1").merge().setValue("총점에 딱 맞는 문항별 배점 설계 (SCORE PLANNER)")
+        .setBackground("#1e1b4b").setFontColor("#ffffff").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
+
+      sh.getRange("A2:H2").setValues([["목표 총점", totalScore, "문제 수", itemCount, "최저~최고", minScore + " ~ " + maxScore, "간격 / 정렬", stepScore + " / " + sortLabel]])
+        .setBackground("#f5f3ff").setFontWeight("bold");
+
+      var endRow = 6 + Math.max(1, items.length);
+      sh.getRange("A3:H3").setValues([[
+        "산출 총점 (자동)", "=SUM(C7:C" + endRow + ")",
+        "객관식 (문항/합계)", '=COUNTIF(B7:B' + endRow + ',"객관식")&amp;"문항 / "&amp;SUMIF(B7:B' + endRow + ',"객관식",C7:C' + endRow + ')&amp;"점"',
+        "논술형 (문항/합계)", '=COUNTIF(B7:B' + endRow + ',"논술형")&amp;"문항 / "&amp;SUMIF(B7:B' + endRow + ',"논술형",C7:C' + endRow + ')&amp;"점"',
+        "목표와 차이", "=B3-B2"
+      ]]).setBackground("#ede9fe").setFontWeight("bold");
+
+      sh.getRange("A6:E6").setValues([["문항 번호", "문항 유형", "문항 배점", "누적 합계 (자동)", "비고 · 단원 메모"]])
+        .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
+      sh.getRange("G6:I6").setValues([["배점 단계", "문항 수 (자동)", "배점 소계 (자동)"]])
+        .setBackground("#312e81").setFontColor("#ffffff").setFontWeight("bold");
+
+      for (var i = 0; i &lt; items.length; i++) {
+        var r = 7 + i;
+        var it = items[i] || {};
+        sh.getRange(r, 1, 1, 5).setValues([[
+          (it.no || (i + 1)) + "번",
+          String(it.typeLabel || "전체"),
+          Number(it.score || 0),
+          "=SUM($C$7:C" + r + ")",
+          String(it.note || "")
+        ]]);
+      }
+
+      for (var d = 0; d &lt; dist.length; d++) {
+        var dr = 7 + d;
+        var ds = dist[d] || {};
+        sh.getRange(dr, 7, 1, 3).setValues([[
+          Number(ds.score || 0),
+          "=COUNTIF($C$7:$C$" + endRow + ", G" + dr + ")",
+          "=G" + dr + "*H" + dr
+        ]]);
+      }
+
+      if (dist.length &gt; 0) {
+        var distEnd = 6 + dist.length;
+        sh.getRange(distEnd + 1, 7, 1, 3).setValues([[
+          "합계",
+          "=SUM(H7:H" + distEnd + ")",
+          "=SUM(I7:I" + distEnd + ")"
+        ]]).setBackground("#f5f3ff").setFontWeight("bold");
+      }
+
+      sh.setColumnWidth(1, 95);
+      sh.setColumnWidth(2, 95);
+      sh.setColumnWidth(3, 100);
+      sh.setColumnWidth(4, 130);
+      sh.setColumnWidth(5, 190);
+      sh.setColumnWidth(7, 105);
+      sh.setColumnWidth(8, 120);
+      sh.setColumnWidth(9, 120);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        sheetName: shName,
+        sheetUrl: ss.getUrl() + "#gid=" + sh.getSheetId()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "notion_archive") {
+      var props = PropertiesService.getScriptProperties();
+      var token = String(body.notionToken || props.getProperty("NOTION_TOKEN") || "").trim();
+      var rawDb = String(body.databaseId || props.getProperty("NOTION_DATABASE_ID") || "").trim();
+      var dbMatch = rawDb.match(/[0-9a-fA-F]{32}/);
+      var dbId = dbMatch ? dbMatch[0] : rawDb.replace(/-/g, "");
+      if (!token || !dbId) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: false,
+          error: "노션 API 토큰과 데이터베이스 ID가 필요합니다."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var headers = {
+        "Authorization": "Bearer " + token,
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json"
+      };
+
+      // 대상 DB의 title 속성명 자동 탐색 (이름/제목/Name 등 모두 호환)
+      var titlePropName = "Name";
+      try {
+        var dbRes = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + dbId, {
+          method: "get",
+          headers: headers,
+          muteHttpExceptions: true
+        });
+        if (dbRes.getResponseCode() === 200) {
+          var dbJson = JSON.parse(dbRes.getContentText());
+          var pMap = dbJson.properties || {};
+          for (var pKey in pMap) {
+            if (pMap[pKey] &amp;&amp; pMap[pKey].type === "title") {
+              titlePropName = pKey;
+              break;
+            }
+          }
+        }
+      } catch (dbErr) {}
+
+      var pageTitle = String(body.title || ((body.date || today) + " " + (body.className || "") + " 출결 기록")).trim();
+      var lines = Array.isArray(body.lines) ? body.lines : [];
+      var children = [];
+      if (body.summary) {
+        children.push({
+          object: "block",
+          type: "callout",
+          callout: {
+            rich_text: [{ type: "text", text: { content: String(body.summary).slice(0, 1900) } }],
+            color: "blue_background"
+          }
+        });
+      }
+      lines.slice(0, 80).forEach(function (line) {
+        children.push({
+          object: "block",
+          type: "bulleted_list_item",
+          bulleted_list_item: {
+            rich_text: [{ type: "text", text: { content: String(line).slice(0, 1900) } }]
+          }
+        });
+      });
+
+      var pageProps = {};
+      pageProps[titlePropName] = {
+        title: [{ type: "text", text: { content: pageTitle.slice(0, 200) } }]
+      };
+
+      var createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+        method: "post",
+        headers: headers,
+        payload: JSON.stringify({
+          parent: { database_id: dbId },
+          properties: pageProps,
+          children: children
+        }),
+        muteHttpExceptions: true
+      });
+      var code = createRes.getResponseCode();
+      var createBody = createRes.getContentText();
+      if (code &gt;= 200 &amp;&amp; code &lt; 300) {
+        var created = JSON.parse(createBody);
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          url: created.url || "",
+          pageId: created.id || ""
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: "노션 API 오류 (" + code + "): " + createBody.slice(0, 300)
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "board_add" || action === "board_like" || action === "board_delete" || action === "board_clear") {
+      var bSheet = ss.getSheetByName("_수업메모보드");
+      if (!bSheet) {
+        bSheet = ss.insertSheet("_수업메모보드");
+        bSheet.appendRow(["ID", "보드방", "작성자", "색상", "메모내용", "좋아요", "작성일시"]);
+        try { bSheet.setTabColor("#0284c7"); } catch (err) {}
+      }
+      var roomId = String(body.room || "default").trim();
+      var nowTs = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
+      if (action === "board_add") {
+        var noteId = String(body.id || ("m_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000)));
+        var author = String(body.author || "익명").trim() || "익명";
+        var color = String(body.color || "#fef3c7").trim();
+        var text = String(body.text || "").trim();
+        if (text) {
+          bSheet.appendRow([noteId, roomId, author, color, text, 0, nowTs]);
+        }
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          note: { id: noteId, room: roomId, author: author, color: color, text: text, likes: 0, createdAt: nowTs }
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var rows = bSheet.getDataRange().getValues();
+      if (action === "board_like" &amp;&amp; body.id) {
+        for (var rIdx = 1; rIdx &lt; rows.length; rIdx++) {
+          if (String(rows[rIdx][0]) === String(body.id)) {
+            var nextLikes = Number(rows[rIdx][5] || 0) + 1;
+            bSheet.getRange(rIdx + 1, 6).setValue(nextLikes);
+            return ContentService.createTextOutput(JSON.stringify({ success: true, likes: nextLikes }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+      }
+      if (action === "board_delete" &amp;&amp; body.id) {
+        for (var dIdx = rows.length - 1; dIdx &gt;= 1; dIdx--) {
+          if (String(rows[dIdx][0]) === String(body.id)) {
+            bSheet.deleteRow(dIdx + 1);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ success: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      if (action === "board_clear") {
+        for (var cIdx = rows.length - 1; cIdx &gt;= 1; cIdx--) {
+          if (String(rows[cIdx][1] || "").trim() === roomId) {
+            bSheet.deleteRow(cIdx + 1);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ success: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "board_export_sheet") {
+      var expName = "수업메모보드_기록";
+      var expSh = ss.getSheetByName(expName);
+      if (!expSh) {
+        expSh = ss.insertSheet(expName);
+        try { expSh.setTabColor("#0284c7"); } catch (err) {}
+      }
+      expSh.clear();
+      var topicTxt = String(body.topic || "수업 메모보드").trim();
+      var expNotes = Array.isArray(body.notes) ? body.notes : [];
+      var nowExp = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm");
+      expSh.getRange("A1:G1").merge().setValue("수업 메모보드 학생 자료 기록 — " + topicTxt)
+        .setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
+      expSh.getRange("A2:G2").setValues([["내보낸 시각", nowExp, "총 메모 수", expNotes.length + "개", "", "", ""]])
+        .setBackground("#eff6ff").setFontWeight("bold");
+      expSh.getRange("A4:G4").setValues([["번호", "모둠", "작성자", "메모 내용", "공감 수", "스티커 반응", "작성 시각"]])
+        .setBackground("#1d4ed8").setFontColor("#ffffff").setFontWeight("bold");
+      for (var ei = 0; ei &lt; expNotes.length; ei++) {
+        var en = expNotes[ei] || {};
+        expSh.getRange(5 + ei, 1, 1, 7).setValues([[
+          ei + 1,
+          String(en.group || "공통"),
+          String(en.author || "익명"),
+          String(en.text || ""),
+          Number(en.likes || 0),
+          String(en.stickers || ""),
+          String(en.createdAt || "")
+        ]]);
+      }
+      expSh.setColumnWidth(1, 60);
+      expSh.setColumnWidth(2, 90);
+      expSh.setColumnWidth(3, 130);
+      expSh.setColumnWidth(4, 420);
+      expSh.setColumnWidth(5, 80);
+      expSh.setColumnWidth(6, 150);
+      expSh.setColumnWidth(7, 150);
+      try { expSh.getRange(5, 4, Math.max(1, expNotes.length), 1).setWrap(true); } catch (err) {}
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        sheetName: expName,
+        sheetUrl: ss.getUrl() + "#gid=" + expSh.getSheetId()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "saveRecord" || action === "saveCounsel" || action === "sync_relational") {
       var updatedRow = upsertSingleStudentRecord(ss, body, today);
       return ContentService.createTextOutput(JSON.stringify({
@@ -4824,11 +5127,17 @@ function doPost(e) {
     if (action === "save_notebook" || action === "sync_tong_notebook" || action === "save_attendance") {
       var now = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm:ss");
 
+      // 0-1) 교사 환경설정 &amp; 주간 시간표 &amp; 동아리 &amp; 시트 메모장 저장 (9_교무수첩_시간표_동기화)
       if (body.teacherProfile) {
         var pSheet = ss.getSheetByName("9_교무수첩_시간표_동기화");
-        if (!pSheet) { pSheet = ss.insertSheet("9_교무수첩_시간표_동기화"); }
+        if (!pSheet) {
+          pSheet = ss.insertSheet("9_교무수첩_시간표_동기화");
+        }
         pSheet.clear();
-        pSheet.getRange("A1:J1").setValues([["최종동기화일시", "교사계정", "소속학교", "담임구분", "교시", "월", "화", "수", "목", "금"]]).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+        pSheet.getRange("A1:J1").setValues([[
+          "최종동기화일시", "교사계정", "소속학교", "담임구분", "교시", "월", "화", "수", "목", "금"
+        ]]).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+
         var tp = body.teacherProfile;
         var schoolName = (tp.school &amp;&amp; tp.school.schoolName) || "";
         var homeroomLabel = tp.isNonHomeroom ? "비담임(교과전담)" : ((tp.homeroom &amp;&amp; tp.homeroom.label) || "미설정");
@@ -4838,11 +5147,13 @@ function doPost(e) {
           var rowVals = [p === 1 ? now : "", p === 1 ? (body.userEmail || "") : "", p === 1 ? schoolName : "", p === 1 ? homeroomLabel : "", p + "교시"];
           for (var di = 0; di &lt; days.length; di++) {
             var cell = (tt[days[di]] &amp;&amp; tt[days[di]][p]) || {};
-            rowVals.push(cell.subject ? ((cell.className ? "[" + cell.className + "] " : "") + cell.subject) : "-");
+            var txt = cell.subject ? ((cell.className ? "[" + cell.className + "] " : "") + cell.subject) : "-";
+            rowVals.push(txt);
           }
           pSheet.getRange(p + 1, 1, 1, 10).setValues([rowVals]);
         }
         pSheet.getRange("I9").setValue("SYNC_SNAPSHOT_JSON");
+        pSheet.getRange("J9").setNote("T-ong 기기간 시간표 복원용 스냅샷");
         pSheet.getRange("J9").setValue(JSON.stringify(tp));
       }
 
@@ -4860,6 +5171,16 @@ function doPost(e) {
         attPraiseSheet.appendRow(["=HYPERLINK(\"#'0_사용안내'!A1\",\"[홈 · 0_사용안내(설명서)]\")", "=HYPERLINK(\"#'1_대시보드'!A1\",\"[1_대시보드(전체현황)]\")", "=HYPERLINK(\"#'2_학생명렬표'!A1\",\"[2_학생명렬표]\")", "=HYPERLINK(\"#'3_창체_행특'!A1\",\"[3_창체_행특]\")", "=HYPERLINK(\"#'4_대입상담'!A1\",\"[4_대입상담]\")", "=HYPERLINK(\"#'5_상담기록'!A1\",\"[5_상담기록]\")", "=HYPERLINK(\"#'6_수업관찰_기록'!A1\",\"[6_수업관찰_기록]\")", "=HYPERLINK(\"#'7_AI세특_작성'!A1\",\"[7_AI세특_작성]\")"]);
         attPraiseSheet.appendRow(["※ [입력칸 구분] 굵은 테두리+연노랑 음영 = [교사입력/앱동기화] | 연파랑 음영 = [AI자동 생성] | 회색 음영 = [자동연동·수정금지]"]);
         attPraiseSheet.appendRow(["기록일시 [교사/앱동기화]", "학번 [교사/앱동기화]", "성명 [자동연동]", "학급 [교사/앱동기화]", "구분(출결/칭찬/학급역할/학생관찰) [교사/앱동기화]", "상태·점수·역할명 [교사/앱동기화]", "사유 및 세부 관찰메모 [교사/앱동기화]", "대시보드 복귀 [자동연동]"]);
+      }
+
+      // 수업관찰 탭이 없는 시트(예: 학급담임용 표준시트 사본)에서도 관찰 기록이 버려지지 않도록 탭을 만들어 둡니다.
+      if (!obsSheet) {
+        obsSheet = ss.insertSheet("6_수업관찰_기록");
+        obsSheet.appendRow(["[수업관찰] 6_수업관찰_기록 — 모바일 교무수첩(T-ong)에서 보낸 수업관찰·발표·과제 기록이 날짜순으로 쌓이는 탭"]);
+        obsSheet.appendRow(["=HYPERLINK(\"#'0_사용안내'!A1\",\"🏠 사용안내\")", "=HYPERLINK(\"#'1_대시보드'!A1\",\"📊 대시보드\")", "=HYPERLINK(\"#'2_학생명렬표'!A1\",\"👥 명렬표\")"]);
+        obsSheet.appendRow(["※ T-ong에서 [시트로 보내기]를 누르면 자동으로 채워집니다. 직접 입력해도 됩니다. (한 줄 = 한 번의 관찰)"]);
+        obsSheet.appendRow(["관찰일", "학번", "성명", "과목·반", "구분", "관찰 내용", "산출물·비고", "📊"]);
+        try { obsSheet.setFrozenRows(4); obsSheet.setTabColor("#7c3aed"); obsSheet.getRange(4, 1, 1, 8).setFontWeight("bold").setBackground("#ede9fe"); obsSheet.setColumnWidth(6, 420); } catch (e) {}
       }
 
       // 0. T-ong에서 함께 전달된 학생 명렬표(body.students)가 있으면 2_학생명렬표에 미등록 학생 자동 추가

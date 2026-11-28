@@ -8554,3 +8554,9 @@ summary.lt-fold-sum::-webkit-details-marker { display: none; }
   .mb-map-canvas, .sd-map-canvas { height: 320px; }
   .mb-map-side, .sd-table-wrap { max-height: 280px; }
 }
+
+/* 시트 연동 창: 연결 후 흐름 · 기존 자료 안내 */
+.sync-faq { margin-top: 10px; border: 1px solid rgba(148,163,184,0.35); border-radius: 10px; background: rgba(248,250,252,0.85); padding: 8px 12px; }
+.sync-faq summary { cursor: pointer; font-weight: 800; font-size: 0.82rem; color: #1e293b; }
+.sync-faq ul { margin: 6px 0 2px; padding-left: 18px; font-size: 0.78rem; line-height: 1.55; color: #334155; }
+.sync-faq li { margin: 3px 0; }

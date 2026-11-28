@@ -1,7 +1,7 @@
 (function() {
 'use strict';
 
-var APP_VERSION = '5.17.0-preview.74';
+var APP_VERSION = '5.17.0-preview.75';
 var STORAGE_KEY = 'seatArrangement_v3';
 var MAX_CLASSES = 10;
 
@@ -930,6 +930,23 @@ var CloudSheetSync = (function () {
       });
     }
 
+    // 3단계: 시트에 붙여넣을 Apps Script 코드를 클립보드로 복사합니다.
+    var copyGasBtn = el('syncCopyGasCodeBtn');
+    if (copyGasBtn) {
+      copyGasBtn.addEventListener('click', async function () {
+        try {
+          var res = await fetch('google_apps_script_dual_relational.js', { cache: 'no-store' });
+          if (!res.ok) throw new Error('code ' + res.status);
+          var code = await res.text();
+          await navigator.clipboard.writeText(code);
+          showToast('Apps Script 코드를 복사했습니다. 시트의 [확장 프로그램 → Apps Script] 편집기에 붙여넣고 저장하세요.', 'success', null, null, 5000);
+        } catch (e) {
+          window.open('google_apps_script_dual_relational.js', '_blank', 'noopener');
+          showToast('자동 복사가 막혀 코드를 새 창으로 열었습니다. 전체 선택(Ctrl+A) 후 복사하세요.', 'info', null, null, 5000);
+        }
+      });
+    }
+
     var pullBtn = el('syncPullFromSheetBtn');
     if (pullBtn) {
       pullBtn.addEventListener('click', function () {
@@ -975,28 +992,10 @@ var CloudSheetSync = (function () {
         showToast('시트 URL 연결을 해제했습니다 (로컬 데이터는 안전하게 유지됩니다).', 'info');
         return;
       }
-      showToast('구글 시트에 기존 데이터가 있는지 확인하는 중입니다...', 'info');
-      try {
-        var res = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'action=pull_tong_notebook&_t=' + Date.now());
-        var data = await res.json();
-        var hasSheetData = Boolean(data && data.success && (data.teacherProfile || (Array.isArray(data.students) && data.students.length > 0)));
-        if (hasSheetData) {
-          var shouldPull = confirm(
-            '연결한 구글 시트에 이미 저장된 시간표·명렬 데이터가 있습니다.\n\n' +
-            '• [확인]: 시트 데이터를 이 기기로 불러옵니다 (Pull · 권장)\n' +
-            '• [취소]: 현재 이 기기의 로컬 데이터를 시트로 올립니다 (Push)'
-          );
-          if (shouldPull) {
-            await pullFromSheet(true);
-          } else {
-            await syncNow(true);
-          }
-        } else {
-          await syncNow(true);
-        }
-      } catch (err) {
-        await syncNow(true);
-      }
+      // 이 기기의 기록을 먼저 시트로 올리고(Push), 시트에 있는 다른 기기의 기록을 받아 합칩니다(Pull).
+      // 이 기기에 이미 있는 명렬표·기록은 덮어쓰지 않습니다.
+      showToast('이 기기의 기록을 시트로 올리고, 시트의 기록을 받아 합치는 중입니다...', 'info');
+      await pullFromSheet(true);
     }
 
     var dashQuickSaveBtn = el('dashQuickSheetSaveBtn');
@@ -1244,7 +1243,10 @@ var CloudSheetSync = (function () {
           if (typeof TeacherSchedule !== 'undefined' && TeacherSchedule.reloadFromStorage) TeacherSchedule.reloadFromStorage();
           if (typeof TodayBriefing !== 'undefined' && TodayBriefing.refreshAll) TodayBriefing.refreshAll();
         }
-        if (d && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
+        // 시트 사본에 들어 있는 가상 샘플 학생(20101 김태형 …)은 가져오지 않습니다.
+        var sheetHasSample = Array.isArray(data.students) && data.students.some(function (s) { return String(s.id) === '20101' && String(s.name) === '김태형'; });
+        var sampleSkipped = sheetHasSample && (!students || students.length === 0);
+        if (d && !sheetHasSample && Array.isArray(data.students) && data.students.length > 0 && (!students || students.length === 0)) {
           students = data.students.map(function (s) {
             return { id: String(s.id), name: String(s.name), gender: s.gender || '' };
           });
@@ -1282,7 +1284,9 @@ var CloudSheetSync = (function () {
         isSyncing = false;
         localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
         updateUI();
-        if (manual) {
+        if (manual && sampleSkipped) {
+          showToast('시트 2_학생명렬표에 샘플 학생(가상 30명)이 남아 있어 명렬표는 가져오지 않았습니다. 시트에서 샘플을 지운 뒤 다시 가져오세요.', 'info', null, null, 7000);
+        } else if (manual) {
           showToast('구글 시트에서 최신 명렬·관찰 데이터를 성공적으로 불러왔습니다 (' + updatedCount + '건 반영).', 'success');
         }
       } else {
@@ -5857,6 +5861,7 @@ var HelpMenu = (function () {
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.72: 상단에 🤖 AI 메뉴 추가(AI 도우미 열기·AI 활용 안내·담임 5분 멘트) · AI 활용 안내 창(시작하기·활용 예시·개인정보 주의·AI 도구 모음) · 자리배치 우측 메뉴를 좌측처럼 접어 좌석 화면 넓히기 · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.73: 🤖 AI 비서 채팅 추가(내 Claude API 키로 사이드바에서 대화 · 알림장 저장과 일정 조회·추가를 확인 후 실행 · 학생 이름 자동 가림) · AI 활용 안내에 API 키 발급 방법 탭 추가 · ');
       if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.74: 자리배치 기본 화면을 교탁 시점으로 변경(마지막 선택 기억) · 스마트 판서 1분 자동 저장·마지막 판서 복귀 · ');
+      if (latestUpdate) latestUpdate.insertAdjacentText('afterbegin', 'v5.17.0-preview.75: 구글 시트 연동 5단계 안내(샘플 지우기 · Apps Script 코드 복사 버튼 · 무엇이 어디로 가는지 · 이미 쓰던 자료) · 수업관찰 탭 자동 생성 · 샘플 학생을 앱으로 가져오지 않도록 보호 · ');
     } else {
       title.textContent = '💜 개발자 응원하기';
       body.innerHTML = '<div class="support-message"><b>선생님의 한마디가 다음 업데이트를 만드는 큰 힘이 됩니다.</b><p>T-ong이 도움이 되었다면 응원 설문에 따뜻한 한마디를 남겨 주세요.</p></div>' +

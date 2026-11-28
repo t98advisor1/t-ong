@@ -1702,6 +1702,16 @@ function doPost(e) {
         attPraiseSheet.appendRow(["기록일시 [교사/앱동기화]", "학번 [교사/앱동기화]", "성명 [자동연동]", "학급 [교사/앱동기화]", "구분(출결/칭찬/학급역할/학생관찰) [교사/앱동기화]", "상태·점수·역할명 [교사/앱동기화]", "사유 및 세부 관찰메모 [교사/앱동기화]", "대시보드 복귀 [자동연동]"]);
       }
 
+      // 수업관찰 탭이 없는 시트(예: 학급담임용 표준시트 사본)에서도 관찰 기록이 버려지지 않도록 탭을 만들어 둡니다.
+      if (!obsSheet) {
+        obsSheet = ss.insertSheet("6_수업관찰_기록");
+        obsSheet.appendRow(["[수업관찰] 6_수업관찰_기록 — 모바일 교무수첩(T-ong)에서 보낸 수업관찰·발표·과제 기록이 날짜순으로 쌓이는 탭"]);
+        obsSheet.appendRow(["=HYPERLINK(\"#'0_사용안내'!A1\",\"🏠 사용안내\")", "=HYPERLINK(\"#'1_대시보드'!A1\",\"📊 대시보드\")", "=HYPERLINK(\"#'2_학생명렬표'!A1\",\"👥 명렬표\")"]);
+        obsSheet.appendRow(["※ T-ong에서 [시트로 보내기]를 누르면 자동으로 채워집니다. 직접 입력해도 됩니다. (한 줄 = 한 번의 관찰)"]);
+        obsSheet.appendRow(["관찰일", "학번", "성명", "과목·반", "구분", "관찰 내용", "산출물·비고", "📊"]);
+        try { obsSheet.setFrozenRows(4); obsSheet.setTabColor("#7c3aed"); obsSheet.getRange(4, 1, 1, 8).setFontWeight("bold").setBackground("#ede9fe"); obsSheet.setColumnWidth(6, 420); } catch (e) {}
+      }
+
       // 0. T-ong에서 함께 전달된 학생 명렬표(body.students)가 있으면 2_학생명렬표에 미등록 학생 자동 추가
       if (rosterSheet && Array.isArray(body.students) && body.students.length > 0) {
         var existingIds = {};
