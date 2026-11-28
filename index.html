@@ -277,7 +277,7 @@
             <div class="sync-modal-topbar">
               <div>
                 <h2 id="syncModalTitle">1. Google 시트 · 캘린더 통합 연동</h2>
-                <p class="sync-modal-sub">어려운 설정 없이 왼쪽 3단계 순서대로 따라 하면 내 PC, 태블릿, 구글 시트, 캘린더가 한 번에 연결됩니다.</p>
+                <p class="sync-modal-sub">왼쪽 5단계를 한 번만 따라 하면 이 기기의 기록이 내 구글 시트로 올라가고, PC·태블릿이 같은 시트를 함께 씁니다.</p>
               </div>
               <button type="button" id="syncModalCloseBtn" class="sync-modal-close" aria-label="창 닫기">&times;</button>
             </div>
@@ -286,34 +286,70 @@
               <!-- 좌측: 3단계 워크플로우 및 스크린샷/시각 안내 -->
               <div class="sync-workflow-col">
                 <div class="sync-workflow-card">
-                  <div class="sync-workflow-title">처음 연결하는 분을 위한 3단계 안내</div>
+                  <div class="sync-workflow-title">처음 연결하는 분을 위한 5단계 안내 <small style="font-weight:600; color:#64748b;">(10분, 최초 1회)</small></div>
                   <ol class="sync-step-list">
                     <li>
                       <span class="sync-step-num">1</span>
                       <div>
-                        <strong>구글 드라이브에 내 시트 사본 만들기</strong>
-                        <p>아래 버튼으로 마스터 시트 사본을 내 구글 드라이브에 저장하세요. 권한 오류가 뜨면 표준 엑셀(.xlsx)을 받아 드라이브에 올려 스프레드시트로 열면 동일하게 작동합니다.</p>
+                        <strong>내 구글 드라이브에 시트 사본 만들기</strong>
+                        <p>버튼을 누르고 <b>[사본 만들기]</b>를 누르면 내 드라이브에 <b>[학급담임용] 생기부·진학상담 관계형 표준시트</b>가 생깁니다.</p>
                         <div class="sync-sheet-link-group" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
-                          <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none;">1단계: 구글 드라이브 사본 복사 ↗</a>
-                          <a href="assets/teacher_allinone_template_2026.xlsx" download="2026_교사용_올인원_마스터_통합서식.xlsx" style="background:#059669; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none;">표준 엑셀(.xlsx) 다운로드 ⬇</a>
+                          <a href="https://docs.google.com/spreadsheets/d/12lGdMCyRGWpTlmG3vaXX18oeTcX2maJ_5Pfo9CJ4kfc/copy" target="_blank" rel="noopener noreferrer" class="sync-sheet-copy-btn" style="background:#4f46e5; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none; border:none; cursor:pointer;">시트 사본 만들기 ↗</a>
                         </div>
                       </div>
                     </li>
                     <li>
                       <span class="sync-step-num">2</span>
                       <div>
-                        <strong>Apps Script 열기 및 웹앱 배포</strong>
-                        <p>복사한 시트 상단 메뉴에서 <b>확장 프로그램 → Apps Script</b>를 열고, <b>배포 → 새 배포(유형: 웹 앱, 액세스: 모든 사용자)</b>를 눌러 생성된 <code>.../exec</code> 주소를 복사하세요.</p>
+                        <strong>샘플 학생 지우기 (사본에서)</strong>
+                        <p>사본에는 <b>가상 학생 30명</b>이 들어 있습니다. <b>2_학생명렬표</b> 5행부터 흰색 칸(학번·성명 등)을, <b>3_창체_행특 · 4_대입상담 · 5_상담기록 · 6_교과세특_연동</b>의 흰색 샘플 메모를 지우세요. <b>회색 칸(수식)은 지우지 않습니다.</b> 우리 반 명렬표는 5단계에서 T-ong이 자동으로 채워 줍니다.</p>
                       </div>
                     </li>
                     <li>
                       <span class="sync-step-num">3</span>
                       <div>
-                        <strong>오른쪽 입력칸에 URL 붙여넣기 및 저장</strong>
-                        <p>복사한 웹앱 URL을 오른쪽에 넣고 <b>[저장]</b>을 누르면 수업관찰·출결·칭찬·1인1역이 시트와 실시간으로 오갑니다.</p>
+                        <strong>Apps Script 코드 붙여넣기</strong>
+                        <p>아래 버튼으로 코드를 복사 → 사본 위쪽 메뉴 <b>확장 프로그램 → Apps Script</b> → 편집기에 있던 내용을 모두 지우고 붙여넣기 → <b>💾 저장</b>.</p>
+                        <div class="sync-sheet-link-group" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                          <button type="button" id="syncCopyGasCodeBtn" style="background:#0f766e; color:#fff; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none; border:none; cursor:pointer;">Apps Script 코드 복사 📋</button>
+                          <a href="google_apps_script_dual_relational.js" target="_blank" rel="noopener noreferrer" style="background:#e2e8f0; color:#0f172a; padding:6px 10px; border-radius:6px; font-size:0.76rem; font-weight:700; text-decoration:none; border:none; cursor:pointer;">코드 새 창으로 보기</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="sync-step-num">4</span>
+                      <div>
+                        <strong>웹 앱으로 배포하고 주소 복사</strong>
+                        <p>편집기 오른쪽 위 <b>배포 → 새 배포 → 유형: 웹 앱</b>, 실행: <b>나</b>, 액세스: <b>모든 사용자</b> → <b>배포</b>. 권한 창이 뜨면 내 계정 → <b>고급 → (안전하지 않음)으로 이동 → 허용</b>. 끝에 <code>/exec</code>가 붙은 <b>웹 앱 URL</b>을 복사합니다.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span class="sync-step-num">5</span>
+                      <div>
+                        <strong>오른쪽 칸에 URL을 넣고 [저장]</strong>
+                        <p>저장하는 순간 <b>이 기기에 이미 쌓인 기록이 모두 시트로 올라갑니다.</b> 이후에는 [시트로 보내기]를 누르거나, Google 로그인 상태라면 새 기록이 자동으로 올라갑니다.</p>
                       </div>
                     </li>
                   </ol>
+                  <details class="sync-faq" open>
+                    <summary>연결하면 무엇이 시트의 어디로 가나요?</summary>
+                    <ul>
+                      <li><b>학급 명렬표</b> → <b>2_학생명렬표</b> (시트에 없는 학생만 추가 · 지금 보고 있는 반)</li>
+                      <li><b>출결</b>(결석·지각·조퇴·결과) · <b>칭찬 점수</b> · <b>1인1역</b> · <b>학생 메모</b> → <b>8_출결_칭찬_기록</b> (처음 보낼 때 탭이 자동으로 생깁니다)</li>
+                      <li>그중 <b>1인1역</b>은 <b>3_창체_행특 자율활동 메모</b>에, <b>칭찬 · 학생 메모</b>는 <b>행동특성 관찰 메모</b>에도 덧붙습니다.</li>
+                      <li><b>수업관찰 · 교과 기록</b> → <b>6_수업관찰_기록</b> (자동 생성) · <b>시간표 · 학교 설정</b> → <b>9_교무수첩_시간표_동기화</b></li>
+                      <li><b>시트에서 직접 쓰는 곳</b>: 3_창체_행특 메모, 4_대입상담, 5_상담기록, 6_교과세특_연동 — 생기부·상담 정리는 시트에서 합니다. <b>1_대시보드</b>는 자동 집계라 입력하지 않습니다.</li>
+                    </ul>
+                  </details>
+                  <details class="sync-faq" open>
+                    <summary>이미 이 기기에 쓰던 자료는 어떻게 되나요?</summary>
+                    <ul>
+                      <li><b>지우거나 다시 입력할 필요 없습니다.</b> URL을 저장하면 모든 반의 지난 출결·칭찬·1인1역·메모·수업관찰이 날짜 그대로 한꺼번에 올라갑니다. 이 기기의 자료도 그대로 남습니다.</li>
+                      <li>명렬표는 <b>지금 보고 있는 반</b>만 올라갑니다. 여러 반을 맡았다면 위쪽에서 반을 바꿔 가며 <b>[시트로 보내기]</b>를 한 번씩 누르세요.</li>
+                      <li>같은 기록은 두 번 올라가지 않으니 [시트로 보내기]를 여러 번 눌러도 괜찮습니다.</li>
+                      <li><b>다른 기기</b>(태블릿 등)에서는 같은 URL을 저장하고 <b>[시트에서 가져오기]</b>를 누르세요. 그 기기에 명렬표가 없을 때만 시트의 명렬표를 가져오고, 이미 있는 자료는 덮어쓰지 않습니다.</li>
+                    </ul>
+                  </details>
                 </div>
 
                 <div class="sync-guide-viewer">
@@ -358,13 +394,13 @@
 
                   <div class="sync-sheet-section">
                     <div class="sync-field-label-row">
-                      <label for="tongSheetUrlInput"><b>내 마스터 시트 웹앱 URL (10개 탭 연동)</b></label>
+                      <label for="tongSheetUrlInput"><b>내 시트 웹 앱 URL (4단계에서 복사한 /exec 주소)</b></label>
                     </div>
                     <div class="sync-input-group">
                       <input type="url" id="tongSheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
                       <button type="button" id="tongSheetUrlSaveBtn" class="btn primary">저장</button>
                     </div>
-                    <p class="sync-help-text">수업 관찰은 <b>[6_수업관찰_기록 · 7_AI세특_작성]</b>으로, 출결·칭찬·1인1역은 <b>[8_출결_칭찬_기록 · 3_창체_행특]</b>으로 자동 동기화됩니다.</p>
+                    <p class="sync-help-text">저장하면 이 기기의 기록이 바로 올라갑니다. 수업관찰은 <b>[6_수업관찰_기록]</b>, 출결·칭찬·1인1역·메모는 <b>[8_출결_칭찬_기록]</b>과 <b>[3_창체_행특]</b>으로 갑니다. (자세한 내용은 왼쪽 안내)</p>
                   </div>
 
                   <div class="sync-status-box">

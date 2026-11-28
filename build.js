@@ -136,7 +136,8 @@ const rootStaticFiles = [
   'smart-board.css',
   'smart-board.js',
   'smart-board-guide.html',
-  'smart-board.webmanifest'
+  'smart-board.webmanifest',
+  'google_apps_script_dual_relational.js'   // 시트 연동 창의 [Apps Script 코드 복사] 버튼이 읽어 갑니다
 ];
 rootStaticFiles.forEach((f) => {
   if (!fs.existsSync(path.join(SRC, f))) return;
