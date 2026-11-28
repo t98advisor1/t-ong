@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통 추정분할점수 산출기 — 고등학교 성취평가</title>
+<meta name="description" content="고등학교 성취평가 정기시험·수행평가·학기말 추정분할점수를 나이스 메뉴 순서대로 미리 산출하고 교과협의 자료를 만드는 도구">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M14 46h36M14 36h36M14 26h36' stroke='%2393c5fd' stroke-width='4'/%3E%3Cpath d='M22 18v32' stroke='%23fde047' stroke-width='5'/%3E%3C/svg%3E">
+<style>
+  :root { --navy:#1b2e5a; --navy2:#25407a; --blue:#2f5fb3; --line:#c9d3e3; --line2:#e2e8f0; --head:#e9eff8; --bg:#f3f5f9; --text:#1f2937; --muted:#64748b; --ok:#0f8a5f; --warn:#c2410c; --bad:#b91c1c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+  button, input, select, textarea { font-family: inherit; font-size: 13px; }
+  /* 위쪽 막대 (나이스처럼 진한 남색) */
+  .gnb { height: 52px; background: var(--navy); color: #fff; display: flex; align-items: center; gap: 14px; padding: 0 16px; position: sticky; top: 0; z-index: 20; }
+  .gnb .logo { font-weight: 900; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; }
+  .gnb .logo small { font-weight: 600; opacity: .75; margin-left: 6px; font-size: 12px; }
+  .gnb .role { background: rgba(255,255,255,.14); border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+  .gnb .sp { flex: 1; }
+  .gnb button { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 4px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+  .gnb .menu-btn { display: none; }
+  /* 왼쪽 메뉴 (나이스 LNB 트리) */
+  .wrap { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: calc(100vh - 52px); }
+  .lnb { background: #fff; border-right: 1px solid var(--line); padding: 10px 0 40px; position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
+  .lnb .grp { margin: 6px 0; }
+  .lnb .grp > b { display: block; padding: 9px 16px; background: #f1f4fa; border-top: 1px solid var(--line2); border-bottom: 1px solid var(--line2); color: var(--navy); font-size: 13px; }
+  .lnb .grp > b::before { content: '▾ '; color: var(--blue); }
+  .lnb a { display: block; padding: 8px 16px 8px 30px; color: #334155; text-decoration: none; font-size: 13px; border-left: 3px solid transparent; }
+  .lnb a:hover { background: #f8fafc; color: var(--blue); }
+  .lnb a.on { background: #e8f0fe; color: var(--blue); font-weight: 800; border-left-color: var(--blue); }
+  .lnb .note { margin: 14px 12px 0; padding: 10px; font-size: 12px; line-height: 1.5; color: #7c2d12; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; }
+  /* 본문 */
+  .main { padding: 14px 20px 60px; min-width: 0; }
+  .crumb { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .crumb b { color: var(--navy); }
+  h1.title { margin: 0 0 12px; font-size: 19px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  h1.title::before { content: ''; width: 5px; height: 18px; background: var(--blue); border-radius: 2px; }
+  .cond { background: #fff; border: 1px solid var(--line); border-top: 2px solid var(--navy2); padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 10px; }
+  .cond label { font-weight: 700; font-size: 12px; color: #334155; display: flex; align-items: center; gap: 6px; }
+  .cond select, .cond input { border: 1px solid var(--line); border-radius: 3px; padding: 5px 7px; background: #fff; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; margin: 8px 0; }
+  .toolbar .left { margin-right: auto; font-size: 13px; color: #334155; font-weight: 700; }
+  .btn { border: 1px solid #9fb0cc; background: #fff; color: #1e293b; border-radius: 3px; padding: 5px 12px; cursor: pointer; font-weight: 700; }
+  .btn:hover { background: #f1f5ff; }
+  .btn.pri { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.dark { background: var(--navy2); border-color: var(--navy2); color: #fff; }
+  .btn.red { color: var(--bad); border-color: #f2b8b5; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .box { background: #fff; border: 1px solid var(--line); padding: 14px 16px; margin-bottom: 12px; }
+  .box h2 { margin: 0 0 10px; font-size: 15px; color: var(--navy); }
+  .box h3 { margin: 16px 0 8px; font-size: 14px; color: var(--navy2); }
+  table.grid { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+  table.grid th, table.grid td { border: 1px solid var(--line); padding: 6px 7px; text-align: center; vertical-align: middle; }
+  table.grid thead th { background: var(--head); color: #1e3a5f; font-weight: 800; }
+  table.grid tbody th { background: #f7f9fc; font-weight: 700; }
+  table.grid td.l { text-align: left; }
+  table.grid input, table.grid select { width: 100%; min-width: 52px; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 5px; text-align: center; background: #fffdf2; }
+  table.grid input.txt { text-align: left; }
+  table.grid input:read-only { background: #f1f5f9; }
+  table.grid .num { font-variant-numeric: tabular-nums; }
+  .cell-bad { background: #fee2e2 !important; }
+  .cell-warn { background: #ffedd5 !important; }
+  .cell-ok { background: #dcfce7 !important; }
+  .scroll { overflow-x: auto; }
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--navy2); margin: 4px 0 10px; }
+  .tabs button { border: 1px solid var(--line); border-bottom: none; background: #eef2f8; padding: 7px 16px; cursor: pointer; font-weight: 700; color: #475569; margin-right: 2px; border-radius: 4px 4px 0 0; }
+  .tabs button.on { background: var(--navy2); color: #fff; border-color: var(--navy2); }
+  .msg { padding: 9px 12px; border-radius: 4px; font-size: 13px; margin: 8px 0; line-height: 1.55; }
+  .msg.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
+  .msg.ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+  .msg.warn { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+  .msg.bad { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+  .pill.ok { background: #dcfce7; color: #166534; } .pill.warn { background: #ffedd5; color: #9a3412; } .pill.gray { background: #e2e8f0; color: #475569; } .pill.blue { background: #dbeafe; color: #1e40af; }
+  /* 안내 화면 */
+  .guide { line-height: 1.75; font-size: 14.5px; }
+  .guide p { margin: 6px 0 10px; }
+  .guide ol, .guide ul { margin: 6px 0 12px; padding-left: 22px; }
+  .guide li { margin: 3px 0; }
+  .def { border-left: 4px solid var(--blue); background: #f5f8ff; padding: 10px 14px; margin: 10px 0; }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  .cmp > div { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: #fff; }
+  .cmp b.t { display: block; color: var(--navy); margin-bottom: 4px; }
+  .flow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 10px 0 4px; }
+  .flow div { border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: #fff; font-size: 12.5px; line-height: 1.45; }
+  .flow div b { display: block; color: var(--blue); font-size: 12px; }
+  .src { font-size: 12px; color: var(--muted); }
+  .start { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .start .btn { padding: 9px 16px; font-size: 14px; }
+  .kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 10px; align-items: center; }
+  .kv label { font-weight: 700; font-size: 13px; color: #334155; }
+  .kv input, .kv select { border: 1px solid var(--line); border-radius: 3px; padding: 6px 8px; max-width: 320px; }
+  .teacher-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .teacher-list span { background: #eef2f8; border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12.5px; font-weight: 700; }
+  .teacher-list span button { border: 0; background: none; color: var(--bad); cursor: pointer; font-weight: 900; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .print-only { display: none; }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; }
+    .lnb { position: fixed; left: 0; top: 52px; width: 270px; z-index: 30; transform: translateX(-105%); transition: transform .2s; box-shadow: 8px 0 24px rgba(0,0,0,.18); }
+    body.lnb-open .lnb { transform: none; }
+    .gnb .menu-btn { display: inline-block; }
+    .gnb .role, .gnb .hide-sm { display: none; }
+    .main { padding: 12px 10px 50px; }
+    .cmp { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+  }
+  @media print {
+    .gnb, .lnb, .toolbar, .cond, .tabs, .no-print { display: none !important; }
+    .wrap { display: block; } .main { padding: 0; } body { background: #fff; }
+    .print-only { display: block; }
+    table.grid input { border: 0; background: none; }
+  }
+</style>
+</head>
+<body>
+<header class="gnb">
+  <button type="button" class="menu-btn" id="menuBtn" aria-label="메뉴">☰</button>
+  <div class="logo">통 추정분할점수 산출기<small>고등학교 성취평가</small></div>
+  <span class="role">교과담임</span>
+  <span class="sp"></span>
+  <button type="button" id="backupBtn" class="hide-sm" title="이 기기에 저장된 모든 과목 자료를 파일로 내려받기">백업</button>
+  <button type="button" id="restoreBtn" class="hide-sm" title="백업 파일 불러오기">복원</button>
+  <input type="file" id="restoreInput" accept=".json,application/json" hidden>
+</header>
+<div class="wrap">
+  <nav class="lnb" id="lnb" aria-label="메뉴">
+    <div class="grp"><b>시작하기</b>
+      <a href="#guide" data-v="guide">추정분할점수란? (안내)</a>
+    </div>
+    <div class="grp"><b>평가계획</b>
+      <a href="#plan" data-v="plan">과목별 평가계획 · 분할점수 방식</a>
+      <a href="#items" data-v="items">문항정보표 관리</a>
+    </div>
+    <div class="grp"><b>분할점수</b>
+      <a href="#examCalc" data-v="examCalc">정기시험추정분할점수산출관리</a>
+      <a href="#examResult" data-v="examResult">추정분할점수산출결과관리</a>
+      <a href="#perf" data-v="perf">수행평가추정분할점수관리</a>
+      <a href="#final" data-v="final">학기말추정분할점수산출</a>
+    </div>
+    <div class="grp"><b>출력</b>
+      <a href="#print" data-v="print">교과협의록 · 안내문 출력</a>
+    </div>
+    <div class="note">이 도구는 <b>교과협의·연습용</b>입니다. 추정분할점수를 적용하는 과목은 <b>나이스에서 산출·확정</b>해야 합니다. 자료는 이 기기의 브라우저에만 저장됩니다.</div>
+  </nav>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // ─────────────────────────────────────────────────────────────
+  // 기준: 경기도교육청 「고등학교 성취평가 추정분할점수 이렇게 산출해요(실전편)」(2026.4)
+  //       · 「2026학년도 중등 학생평가 및 학업성적관리 이해하기」의 정기시험 분할점수 산출 7단계
+  // ─────────────────────────────────────────────────────────────
+  var KEY = 'tongCut_v1';
+  var LV5 = ['A', 'B', 'C', 'D', 'E'];
+  var CUT_LABEL = { A: 'A/B', B: 'B/C', C: 'C/D', D: 'D/E', E: 'E/미도달' };
+  var BASE_RATE = { A: 90, B: 80, C: 70, D: 60, E: 40 };            // 기준 성취율(고정분할점수)
+  var TYPES = ['선택형', '논술형'], DIFFS = ['쉬움', '보통', '어려움'];
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var r2 = function (n) { return Math.round((n + 1e-9) * 100) / 100; };
+  var f2 = function (n) { return (n == null || isNaN(n)) ? '–' : r2(n).toFixed(2); };
+  var uid = function () { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+
+  // ── 저장소 ──────────────────────────────────────────────────
+  var db = load();
+  function load() {
+    try { var d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && Array.isArray(d.subjects)) return d; } catch (e) {}
+    return { subjects: [], current: null };
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { alert('저장 공간이 부족합니다. 백업 후 오래된 과목을 지워 주세요.'); } }
+  function cur() { return db.subjects.find(function (s) { return s.id === db.current; }) || db.subjects[0] || null; }
+  function levels(sub) { return sub && sub.stage === '5' ? ['A', 'B', 'C', 'D'] : LV5.slice(); }
+  function newSubject() {
+    var y = new Date().getFullYear();
+    return {
+      id: uid(), year: y, sem: '1', grade: '1', name: '새 과목', stage: '5+미도달', teachers: ['교사1', '교사2'],
+      exams: [newExam('1차 정기시험', 35), newExam('2차 정기시험', 35)],
+      perf: { tab: '영역별', ratio: 30, total: { full: 30, cuts: {} }, areas: [newArea('수행평가 영역1', 30)] }
+    };
+  }
+  function newExam(name, ratio) { return { id: uid(), name: name, full: 100, ratio: ratio, items: [], rounds: [{ no: 1, ratings: {} }], round: 1, confirmed: null }; }
+  function newArea(name, full) { return { id: uid(), name: name, full: full, base: 0, elems: [{ name: '평가요소1', s: {} }], cuts: {}, useRubric: true }; }
+  function sampleSubject() {
+    // 매뉴얼 그림1의 문항정보표(19문항, 선택형)를 예시로 넣습니다.
+    var s = newSubject(); s.name = '통합사회1 (예시)'; s.teachers = ['김교사', '이교사', '박교사'];
+    var rows = [['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'],
+      ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'],
+      ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['어려움', 4.1, 'B'], ['어려움', 4.1, 'A'], ['어려움', 4.1, 'A'], ['어려움', 4.2, 'A']];
+    s.exams[0].full = 72;
+    s.exams[0].items = rows.map(function (r, i) { return { no: i + 1, type: '선택형', diff: r[0], score: r[1], std: '', target: r[2] }; });
+    // 매뉴얼 순서2 결과값(예상 정답률 %)을 첫 교사의 1라운드 값으로 넣어 둡니다.
+    var t = s.teachers[0], rt = {};
+    rt['선택형|쉬움'] = { A: 95, B: 85, C: 75, D: 65, E: 55 };
+    rt['선택형|보통'] = { A: 75, B: 70, C: 60, D: 45, E: 35 };
+    rt['선택형|어려움'] = { A: 70, B: 50, C: 35, D: 25, E: 20 };
+    s.exams[0].rounds[0].ratings[t] = rt;
+    s.perf.areas = [newArea('실험 보고서', 10)];
+    s.perf.areas[0].elems = [
+      { name: '실험 결과 분석하기', s: { A: 4, B: 4, C: 3, D: 2, E: 1 } },
+      { name: '물질대사의 특성 설명하기', s: { A: 3, B: 2, C: 1, D: 1, E: 1 } },
+      { name: '효소의 특성 설명하기', s: { A: 2, B: 1, C: 1, D: 1, E: 1 } }];
+    s.perf.ratio = 30; s.exams[0].ratio = 35; s.exams[1].ratio = 35;
+    return s;
+  }
+
+  // ── 계산 ────────────────────────────────────────────────────
+  function categories(exam) {
+    var list = [];
+    TYPES.forEach(function (t) { DIFFS.forEach(function (d) {
+      var its = exam.items.filter(function (i) { return i.type === t && i.diff === d && +i.score > 0; });
+      if (its.length) list.push({ key: t + '|' + d, type: t, diff: d, nos: its.map(function (i) { return i.no; }), n: its.length,
+        sum: r2(its.reduce(function (a, i) { return a + (+i.score || 0); }, 0)), targets: its.map(function (i) { return i.target || ''; }) });
+    }); });
+    return list;
+  }
+  function itemTotal(exam) { return r2(exam.items.reduce(function (a, i) { return a + (+i.score || 0); }, 0)); }
+  // 교사 한 명의 분할점수 = Σ(범주 배점합 × 예상정답률/100)
+  function teacherCuts(sub, exam, rating) {
+    var cats = categories(exam), out = {}, complete = true;
+    levels(sub).forEach(function (L) {
+      var s = 0;
+      cats.forEach(function (c) { var v = rating && rating[c.key] && rating[c.key][L]; if (v === '' || v == null || isNaN(+v)) complete = false; else s += c.sum * (+v) / 100; });
+      out[L] = s;
+    });
+    return { cuts: out, complete: complete && cats.length > 0 };
+  }
+  function roundResult(sub, exam, round) {
+    var rows = [], sums = {}, n = 0;
+    sub.teachers.forEach(function (t) {
+      var tc = teacherCuts(sub, exam, round.ratings[t]);
+      rows.push({ teacher: t, cuts: tc.cuts, complete: tc.complete });
+      if (tc.complete) { n++; levels(sub).forEach(function (L) { sums[L] = (sums[L] || 0) + tc.cuts[L]; }); }
+    });
+    var avg = {}; levels(sub).forEach(function (L) { avg[L] = n ? r2(sums[L] / n) : null; });
+    // 범주·성취수준별 교사 간 차이(최댓값 − 최솟값)
+    var spread = {}, maxSpread = 0;
+    categories(exam).forEach(function (c) { spread[c.key] = {}; levels(sub).forEach(function (L) {
+      var vals = sub.teachers.map(function (t) { var r = round.ratings[t]; return r && r[c.key] && r[c.key][L]; }).filter(function (v) { return v !== '' && v != null && !isNaN(+v); }).map(Number);
+      var d = vals.length > 1 ? Math.max.apply(null, vals) - Math.min.apply(null, vals) : null;
+      spread[c.key][L] = d; if (d != null && d > maxSpread) maxSpread = d;
+    }); });
+    return { rows: rows, avg: avg, n: n, spread: spread, maxSpread: maxSpread, allIn: n === sub.teachers.length };
+  }
+  function ratingProblems(sub, rating, cats) {
+    // A~D는 5% 단위, E는 1% 단위 · 상위 수준일수록 예상 정답률이 같거나 높아야 함
+    var p = [];
+    cats.forEach(function (c) {
+      var r = rating && rating[c.key] || {}, prev = null;
+      levels(sub).forEach(function (L) {
+        var v = r[L]; if (v === '' || v == null) return; v = +v;
+        if (isNaN(v) || v < 0 || v > 100) p.push(c.type + '·' + c.diff + ' ' + L + ': 0~100 사이로 입력');
+        else if (L !== 'E' && v % 5 !== 0) p.push(c.type + '·' + c.diff + ' ' + L + ': A~D는 5% 단위');
+        else if (L === 'E' && v % 1 !== 0) p.push(c.type + '·' + c.diff + ' E: 1% 단위(정수)');
+        if (prev != null && v > prev) p.push(c.type + '·' + c.diff + ': ' + L + '가 윗 수준보다 높음');
+        prev = v;
+      });
+    });
+    return p;
+  }
+  function perfAreaCuts(sub, area) {
+    // 수행평가: 성취수준과 연계한 채점 기준 배점의 합 = 그 수준 최소 능력자 점수 = 분할점수(정수)
+    var out = {};
+    levels(sub).forEach(function (L) {
+      if (area.useRubric) {
+        var s = 0, ok = true;
+        area.elems.forEach(function (e) { var v = e.s && e.s[L]; if (v === '' || v == null || isNaN(+v)) ok = false; else s += +v; });
+        out[L] = ok && area.elems.length ? s : null;
+      } else out[L] = area.cuts[L] === '' || area.cuts[L] == null ? null : +area.cuts[L];
+    });
+    return out;
+  }
+  function perfTotal(sub) {
+    var p = sub.perf, full = 0, cuts = {}, ok = true;
+    if (p.tab === '전체영역') {
+      full = +p.total.full || 0;
+      levels(sub).forEach(function (L) { var v = p.total.cuts[L]; cuts[L] = v === '' || v == null ? null : +v; if (cuts[L] == null) ok = false; });
+    } else {
+      p.areas.forEach(function (a) { full += +a.full || 0; });
+      levels(sub).forEach(function (L) {
+        var s = 0; p.areas.forEach(function (a) { var c = perfAreaCuts(sub, a)[L]; if (c == null) ok = false; else s += c; });
+        cuts[L] = ok ? s : null;
+      });
+    }
+    return { full: full, cuts: cuts, ok: ok };
+  }
+  function confirmedCuts(sub, exam) {
+    if (!exam.confirmed) return null;
+    var rd = exam.rounds.find(function (r) { return r.no === exam.confirmed; });
+    if (!rd) return null;
+    var res = roundResult(sub, exam, rd);
+    return res.n ? res.avg : null;
+  }
+  function finalCuts(sub) {
+    var parts = [], ok = true, sumRatio = 0;
+    sub.exams.forEach(function (e) { var c = confirmedCuts(sub, e); if (!c) ok = false; parts.push({ label: e.name, kind: '정기시험', ratio: +e.ratio || 0, full: +e.full || 0, cuts: c }); sumRatio += +e.ratio || 0; });
+    var pt = perfTotal(sub); if (!pt.ok) ok = false;
+    parts.push({ label: '[' + sub.perf.tab + ']', kind: '수행평가', ratio: +sub.perf.ratio || 0, full: pt.full, cuts: pt.ok ? pt.cuts : null });
+    sumRatio += +sub.perf.ratio || 0;
+    var raw = {}, fin = {};
+    levels(sub).forEach(function (L) {
+      var s = 0; parts.forEach(function (p) { if (p.cuts && p.full) s += p.cuts[L] / p.full * p.ratio; });
+      raw[L] = s; fin[L] = Math.round(s + 1e-9);
+    });
+    return { parts: parts, raw: raw, fin: fin, ok: ok && Math.abs(sumRatio - 100) < 1e-6, sumRatio: sumRatio };
+  }
+
+  // ── 화면 공통 ───────────────────────────────────────────────
+  var VIEWS = {};
+  var PATH = { guide: '시작하기', plan: '평가계획', items: '평가계획', examCalc: '교과담임 > 분할점수', examResult: '교과담임 > 분할점수', perf: '교과담임 > 분할점수', final: '교과담임 > 분할점수', print: '출력' };
+  var TITLE = { guide: '추정분할점수란?', plan: '과목별 평가계획 · 분할점수 방식', items: '문항정보표 관리', examCalc: '정기시험추정분할점수산출관리', examResult: '추정분할점수산출결과관리', perf: '수행평가추정분할점수관리', final: '학기말추정분할점수산출', print: '교과협의록 · 안내문 출력' };
+  function render() {
+    var v = (location.hash || '#guide').slice(1).split('?')[0];
+    if (!VIEWS[v]) v = 'guide';
+    document.querySelectorAll('.lnb a').forEach(function (a) { a.classList.toggle('on', a.dataset.v === v); });
+    document.body.classList.remove('lnb-open');
+    var sub = cur();
+    var head = '<div class="crumb">' + esc(PATH[v]) + ' &gt; <b>' + esc(TITLE[v]) + '</b></div><h1 class="title">' + esc(TITLE[v]) + '</h1>';
+    if (v !== 'guide' && !sub) {
+      $('main').innerHTML = head + '<div class="msg info">먼저 <b>과목</b>을 만들어 주세요.</div><div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button><button class="btn" id="mkSample">매뉴얼 예시 과목 불러오기</button></div>';
+      bindStart(); return;
+    }
+    $('main').innerHTML = head + (v === 'guide' ? '' : condBar(sub, v)) + VIEWS[v].html(sub);
+    if (VIEWS[v].bind) VIEWS[v].bind(sub);
+    bindCond(sub);
+    window.scrollTo(0, 0);
+  }
+  function bindStart() {
+    var a = $('mkSub'), b = $('mkSample');
+    if (a) a.onclick = function () { var s = newSubject(); db.subjects.push(s); db.current = s.id; save(); location.hash = '#plan'; render(); };
+    if (b) b.onclick = function () { var s = sampleSubject(); db.subjects.push(s); db.current = s.id; save(); location.hash = '#items'; render(); };
+  }
+  function condBar(sub, v) {
+    var opts = db.subjects.map(function (s) { return '<option value="' + s.id + '"' + (s.id === sub.id ? ' selected' : '') + '>' + esc(s.year + '학년도 ' + s.sem + '학기 · ' + s.grade + '학년 · ' + s.name) + '</option>'; }).join('');
+    var examSel = (v === 'items' || v === 'examCalc' || v === 'examResult')
+      ? '<label>고사<select id="cExam">' + sub.exams.map(function (e) { return '<option value="' + e.id + '"' + (e.id === selExam(sub).id ? ' selected' : '') + '>' + esc(e.name) + '</option>'; }).join('') + '</select></label>' : '';
+    return '<div class="cond"><label>과목<select id="cSub">' + opts + '</select></label>' + examSel +
+      '<label>분할점수 방식 <span class="pill blue">성취수준별 추정분할점수</span></label><label>평가단계 <span class="pill gray">' + esc(sub.stage === '5' ? '5수준(A-E)' : '5수준+미도달') + '</span></label>' +
+      '<span style="margin-left:auto" class="no-print"><button class="btn" id="cNew">과목 추가</button></span></div>';
+  }
+  var examSelId = null;
+  function selExam(sub) { return sub.exams.find(function (e) { return e.id === examSelId; }) || sub.exams[0]; }
+  function bindCond(sub) {
+    var s = $('cSub'); if (s) s.onchange = function () { db.current = s.value; save(); render(); };
+    var e = $('cExam'); if (e) e.onchange = function () { examSelId = e.value; render(); };
+    var n = $('cNew'); if (n) n.onclick = function () { var x = newSubject(); db.subjects.push(x); db.current = x.id; save(); location.hash = '#plan'; render(); };
+  }
+
+  // ── 0. 안내 ─────────────────────────────────────────────────
+  VIEWS.guide = { html: function () { return '<div class="box guide">' +
+    '<h2>추정분할점수란?</h2>' +
+    '<div class="def"><b>분할점수</b>는 학생의 성취도(A/B/C/D/E)를 나누는 기준 점수, 즉 각 성취수준에 <b>가까스로 도달한 최저 점수</b>입니다. ' +
+    '<b>추정분할점수</b>는 이 점수를 90·80·70·60·40점으로 고정하지 않고, <b>과목 특성과 문항 난이도·배점을 고려해 담당 교사들이 협의로 추정</b>하는 방식입니다.</div>' +
+    '<p>성취수준마다 <b>기준 성취율</b>이 있습니다: A 90%, B 80%, C 70%, D 60%, E 40%. 각 기준 성취율에 겨우 닿은 학생을 <b>최소 능력자(MCP, Minimally Competent Person)</b>라고 부릅니다. ' +
+    '추정분할점수는 “이 시험에서 최소 능력자는 몇 점을 받을까?”를 교사들이 문항 범주별로 추정해서 구합니다.</p>' +
+    '<div class="cmp"><div><b class="t">성취수준별 고정분할점수</b>기준 성취율 = 분할점수 (90/80/70/60/40점). 평가 문항이 교수·학습 목표를 100% 대표하고, 성취수준과 문항 난이도가 일치해야 합니다.</div>' +
+    '<div><b class="t">성취수준별 추정분할점수</b>최소 능력자의 예상 정답률을 문항 범주별로 추정해 분할점수를 계산합니다. 시험이 어려우면 분할점수가 기준 성취율보다 낮게, 쉬우면 높게 나올 수 있습니다.</div></div>' +
+    '<h3>계산 원리</h3>' +
+    '<p>문항을 <b>유형(선택형/논술형) × 난이도(쉬움/보통/어려움)</b>로 묶어 최대 6개 범주를 만듭니다. 교사마다 각 범주에서 성취수준별 최소 능력자의 <b>예상 정답률</b>을 적으면,</p>' +
+    '<div class="def">교사별 분할점수(수준 L) = Σ <b>범주 배점합 × 예상 정답률(L)</b> ÷ 100 &nbsp;→&nbsp; 정기시험 추정분할점수 = <b>교사별 분할점수의 평균</b></div>' +
+    '<p>예상 정답률은 <b>A~D는 5% 단위, E는 1% 단위</b>로 추정합니다. 어떤 성취수준을 목표로 낸 문항이라면, 그 수준의 최소 능력자는 선택형에서 약 <b>65%</b>(논술형은 50%가 만점)가 맞힐 것으로 봅니다.</p>' +
+    '<p><b>수행평가</b>는 채점기준표의 수행 수준을 성취수준과 연계하고, 각 수준 최소 능력자가 받을 점수(평가요소별 배점의 합)를 그대로 분할점수로 씁니다(정수).</p>' +
+    '<p><b>학기말 최종 추정분할점수</b> = Σ (각 평가의 분할점수 ÷ 그 평가의 만점 × 학기말 반영비율). 분할점수 적용은 <b>과목 단위</b>라서, 추정 방식을 고르면 정기시험과 수행평가 모두 추정분할점수로 산출해야 합니다.</p>' +
+    '<h3>정기시험 분할점수 산출 7단계</h3><div class="flow">' +
+    '<div><b>1단계</b>학기 단위 성취수준 특성 확인</div><div><b>2단계</b>성취수준별 최소 능력 특성 합의</div><div><b>3단계</b>문항 검토 (성취기준·난이도·배점)</div>' +
+    '<div><b>4단계</b>문항 범주화 (유형×난이도, 최대 6개)</div><div><b>5단계</b>범주별 예상 정답률 추정 (교사 개별)</div><div><b>6단계</b>교사별 결과 종합·논의 (20%p 이상 차이 범주 중심, 최소 2라운드)</div><div><b>7단계</b>평균 산출 · 학업성적관리위원회 심의 · 시험 전 공지</div></div>' +
+    '<h3>꼭 지킬 점</h3><ul>' +
+    '<li>최소 성취수준 미도달 학생을 줄이려고 <b>E 분할점수를 임의로 낮게</b> 잡지 않습니다. A 비율을 늘리려 A를 낮게 넣는 것도 마찬가지입니다.</li>' +
+    '<li>추정분할점수는 <b>평가 시행 전에</b> 산출·심의하고 학생·학부모에게 공지합니다.</li>' +
+    '<li>해당 과목 담당 교사 <b>모두</b>가 예상 정답률을 입력합니다(휴직·강사 미참여 등 특별한 사유 제외).</li>' +
+    '<li>수행평가 E 분할점수(최소 능력자 점수)는 <b>기본점수보다 높아야</b> 합니다.</li>' +
+    '<li>추정분할점수 과목은 <b>반드시 나이스에서 산출·확정</b>합니다. 이 도구는 교과협의를 준비하고 나이스 입력값을 미리 맞춰 보는 용도입니다.</li></ul>' +
+    '<h3>이 도구의 순서 (왼쪽 메뉴)</h3><ol>' +
+    '<li><b>과목별 평가계획</b>: 과목·평가단계(5수준+미도달 / 5수준)·담당 교사·정기시험 만점과 반영비율</li>' +
+    '<li><b>문항정보표 관리</b>: 문항별 유형·난이도·배점(+목표 성취수준)</li>' +
+    '<li><b>정기시험추정분할점수산출관리</b>: 라운드별로 교사마다 범주별 예상 정답률 입력</li>' +
+    '<li><b>추정분할점수산출결과관리</b>: 교사별 분할점수·평균·교사 간 차이 확인 → 라운드 확정</li>' +
+    '<li><b>수행평가추정분할점수관리</b>: 영역별 채점 기준으로 분할점수 산출(또는 전체영역 직접 입력)</li>' +
+    '<li><b>학기말추정분할점수산출</b> → <b>출력</b>(교과협의록·학업성적관리위원회·가정통신문 표)</li></ol>' +
+    '<div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button><button class="btn" id="mkSample">매뉴얼 예시 과목 불러오기</button>' + (db.subjects.length ? '<a class="btn dark" href="#plan" style="text-decoration:none">내 과목으로 이동</a>' : '') + '</div>' +
+    '<p class="src" style="margin-top:14px">참고: 경기도교육청 「고등학교 성취평가 추정분할점수 이렇게 산출해요(실전편)」(2026.4) · 「2026학년도 중등 학생평가 및 학업성적관리 이해하기」. 나이스 메뉴 이름은 매뉴얼의 2025학년도 기준 경로(교과담임-분할점수-정기시험추정분할점수산출관리 등)를 따랐으며, 나이스 기능 개선에 따라 바뀔 수 있습니다. 학교·시도교육청 지침이 있으면 그것을 우선합니다.</p>' +
+    '</div>'; }, bind: function () { bindStart(); } };
+
+  // ── 1. 평가계획 ─────────────────────────────────────────────
+  VIEWS.plan = { html: function (s) {
+    var sumR = s.exams.reduce(function (a, e) { return a + (+e.ratio || 0); }, 0) + (+s.perf.ratio || 0);
+    return '<div class="box"><h2>과목 정보</h2><div class="kv">' +
+      '<label>학년도</label><input id="pYear" type="number" value="' + esc(s.year) + '">' +
+      '<label>학기</label><select id="pSem"><option' + (s.sem === '1' ? ' selected' : '') + ' value="1">1학기</option><option' + (s.sem === '2' ? ' selected' : '') + ' value="2">2학기</option></select>' +
+      '<label>학년</label><select id="pGrade">' + ['1', '2', '3'].map(function (g) { return '<option value="' + g + '"' + (s.grade === g ? ' selected' : '') + '>' + g + '학년</option>'; }).join('') + '</select>' +
+      '<label>과목명</label><input id="pName" value="' + esc(s.name) + '">' +
+      '<label>평가단계</label><select id="pStage"><option value="5+미도달"' + (s.stage !== '5' ? ' selected' : '') + '>5수준+미도달 (A~E + 미도달)</option><option value="5"' + (s.stage === '5' ? ' selected' : '') + '>5수준 (A~E)</option></select>' +
+      '</div><p class="hint">최소 성취수준 보장지도 적용 과목(공통과목 등)은 <b>5수준+미도달</b>을 고릅니다. 이때 E/미도달 분할점수가 보장지도 대상자 선정 기준이 됩니다. 미도달이 없는 선택과목은 <b>5수준</b>입니다.</p></div>' +
+      '<div class="box"><h2>담당 교사 <span class="hint">(해당 과목 담당 교사 모두가 예상 정답률을 입력합니다)</span></h2><div class="teacher-list">' +
+      s.teachers.map(function (t, i) { return '<span>' + esc(t) + ' <button data-rmt="' + i + '" title="빼기">×</button></span>'; }).join('') +
+      '</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><input id="tName" placeholder="교사 이름" style="border:1px solid var(--line);border-radius:3px;padding:5px 8px"><button class="btn" id="tAdd">교사 추가</button></div></div>' +
+      '<div class="box"><h2>평가 구성 · 학기말 반영비율</h2><div class="scroll"><table class="grid"><thead><tr><th>구분</th><th>평가명</th><th>만점</th><th>반영비율(%)</th><th class="no-print">관리</th></tr></thead><tbody>' +
+      s.exams.map(function (e, i) { return '<tr><th>정기시험</th><td><input class="txt" data-ex="' + i + '" data-f="name" value="' + esc(e.name) + '"></td><td><input type="number" step="0.1" data-ex="' + i + '" data-f="full" value="' + esc(e.full) + '"></td><td><input type="number" step="0.1" data-ex="' + i + '" data-f="ratio" value="' + esc(e.ratio) + '"></td><td class="no-print"><button class="btn red" data-rmex="' + i + '"' + (s.exams.length < 2 ? ' disabled' : '') + '>삭제</button></td></tr>'; }).join('') +
+      '<tr><th>수행평가</th><td class="l">전체 영역 (영역은 수행평가 메뉴에서 관리)</td><td class="num">' + perfTotal(s).full + '</td><td><input type="number" step="0.1" id="pPerfRatio" value="' + esc(s.perf.ratio) + '"></td><td class="no-print"></td></tr>' +
+      '<tr><th colspan="3">합계</th><td class="num ' + (Math.abs(sumR - 100) < 1e-6 ? 'cell-ok' : 'cell-bad') + '">' + r2(sumR) + '%</td><td class="no-print"></td></tr></tbody></table></div>' +
+      '<div class="toolbar"><button class="btn" id="exAdd">정기시험 추가</button><button class="btn red" id="subDel">이 과목 삭제</button></div></div>';
+  }, bind: function (s) {
+    var set = function (id, f, cast) { var el = $(id); if (el) el.onchange = function () { s[f] = cast ? cast(el.value) : el.value; save(); render(); }; };
+    set('pYear', 'year', Number); set('pSem', 'sem'); set('pGrade', 'grade'); set('pName', 'name'); set('pStage', 'stage');
+    $('pPerfRatio').onchange = function () { s.perf.ratio = +this.value; save(); render(); };
+    document.querySelectorAll('[data-ex]').forEach(function (el) { el.onchange = function () { var e = s.exams[+el.dataset.ex]; e[el.dataset.f] = el.dataset.f === 'name' ? el.value : +el.value; save(); render(); }; });
+    document.querySelectorAll('[data-rmex]').forEach(function (b) { b.onclick = function () { if (confirm('이 정기시험과 입력한 예상 정답률을 지울까요?')) { s.exams.splice(+b.dataset.rmex, 1); save(); render(); } }; });
+    document.querySelectorAll('[data-rmt]').forEach(function (b) { b.onclick = function () { s.teachers.splice(+b.dataset.rmt, 1); save(); render(); }; });
+    $('tAdd').onclick = function () { var n = $('tName').value.trim(); if (n && s.teachers.indexOf(n) < 0) { s.teachers.push(n); save(); render(); } };
+    $('exAdd').onclick = function () { s.exams.push(newExam((s.exams.length + 1) + '차 정기시험', 0)); save(); render(); };
+    $('subDel').onclick = function () { if (confirm('「' + s.name + '」 과목의 모든 자료를 지울까요?')) { db.subjects = db.subjects.filter(function (x) { return x !== s; }); db.current = db.subjects[0] ? db.subjects[0].id : null; save(); location.hash = '#guide'; render(); } };
+  } };
+
+  // ── 2. 문항정보표 ───────────────────────────────────────────
+  VIEWS.items = { html: function (s) {
+    var e = selExam(s), tot = itemTotal(e), cats = categories(e);
+    var rows = e.items.map(function (it, i) {
+      return '<tr><td class="num">' + it.no + '</td>' +
+        '<td><select data-it="' + i + '" data-f="type">' + TYPES.map(function (t) { return '<option' + (it.type === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></td>' +
+        '<td><input class="txt" data-it="' + i + '" data-f="std" value="' + esc(it.std) + '" placeholder="[10통사1-01-01]"></td>' +
+        DIFFS.slice().reverse().map(function (d) { return '<td><input type="radio" name="d' + i + '" data-it="' + i + '" data-f="diff" value="' + d + '"' + (it.diff === d ? ' checked' : '') + ' style="width:auto"></td>'; }).join('') +
+        '<td><input type="number" step="0.1" data-it="' + i + '" data-f="score" value="' + esc(it.score) + '"></td>' +
+        '<td><select data-it="' + i + '" data-f="target"><option value="">-</option>' + LV5.map(function (L) { return '<option' + (it.target === L ? ' selected' : '') + '>' + L + '</option>'; }).join('') + '</select></td>' +
+        '<td class="no-print"><button class="btn red" data-rmit="' + i + '">×</button></td></tr>';
+    }).join('');
+    return '<div class="msg info">나이스의 문항정보표와 같은 내용을 넣습니다. <b>목표 성취수준</b>은 나이스에는 없지만 매뉴얼(STEP 1)처럼 적어 두면 예상 정답률을 추정할 때 기준이 됩니다.</div>' +
+      '<div class="toolbar"><span class="left">' + esc(e.name) + ' · 문항 ' + e.items.length + '개 · 배점 합계 <span class="' + (Math.abs(tot - e.full) < 1e-6 ? 'pill ok' : 'pill warn') + '">' + tot + ' / ' + e.full + '점</span></span>' +
+      '<button class="btn" id="itAdd">문항 추가</button><button class="btn" id="itAdd5">5문항 추가</button><button class="btn" id="itPaste">엑셀에서 붙여넣기</button></div>' +
+      '<div class="scroll"><table class="grid"><thead><tr><th rowspan="2">문항번호</th><th rowspan="2">문항구분</th><th rowspan="2">성취기준</th><th colspan="3">난이도</th><th rowspan="2">배점</th><th rowspan="2">목표 성취수준</th><th rowspan="2" class="no-print">삭제</th></tr><tr><th>어려움</th><th>보통</th><th>쉬움</th></tr></thead><tbody>' + rows +
+      (e.items.length ? '' : '<tr><td colspan="9">문항을 추가해 주세요.</td></tr>') + '</tbody></table></div>' +
+      '<div class="box" style="margin-top:12px"><h2>문항 범주 (나이스 산출 화면에 표시되는 단위)</h2><div class="scroll"><table class="grid"><thead><tr><th>문항구분</th><th>난이도</th><th>해당 문항번호</th><th>문항수</th><th>배점합</th><th>목표 성취수준 내역</th></tr></thead><tbody>' +
+      cats.map(function (c) { var tl = {}; c.targets.forEach(function (t) { if (t) tl[t] = (tl[t] || 0) + 1; }); return '<tr><td>' + c.type + '</td><td>' + c.diff + '</td><td class="l">' + c.nos.join(', ') + '</td><td>' + c.n + '</td><td class="num">' + c.sum + '</td><td>' + (Object.keys(tl).sort().map(function (k) { return k + '×' + tl[k]; }).join(' · ') || '-') + '</td></tr>'; }).join('') +
+      '</tbody></table></div>' + (cats.length > 6 ? '<div class="msg warn">범주가 6개를 넘었습니다.</div>' : '') + '</div>';
+  }, bind: function (s) {
+    var e = selExam(s);
+    var renum = function () { e.items.forEach(function (it, i) { it.no = i + 1; }); };
+    var add = function (n) { for (var k = 0; k < n; k++) e.items.push({ no: e.items.length + 1, type: '선택형', diff: '보통', score: '', std: '', target: '' }); save(); render(); };
+    $('itAdd').onclick = function () { add(1); }; $('itAdd5').onclick = function () { add(5); };
+    $('itPaste').onclick = function () {
+      var t = prompt('엑셀에서 [문항구분 · 난이도 · 배점 · (성취기준) · (목표 성취수준)] 열을 복사해 붙여넣으세요.\n예) 선택형	쉬움	3.4	[10통사1-01-01]	E');
+      if (!t) return;
+      t.trim().split(/\r?\n/).forEach(function (line) { var c = line.split('\t'); if (c.length < 3) return;
+        e.items.push({ no: e.items.length + 1, type: /논술|서술/.test(c[0]) ? '논술형' : '선택형', diff: /어려/.test(c[1]) ? '어려움' : (/쉬/.test(c[1]) ? '쉬움' : '보통'), score: +c[2] || '', std: c[3] || '', target: (c[4] || '').trim().toUpperCase().slice(0, 1) }); });
+      save(); render();
+    };
+    document.querySelectorAll('[data-it]').forEach(function (el) { el.onchange = function () { var it = e.items[+el.dataset.it]; var f = el.dataset.f; it[f] = f === 'score' ? (el.value === '' ? '' : +el.value) : el.value; save(); render(); }; });
+    document.querySelectorAll('[data-rmit]').forEach(function (b) { b.onclick = function () { e.items.splice(+b.dataset.rmit, 1); renum(); save(); render(); }; });
+  } };
+
+  // ── 3. 정기시험추정분할점수산출관리 ──────────────────────────
+  var teacherSel = null;
+  VIEWS.examCalc = { html: function (s) {
+    var e = selExam(s), cats = categories(e), lv = levels(s);
+    if (!cats.length) return '<div class="msg warn">먼저 <a href="#items">문항정보표</a>를 입력해 주세요.</div>';
+    var rd = e.rounds.find(function (r) { return r.no === e.round; }) || e.rounds[e.rounds.length - 1];
+    if (!teacherSel || s.teachers.indexOf(teacherSel) < 0) teacherSel = s.teachers[0];
+    var rating = rd.ratings[teacherSel] || {}, locked = e.confirmed === rd.no;
+    var tc = teacherCuts(s, e, rating), probs = ratingProblems(s, rating, cats);
+    return '<div class="cond"><label>라운드<select id="rSel">' + e.rounds.map(function (r) { return '<option value="' + r.no + '"' + (r.no === rd.no ? ' selected' : '') + '>' + r.no + '라운드' + (e.confirmed === r.no ? ' (확정)' : '') + '</option>'; }).join('') + '</select></label>' +
+      '<label>교사<select id="tSel">' + s.teachers.map(function (t) { var done = teacherCuts(s, e, rd.ratings[t]).complete; return '<option value="' + esc(t) + '"' + (t === teacherSel ? ' selected' : '') + '>' + esc(t) + (done ? ' ✓' : '') + '</option>'; }).join('') + '</select></label>' +
+      '<span class="hint">만점 ' + e.full + '점 · 문항정보표 배점합 ' + itemTotal(e) + '점</span></div>' +
+      '<div class="toolbar"><span class="left">' + esc(e.name) + ' · ' + rd.no + '라운드 · ' + esc(teacherSel) + (locked ? ' <span class="pill ok">확정된 라운드</span>' : '') + '</span>' +
+      '<button class="btn" id="rAdd">라운드추가</button><button class="btn" id="rCopy">현재 라운드 복사</button><button class="btn red" id="rDel"' + (e.rounds.length < 2 || locked ? ' disabled' : '') + '>라운드삭제</button><button class="btn" id="fill65">목표 성취수준으로 참고값 채우기</button></div>' +
+      '<div class="scroll"><table class="grid"><thead><tr><th rowspan="2">문항구분</th><th rowspan="2">난이도</th><th rowspan="2">해당 문항번호</th><th rowspan="2">문항수</th><th rowspan="2">배점합</th><th colspan="' + lv.length + '">최소능력자의 예상 정답률(%)</th></tr><tr>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      cats.map(function (c) { return '<tr><td>' + c.type + '</td><td>' + c.diff + '</td><td class="l">' + c.nos.join(', ') + '</td><td>' + c.n + '</td><td class="num">' + c.sum + '</td>' +
+        lv.map(function (L) { var v = rating[c.key] && rating[c.key][L]; return '<td><input type="number" min="0" max="100" step="' + (L === 'E' ? 1 : 5) + '" data-c="' + c.key + '" data-l="' + L + '" value="' + (v == null ? '' : esc(v)) + '"' + (locked ? ' readonly' : '') + '></td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody><tfoot><tr><th colspan="5">' + esc(teacherSel) + ' 교사의 분할점수</th>' + lv.map(function (L) { return '<td class="num"><b>' + (tc.complete ? f2(tc.cuts[L]) : '–') + '</b></td>'; }).join('') + '</tr>' +
+      '<tr><th colspan="5">구분</th>' + lv.map(function (L) { return '<td>' + CUT_LABEL[L] + '</td>'; }).join('') + '</tr></tfoot></table></div>' +
+      (probs.length ? '<div class="msg bad">' + probs.map(esc).join('<br>') + '</div>' : '') +
+      '<div class="msg info">예상 정답률은 <b>A~D는 5% 단위, E는 1% 단위</b>로 입력합니다. 한 범주가 한 성취수준을 목표로 한 문항만으로 되어 있으면 그 수준 최소 능력자의 예상 정답률은 약 <b>65%</b>입니다. 윗 수준 목표 문항이 섞이면 65%보다 낮게, 아랫 수준 문항이 섞이면 높게 추정합니다. 일부 칸(범주별 1~2개)을 먼저 정한 뒤 사잇값·연속값으로 나머지를 채우는 방법이 매뉴얼에 안내되어 있습니다.</div>';
+  }, bind: function (s) {
+    var e = selExam(s); if (!categories(e).length) return;
+    var rd = e.rounds.find(function (r) { return r.no === e.round; }) || e.rounds[e.rounds.length - 1];
+    $('rSel').onchange = function () { e.round = +this.value; save(); render(); };
+    $('tSel').onchange = function () { teacherSel = this.value; render(); };
+    $('rAdd').onclick = function () { var no = Math.max.apply(null, e.rounds.map(function (r) { return r.no; })) + 1; e.rounds.push({ no: no, ratings: {} }); e.round = no; save(); render(); };
+    $('rCopy').onclick = function () { var no = Math.max.apply(null, e.rounds.map(function (r) { return r.no; })) + 1; e.rounds.push({ no: no, ratings: JSON.parse(JSON.stringify(rd.ratings)) }); e.round = no; save(); render(); };
+    $('rDel').onclick = function () { if (confirm(rd.no + '라운드를 지울까요?')) { e.rounds = e.rounds.filter(function (r) { return r !== rd; }); e.round = e.rounds[e.rounds.length - 1].no; save(); render(); } };
+    $('fill65').onclick = function () {
+      // 매뉴얼의 '문항의 분포 비중' 방식: 범주 안에서 목표 수준이 L보다 위인 문항은 정답률을 낮추고, 아래인 문항은 높인다.
+      if (e.confirmed === rd.no) return;
+      var lv = levels(s), rank = { A: 0, B: 1, C: 2, D: 3, E: 4 }, r = rd.ratings[teacherSel] = rd.ratings[teacherSel] || {};
+      var noTarget = false;
+      categories(e).forEach(function (c) { r[c.key] = r[c.key] || {};
+        var tg = c.targets.filter(Boolean); if (!tg.length) { noTarget = true; return; }
+        lv.forEach(function (L) {
+          var avg = tg.reduce(function (a, t) { return a + 65 + (rank[t] - rank[L]) * 10; }, 0) / tg.length; avg = Math.max(0, Math.min(100, avg));
+          r[c.key][L] = L === 'E' ? Math.round(avg) : Math.round(avg / 5) * 5;
+        });
+      });
+      save(); render();
+      alert((noTarget ? '목표 성취수준이 비어 있는 범주는 건너뛰었습니다.\n' : '') + '참고값입니다. 매뉴얼처럼 학기 단위 성취수준과 문항 난이도를 보고 교사가 직접 다듬어 주세요. (목표 수준 문항 65%, 한 수준 차이마다 ±10%p로 가정)');
+    };
+    document.querySelectorAll('[data-c]').forEach(function (el) { el.onchange = function () { var r = rd.ratings[teacherSel] = rd.ratings[teacherSel] || {}; r[el.dataset.c] = r[el.dataset.c] || {}; r[el.dataset.c][el.dataset.l] = el.value === '' ? '' : +el.value; save(); render(); }; });
+  } };
+
+  // ── 4. 추정분할점수산출결과관리 ──────────────────────────────
+  VIEWS.examResult = { html: function (s) {
+    var e = selExam(s), lv = levels(s), cats = categories(e);
+    if (!cats.length) return '<div class="msg warn">먼저 <a href="#items">문항정보표</a>를 입력해 주세요.</div>';
+    var html = '';
+    e.rounds.forEach(function (rd) {
+      var res = roundResult(s, e, rd), conf = e.confirmed === rd.no;
+      html += '<div class="box"><div class="toolbar" style="margin-top:0"><span class="left">' + rd.no + '라운드 ' + (conf ? '<span class="pill ok">확정</span>' : '') +
+        ' · 입력 교사 ' + res.n + '/' + s.teachers.length + ' · 교사 간 최대 차이 <span class="pill ' + (res.maxSpread >= 20 ? 'warn' : 'ok') + '">' + res.maxSpread + '%p</span></span>' +
+        (conf ? '<button class="btn red" data-unconf="' + rd.no + '">확정취소</button>' : '<button class="btn pri" data-conf="' + rd.no + '"' + (res.n ? '' : ' disabled') + '>확정</button>') + '</div>' +
+        '<div class="scroll"><table class="grid"><thead><tr><th>교사</th>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        res.rows.map(function (r) { return '<tr><th>' + esc(r.teacher) + '</th>' + lv.map(function (L) { return '<td class="num">' + (r.complete ? f2(r.cuts[L]) : '<span class="hint">미입력</span>') + '</td>'; }).join('') + '</tr>'; }).join('') +
+        '<tr><th style="background:#e8f0fe">예상 추정분할점수(평균)</th>' + lv.map(function (L) { return '<td class="num" style="background:#e8f0fe"><b>' + f2(res.avg[L]) + '</b></td>'; }).join('') + '</tr></tbody></table></div>' +
+        '<h3>문항 범주별 교사 간 예상 정답률 차이 (최댓값 − 최솟값, %p)</h3><div class="scroll"><table class="grid"><thead><tr><th>문항구분</th><th>난이도</th>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        cats.map(function (c) { return '<tr><td>' + c.type + '</td><td>' + c.diff + '</td>' + lv.map(function (L) { var d = res.spread[c.key][L]; return '<td class="num ' + (d == null ? '' : d >= 20 ? 'cell-warn' : 'cell-ok') + '">' + (d == null ? '–' : d) + '</td>'; }).join('') + '</tr>'; }).join('') +
+        '</tbody></table></div></div>';
+    });
+    var last = e.rounds[e.rounds.length - 1], lr = roundResult(s, e, last);
+    var done = e.rounds.length >= 2 && lr.allIn && lr.maxSpread < 20;
+    return '<div class="msg ' + (done ? 'ok' : 'warn') + '">완료 기준: <b>최소 2라운드</b>를 진행하고, 모든 문항 범주에서 교사 간 예상 정답률 차이가 <b>20%p 미만</b>이면 산출을 마칩니다. 20%p 이상인 범주(주황색)를 중심으로 협의한 뒤 다음 라운드를 진행하세요. ' +
+      (done ? '→ 마지막 라운드가 기준을 만족합니다.' : '→ 현재 ' + e.rounds.length + '라운드, 마지막 라운드 최대 차이 ' + lr.maxSpread + '%p' + (lr.allIn ? '' : ', 아직 입력하지 않은 교사가 있습니다') + '.') + '</div>' +
+      '<div class="toolbar"><span class="left">' + esc(e.name) + ' (만점 ' + e.full + '점, 학기말 반영 ' + e.ratio + '%)</span><a class="btn" href="#examCalc" style="text-decoration:none">정기시험추정분할점수산출관리로</a></div>' + html;
+  }, bind: function (s) {
+    var e = selExam(s);
+    document.querySelectorAll('[data-conf]').forEach(function (b) { b.onclick = function () { var no = +b.dataset.conf;
+      var res = roundResult(s, e, e.rounds.find(function (r) { return r.no === no; }));
+      if (!res.allIn && !confirm('예상 정답률을 입력하지 않은 교사가 있습니다. (휴직·미참여 등 특별한 사유가 있을 때만 일부 교사를 빼고 산출합니다) 확정할까요?')) return;
+      e.confirmed = no; save(); render(); }; });
+    document.querySelectorAll('[data-unconf]').forEach(function (b) { b.onclick = function () { e.confirmed = null; save(); render(); }; });
+  } };
+
+  // ── 5. 수행평가추정분할점수관리 ──────────────────────────────
+  VIEWS.perf = { html: function (s) {
+    var p = s.perf, lv = levels(s), pt = perfTotal(s);
+    var tabs = '<div class="tabs"><button data-tab="전체영역"' + (p.tab === '전체영역' ? ' class="on"' : '') + '>전체영역</button><button data-tab="영역별"' + (p.tab === '영역별' ? ' class="on"' : '') + '>영역별</button></div>';
+    var body = '';
+    if (p.tab === '전체영역') {
+      body = '<div class="msg info">전체영역 탭에 입력할 때는 <b>영역별로 산출한 추정분할점수를 모두 합산</b>해서 넣습니다(정수).</div><div class="scroll"><table class="grid"><thead><tr><th>수행평가 전체영역 만점</th>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody><tr><td><input type="number" id="ptFull" value="' + esc(p.total.full) + '"></td>' +
+        lv.map(function (L) { var v = p.total.cuts[L]; return '<td><input type="number" step="1" data-tc="' + L + '" value="' + (v == null ? '' : esc(v)) + '"></td>'; }).join('') + '</tr></tbody></table></div>';
+    } else {
+      body = p.areas.map(function (a, ai) {
+        var ac = perfAreaCuts(s, a), problems = [];
+        lv.forEach(function (L, i) { if (i && ac[L] != null && ac[lv[i - 1]] != null && ac[L] > ac[lv[i - 1]]) problems.push(L + ' 점수가 윗 수준보다 큽니다.'); });
+        if (ac.E != null && a.base !== '' && +a.base > 0 && ac.E <= +a.base) problems.push('E 최소 능력자 점수(' + ac.E + ')가 기본점수(' + a.base + ') 이하입니다. 기본점수보다 높아야 합니다.');
+        if (ac.A != null && ac.A > a.full) problems.push('A 최소 능력자 점수가 영역 만점보다 큽니다.');
+        return '<div class="box"><div class="toolbar" style="margin-top:0"><span class="left">영역 ' + (ai + 1) + '</span><label class="hint"><input type="checkbox" data-ar="' + ai + '" data-f="useRubric"' + (a.useRubric ? ' checked' : '') + '> 채점 기준으로 계산</label><button class="btn red" data-rmar="' + ai + '"' + (p.areas.length < 2 ? ' disabled' : '') + '>영역 삭제</button></div>' +
+          '<div class="kv"><label>영역명</label><input data-ar="' + ai + '" data-f="name" value="' + esc(a.name) + '"><label>영역 만점</label><input type="number" data-ar="' + ai + '" data-f="full" value="' + esc(a.full) + '"><label>기본점수</label><input type="number" data-ar="' + ai + '" data-f="base" value="' + esc(a.base) + '"></div>' +
+          (a.useRubric ? '<h3>평가요소별 · 성취수준과 연계한 수행 수준의 배점 (각 수준 최소 능력자가 받는 점수)</h3><div class="scroll"><table class="grid"><thead><tr><th>평가요소</th>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '<th class="no-print">삭제</th></tr></thead><tbody>' +
+            a.elems.map(function (el, ei) { return '<tr><td><input class="txt" data-el="' + ai + ':' + ei + '" data-f="name" value="' + esc(el.name) + '"></td>' + lv.map(function (L) { var v = el.s[L]; return '<td><input type="number" step="1" data-el="' + ai + ':' + ei + '" data-l="' + L + '" value="' + (v == null ? '' : esc(v)) + '"></td>'; }).join('') + '<td class="no-print"><button class="btn red" data-rmel="' + ai + ':' + ei + '">×</button></td></tr>'; }).join('') +
+            '<tr><th>최소 능력자 점수 = 분할점수</th>' + lv.map(function (L) { return '<td class="num"><b>' + (ac[L] == null ? '–' : ac[L]) + '</b></td>'; }).join('') + '<td class="no-print"></td></tr></tbody></table></div><div class="toolbar"><button class="btn" data-addel="' + ai + '">평가요소 추가</button></div>'
+          : '<h3>영역 분할점수 직접 입력 (정수)</h3><div class="scroll"><table class="grid"><thead><tr>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody><tr>' + lv.map(function (L) { var v = a.cuts[L]; return '<td><input type="number" step="1" data-acut="' + ai + '" data-l="' + L + '" value="' + (v == null ? '' : esc(v)) + '"></td>'; }).join('') + '</tr></tbody></table></div>') +
+          (problems.length ? '<div class="msg bad">' + problems.map(esc).join('<br>') + '</div>' : '') + '</div>';
+      }).join('') + '<div class="toolbar"><button class="btn" id="arAdd">영역 추가</button></div>';
+    }
+    return '<div class="msg info">수행평가 추정분할점수는 채점기준표의 수행 수준(채점 기준)을 성취수준(A~E)과 연계하고, <b>각 성취수준 최소 능력자가 받는 배점의 합</b>을 분할점수로 씁니다(정수). 교사별 점수가 다르면 평균보다 <b>협의로 결정</b>하는 것이 바람직합니다. A 수준은 적어도 한 평가요소에서 최대 능력자와 최소 능력자의 수행 수준을 따로 진술합니다.</div>' +
+      tabs + body +
+      '<div class="box"><h2>수행평가 전체영역 합계</h2><div class="scroll"><table class="grid"><thead><tr><th>전체영역 만점</th><th>학기말 반영비율</th>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody><tr><td class="num">' + pt.full + '</td><td class="num">' + s.perf.ratio + '%</td>' + lv.map(function (L) { return '<td class="num"><b>' + (pt.cuts[L] == null ? '–' : pt.cuts[L]) + '</b></td>'; }).join('') + '</tr></tbody></table></div></div>';
+  }, bind: function (s) {
+    var p = s.perf;
+    document.querySelectorAll('[data-tab]').forEach(function (b) { b.onclick = function () { p.tab = b.dataset.tab; if (p.tab === '전체영역') { var t = perfTotal(Object.assign({}, s, { perf: Object.assign({}, p, { tab: '영역별' }) })); if (!Object.keys(p.total.cuts).length && t.ok) { p.total.full = t.full; p.total.cuts = Object.assign({}, t.cuts); } } save(); render(); }; });
+    var ptFull = $('ptFull'); if (ptFull) ptFull.onchange = function () { p.total.full = +this.value; save(); render(); };
+    document.querySelectorAll('[data-tc]').forEach(function (el) { el.onchange = function () { p.total.cuts[el.dataset.tc] = el.value === '' ? null : Math.round(+el.value); save(); render(); }; });
+    document.querySelectorAll('[data-ar]').forEach(function (el) { el.onchange = function () { var a = p.areas[+el.dataset.ar], f = el.dataset.f; a[f] = f === 'useRubric' ? el.checked : (f === 'name' ? el.value : +el.value); save(); render(); }; });
+    document.querySelectorAll('[data-el]').forEach(function (el) { el.onchange = function () { var ix = el.dataset.el.split(':'), item = p.areas[+ix[0]].elems[+ix[1]]; if (el.dataset.f === 'name') item.name = el.value; else item.s[el.dataset.l] = el.value === '' ? '' : Math.round(+el.value); save(); render(); }; });
+    document.querySelectorAll('[data-acut]').forEach(function (el) { el.onchange = function () { p.areas[+el.dataset.acut].cuts[el.dataset.l] = el.value === '' ? null : Math.round(+el.value); save(); render(); }; });
+    document.querySelectorAll('[data-addel]').forEach(function (b) { b.onclick = function () { var a = p.areas[+b.dataset.addel]; a.elems.push({ name: '평가요소' + (a.elems.length + 1), s: {} }); save(); render(); }; });
+    document.querySelectorAll('[data-rmel]').forEach(function (b) { b.onclick = function () { var ix = b.dataset.rmel.split(':'); p.areas[+ix[0]].elems.splice(+ix[1], 1); save(); render(); }; });
+    document.querySelectorAll('[data-rmar]').forEach(function (b) { b.onclick = function () { p.areas.splice(+b.dataset.rmar, 1); save(); render(); }; });
+    var ad = $('arAdd'); if (ad) ad.onclick = function () { p.areas.push(newArea('수행평가 영역' + (p.areas.length + 1), 10)); save(); render(); };
+  } };
+
+  // ── 6. 학기말추정분할점수산출 ────────────────────────────────
+  VIEWS.final = { html: function (s) {
+    var fc = finalCuts(s), lv = levels(s);
+    var msgs = [];
+    if (Math.abs(fc.sumRatio - 100) > 1e-6) msgs.push('학기말 반영비율 합계가 ' + r2(fc.sumRatio) + '%입니다. 100%가 되도록 <a href="#plan">평가계획</a>을 고쳐 주세요.');
+    s.exams.forEach(function (e) { if (!e.confirmed) msgs.push('「' + esc(e.name) + '」의 추정분할점수 라운드가 아직 확정되지 않았습니다. (<a href="#examResult">추정분할점수산출결과관리</a>)'); });
+    if (!perfTotal(s).ok) msgs.push('수행평가 추정분할점수를 모두 입력해 주세요. (<a href="#perf">수행평가추정분할점수관리</a>)');
+    return (msgs.length ? '<div class="msg warn">' + msgs.join('<br>') + '</div>' : '<div class="msg ok">모든 평가의 추정분할점수가 준비되었습니다.</div>') +
+      '<div class="scroll"><table class="grid"><thead><tr><th>구분</th><th>반영비율(%)</th><th>고사/영역</th><th>만점</th>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      fc.parts.map(function (p) { return '<tr><th>' + p.kind + '</th><td class="num">' + p.ratio + '</td><td>' + esc(p.label) + '</td><td class="num">' + p.full + '</td>' + lv.map(function (L) { return '<td class="num">' + (p.cuts ? f2(p.cuts[L]) : '–') + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '<tr><th colspan="4">반영비율 환산 합계</th>' + lv.map(function (L) { return '<td class="num">' + f2(fc.raw[L]) + '</td>'; }).join('') + '</tr>' +
+      '<tr><th colspan="4" style="background:#e8f0fe">학기말 최종 추정분할점수</th>' + lv.map(function (L) { return '<td class="num" style="background:#e8f0fe"><b>' + (fc.ok ? fc.fin[L] : '–') + '</b></td>'; }).join('') + '</tr></tbody></table></div>' +
+      '<div class="msg info">학기말 최종 추정분할점수 = Σ (각 평가의 추정분할점수 ÷ 그 평가의 만점 × 학기말 반영비율). 매뉴얼의 가정통신문 예시처럼 정수(소수 첫째 자리에서 반올림)로 표시했습니다. 최종값은 나이스 산출 결과를 따릅니다.</div>';
+  } };
+
+  // ── 7. 출력 ─────────────────────────────────────────────────
+  VIEWS.print = { html: function (s) {
+    var lv = levels(s), fc = finalCuts(s);
+    var head = '<tr><th>학년</th><th>과목</th><th>만점(반영비율)</th>' + LV5.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr>';
+    var cell = function (c, L) { return lv.indexOf(L) < 0 ? '–' : (c ? f2(c[L]) : ''); };
+    var examTables = s.exams.map(function (e) {
+      var c = confirmedCuts(s, e);
+      var detail = e.confirmed ? (function () { var rd = e.rounds.find(function (r) { return r.no === e.confirmed; }); var res = roundResult(s, e, rd);
+        return '<h3>가. 문항 범주에 따른 추정분할점수 교사별 입력 정보 (' + e.confirmed + '라운드)</h3><table class="grid"><thead><tr><th>교사</th><th>문항 범주</th>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          s.teachers.map(function (t) { return categories(e).map(function (cg, i) { var r = rd.ratings[t] && rd.ratings[t][cg.key] || {}; return '<tr>' + (i === 0 ? '<th rowspan="' + categories(e).length + '">' + esc(t) + '</th>' : '') + '<td>' + cg.type + '·' + cg.diff + ' (' + cg.sum + '점)</td>' + lv.map(function (L) { return '<td class="num">' + (r[L] == null || r[L] === '' ? '' : r[L]) + '</td>'; }).join('') + '</tr>'; }).join(''); }).join('') +
+          '</tbody></table><h3>나. 해당 라운드 예상 추정분할점수</h3><table class="grid"><thead><tr><th>교사</th>' + lv.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          res.rows.map(function (r) { return '<tr><th>' + esc(r.teacher) + '</th>' + lv.map(function (L) { return '<td class="num">' + (r.complete ? f2(r.cuts[L]) : '') + '</td>'; }).join('') + '</tr>'; }).join('') +
+          '<tr><th>평균</th>' + lv.map(function (L) { return '<td class="num"><b>' + f2(res.avg[L]) + '</b></td>'; }).join('') + '</tr></tbody></table>'; })() : '<div class="msg warn">확정된 라운드가 없습니다.</div>';
+      return '<div class="box"><h2>[양식1] ' + esc(e.name) + ' 추정분할점수 교과협의록 (' + esc(s.name) + ')</h2>' +
+        '<table class="grid"><tbody><tr><th style="width:110px">일시</th><td class="l" contenteditable="true">' + s.year + '년 ○월 ○일</td><th style="width:80px">장소</th><td class="l" contenteditable="true"></td></tr>' +
+        '<tr><th>주제</th><td class="l" colspan="3">' + s.year + '학년도 ' + s.sem + '학기 ' + esc(e.name) + ' 성취수준별 추정분할점수 산출</td></tr><tr><th>참석자</th><td class="l" colspan="3">' + s.teachers.map(esc).join(', ') + '</td></tr></tbody></table>' + detail +
+        '<h3>분할점수 산출 결과</h3><table class="grid"><thead><tr><th>학년</th><th>과목명</th><th>확정 라운드</th>' + LV5.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody><tr><td>' + s.grade + '</td><td>' + esc(s.name) + '</td><td>' + (e.confirmed || '-') + '</td>' + LV5.map(function (L) { return '<td class="num">' + cell(c, L) + '</td>'; }).join('') + '</tr></tbody></table>' +
+        '<p class="hint" contenteditable="true">문항 난이도와 최소 능력자의 수행 특성을 고려하여 예상 정답률을 입력하였고, ' + e.rounds.length + '라운드를 실시하여 추정분할점수를 산출하였음.</p></div>';
+    }).join('');
+    var notice = '<div class="box"><h2>[양식3·4] 학생·학부모 안내용 표 — 정기시험 추정분할점수</h2><table class="grid"><thead>' + head + '</thead><tbody>' +
+      s.exams.map(function (e) { var c = confirmedCuts(s, e); return '<tr><td>' + s.grade + '</td><td>' + esc(s.name) + ' (' + esc(e.name) + ')</td><td>' + e.full + '점(' + e.ratio + '%)</td>' + LV5.map(function (L) { return '<td class="num">' + cell(c, L) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>' +
+      '<h3>[양식5] 수행평가 추정분할점수</h3><table class="grid"><thead>' + head + '</thead><tbody><tr><td>' + s.grade + '</td><td>' + esc(s.name) + '</td><td>' + perfTotal(s).full + '점(' + s.perf.ratio + '%)</td>' + LV5.map(function (L) { var c = perfTotal(s).cuts; return '<td class="num">' + (lv.indexOf(L) < 0 ? '–' : (c[L] == null ? '' : c[L])) + '</td>'; }).join('') + '</tr></tbody></table>' +
+      '<h3>[양식6] 학기말 추정분할점수</h3><table class="grid"><thead><tr><th>구분</th><th>반영비율</th><th>고사/영역</th>' + LV5.map(function (L) { return '<th>' + CUT_LABEL[L] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      fc.parts.map(function (p) { return '<tr><td>' + p.kind + '</td><td>' + p.ratio + '</td><td>' + esc(p.label) + '</td>' + LV5.map(function (L) { return '<td class="num">' + (lv.indexOf(L) < 0 ? '–' : (p.cuts ? f2(p.cuts[L]) : '')) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '<tr><th colspan="3">학기말 최종 추정분할점수</th>' + LV5.map(function (L) { return '<td class="num"><b>' + (lv.indexOf(L) < 0 ? '–' : (fc.ok ? fc.fin[L] : '')) + '</b></td>'; }).join('') + '</tr></tbody></table></div>';
+    return '<div class="toolbar"><span class="left">표 안의 일시·장소·결론 문구는 눌러서 고칠 수 있습니다.</span><button class="btn" id="csvBtn">엑셀(CSV) 내려받기</button><button class="btn pri" onclick="window.print()">인쇄 · PDF</button></div>' + examTables + notice;
+  }, bind: function (s) {
+    $('csvBtn').onclick = function () {
+      var lv = levels(s), fc = finalCuts(s), rows = [['구분', '고사/영역', '만점', '반영비율'].concat(LV5.map(function (L) { return CUT_LABEL[L]; }))];
+      fc.parts.forEach(function (p) { rows.push([p.kind, p.label, p.full, p.ratio].concat(LV5.map(function (L) { return lv.indexOf(L) < 0 || !p.cuts ? '' : r2(p.cuts[L]); }))); });
+      rows.push(['학기말 최종', '', '', ''].concat(LV5.map(function (L) { return lv.indexOf(L) < 0 || !fc.ok ? '' : fc.fin[L]; })));
+      var csv = '﻿' + rows.map(function (r) { return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+      download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), s.year + '_' + s.sem + '학기_' + s.name + '_추정분할점수.csv');
+    };
+  } };
+
+  // ── 백업 · 복원 ─────────────────────────────────────────────
+  function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 3000); }
+  $('backupBtn').onclick = function () { download(new Blob([JSON.stringify(db, null, 1)], { type: 'application/json' }), '추정분할점수_백업_' + new Date().toISOString().slice(0, 10) + '.json'); };
+  $('restoreBtn').onclick = function () { $('restoreInput').click(); };
+  $('restoreInput').onchange = function () { var f = this.files[0]; if (!f) return; f.text().then(function (t) { try { var d = JSON.parse(t); if (!Array.isArray(d.subjects)) throw 0;
+    if (!confirm('백업의 과목 ' + d.subjects.length + '개를 불러옵니다. 같은 과목은 백업 내용으로 바뀝니다.')) return;
+    d.subjects.forEach(function (s) { db.subjects = db.subjects.filter(function (x) { return x.id !== s.id; }); db.subjects.push(s); }); db.current = d.current || db.current; save(); render(); } catch (e) { alert('백업 파일을 읽지 못했습니다.'); } }); this.value = ''; };
+  $('menuBtn').onclick = function () { document.body.classList.toggle('lnb-open'); };
+  window.addEventListener('hashchange', render);
+  if (!db.current && db.subjects[0]) db.current = db.subjects[0].id;
+  render();
+  // 점검용
+  window.__tongCut = { db: function () { return db; }, finalCuts: finalCuts, roundResult: roundResult, categories: categories, teacherCuts: teacherCuts };
+})();
+</script>
+</body>
+</html>
