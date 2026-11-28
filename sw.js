@@ -2,7 +2,7 @@
  * 앱을 수정한 뒤에는 아래 CACHE_VERSION 을 올려주세요.
  * (올리지 않으면 이미 설치한 사용자에게 옛 파일이 계속 보일 수 있습니다)
  */
-var CACHE_VERSION = 'v3.2.0-77';
+var CACHE_VERSION = 'v3.2.0-78';
 var CACHE_NAME = 'seat-app-' + CACHE_VERSION;
 
 var PRECACHE = [
