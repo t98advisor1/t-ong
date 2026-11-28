@@ -75,14 +75,14 @@
       </div>
       <h1 class="sr-only">T-ong 교무수첩</h1>
       <nav class="mode-tabs" id="modeTabs" aria-label="교무수첩 통합 메뉴">
-        <button type="button" class="mode-tab" id="topSyncBtn" title="1단계: Google 계정 및 마스터 시트 연동 (PC·모바일 기기간 시간표 통합)"><span class="tab-step-badge">1</span>Google 시트 연동</button>
-        <button type="button" class="mode-tab" id="topScheduleBtn" title="2단계: NEIS 학교 검색 및 반별 수업 과목·동아리 시간표 설정"><span class="tab-step-badge">2</span>학교·수업시간표</button>
-        <button type="button" class="mode-tab active" data-mode="seat" title="3단계: 학급 명렬표 및 좌석·모둠 배치 관리"><span class="tab-step-badge">3</span>학급 관리(자리)</button>
-        <button type="button" class="mode-tab" data-mode="attend" title="4단계: 출결 체크 및 교과 수업관찰·칭찬 누가기록"><span class="tab-step-badge">4</span>수업·출결 기록</button>
-        <button type="button" class="mode-tab" id="calendarBtn" title="5단계: 전체화면 NEIS 학사일정 및 상담 달력"><span class="tab-step-badge">5</span>일정·학사달력</button>
+        <button type="button" class="mode-tab" id="topSyncBtn" title="1단계: G인증 — Google 계정 로그인 및 마스터 시트 연동 (PC·모바일 기기간 기록 통합)"><span class="tab-step-badge">1</span>G인증</button>
+        <button type="button" class="mode-tab" id="topScheduleBtn" title="2단계: NEIS 학교 검색 및 반별 수업 과목·동아리 시간표 설정"><span class="tab-step-badge">2</span>시간표</button>
+        <button type="button" class="mode-tab active" data-mode="seat" title="3단계: 학급 명렬표 및 좌석·모둠 배치 관리"><span class="tab-step-badge">3</span>자리</button>
+        <button type="button" class="mode-tab" data-mode="attend" title="4단계: 출결 체크 및 교과 수업관찰·칭찬 누가기록"><span class="tab-step-badge">4</span>출결</button>
+        <button type="button" class="mode-tab" id="calendarBtn" title="5단계: 전체화면 NEIS 학사일정 및 상담 달력"><span class="tab-step-badge">5</span>일정</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="extraBtn" title="6단계: 교실 운영·발표 복불복·신체활동 게임 허브"><span class="tab-step-badge">6</span>교실 도구</button>
+          <button type="button" class="mode-tab" id="extraBtn" title="6단계: 교실 운영·발표 복불복·신체활동 게임 허브"><span class="tab-step-badge">6</span>교실</button>
           <div class="more-menu fav-menu extra-cat-menu" id="extraMenu">
             <div class="fav-category-list">
               <details class="fav-category" open>
@@ -96,7 +96,7 @@
                 </div>
               </details>
               <details class="fav-category" open>
-                <summary>수업·학급 운영 <small>12개</small></summary>
+                <summary>수업·학급 운영 <small>13개</small></summary>
                 <div class="fav-category-grid">
                   <a href="https://t98advisor1.github.io/board-tong/" target="_blank" rel="noopener noreferrer" title="GitHub 우선 접속 (https://t98advisor1.github.io/board-tong/) · Vercel 보조: boardtong.vercel.app">스마트 판서 보드</a>
                   <a href="./smart-board.html" target="_blank" rel="noopener noreferrer" title="기존 교무수첩 내 스마트 판서에 저장된 필기를 백업(.json) 파일로 내려받기">스마트 판서 (기존 필기 백업)</a>
@@ -106,6 +106,7 @@
                   <a href="https://t98advisor1.github.io/tong-pdf/" target="_blank" rel="noopener noreferrer" title="GitHub 독립 배포 (https://t98advisor1.github.io/tong-pdf/) · 한글·한쇼·PPT PDF 변환 및 PC용 무설치 도구">통PDF 변환기 (웹·PC)</a>
                   <a href="https://t98advisor1.github.io/tong-md/" target="_blank" rel="noopener noreferrer" title="GitHub 독립 배포 (https://t98advisor1.github.io/tong-md/)">AI용 MD(.md) 변환기</a>
                   <button type="button" data-open="scorePlanner">문항별 배점 설계기</button>
+                  <a href="./tong-cut/" target="_blank" rel="noopener noreferrer" title="고등학교 성취평가 정기시험·수행평가·학기말 추정분할점수 (나이스 메뉴 구성)">추정분할점수 산출기</a>
                   <button type="button" data-open="timer">간편 타이머</button>
                   <button type="button" data-open="praise">칭찬 포인트</button>
                   <button type="button" data-open="duty">1인 1역</button>
@@ -160,12 +161,12 @@
           </div>
         </div>
 
-        <button type="button" class="mode-tab" id="lessonToolBtn" title="7단계: 출제·수업 설계 도구 및 교과 학습용 앱"><span class="tab-step-badge">7</span>수업 도구</button>
+        <button type="button" class="mode-tab" id="lessonToolBtn" title="7단계: 출제·수업 설계 도구 및 교과 학습용 앱"><span class="tab-step-badge">7</span>수업</button>
 
-        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">8</span>구글 시트 모음</button>
+        <button type="button" class="mode-tab" id="topSheetMemoBtn" title="구글 시트 링크 모음 및 즐겨찾는 업무 사이트"><span class="tab-step-badge">8</span>시트</button>
 
         <div class="more-wrap">
-          <button type="button" class="mode-tab" id="favBtn" title="수업·업무 추천 사이트 홈페이지 스크린샷 허브">추천 사이트</button>
+          <button type="button" class="mode-tab" id="favBtn" title="수업·업무 추천 사이트 홈페이지 스크린샷 허브">추천</button>
           <div class="more-menu fav-menu" id="favMenu">
             <div class="fav-category-list">
               <details class="fav-category math-favorites" open>
@@ -270,7 +271,7 @@
         <button type="button" id="headerRosterBtn" class="header-roster-btn">👥 학급 명렬표 등록</button>
       </div>
 
-      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 중앙 대형 모달 (상단 [1 Google 시트 연동]에서 호출) -->
+      <!-- 구글 계정 영구 연동 및 시트 실시간 동기화 중앙 대형 모달 (상단 [1 G인증]에서 호출) -->
       <div class="header-sync-wrap" id="headerSyncWrap">
         <div id="headerSyncMenu" class="header-sync-menu" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle" hidden>
           <div class="header-sync-dialog">
@@ -2812,7 +2813,7 @@
           <button type="button" class="btn-outline" id="memoBoardTopicSaveBtn">주제 적용</button>
         </div>
         <div id="memoBoardGuideBanner" class="memo-board-guide-banner" style="display:none;">
-          <span>실시간 학생 QR 참여는 상단 <b>[1 Google 시트 연동]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모·스티커·엑셀 저장은 바로 가능합니다.)</span>
+          <span>실시간 학생 QR 참여는 상단 <b>[1 G인증]</b> 완료 후 바로 사용할 수 있습니다. (현재 화면에서 교사 직접 메모·스티커·엑셀 저장은 바로 가능합니다.)</span>
           <button type="button" class="btn-outline" id="memoBoardOpenSyncBtn">시트 연동 열기</button>
         </div>
         <div class="mb-map-compose-bar" id="mbMapComposeBar" style="display:none;">
@@ -2862,7 +2863,7 @@
       <div class="modal-body mb-guide-body">
         <div class="mb-guide-intro">
           <b>시작 전 10초 확인</b>
-          <p>교사가 직접 메모를 붙이고 엑셀·시트로 저장하는 기능은 <b>별도 설정 없이 바로 사용</b>할 수 있습니다. 학생 스마트폰에서 <b>QR로 실시간 참여</b>하려면 최초 1회 상단 <b>[1 Google 시트 연동]</b>에서 마스터 시트 웹앱 URL만 연결해 두면 됩니다.</p>
+          <p>교사가 직접 메모를 붙이고 엑셀·시트로 저장하는 기능은 <b>별도 설정 없이 바로 사용</b>할 수 있습니다. 학생 스마트폰에서 <b>QR로 실시간 참여</b>하려면 최초 1회 상단 <b>[1 G인증]</b>에서 마스터 시트 웹앱 URL만 연결해 두면 됩니다.</p>
         </div>
 
         <div class="mb-guide-steps">

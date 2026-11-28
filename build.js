@@ -154,6 +154,7 @@ const nGuide = copyDir('guide');
 const nAssets = copyDir('assets');
 const nVendor = copyDir('vendor');
 const nScreenshots = copyDir('screenshots');
+const nTongCut = copyDir('tong-cut');   // 추정분할점수 산출기 (별도 페이지)
 // TWA verification is copied only after real signing certificates have been supplied.
 const assetLinksPath = path.join(SRC, '.well-known', 'assetlinks.json');
 if (fs.existsSync(assetLinksPath)) {

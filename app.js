@@ -5200,7 +5200,7 @@ var GUIDE_SLIDES = [
     img: 'guide/v67-google-calendar-sync.png',
     title: 'Google 캘린더 양방향 동기화 — 통합 로그인으로 스마트폰까지 연결',
     desc: '<ul>' +
-      '<li><strong>1번 메뉴와 통합 로그인</strong>[1 Google 시트 연동]에서 통합 로그인을 하면 Google 기본 캘린더와 자동으로 양방향 동기화됩니다.<span class="gd-when">활용: 스마트폰 캘린더와 일정 공유</span></li>' +
+      '<li><strong>1번 메뉴와 통합 로그인</strong>[1 G인증]에서 통합 로그인을 하면 Google 기본 캘린더와 자동으로 양방향 동기화됩니다.<span class="gd-when">활용: 스마트폰 캘린더와 일정 공유</span></li>' +
       '<li><strong>캘린더 전용 계정 변경</strong>필요 시 교무수첩 계정은 유지한 채 캘린더만 다른 Google 계정으로 연결할 수도 있습니다.</li>' +
       '</ul>',
     callout: { type: 'warn', text: '브라우저를 새로고침하면 보안상 캘린더 토큰이 초기화되므로, 새로고침 후에는 달력 하단의 연결/동기화 버튼을 한 번 눌러주세요.' }
@@ -13363,7 +13363,7 @@ window.TodayBriefing = TodayBriefing;
 
     function openStudentQr() {
       var sheetUrl = getStoredSheetUrl();
-      if (!sheetUrl) { alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 Google 시트 연동]에서 마스터 시트 웹앱 URL을 연결해 주세요.'); return; }
+      if (!sheetUrl) { alert('학생들이 QR로 메모를 올리려면 먼저 상단 [1 G인증]에서 마스터 시트 웹앱 URL을 연결해 주세요.'); return; }
       var topicEl = document.getElementById('memoBoardTopicInput');
       var topic = (topicEl && topicEl.value.trim()) || '수업 아이디어 모으기';
       var base = new URL('./board.html', window.location.href).href;
@@ -13658,7 +13658,7 @@ window.TodayBriefing = TodayBriefing;
         var token = ((document.getElementById('notionTokenInput') || {}).value || '').trim();
         var dbId = ((document.getElementById('notionDbIdInput') || {}).value || '').trim();
         if (!sheetUrl) {
-          setStatus('자동 전송은 상단 [1 Google 시트 연동] 후 사용할 수 있습니다. 위 [노션용 표 복사]는 바로 사용 가능합니다.', false);
+          setStatus('자동 전송은 상단 [1 G인증] 후 사용할 수 있습니다. 위 [노션용 표 복사]는 바로 사용 가능합니다.', false);
           return;
         }
         if (!token || !dbId) {
@@ -14663,6 +14663,7 @@ window.TodayBriefing = TodayBriefing;
     docConverter: { openKey: 'docConverter', tag: '문서 유틸리티', title: '문서 · PDF 올인원 변환기', desc: '한글(.hwpx/.hwp)↔PDF·텍스트 변환, PDF 합치기/나누기, 이미지↔PDF를 설치 없이 처리합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="18" height="24" rx="3" fill="#fff"/><rect x="36" y="28" width="18" height="24" rx="3" fill="#fde047"/><path d="M32 20h10l-4-4M32 44H22l4 4" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
     mdConverter: { title: 'AI용 마크다운(.md) 올인원 변환기', url: 'https://t98advisor1.github.io/tong-md/', altUrl: 'https://t98advisor1.github.io/tong-md/md-converter-guide.html', altLabel: '사용설명서 ↗', tag: 'GitHub 독립 배포 · AI', desc: '안정적인 별도 GitHub 전용 주소에서 한글(.hwpx 수식→LaTeX)·PDF·워드·PPT·엑셀을 클로드·제미나이·노트북LM용 .md로 일괄 변환합니다.', bg: 'linear-gradient(135deg, #0f172a 0%, #0d9488 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="44" height="40" rx="7" fill="rgba(255,255,255,0.16)" stroke="#fff" stroke-width="2.6"/><text x="32" y="39" text-anchor="middle" fill="#fde047" font-size="18" font-weight="900">.MD</text></svg>' },
     tongPdf: { title: '통PDF (한글·한쇼·PPT → PDF)', url: 'https://t98advisor1.github.io/tong-pdf/', altUrl: 'https://github.com/t98advisor1/tong-pdf/releases/latest/download/TongPDF-PC.exe', altLabel: 'PC용 .exe ⬇', tag: 'GitHub 독립 배포 · PDF', desc: '웹에서 한글(.hwpx/.hwp)·PPT(.pptx)·워드·이미지를 PDF로 일괄 변환하고, 교무실 Windows PC용 무설치(.exe)로 한쇼·한글·PPT 원본 100% 변환까지 지원합니다.', bg: 'linear-gradient(135deg, #1d4ed8 0%, #dc2626 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="12" width="44" height="40" rx="7" fill="rgba(255,255,255,0.16)" stroke="#fff" stroke-width="2.6"/><text x="32" y="39" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="900">PDF</text></svg>' },
+    cutScore: { title: '추정분할점수 산출기 (성취평가)', url: './tong-cut/', altUrl: './tong-cut/#guide', altLabel: '추정분할점수란? ↗', tag: '성취평가 · 나이스 메뉴 구성', desc: '정기시험 문항 범주별 최소 능력자 예상 정답률 → 교사별·라운드별 추정분할점수, 수행평가 채점기준 분할점수, 학기말 최종 분할점수와 교과협의록·가정통신문 표를 만듭니다.', bg: 'linear-gradient(135deg, #1b2e5a 0%, #2f5fb3 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="10" width="44" height="44" rx="8" fill="rgba(255,255,255,0.15)" stroke="#fff" stroke-width="2.5"/><path d="M16 44h32M16 34h32M16 24h32" stroke="#93c5fd" stroke-width="3"/><path d="M26 16v32" stroke="#fde047" stroke-width="4" stroke-linecap="round"/></svg>' },
     scorePlanner: { openKey: 'scorePlanner', tag: '출제 설계', title: '문항별 배점 설계기', desc: '스무고개 3단계 질문에 답하면 총점·문항 수에 맞는 배점과 구글 시트 수식을 만듭니다.', bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="8" width="44" height="48" rx="8" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="2.5"/><path d="M19 22h26M19 32h18M19 42h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="45" cy="42" r="6" fill="#fde047"/></svg>' },
     memoBoard: { title: '수업 메모보드 (패들렛 · 지도 · PDF)', url: 'https://t98advisor1.github.io/tong-padlet/', altUrl: 'https://memotong.vercel.app/', altLabel: 'Vercel 보조 ↗', tag: 'GitHub 우선 · PDF', desc: '안정적인 GitHub 링크로 우선 접속하며, 담벼락·모둠 칼럼·지도 보드 실시간 QR 참여와 A4 PDF 출력, 구글 시트 저장을 지원합니다. (Vercel 보조: memotong.vercel.app)', bg: 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="12" width="22" height="20" rx="4" fill="#fef08a"/><rect x="34" y="12" width="22" height="20" rx="4" fill="#fbcfe8"/><rect x="8" y="36" width="22" height="18" rx="4" fill="#bbf7d0"/><rect x="34" y="36" width="22" height="18" rx="4" fill="#ddd6fe"/></svg>' },
     mentiBoard: { title: '실시간 질문보드 (멘티미터 · 워드클라우드)', url: 'https://t98advisor1.github.io/tong-menti/', altUrl: 'https://mentitong.vercel.app/', altLabel: 'Vercel 보조 ↗', tag: 'GitHub 우선 · QR', desc: '안정적인 GitHub 링크로 우선 접속하며, 실시간 워드 클라우드·투표·척도·순위·2×2·퀴즈·Q&A 송출과 PDF 보고서를 지원합니다. (Vercel 보조: mentitong.vercel.app)', bg: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)', svg: '<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="34" width="10" height="18" rx="3" fill="#a5f3fc"/><rect x="27" y="18" width="10" height="34" rx="3" fill="#fde047"/><rect x="44" y="26" width="10" height="26" rx="3" fill="#fbcfe8"/><path d="M8 54h48" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>' },
@@ -14821,7 +14822,7 @@ window.TodayBriefing = TodayBriefing;
   window.LessonToolsHubModule = createHubController(
     'lessonToolsHubModal', 'ltHubBody', 'ltHubFoldAllBtn', 'ltHubFullscreenBtn', 'ltHubColBtn',
     [
-      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'memoBoard', 'mentiBoard', 'scorePlanner', 'docConverter', 'tongPdf', 'mdConverter', 'seoulData', 'timer'] },
+      { title: '출제 · 수업 설계 도구', keys: ['smartBoard', 'memoBoard', 'mentiBoard', 'scorePlanner', 'cutScore', 'docConverter', 'tongPdf', 'mdConverter', 'seoulData', 'timer'] },
       { title: '발표 · 뽑기 도구', note: 'QR 복불복 포함', keys: ['pick', 'ladder', 'marble', 'lucky7', 'rouletteExt'] },
       { title: '교과 · 학습용 앱', note: 'QR 학생 접속 지원', keys: ['geomVec', 'aiMath', 'setGame', 'stockArena', 'geogebra', 'desmos', 'tongrami', 'askMath'] }
     ]
