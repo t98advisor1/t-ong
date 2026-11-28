@@ -2158,3 +2158,30 @@ body.sb-web-active .sb-page-inline { display: none; }
 .sb-laser-popover { width: 300px; }
 .sb-laser-hold-row { grid-template-columns: repeat(3, 1fr); }
 .sb-tool-laser-btn.active .sb-laser-hold-badge { background: rgba(255,255,255,.92); color: #b91c1c; }
+
+/* 단축키 내 마음대로 설정 */
+.sb-sc-modal { max-width: 920px; }
+.sb-sc-modal .sb-modal-body { overflow-y: auto; }
+.sb-sc-how { margin: 0 0 12px; padding-left: 20px; font-size: 0.9rem; color: #334155; line-height: 1.7; }
+.sb-sc-group { margin-top: 12px; }
+.sb-sc-gtitle { font-weight: 800; color: #1e3a8a; font-size: 0.86rem; margin-bottom: 6px; }
+.sb-sc-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.sb-sc-card { display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 8px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 8px 10px; background: #fff; transition: border-color .15s, background .15s; }
+.sb-sc-card.changed { border-color: #93c5fd; background: #eff6ff; }
+.sb-sc-card.wait { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.2); }
+.sb-sc-card.off { opacity: .55; background: #f8fafc; }
+.sb-sc-ico { font-size: 1.2rem; text-align: center; }
+.sb-sc-name { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.sb-sc-name b { font-size: 0.92rem; }
+.sb-sc-name small { font-size: 0.72rem; color: #64748b; }
+.sb-sc-name small.sb-sc-def { color: #2563eb; font-weight: 700; }
+.sb-sc-key { min-width: 44px; height: 34px; padding: 0 8px; border-radius: 8px; border: 1.5px solid #cbd5e1; border-bottom-width: 3px; background: #f8fafc; color: #0f172a; font-weight: 900; font-size: 0.95rem; cursor: pointer; font-family: inherit; }
+.sb-sc-card.wait .sb-sc-key { background: #2563eb; color: #fff; border-color: #1d4ed8; font-size: 0.75rem; }
+.sb-sc-card.off .sb-sc-key { color: #94a3b8; font-size: 0.78rem; }
+.sb-sc-key.demo { display: inline-flex; align-items: center; justify-content: center; height: 24px; min-width: 26px; font-size: 0.8rem; cursor: default; }
+.sb-sc-sw { position: relative; width: 38px; height: 22px; cursor: pointer; }
+.sb-sc-sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+.sb-sc-sw i { position: absolute; inset: 0; background: #cbd5e1; border-radius: 999px; transition: background .15s; }
+.sb-sc-sw i::after { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.sb-sc-sw input:checked + i { background: #22c55e; }
+.sb-sc-sw input:checked + i::after { transform: translateX(16px); }
