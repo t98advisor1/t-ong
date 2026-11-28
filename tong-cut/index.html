@@ -88,6 +88,27 @@
   .src { font-size: 12px; color: var(--muted); }
   .start { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .start .btn { padding: 9px 16px; font-size: 14px; }
+  .samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0; }
+  .samples button { text-align: left; border: 1px solid #c7d4ea; background: #f8fbff; border-radius: 6px; padding: 10px 12px; cursor: pointer; font: inherit; line-height: 1.45; }
+  .samples button:hover { border-color: var(--blue); background: #eef4ff; }
+  .samples button b { display: block; color: var(--navy); font-size: 14px; margin-bottom: 2px; }
+  .samples button span { font-size: 12.5px; color: #475569; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding: 40px 12px; overflow-y: auto; }
+  .modal { background: #fff; border-radius: 8px; max-width: 760px; width: 100%; padding: 18px 20px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+  .modal h2 { margin: 0 0 8px; font-size: 18px; color: var(--navy); }
+  .modal .x { float: right; border: 0; background: none; font-size: 22px; cursor: pointer; color: #64748b; }
+  .share { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; margin: 10px 0; }
+  .share .qrbox { width: 200px; height: 200px; border: 1px solid var(--line); border-radius: 6px; padding: 6px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #64748b; text-align: center; }
+  .share .qrbox svg { width: 100%; height: 100%; }
+  .share .side { flex: 1; min-width: 240px; }
+  .share textarea, .modal textarea { width: 100%; font: 12px/1.4 ui-monospace, Consolas, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 6px; resize: vertical; }
+  .steps-mini { margin: 6px 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7; }
+  .status-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .join-head { background: var(--navy2); color: #fff; border-radius: 6px; padding: 14px 16px; margin-bottom: 12px; }
+  .join-head b { font-size: 18px; display: block; }
+  .join-big { font-size: 15px; }
+  body.joining .lnb, body.joining #menuBtn { display: none; }
+  body.joining .wrap { grid-template-columns: 1fr; }
   .kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 10px; align-items: center; }
   .kv label { font-weight: 700; font-size: 13px; color: #334155; }
   .kv input, .kv select { border: 1px solid var(--line); border-radius: 3px; padding: 6px 8px; max-width: 320px; }
@@ -147,6 +168,7 @@
   <main class="main" id="main"></main>
 </div>
 
+<script src="../qr-lib.js"></script>
 <script>
 (function () {
   'use strict';
@@ -184,20 +206,66 @@
   }
   function newExam(name, ratio) { return { id: uid(), name: name, full: 100, ratio: ratio, items: [], rounds: [{ no: 1, ratings: {} }], round: 1, confirmed: null }; }
   function newArea(name, full) { return { id: uid(), name: name, full: full, base: 0, elems: [{ name: '평가요소1', s: {} }], cuts: {}, useRubric: true }; }
-  function sampleSubject() {
-    // 매뉴얼 그림1의 문항정보표(19문항, 선택형)를 예시로 넣습니다.
-    var s = newSubject(); s.name = '통합사회1 (예시)'; s.teachers = ['김교사', '이교사', '박교사'];
-    var rows = [['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'],
-      ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'],
-      ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['어려움', 4.1, 'B'], ['어려움', 4.1, 'A'], ['어려움', 4.1, 'A'], ['어려움', 4.2, 'A']];
-    s.exams[0].full = 72;
-    s.exams[0].items = rows.map(function (r, i) { return { no: i + 1, type: '선택형', diff: r[0], score: r[1], std: '', target: r[2] }; });
-    // 매뉴얼 순서2 결과값(예상 정답률 %)을 첫 교사의 1라운드 값으로 넣어 둡니다.
-    var t = s.teachers[0], rt = {};
-    rt['선택형|쉬움'] = { A: 95, B: 85, C: 75, D: 65, E: 55 };
-    rt['선택형|보통'] = { A: 75, B: 70, C: 60, D: 45, E: 35 };
-    rt['선택형|어려움'] = { A: 70, B: 50, C: 35, D: 25, E: 20 };
-    s.exams[0].rounds[0].ratings[t] = rt;
+  var MANUAL_ROWS = [['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.4, 'E'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'], ['쉬움', 3.6, 'D'],
+    ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'], ['보통', 3.8, 'C'],
+    ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['보통', 3.9, 'B'], ['어려움', 4.1, 'B'], ['어려움', 4.1, 'A'], ['어려움', 4.1, 'A'], ['어려움', 4.2, 'A']];
+  // 범주별 [A,B,C,D,E] 예상 정답률 표를 rating 객체로 바꿉니다.
+  function rt(map, lv) { var o = {}; Object.keys(map).forEach(function (k) { o[k] = {}; lv.forEach(function (L, i) { o[k][L] = map[k][i]; }); }); return o; }
+  var SAMPLES = [
+    { id: 'manual4', title: '① 교사 4명 협의 · 2라운드 (통합사회1)', desc: '매뉴얼 그림1 문항정보표(19문항·72점). 4명이 따로 입력 → 1라운드 차이 20%p 이상 → 협의 후 2라운드 확정. 평균이 어떻게 나오는지 보기 좋습니다.' },
+    { id: 'essay4', title: '② 선택형 + 논술형 (수학 · 교사 4명)', desc: '선택형 16문항 + 서·논술형 4문항(100점). 6개 범주, 1라운드 입력 중(1명 미입력) 상태입니다.' },
+    { id: 'five', title: '③ 5수준(A~E) 과목 + 수행평가 2영역', desc: '미도달 없이 A~E 5단계인 과목 예시. 정기시험 1회 + 수행평가 2영역(채점기준표)으로 학기말까지 계산됩니다.' }
+  ];
+  function sampleSubject(kind) {
+    var s = newSubject(), lv;
+    if (kind === 'essay4') {
+      s.name = '대수 (예시)'; s.grade = '2'; s.teachers = ['최교사', '정교사', '한교사', '윤교사'];
+      var e = s.exams[0]; e.full = 100;
+      var spec = [['선택형', '쉬움', 3.5, 'E'], ['선택형', '쉬움', 3.5, 'D'], ['선택형', '쉬움', 3.5, 'D'], ['선택형', '쉬움', 3.5, 'D'], ['선택형', '쉬움', 3.5, 'C'],
+        ['선택형', '보통', 4, 'C'], ['선택형', '보통', 4, 'C'], ['선택형', '보통', 4, 'C'], ['선택형', '보통', 4, 'B'], ['선택형', '보통', 4, 'B'], ['선택형', '보통', 4, 'B'],
+        ['선택형', '어려움', 4.5, 'B'], ['선택형', '어려움', 4.5, 'A'], ['선택형', '어려움', 4.5, 'A'], ['선택형', '어려움', 4.5, 'A'], ['선택형', '어려움', 4.5, 'A'],
+        ['논술형', '쉬움', 5, 'D'], ['논술형', '보통', 6, 'C'], ['논술형', '보통', 6, 'B'], ['논술형', '어려움', 7, 'A']];
+      e.items = spec.map(function (r, i) { return { no: i + 1, type: r[0], diff: r[1], score: r[2], std: '', target: r[3] }; });
+      lv = levels(s);
+      var base = { '선택형|쉬움': [95, 90, 80, 70, 55], '선택형|보통': [85, 75, 65, 50, 35], '선택형|어려움': [70, 55, 40, 30, 20], '논술형|쉬움': [80, 70, 55, 45, 30], '논술형|보통': [65, 55, 40, 25, 15], '논술형|어려움': [50, 35, 20, 10, 5] };
+      var adj = [0, 5, -5];
+      s.teachers.slice(0, 3).forEach(function (t, ti) { var m = {}; Object.keys(base).forEach(function (k) { m[k] = base[k].map(function (v, i) { var x = v + (i < 4 ? adj[ti] : adj[ti] / 5); return Math.max(0, Math.min(100, x)); }); }); e.rounds[0].ratings[t] = rt(m, lv); });
+      s.perf.areas = [newArea('수학 탐구 보고서', 30)];
+      s.perf.areas[0].elems = [{ name: '문제 해결 과정', s: { A: 12, B: 10, C: 8, D: 6, E: 4 } }, { name: '수학적 의사소통', s: { A: 8, B: 7, C: 5, D: 4, E: 3 } }, { name: '탐구 확장', s: { A: 6, B: 5, C: 4, D: 3, E: 2 } }];
+      return s;
+    }
+    if (kind === 'five') {
+      s.name = '생활과 과학 (예시)'; s.stage = '5'; s.teachers = ['서교사', '문교사'];
+      s.exams = [newExam('1차 정기시험', 40)]; var e5 = s.exams[0]; e5.full = 72;
+      e5.items = MANUAL_ROWS.map(function (r, i) { return { no: i + 1, type: '선택형', diff: r[0], score: r[1], std: '', target: r[2] === 'E' ? 'D' : r[2] }; });
+      lv = levels(s);
+      e5.rounds[0].ratings['서교사'] = rt({ '선택형|쉬움': [95, 90, 80, 70], '선택형|보통': [80, 70, 60, 45], '선택형|어려움': [65, 50, 35, 25] }, lv);
+      e5.rounds[0].ratings['문교사'] = rt({ '선택형|쉬움': [95, 85, 75, 65], '선택형|보통': [75, 70, 60, 45], '선택형|어려움': [70, 50, 35, 25] }, lv);
+      e5.confirmed = 1;
+      s.perf.ratio = 60;
+      s.perf.areas = [newArea('관찰 실험', 30), newArea('과학 글쓰기', 30)];
+      s.perf.areas[0].elems = [{ name: '실험 설계', s: { A: 14, B: 12, C: 10, D: 8 } }, { name: '결과 해석', s: { A: 12, B: 10, C: 8, D: 6 } }];
+      s.perf.areas[1].elems = [{ name: '근거 제시', s: { A: 13, B: 11, C: 9, D: 7 } }, { name: '표현과 구성', s: { A: 12, B: 10, C: 8, D: 6 } }];
+      return s;
+    }
+    // manual4: 매뉴얼 그림1 문항정보표 + 교사 4명, 2라운드
+    s.name = '통합사회1 (예시)'; s.teachers = ['김교사', '이교사', '박교사', '정교사'];
+    var ex = s.exams[0]; ex.full = 72;
+    ex.items = MANUAL_ROWS.map(function (r, i) { return { no: i + 1, type: '선택형', diff: r[0], score: r[1], std: '', target: r[2] }; });
+    lv = levels(s);
+    var r1 = {
+      '김교사': { '선택형|쉬움': [95, 85, 75, 65, 55], '선택형|보통': [75, 70, 60, 45, 35], '선택형|어려움': [70, 50, 35, 25, 20] },  // 매뉴얼 순서2 결과값
+      '이교사': { '선택형|쉬움': [100, 95, 85, 75, 60], '선택형|보통': [85, 75, 65, 50, 40], '선택형|어려움': [75, 55, 40, 30, 20] },
+      '박교사': { '선택형|쉬움': [90, 80, 70, 60, 50], '선택형|보통': [70, 60, 50, 40, 30], '선택형|어려움': [60, 45, 30, 20, 15] },
+      '정교사': { '선택형|쉬움': [95, 90, 80, 70, 55], '선택형|보통': [90, 80, 70, 55, 40], '선택형|어려움': [80, 60, 45, 30, 25] } };
+    var r2v = {
+      '김교사': { '선택형|쉬움': [95, 85, 75, 65, 55], '선택형|보통': [80, 70, 60, 45, 35], '선택형|어려움': [70, 50, 35, 25, 20] },
+      '이교사': { '선택형|쉬움': [95, 90, 80, 70, 58], '선택형|보통': [80, 75, 65, 50, 38], '선택형|어려움': [70, 55, 40, 30, 20] },
+      '박교사': { '선택형|쉬움': [95, 85, 75, 65, 52], '선택형|보통': [75, 65, 55, 45, 32], '선택형|어려움': [65, 50, 35, 25, 18] },
+      '정교사': { '선택형|쉬움': [95, 90, 80, 70, 55], '선택형|보통': [85, 75, 65, 50, 38], '선택형|어려움': [75, 55, 40, 30, 22] } };
+    s.teachers.forEach(function (t) { ex.rounds[0].ratings[t] = rt(r1[t], lv); });
+    ex.rounds.push({ no: 2, ratings: {} }); s.teachers.forEach(function (t) { ex.rounds[1].ratings[t] = rt(r2v[t], lv); });
+    ex.round = 2; ex.confirmed = 2;
     s.perf.areas = [newArea('실험 보고서', 10)];
     s.perf.areas[0].elems = [
       { name: '실험 결과 분석하기', s: { A: 4, B: 4, C: 3, D: 2, E: 1 } },
@@ -206,6 +274,7 @@
     s.perf.ratio = 30; s.exams[0].ratio = 35; s.exams[1].ratio = 35;
     return s;
   }
+  function sampleButtons() { return '<div class="samples">' + SAMPLES.map(function (x) { return '<button type="button" data-sample="' + x.id + '"><b>' + esc(x.title) + '</b><span>' + esc(x.desc) + '</span></button>'; }).join('') + '</div>'; }
 
   // ── 계산 ────────────────────────────────────────────────────
   function categories(exam) {
@@ -320,7 +389,7 @@
     var sub = cur();
     var head = '<div class="crumb">' + esc(PATH[v]) + ' &gt; <b>' + esc(TITLE[v]) + '</b></div><h1 class="title">' + esc(TITLE[v]) + '</h1>';
     if (v !== 'guide' && !sub) {
-      $('main').innerHTML = head + '<div class="msg info">먼저 <b>과목</b>을 만들어 주세요.</div><div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button><button class="btn" id="mkSample">매뉴얼 예시 과목 불러오기</button></div>';
+      $('main').innerHTML = head + '<div class="msg info">먼저 <b>과목</b>을 만들어 주세요.</div><div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button></div><h3>또는 예시 과목으로 먼저 살펴보기</h3>' + sampleButtons();
       bindStart(); return;
     }
     $('main').innerHTML = head + (v === 'guide' ? '' : condBar(sub, v)) + VIEWS[v].html(sub);
@@ -329,9 +398,11 @@
     window.scrollTo(0, 0);
   }
   function bindStart() {
-    var a = $('mkSub'), b = $('mkSample');
+    var a = $('mkSub');
     if (a) a.onclick = function () { var s = newSubject(); db.subjects.push(s); db.current = s.id; save(); location.hash = '#plan'; render(); };
-    if (b) b.onclick = function () { var s = sampleSubject(); db.subjects.push(s); db.current = s.id; save(); location.hash = '#items'; render(); };
+    document.querySelectorAll('[data-sample]').forEach(function (b) { b.onclick = function () {
+      var s = sampleSubject(b.dataset.sample); db.subjects.push(s); db.current = s.id; examSelId = null; save();
+      location.hash = b.dataset.sample === 'manual4' ? '#examResult' : b.dataset.sample === 'five' ? '#final' : '#examCalc'; render(); }; });
   }
   function condBar(sub, v) {
     var opts = db.subjects.map(function (s) { return '<option value="' + s.id + '"' + (s.id === sub.id ? ' selected' : '') + '>' + esc(s.year + '학년도 ' + s.sem + '학기 · ' + s.grade + '학년 · ' + s.name) + '</option>'; }).join('');
@@ -380,7 +451,12 @@
     '<li><b>추정분할점수산출결과관리</b>: 교사별 분할점수·평균·교사 간 차이 확인 → 라운드 확정</li>' +
     '<li><b>수행평가추정분할점수관리</b>: 영역별 채점 기준으로 분할점수 산출(또는 전체영역 직접 입력)</li>' +
     '<li><b>학기말추정분할점수산출</b> → <b>출력</b>(교과협의록·학업성적관리위원회·가정통신문 표)</li></ol>' +
-    '<div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button><button class="btn" id="mkSample">매뉴얼 예시 과목 불러오기</button>' + (db.subjects.length ? '<a class="btn dark" href="#plan" style="text-decoration:none">내 과목으로 이동</a>' : '') + '</div>' +
+    '<h3>여러 선생님이 함께 산출하기 (공동 참여 → 평균)</h3>' +
+    '<p>과목의 <b>담당 교사</b>(평가계획 화면)에 4명을 넣으면, 4명이 입력한 교사별 분할점수의 <b>평균</b>이 그 라운드의 추정분할점수가 됩니다. 입력하는 방법은 두 가지입니다.</p><ul>' +
+    '<li><b>한 자리에 모여서</b>: 대표 교사 기기 하나로 [교사] 칸을 바꿔 가며 차례로 입력합니다.</li>' +
+    '<li><b>각자 자기 기기에서</b>: 대표 교사가 정기시험추정분할점수산출관리에서 <b>[📱 참여 링크 · QR]</b>을 만들어 보내면, 선생님들은 링크(또는 QR)로 들어가 자기 이름을 고르고 정답률을 넣은 뒤 <b>응답 코드</b>를 대표 교사에게 보냅니다. 대표 교사가 코드를 붙여넣으면 자동으로 들어가고 평균이 다시 계산됩니다. (서버에 저장하지 않으므로 학교 메신저로 주고받습니다)</li></ul>' +
+    '<h3>예시 과목으로 먼저 살펴보기</h3>' + sampleButtons() +
+    '<div class="start"><button class="btn pri" id="mkSub">새 과목 만들기</button>' + (db.subjects.length ? '<a class="btn dark" href="#plan" style="text-decoration:none">내 과목으로 이동</a>' : '') + '</div>' +
     '<p class="src" style="margin-top:14px">참고: 경기도교육청 「고등학교 성취평가 추정분할점수 이렇게 산출해요(실전편)」(2026.4) · 「2026학년도 중등 학생평가 및 학업성적관리 이해하기」. 나이스 메뉴 이름은 매뉴얼의 2025학년도 기준 경로(교과담임-분할점수-정기시험추정분할점수산출관리 등)를 따랐으며, 나이스 기능 개선에 따라 바뀔 수 있습니다. 학교·시도교육청 지침이 있으면 그것을 우선합니다.</p>' +
     '</div>'; }, bind: function () { bindStart(); } };
 
@@ -463,7 +539,7 @@
       '<label>교사<select id="tSel">' + s.teachers.map(function (t) { var done = teacherCuts(s, e, rd.ratings[t]).complete; return '<option value="' + esc(t) + '"' + (t === teacherSel ? ' selected' : '') + '>' + esc(t) + (done ? ' ✓' : '') + '</option>'; }).join('') + '</select></label>' +
       '<span class="hint">만점 ' + e.full + '점 · 문항정보표 배점합 ' + itemTotal(e) + '점</span></div>' +
       '<div class="toolbar"><span class="left">' + esc(e.name) + ' · ' + rd.no + '라운드 · ' + esc(teacherSel) + (locked ? ' <span class="pill ok">확정된 라운드</span>' : '') + '</span>' +
-      '<button class="btn" id="rAdd">라운드추가</button><button class="btn" id="rCopy">현재 라운드 복사</button><button class="btn red" id="rDel"' + (e.rounds.length < 2 || locked ? ' disabled' : '') + '>라운드삭제</button><button class="btn" id="fill65">목표 성취수준으로 참고값 채우기</button></div>' +
+      '<button class="btn" id="rAdd">라운드추가</button><button class="btn" id="rCopy">현재 라운드 복사</button><button class="btn red" id="rDel"' + (e.rounds.length < 2 || locked ? ' disabled' : '') + '>라운드삭제</button><button class="btn" id="fill65">목표 성취수준으로 참고값 채우기</button><button class="btn pri" id="joinBtn">📱 참여 링크 · QR</button></div>' +
       '<div class="scroll"><table class="grid"><thead><tr><th rowspan="2">문항구분</th><th rowspan="2">난이도</th><th rowspan="2">해당 문항번호</th><th rowspan="2">문항수</th><th rowspan="2">배점합</th><th colspan="' + lv.length + '">최소능력자의 예상 정답률(%)</th></tr><tr>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '</tr></thead><tbody>' +
       cats.map(function (c) { return '<tr><td>' + c.type + '</td><td>' + c.diff + '</td><td class="l">' + c.nos.join(', ') + '</td><td>' + c.n + '</td><td class="num">' + c.sum + '</td>' +
         lv.map(function (L) { var v = rating[c.key] && rating[c.key][L]; return '<td><input type="number" min="0" max="100" step="' + (L === 'E' ? 1 : 5) + '" data-c="' + c.key + '" data-l="' + L + '" value="' + (v == null ? '' : esc(v)) + '"' + (locked ? ' readonly' : '') + '></td>'; }).join('') + '</tr>'; }).join('') +
@@ -479,6 +555,7 @@
     $('rAdd').onclick = function () { var no = Math.max.apply(null, e.rounds.map(function (r) { return r.no; })) + 1; e.rounds.push({ no: no, ratings: {} }); e.round = no; save(); render(); };
     $('rCopy').onclick = function () { var no = Math.max.apply(null, e.rounds.map(function (r) { return r.no; })) + 1; e.rounds.push({ no: no, ratings: JSON.parse(JSON.stringify(rd.ratings)) }); e.round = no; save(); render(); };
     $('rDel').onclick = function () { if (confirm(rd.no + '라운드를 지울까요?')) { e.rounds = e.rounds.filter(function (r) { return r !== rd; }); e.round = e.rounds[e.rounds.length - 1].no; save(); render(); } };
+    $('joinBtn').onclick = function () { openJoinModal(s, e, rd); };
     $('fill65').onclick = function () {
       // 매뉴얼의 '문항의 분포 비중' 방식: 범주 안에서 목표 수준이 L보다 위인 문항은 정답률을 낮추고, 아래인 문항은 높인다.
       if (e.confirmed === rd.no) return;
@@ -619,6 +696,108 @@
     };
   } };
 
+  // ── 공동 참여: 참여 링크 · 응답 코드 (서버 없이 링크/코드로 주고받음) ──
+  function enc(o) { var b = new TextEncoder().encode(JSON.stringify(o)), bin = ''; b.forEach(function (x) { bin += String.fromCharCode(x); }); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function dec(t) { t = String(t).trim(); var m = t.match(/[#&?](?:join|reply)=([A-Za-z0-9_-]+)/); if (m) t = m[1]; t = t.replace(/^(?:TC1:)/, '').replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '=';
+    var bin = atob(t), b = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return JSON.parse(new TextDecoder().decode(b)); }
+  function baseUrl() { return location.href.split('#')[0]; }
+  function qrSvg(text) { try { if (typeof qrcode !== 'function') throw 0; var q = qrcode(0, 'L'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 3, margin: 0, scalable: true }); } catch (e) { return '<span>글자가 많아 QR로 만들 수 없습니다.<br>링크를 복사해 보내 주세요.</span>'; } }
+  function copyText(t, btn) { var done = function () { if (btn) { var o = btn.textContent; btn.textContent = '복사됨 ✓'; setTimeout(function () { btn.textContent = o; }, 1500); } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { prompt('복사해 주세요', t); }); else prompt('복사해 주세요', t); }
+  function modal(html) { closeModal(); var bg = document.createElement('div'); bg.className = 'modal-bg'; bg.id = 'mBg'; bg.innerHTML = '<div class="modal"><button class="x" id="mX" aria-label="닫기">×</button>' + html + '</div>';
+    document.body.appendChild(bg); bg.onclick = function (ev) { if (ev.target === bg) closeModal(); }; $('mX').onclick = closeModal; }
+  function closeModal() { var m = $('mBg'); if (m) m.remove(); }
+  function joinPayload(s, e, rd) {
+    return { v: 1, sid: s.id, eid: e.id, rn: rd.no, sub: s.year + '학년도 ' + s.sem + '학기 ' + s.grade + '학년 ' + s.name, ex: e.name, full: e.full, st: s.stage, t: s.teachers,
+      c: categories(e).map(function (c) { return [c.type, c.diff, c.nos.join(','), c.n, c.sum, c.targets.filter(Boolean).join('')]; }) };
+  }
+  function applyReply(o, quiet) {
+    if (!o || o.k !== 'r' || !o.sid) throw new Error('응답 코드가 아닙니다.');
+    var s = db.subjects.find(function (x) { return x.id === o.sid; });
+    if (!s) throw new Error('이 기기에는 「' + (o.sub || '해당 과목') + '」이 없습니다. 참여 링크를 만든 대표 교사의 기기에서 붙여넣어 주세요.');
+    var e = s.exams.find(function (x) { return x.id === o.eid; }); if (!e) throw new Error('해당 고사를 찾지 못했습니다.');
+    var rd = e.rounds.find(function (r) { return r.no === o.rn; });
+    if (!rd) { rd = { no: o.rn, ratings: {} }; e.rounds.push(rd); e.rounds.sort(function (a, b) { return a.no - b.no; }); }
+    if (e.confirmed === rd.no) throw new Error(rd.no + '라운드는 이미 확정되었습니다. 확정취소 후 반영하세요.');
+    var had = !!rd.ratings[o.t];
+    if (!quiet && had && !confirm(o.t + ' 교사의 ' + rd.no + '라운드 값이 이미 있습니다. 새 응답으로 바꿀까요?')) return null;
+    if (s.teachers.indexOf(o.t) < 0) s.teachers.push(o.t);
+    rd.ratings[o.t] = o.r; db.current = s.id; examSelId = e.id; e.round = rd.no; save();
+    return { s: s, e: e, rd: rd, t: o.t };
+  }
+  function openJoinModal(s, e, rd) {
+    var url = baseUrl() + '#join=' + enc(joinPayload(s, e, rd));
+    var res = roundResult(s, e, rd);
+    modal('<h2>📱 ' + esc(e.name) + ' ' + rd.no + '라운드 — 선생님들 참여 받기</h2>' +
+      '<div class="msg info">선생님마다 <b>자기 기기에서 따로</b> 예상 정답률을 입력하게 하는 방법입니다. 응답이 모이면 교사별 분할점수의 <b>평균</b>이 자동 계산됩니다.</div>' +
+      '<h3>1. 이 링크(또는 QR)를 담당 선생님들께 보내기</h3><div class="share"><div class="qrbox">' + qrSvg(url) + '</div><div class="side">' +
+      '<textarea rows="4" readonly id="jUrl">' + esc(url) + '</textarea><p><button class="btn pri" id="jCopy">링크 복사</button> <a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener" style="text-decoration:none">미리보기</a></p>' +
+      '<ol class="steps-mini"><li>선생님이 링크를 열고 자기 이름을 고릅니다.</li><li>범주별 예상 정답률을 넣고 [응답 코드 만들기]를 누릅니다.</li><li>나온 코드를 메신저로 대표 교사(이 기기)에게 보냅니다.</li></ol></div></div>' +
+      '<h3>2. 받은 응답 코드 붙여넣기</h3><textarea rows="3" id="jIn" placeholder="선생님께 받은 응답 코드(또는 응답 링크)를 붙여넣으세요. 여러 개를 줄바꿈으로 한 번에 넣어도 됩니다."></textarea>' +
+      '<p><button class="btn pri" id="jApply">반영하기</button> <span class="hint" id="jMsg"></span></p>' +
+      '<h3>3. 응답 현황 (' + res.n + '/' + s.teachers.length + '명)</h3><div class="status-row">' +
+      res.rows.map(function (r) { return '<span class="pill ' + (r.complete ? 'ok' : 'gray') + '">' + esc(r.teacher) + (r.complete ? ' ✓' : ' 미입력') + '</span>'; }).join('') + '</div>' +
+      '<p class="hint">링크에는 과목명·문항 범주·교사 이름만 들어가고 학생 정보는 없습니다. 라운드가 바뀌면 그 라운드 화면에서 링크를 새로 만들어 보내세요.</p>');
+    $('jCopy').onclick = function () { copyText(url, this); };
+    $('jApply').onclick = function () {
+      var lines = $('jIn').value.split(/\s+/).filter(Boolean), ok = [], bad = [];
+      lines.forEach(function (ln) { try { var r = applyReply(dec(ln)); if (r) ok.push(r.t); } catch (err) { bad.push(err.message || '코드를 읽지 못했습니다.'); } });
+      if (ok.length) { render(); openJoinModal(cur(), selExam(cur()), selExam(cur()).rounds.find(function (r) { return r.no === selExam(cur()).round; })); $('jMsg').textContent = ok.join(', ') + ' 교사 응답을 반영했습니다.' + (bad.length ? ' / ' + bad.join(' / ') : ''); }
+      else $('jMsg').textContent = bad.join(' / ') || '붙여넣은 내용이 없습니다.';
+    };
+  }
+  // 참여 화면 (링크를 받은 선생님)
+  function joinView(o) {
+    var lv = o.st === '5' ? ['A', 'B', 'C', 'D'] : LV5.slice(), fake = { stage: o.st };
+    var cats = o.c.map(function (c) { return { key: c[0] + '|' + c[1], type: c[0], diff: c[1], nos: String(c[2]).split(','), n: c[3], sum: c[4], tg: c[5] }; });
+    var DK = 'tongCutJoin_' + o.sid + '_' + o.eid + '_' + o.rn, draft = {};
+    try { draft = JSON.parse(localStorage.getItem(DK) || '{}') || {}; } catch (e) {}
+    draft.r = draft.r || {};
+    function cuts() { var out = {}, ok = true; lv.forEach(function (L) { var sum = 0; cats.forEach(function (c) { var v = draft.r[c.key] && draft.r[c.key][L]; if (v === '' || v == null || isNaN(+v)) ok = false; else sum += c.sum * v / 100; }); out[L] = sum; }); return { ok: ok, cuts: out }; }
+    function draw() {
+      var tc = cuts(), probs = ratingProblems(fake, draft.r, cats);
+      $('main').innerHTML = '<div class="join-head"><b>' + esc(o.ex) + ' · ' + o.rn + '라운드 예상 정답률 입력</b>' + esc(o.sub) + ' · 만점 ' + o.full + '점</div>' +
+        '<div class="box join-big"><h2>① 내 이름 고르기</h2><select id="jT" style="font-size:16px;padding:6px 8px"><option value="">— 선택 —</option>' + o.t.map(function (t) { return '<option' + (draft.t === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '<option value="__new"' + (draft.t && o.t.indexOf(draft.t) < 0 ? ' selected' : '') + '>목록에 없음 (직접 입력)</option></select> ' +
+        '<input id="jTn" class="txt" placeholder="이름" style="font-size:16px;padding:6px;width:140px;' + (draft.t && o.t.indexOf(draft.t) < 0 ? '' : 'display:none') + '" value="' + esc(draft.t && o.t.indexOf(draft.t) < 0 ? draft.t : '') + '"></div>' +
+        '<div class="box"><h2>② 범주별 최소 능력자의 예상 정답률(%)</h2><div class="scroll"><table class="grid"><thead><tr><th>문항구분</th><th>난이도</th><th>문항번호</th><th>배점합</th>' + lv.map(function (L) { return '<th>' + L + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        cats.map(function (c) { return '<tr><td>' + c.type + '</td><td>' + c.diff + '</td><td class="l">' + esc(c.nos.join(', ')) + (c.tg ? '<br><span class="hint">목표 ' + esc(c.tg.split('').join(',')) + '</span>' : '') + '</td><td class="num">' + c.sum + '</td>' +
+          lv.map(function (L) { var v = draft.r[c.key] && draft.r[c.key][L]; return '<td><input type="number" min="0" max="100" step="' + (L === 'E' ? 1 : 5) + '" data-jc="' + c.key + '" data-l="' + L + '" value="' + (v == null ? '' : esc(v)) + '"></td>'; }).join('') + '</tr>'; }).join('') +
+        '</tbody><tfoot><tr><th colspan="4">나의 분할점수</th>' + lv.map(function (L) { return '<td class="num"><b>' + (tc.ok ? f2(tc.cuts[L]) : '–') + '</b></td>'; }).join('') + '</tr><tr><th colspan="4">구분</th>' + lv.map(function (L) { return '<td>' + CUT_LABEL[L] + '</td>'; }).join('') + '</tr></tfoot></table></div>' +
+        (probs.length ? '<div class="msg bad">' + probs.map(esc).join('<br>') + '</div>' : '') +
+        '<div class="msg info">A~D는 5% 단위, E는 1% 단위입니다. 입력한 값은 이 기기에 임시 저장되어, 창을 닫았다가 링크를 다시 열어도 남아 있습니다.</div></div>' +
+        '<div class="box"><h2>③ 대표 교사에게 보내기</h2><button class="btn pri" id="jMake" style="font-size:15px;padding:8px 16px">응답 코드 만들기</button><div id="jOut"></div></div>';
+      var sel = $('jT'), nm = $('jTn');
+      sel.onchange = function () { if (sel.value === '__new') { nm.style.display = ''; nm.focus(); draft.t = nm.value.trim(); } else { nm.style.display = 'none'; draft.t = sel.value; } keep(); };
+      nm.oninput = function () { draft.t = nm.value.trim(); keep(); };
+      document.querySelectorAll('[data-jc]').forEach(function (el) { el.onchange = function () { var r = draft.r[el.dataset.jc] = draft.r[el.dataset.jc] || {}; r[el.dataset.l] = el.value === '' ? '' : +el.value; keep(); draw(); }; });
+      $('jMake').onclick = function () {
+        var t = cuts(), p = ratingProblems(fake, draft.r, cats);
+        if (!draft.t) { alert('① 이름을 먼저 골라 주세요.'); return; }
+        if (!t.ok) { alert('비어 있는 칸이 있습니다. 모든 칸을 채워 주세요.'); return; }
+        if (p.length) { alert('고칠 곳이 있습니다:\n' + p.join('\n')); return; }
+        var code = enc({ v: 1, k: 'r', sid: o.sid, eid: o.eid, rn: o.rn, sub: o.sub, t: draft.t, r: draft.r });
+        var link = baseUrl() + '#reply=' + code;
+        $('jOut').innerHTML = '<div class="msg ok">' + esc(draft.t) + ' 선생님의 분할점수: ' + lv.map(function (L) { return CUT_LABEL[L] + ' ' + f2(t.cuts[L]); }).join(' · ') + '</div>' +
+          '<div class="share"><div class="side"><b>응답 코드</b> — 복사해서 메신저로 대표 교사에게 보내 주세요.<textarea rows="4" readonly>' + esc(code) + '</textarea><p><button class="btn pri" id="jCc">응답 코드 복사</button> <button class="btn" id="jCl">응답 링크 복사</button></p>' +
+          '<p class="hint">대표 교사가 태블릿·휴대폰으로 작업 중이면 그 기기 카메라로 오른쪽 QR을 찍어도 바로 반영됩니다.</p></div><div class="qrbox">' + qrSvg(link) + '</div></div>';
+        $('jCc').onclick = function () { copyText(code, this); }; $('jCl').onclick = function () { copyText(link, this); };
+      };
+    }
+    function keep() { try { localStorage.setItem(DK, JSON.stringify(draft)); } catch (e) {} }
+    document.body.classList.add('joining');
+    draw();
+  }
+  function routeShare() {
+    var h = location.hash; document.body.classList.remove('joining');
+    if (h.indexOf('#join=') === 0) { try { joinView(dec(h)); } catch (e) { $('main').innerHTML = '<div class="msg bad">참여 링크를 읽지 못했습니다. 링크 전체가 복사되었는지 확인해 주세요.</div>'; } return true; }
+    if (h.indexOf('#reply=') === 0) {
+      try { var r = applyReply(dec(h)); history.replaceState(null, '', baseUrl() + '#examResult'); render(); if (r) alert(r.t + ' 선생님의 ' + r.rd.no + '라운드 응답을 반영했습니다.'); }
+      catch (e) { history.replaceState(null, '', baseUrl() + '#guide'); render(); alert(e.message || '응답 코드를 읽지 못했습니다.'); }
+      return true;
+    }
+    return false;
+  }
+
   // ── 백업 · 복원 ─────────────────────────────────────────────
   function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 3000); }
   $('backupBtn').onclick = function () { download(new Blob([JSON.stringify(db, null, 1)], { type: 'application/json' }), '추정분할점수_백업_' + new Date().toISOString().slice(0, 10) + '.json'); };
@@ -627,9 +806,9 @@
     if (!confirm('백업의 과목 ' + d.subjects.length + '개를 불러옵니다. 같은 과목은 백업 내용으로 바뀝니다.')) return;
     d.subjects.forEach(function (s) { db.subjects = db.subjects.filter(function (x) { return x.id !== s.id; }); db.subjects.push(s); }); db.current = d.current || db.current; save(); render(); } catch (e) { alert('백업 파일을 읽지 못했습니다.'); } }); this.value = ''; };
   $('menuBtn').onclick = function () { document.body.classList.toggle('lnb-open'); };
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', function () { if (!routeShare()) render(); });
   if (!db.current && db.subjects[0]) db.current = db.subjects[0].id;
-  render();
+  if (!routeShare()) render();
   // 점검용
   window.__tongCut = { db: function () { return db; }, finalCuts: finalCuts, roundResult: roundResult, categories: categories, teacherCuts: teacherCuts };
 })();
