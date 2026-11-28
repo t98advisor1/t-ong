@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>추정분할점수 산출기 사용법</title>
+<meta name="description" content="통 추정분할점수 산출기를 처음 쓰는 선생님을 위한 그림 사용 설명서">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M14 46h36M14 36h36M14 26h36' stroke='%2393c5fd' stroke-width='4'/%3E%3Cpath d='M22 18v32' stroke='%23fde047' stroke-width='5'/%3E%3C/svg%3E">
+<style>
+  :root { --navy:#1b2e5a; --blue:#2f5fb3; --sky:#e8f0fc; --line:#d5deec; --bg:#f3f5f9; --text:#1f2937; --muted:#64748b; --red:#e11d48; --ok:#0f8a5f; --warn:#c2410c; --amber:#fff4e0; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body { margin: 0; font-family: 'Pretendard','Noto Sans KR','Malgun Gothic',system-ui,sans-serif; color: var(--text); background: var(--bg); font-size: 16px; line-height: 1.7; }
+  .gnb { position: sticky; top: 0; z-index: 10; height: 56px; background: var(--navy); color: #fff; display: flex; align-items: center; gap: 12px; padding: 0 18px; }
+  .gnb b { font-size: 17px; white-space: nowrap; }
+  .gnb .sp { flex: 1; }
+  .gnb a { color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); border-radius: 6px; padding: 6px 12px; font-size: 14px; white-space: nowrap; }
+  .wrap { display: grid; grid-template-columns: 250px minmax(0,1fr); max-width: 1280px; margin: 0 auto; }
+  nav.toc { position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; padding: 18px 10px 40px; border-right: 1px solid var(--line); background: #fff; }
+  nav.toc b { display: block; font-size: 13px; color: var(--muted); padding: 12px 10px 4px; }
+  nav.toc a { display: block; padding: 7px 10px; border-radius: 6px; color: var(--text); text-decoration: none; font-size: 15px; line-height: 1.4; }
+  nav.toc a:hover { background: var(--sky); color: var(--blue); }
+  nav.toc a .n { display: inline-block; min-width: 24px; height: 24px; border-radius: 12px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 800; text-align: center; line-height: 24px; margin-right: 6px; }
+  main { padding: 24px 28px 80px; min-width: 0; }
+  .hero { background: linear-gradient(135deg,#1b2e5a,#2f5fb3); color: #fff; border-radius: 16px; padding: 28px 30px; }
+  .hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.02em; }
+  .hero p { margin: 0; opacity: .92; font-size: 17px; }
+  .hero .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .hero .chips span { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 4px 12px; font-size: 14px; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 28px; margin-top: 22px; }
+  section > h2 { margin: 0 0 4px; font-size: 24px; color: var(--navy); display: flex; align-items: center; gap: 10px; letter-spacing: -.02em; }
+  section > h2 .step { background: var(--red); color: #fff; border-radius: 8px; font-size: 14px; padding: 3px 10px; font-weight: 800; }
+  section > h2 .tag { background: var(--navy); color: #fff; border-radius: 8px; font-size: 14px; padding: 3px 10px; font-weight: 800; }
+  section > .lead { color: var(--muted); margin: 0 0 16px; font-size: 16px; }
+  .where { display: inline-block; background: var(--sky); color: var(--blue); border-radius: 6px; padding: 3px 10px; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  figure { margin: 10px 0 14px; }
+  figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; display: block; box-shadow: 0 4px 16px rgba(27,46,90,.08); }
+  figure.phone img { max-width: 360px; margin: 0 auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; text-align: center; }
+  ol.marks { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 10px; }
+  ol.marks li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; }
+  ol.marks li > i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  ol.marks li b { color: var(--navy); }
+  ol.marks li .sub { display: block; color: var(--muted); font-size: 15px; padding-left: 14px; border-left: 3px solid var(--line); margin-top: 4px; }
+  .tip, .warn, .ex { border-radius: 10px; padding: 12px 16px; margin-top: 14px; font-size: 15px; }
+  .tip { background: #ecfdf5; border: 1px solid #a7f3d0; }
+  .warn { background: #fff1f2; border: 1px solid #fecdd3; }
+  .ex { background: var(--amber); border: 1px solid #fcd9a8; }
+  .tip b:first-child, .warn b:first-child, .ex b:first-child { display: block; margin-bottom: 2px; }
+  .svgbox { width: 100%; overflow-x: auto; }
+  .svgbox svg { width: 100%; min-width: 640px; height: auto; display: block; }
+  .svgbox svg text { font-family: 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif; }
+  table.chk { width: 100%; border-collapse: collapse; font-size: 15px; }
+  table.chk th, table.chk td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+  table.chk th { background: var(--sky); color: var(--navy); }
+  table.chk td.ok { color: var(--ok); font-weight: 800; white-space: nowrap; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .src { font-size: 13px; color: var(--muted); }
+  .cta { display: inline-block; margin-top: 14px; background: var(--blue); color: #fff; text-decoration: none; font-weight: 800; padding: 10px 18px; border-radius: 8px; }
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 12px; }
+    nav.toc b { display: none; }
+    nav.toc a { font-size: 13px; padding: 4px 8px; background: var(--bg); }
+    main { padding: 16px 16px 60px; }
+    section { padding: 18px 16px; }
+    .hero { padding: 22px 18px; } .hero h1 { font-size: 24px; }
+    .twocol { grid-template-columns: 1fr; }
+    .gnb b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; } .gnb a { padding: 5px 8px; font-size: 13px; }
+  }
+  @media print { .gnb, nav.toc { display: none; } .wrap { display: block; } section { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header class="gnb">
+  <b>📖 추정분할점수 산출기 사용법</b><span class="sp"></span>
+  <a href="./" >산출기 열기 →</a>
+</header>
+<div class="wrap">
+<nav class="toc" aria-label="목차">
+  <b>먼저 이해하기</b>
+  <a href="#flow"><span class="n">★</span>한눈에 보는 전체 흐름</a>
+  <a href="#concept"><span class="n">?</span>추정분할점수란</a>
+  <a href="#calc"><span class="n">=</span>점수는 이렇게 계산돼요</a>
+  <b>따라 하기</b>
+  <a href="#s1"><span class="n">1</span>시작하기 · 예시 보기</a>
+  <a href="#s2"><span class="n">2</span>평가계획 입력</a>
+  <a href="#s3"><span class="n">3</span>문항정보표 입력</a>
+  <a href="#s4"><span class="n">4</span>예상 정답률 입력</a>
+  <a href="#s4b"><span class="n">4+</span>선생님들 각자 입력 (QR)</a>
+  <a href="#s5"><span class="n">5</span>결과 확인 · 라운드 확정</a>
+  <a href="#s6"><span class="n">6</span>수행평가</a>
+  <a href="#s7"><span class="n">7</span>학기말 분할점수</a>
+  <a href="#s8"><span class="n">8</span>출력 · 나이스 입력</a>
+  <b>확인</b>
+  <a href="#manual"><span class="n">✓</span>매뉴얼 반영 확인표</a>
+  <a href="#faq"><span class="n">Q</span>자주 묻는 질문</a>
+</nav>
+<main>
+  <div class="hero">
+    <h1>처음이어도 괜찮아요</h1>
+    <p>정기시험·수행평가의 <b>추정분할점수</b>를 나이스에 입력하기 전에, 교과협의회에서 함께 계산하고 협의록까지 만드는 도구입니다.<br>그림과 화면을 따라 <b>1 → 8 단계</b>로 진행하세요.</p>
+    <div class="chips"><span>⏱ 처음 30분이면 충분</span><span>👥 교사 여러 명 공동 입력</span><span>💾 자료는 내 기기에만 저장</span><span>🏫 최종 확정은 나이스에서</span></div>
+  </div>
+
+  <!-- ★ 전체 흐름 -->
+  <section id="flow">
+    <h2><span class="tag">한눈에</span>전체 흐름 — 시험 보기 <u>전</u>에 끝냅니다</h2>
+    <p class="lead">왼쪽 메뉴 순서가 곧 작업 순서입니다. 핵심은 가운데 <b>라운드 반복</b>입니다.</p>
+    <div class="svgbox">
+      <svg viewBox="0 0 980 430" role="img" aria-label="전체 작업 흐름: 준비, 산출, 마무리 세 단계">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
+          <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e11d48"/></marker>
+        </defs>
+        <!-- 단계 띠 -->
+        <rect x="10" y="10" width="220" height="410" rx="16" fill="#eef4ff"/>
+        <rect x="245" y="10" width="440" height="410" rx="16" fill="#fff7ed"/>
+        <rect x="700" y="10" width="270" height="410" rx="16" fill="#ecfdf5"/>
+        <text x="120" y="42" text-anchor="middle" font-size="20" font-weight="800" fill="#1b2e5a">① 준비</text>
+        <text x="465" y="42" text-anchor="middle" font-size="20" font-weight="800" fill="#9a3412">② 산출 (교과협의회)</text>
+        <text x="835" y="42" text-anchor="middle" font-size="20" font-weight="800" fill="#065f46">③ 마무리</text>
+        <!-- 준비 -->
+        <g font-size="15"><rect x="30" y="70" width="180" height="70" rx="12" fill="#fff" stroke="#2f5fb3" stroke-width="2"/><text x="120" y="98" text-anchor="middle" font-weight="800" fill="#1b2e5a">STEP 2 평가계획</text><text x="120" y="122" text-anchor="middle" fill="#475569" font-size="13">과목·교사·만점·반영비율</text>
+        <rect x="30" y="180" width="180" height="70" rx="12" fill="#fff" stroke="#2f5fb3" stroke-width="2"/><text x="120" y="208" text-anchor="middle" font-weight="800" fill="#1b2e5a">STEP 3 문항정보표</text><text x="120" y="232" text-anchor="middle" fill="#475569" font-size="13">유형·난이도·배점 → 범주</text></g>
+        <line x1="120" y1="140" x2="120" y2="176" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="210" y1="215" x2="262" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <!-- 산출 루프 -->
+        <g font-size="15">
+        <rect x="265" y="180" width="170" height="70" rx="12" fill="#fff" stroke="#ea580c" stroke-width="2"/><text x="350" y="208" text-anchor="middle" font-weight="800" fill="#9a3412">STEP 4 정답률 입력</text><text x="350" y="232" text-anchor="middle" fill="#475569" font-size="13">교사마다 각자 (QR 가능)</text>
+        <rect x="480" y="180" width="185" height="70" rx="12" fill="#fff" stroke="#ea580c" stroke-width="2"/><text x="572" y="208" text-anchor="middle" font-weight="800" fill="#9a3412">STEP 5 결과 확인</text><text x="572" y="232" text-anchor="middle" fill="#475569" font-size="13">교사별 점수·평균·차이</text>
+        <polygon points="572,280 662,325 572,370 482,325" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+        <text x="572" y="320" text-anchor="middle" font-weight="800" fill="#be123c" font-size="14">2라운드 이상 &amp;</text><text x="572" y="340" text-anchor="middle" font-weight="800" fill="#be123c" font-size="14">차이 20%p 미만?</text>
+        </g>
+        <line x1="435" y1="215" x2="476" y2="215" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="572" y1="250" x2="572" y2="276" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <path d="M482 325 H350 V254" fill="none" stroke="#e11d48" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arR)"/>
+        <rect x="300" y="330" width="150" height="58" rx="10" fill="#fff1f2" stroke="#fecdd3"/>
+        <text x="375" y="354" text-anchor="middle" font-size="14" font-weight="800" fill="#be123c">아니요 → 협의 후</text><text x="375" y="376" text-anchor="middle" font-size="14" font-weight="800" fill="#be123c">다음 라운드</text>
+        <text x="600" y="395" font-size="14" font-weight="800" fill="#065f46">예 → [확정]</text>
+        <path d="M662 325 H720" fill="none" stroke="#0f8a5f" stroke-width="2.5" marker-end="url(#ar)"/>
+        <!-- 마무리 -->
+        <g font-size="15">
+        <rect x="722" y="70" width="230" height="62" rx="12" fill="#fff" stroke="#0f8a5f" stroke-width="2"/><text x="837" y="96" text-anchor="middle" font-weight="800" fill="#065f46">STEP 6 수행평가</text><text x="837" y="118" text-anchor="middle" fill="#475569" font-size="13">채점기준표 → 최소 능력자 점수</text>
+        <rect x="722" y="160" width="230" height="62" rx="12" fill="#fff" stroke="#0f8a5f" stroke-width="2"/><text x="837" y="186" text-anchor="middle" font-weight="800" fill="#065f46">STEP 7 학기말 산출</text><text x="837" y="208" text-anchor="middle" fill="#475569" font-size="13">÷ 만점 × 반영비율 합산</text>
+        <rect x="722" y="250" width="230" height="62" rx="12" fill="#fff" stroke="#0f8a5f" stroke-width="2"/><text x="837" y="276" text-anchor="middle" font-weight="800" fill="#065f46">STEP 8 출력</text><text x="837" y="298" text-anchor="middle" fill="#475569" font-size="13">협의록 · 안내문 표</text>
+        <rect x="722" y="340" width="230" height="62" rx="12" fill="#065f46"/><text x="837" y="366" text-anchor="middle" font-weight="800" fill="#fff">🏫 나이스 입력 · 확정</text><text x="837" y="388" text-anchor="middle" fill="#d1fae5" font-size="13">학업성적관리위원회 심의 → 공지</text>
+        </g>
+        <line x1="837" y1="132" x2="837" y2="156" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="837" y1="222" x2="837" y2="246" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="837" y1="312" x2="837" y2="336" stroke="#475569" stroke-width="2" marker-end="url(#ar)"/>
+        <path d="M720 325 V101 H724" fill="none" stroke="#0f8a5f" stroke-width="0"/>
+      </svg>
+    </div>
+    <div class="warn"><b>⚠️ 순서가 중요해요</b>추정분할점수는 <b>평가를 시행하기 전에</b> 산출·심의하고 학생·학부모에게 공지합니다. 시험이 끝난 뒤 결과를 보고 바꾸는 점수가 아닙니다.</div>
+  </section>
+
+  <!-- ? 개념 -->
+  <section id="concept">
+    <h2><span class="tag">개념</span>추정분할점수란?</h2>
+    <p class="lead">성취도 A·B·C·D·E를 나누는 <b>경계 점수</b>를, 고정값 대신 <b>시험 난이도에 맞게 선생님들이 추정</b>한 값입니다.</p>
+    <div class="svgbox">
+      <svg viewBox="0 0 980 300" role="img" aria-label="고정분할점수와 추정분할점수 비교 막대">
+        <text x="20" y="40" font-size="17" font-weight="800" fill="#1b2e5a">고정분할점수</text>
+        <text x="20" y="62" font-size="13" fill="#64748b">늘 같은 경계</text>
+        <g transform="translate(170,20)">
+          <rect x="0" y="0" width="300" height="46" fill="#cbd5e1"/><rect x="300" y="0" width="150" height="46" fill="#a5b4fc"/><rect x="450" y="0" width="75" height="46" fill="#93c5fd"/><rect x="525" y="0" width="75" height="46" fill="#7dd3fc"/><rect x="600" y="0" width="75" height="46" fill="#6ee7b7"/><rect x="675" y="0" width="75" height="46" fill="#34d399"/>
+          <g font-size="15" font-weight="800" fill="#1e293b" text-anchor="middle"><text x="150" y="29">미도달</text><text x="375" y="29">E</text><text x="487" y="29">D</text><text x="562" y="29">C</text><text x="637" y="29">B</text><text x="712" y="29">A</text></g>
+          <g font-size="14" font-weight="800" fill="#1b2e5a" text-anchor="middle"><text x="300" y="66">40</text><text x="450" y="66">60</text><text x="525" y="66">70</text><text x="600" y="66">80</text><text x="675" y="66">90</text><text x="750" y="66">100</text></g>
+        </g>
+        <text x="20" y="160" font-size="17" font-weight="800" fill="#c2410c">추정분할점수</text>
+        <text x="20" y="182" font-size="13" fill="#64748b">어려운 시험이면 ↓</text>
+        <g transform="translate(170,140)">
+          <rect x="0" y="0" width="345" height="46" fill="#cbd5e1"/><rect x="345" y="0" width="97" height="46" fill="#93c5fd"/><rect x="442" y="0" width="90" height="46" fill="#7dd3fc"/><rect x="532" y="0" width="90" height="46" fill="#6ee7b7"/><rect x="622" y="0" width="128" height="46" fill="#34d399"/>
+          <g font-size="15" font-weight="800" fill="#1e293b" text-anchor="middle"><text x="172" y="29">E</text><text x="393" y="29">D</text><text x="487" y="29">C</text><text x="577" y="29">B</text><text x="686" y="29">A</text></g>
+          <g font-size="14" font-weight="800" fill="#c2410c" text-anchor="middle"><text x="345" y="66">46</text><text x="442" y="66">59</text><text x="532" y="66">71</text><text x="622" y="66">83</text><text x="750" y="66">100</text></g>
+          <path d="M675 -16 L622 -2" stroke="#e11d48" stroke-width="2" marker-end="url(#arR)"/>
+          <text x="680" y="-20" font-size="13" font-weight="800" fill="#e11d48">90 → 83</text>
+        </g>
+        <rect x="170" y="230" width="750" height="56" rx="10" fill="#fff7ed" stroke="#fed7aa"/>
+        <text x="190" y="256" font-size="15" fill="#1f2937">🧑‍🎓 <tspan font-weight="800">최소 능력자</tspan> = 그 성취수준에 <tspan font-weight="800">“겨우” 도달한 학생</tspan>.</text>
+        <text x="190" y="277" font-size="15" fill="#1f2937">“이 시험에서 A에 겨우 닿는 학생은 몇 점을 받을까?”를 선생님들이 추정해서 경계를 정합니다.</text>
+      </svg>
+    </div>
+    <p class="src">아래쪽 막대는 STEP 7 화면의 예시(생활과 과학, 5수준) 학기말 결과 83·71·59·46점입니다.</p>
+  </section>
+
+  <!-- = 계산 -->
+  <section id="calc">
+    <h2><span class="tag">계산</span>점수는 이렇게 계산돼요</h2>
+    <p class="lead">어려운 수식은 도구가 합니다. 선생님은 <b>“최소 능력자의 예상 정답률(%)”</b>만 넣으면 됩니다.</p>
+    <div class="svgbox">
+      <svg viewBox="0 0 980 360" role="img" aria-label="범주 배점합 곱하기 예상 정답률을 더해 교사별 분할점수를 구하고 평균을 내는 그림">
+        <text x="20" y="30" font-size="16" font-weight="800" fill="#1b2e5a">① 문항을 범주로 묶기</text>
+        <text x="360" y="30" font-size="16" font-weight="800" fill="#1b2e5a">② 정답률 곱하기 (김교사, A/B 경계)</text>
+        <text x="760" y="30" font-size="16" font-weight="800" fill="#1b2e5a">③ 더하기</text>
+        <g font-size="15">
+          <rect x="20" y="48" width="300" height="56" rx="10" fill="#eef4ff" stroke="#bfd0ee"/><text x="36" y="72" font-weight="800">선택형 · 쉬움</text><text x="36" y="94" fill="#475569" font-size="13">1~6번 · 배점합 21점</text>
+          <rect x="20" y="114" width="300" height="56" rx="10" fill="#eef4ff" stroke="#bfd0ee"/><text x="36" y="138" font-weight="800">선택형 · 보통</text><text x="36" y="160" fill="#475569" font-size="13">7~15번 · 배점합 34.5점</text>
+          <rect x="20" y="180" width="300" height="56" rx="10" fill="#eef4ff" stroke="#bfd0ee"/><text x="36" y="204" font-weight="800">선택형 · 어려움</text><text x="36" y="226" fill="#475569" font-size="13">16~19번 · 배점합 16.5점</text>
+          <g font-weight="800" font-size="17">
+            <text x="370" y="84">21 × <tspan fill="#e11d48">95%</tspan> = 19.95</text>
+            <text x="370" y="150">34.5 × <tspan fill="#e11d48">75%</tspan> = 25.875</text>
+            <text x="370" y="216">16.5 × <tspan fill="#e11d48">70%</tspan> = 11.55</text>
+          </g>
+          <path d="M640 78 Q720 78 740 140 M640 144 H740 M640 210 Q720 210 740 150" fill="none" stroke="#475569" stroke-width="2"/>
+          <rect x="745" y="110" width="215" height="72" rx="12" fill="#1b2e5a"/><text x="852" y="138" text-anchor="middle" fill="#cbd5e1" font-size="13">김교사의 A/B 분할점수</text><text x="852" y="168" text-anchor="middle" fill="#fff" font-size="24" font-weight="900">57.38점</text>
+        </g>
+        <text x="20" y="282" font-size="16" font-weight="800" fill="#1b2e5a">④ 담당 교사 모두의 평균 = 그 라운드의 추정분할점수</text>
+        <g font-size="16" font-weight="800">
+          <rect x="20" y="298" width="140" height="48" rx="10" fill="#fff" stroke="#94a3b8"/><text x="90" y="328" text-anchor="middle">김 57.38</text>
+          <rect x="172" y="298" width="140" height="48" rx="10" fill="#fff" stroke="#94a3b8"/><text x="242" y="328" text-anchor="middle">이 62.70</text>
+          <rect x="324" y="298" width="140" height="48" rx="10" fill="#fff" stroke="#94a3b8"/><text x="394" y="328" text-anchor="middle">박 52.95</text>
+          <rect x="476" y="298" width="140" height="48" rx="10" fill="#fff" stroke="#94a3b8"/><text x="546" y="328" text-anchor="middle">정 64.20</text>
+          <text x="640" y="330" font-size="22" fill="#475569">→ 평균</text>
+          <rect x="745" y="292" width="215" height="60" rx="12" fill="#e11d48"/><text x="852" y="331" text-anchor="middle" fill="#fff" font-size="24" font-weight="900">59.31점</text>
+        </g>
+      </svg>
+    </div>
+    <div class="ex"><b>📌 정답률은 어떻게 정하나요?</b>A~D는 <b>5% 단위</b>, E는 <b>1% 단위</b>로 적습니다. 어떤 수준을 목표로 낸 문항이면, 그 수준에 겨우 닿은 학생은 선택형에서 <b>약 65%</b>를 맞힌다고 보고 시작합니다. 더 어려운 문항이 섞이면 65%보다 낮게, 쉬운 문항이 섞이면 높게 잡습니다. 산출관리 화면의 [목표 성취수준으로 참고값 채우기] 버튼을 누르면 이 기준으로 초안이 채워집니다.</div>
+    <p class="src">숫자는 [예시 ①] 통합사회1 1라운드 값으로, 산출기 화면과 같습니다.</p>
+  </section>
+
+  <!-- STEP 1 -->
+  <section id="s1">
+    <h2><span class="step">STEP 1</span>시작하기 — 예시로 먼저 감 잡기</h2>
+    <span class="where">왼쪽 메뉴 › 시작하기 › 추정분할점수란? (안내)</span>
+    <figure><img src="guide/01-start.webp" alt="안내 화면의 예시 과목 버튼과 새 과목 만들기 버튼" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div><b>예시 과목 버튼</b>을 먼저 눌러 보세요. 4명이 협의해 2라운드에 확정하는 과정이 모두 들어 있습니다.<span class="sub">예시는 언제든 지워도 되고, 내 과목과 섞이지 않습니다.</span></div></li>
+      <li><i>2</i><div>익숙해지면 <b>[새 과목 만들기]</b>로 내 과목을 만듭니다.</div></li>
+    </ol>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="s2">
+    <h2><span class="step">STEP 2</span>평가계획 입력</h2>
+    <span class="where">왼쪽 메뉴 › 평가계획 › 과목별 평가계획 · 분할점수 방식</span>
+    <figure><img src="guide/02-plan.webp" alt="과목 정보, 담당 교사, 평가 구성과 반영비율 화면" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div><b>평가단계</b>를 고릅니다.<span class="sub">공통과목 등 최소 성취수준 보장지도 과목 → 5수준+미도달<br>미도달이 없는 선택과목 → 5수준(A~E)</span></div></li>
+      <li><i>2</i><div><b>담당 교사를 모두</b> 넣습니다. 이 사람들의 점수 평균이 결과가 됩니다.</div></li>
+      <li><i>3</i><div>정기시험·수행평가의 <b>만점과 반영비율</b>을 넣습니다.<span class="sub">합계 칸이 초록색(100%)이 되면 맞게 넣은 것입니다.</span></div></li>
+    </ol>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="s3">
+    <h2><span class="step">STEP 3</span>문항정보표 입력</h2>
+    <span class="where">왼쪽 메뉴 › 평가계획 › 문항정보표 관리</span>
+    <figure><img src="guide/03-items.webp" alt="문항별 유형, 난이도, 배점, 목표 성취수준을 넣는 표와 자동 범주 표" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div>엑셀 이원목적분류표가 있으면 <b>[엑셀에서 붙여넣기]</b>로 한 번에 넣습니다.<span class="sub">열 순서: 문항구분 · 난이도 · 배점 · (성취기준) · (목표 성취수준)</span></div></li>
+      <li><i>2</i><div>문항마다 <b>유형(선택형/논술형) · 난이도 · 배점</b>을 확인합니다. 목표 성취수준(A~E)도 적어 두면 정답률을 정할 때 기준이 됩니다.</div></li>
+      <li><i>3</i><div>아래 <b>문항 범주</b> 표가 자동으로 만들어집니다(유형 × 난이도, 최대 6개).<span class="sub">위쪽 배점 합계가 만점과 같아야 초록색으로 바뀝니다.</span></div></li>
+    </ol>
+  </section>
+
+  <!-- STEP 4 -->
+  <section id="s4">
+    <h2><span class="step">STEP 4</span>예상 정답률 입력 (교사마다)</h2>
+    <span class="where">왼쪽 메뉴 › 분할점수 › 정기시험추정분할점수산출관리</span>
+    <figure><img src="guide/04-calc.webp" alt="라운드와 교사를 고르고 범주별 예상 정답률을 넣는 화면" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div><b>라운드</b>를 고릅니다. 처음엔 1라운드입니다.</div></li>
+      <li><i>2</i><div><b>교사</b>를 고릅니다. 입력을 마친 교사 이름 옆에는 ✓가 붙습니다.</div></li>
+      <li><i>3</i><div>범주마다 A·B·C·D·E 칸에 <b>최소 능력자의 예상 정답률(%)</b>을 넣습니다.<span class="sub">A 칸 = “A에 겨우 닿은 학생이 이 범주에서 몇 %를 맞힐까?”</span></div></li>
+      <li><i>4</i><div>맨 아래에 <b>그 교사의 분할점수</b>가 바로 계산됩니다.</div></li>
+      <li><i>5</i><div>선생님들이 각자 자기 휴대폰으로 넣게 하려면 <b>[📱 참여 링크 · QR]</b> → 다음 STEP 4+를 보세요.</div></li>
+    </ol>
+    <div class="tip"><b>💡 한 자리에 모였다면</b>대표 선생님 노트북 한 대에서 ②의 교사 이름만 바꿔 가며 차례로 넣어도 됩니다.</div>
+  </section>
+
+  <!-- STEP 4+ -->
+  <section id="s4b">
+    <h2><span class="step">STEP 4+</span>선생님들이 각자 입력하기 (QR · 응답 코드)</h2>
+    <p class="lead">서버에 저장하지 않습니다. 링크와 응답 코드를 <b>학교 메신저</b>로 주고받는 방식입니다.</p>
+    <div class="svgbox">
+      <svg viewBox="0 0 980 230" role="img" aria-label="대표 교사가 QR을 보내고 선생님들이 응답 코드를 돌려보내는 흐름">
+        <rect x="20" y="40" width="250" height="150" rx="16" fill="#1b2e5a"/>
+        <text x="145" y="80" text-anchor="middle" fill="#fff" font-size="18" font-weight="800">👩‍🏫 대표 교사</text>
+        <text x="145" y="112" text-anchor="middle" fill="#cbd5e1" font-size="14">① [📱 참여 링크 · QR]</text>
+        <text x="145" y="138" text-anchor="middle" fill="#cbd5e1" font-size="14">④ 응답 코드 붙여넣기</text>
+        <text x="145" y="164" text-anchor="middle" fill="#fde047" font-size="14" font-weight="800">⑤ 평균 자동 계산</text>
+        <path d="M275 80 H690" stroke="#2f5fb3" stroke-width="3" marker-end="url(#ar)"/>
+        <rect x="390" y="56" width="190" height="30" rx="15" fill="#eef4ff"/><text x="485" y="77" text-anchor="middle" font-size="14" font-weight="800" fill="#1b2e5a">링크 · QR 보내기 (메신저)</text>
+        <path d="M690 160 H280" stroke="#e11d48" stroke-width="3" marker-end="url(#arR)"/>
+        <rect x="390" y="146" width="190" height="30" rx="15" fill="#fff1f2"/><text x="485" y="167" text-anchor="middle" font-size="14" font-weight="800" fill="#be123c">응답 코드 돌려보내기</text>
+        <g>
+          <rect x="700" y="20" width="120" height="190" rx="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+          <rect x="840" y="20" width="120" height="190" rx="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+          <text x="760" y="52" text-anchor="middle" font-size="15" font-weight="800">📱 이교사</text><text x="900" y="52" text-anchor="middle" font-size="15" font-weight="800">📱 박교사</text>
+          <g font-size="13" fill="#475569"><text x="760" y="88" text-anchor="middle">② 이름 고르기</text><text x="760" y="114" text-anchor="middle">정답률 입력</text><text x="760" y="146" text-anchor="middle" font-weight="800" fill="#be123c">③ 응답 코드</text><text x="760" y="166" text-anchor="middle" font-weight="800" fill="#be123c">만들기</text>
+          <text x="900" y="88" text-anchor="middle">② 이름 고르기</text><text x="900" y="114" text-anchor="middle">정답률 입력</text><text x="900" y="146" text-anchor="middle" font-weight="800" fill="#be123c">③ 응답 코드</text><text x="900" y="166" text-anchor="middle" font-weight="800" fill="#be123c">만들기</text></g>
+        </g>
+      </svg>
+    </div>
+    <div class="twocol">
+      <div>
+        <figure><img src="guide/06-join-host.webp" alt="대표 교사 화면의 QR, 응답 코드 붙여넣기 칸, 응답 현황" loading="lazy"><figcaption>대표 교사 화면</figcaption></figure>
+        <ol class="marks">
+          <li><i>1</i><div><b>QR 또는 [링크 복사]</b>로 담당 선생님들께 보냅니다.</div></li>
+          <li><i>2</i><div>받은 <b>응답 코드</b>를 붙여넣고 [반영하기]. 여러 개를 줄바꿈으로 한 번에 넣어도 됩니다.</div></li>
+          <li><i>3</i><div><b>응답 현황</b>에 ✓가 모두 붙으면 다 모인 것입니다.</div></li>
+        </ol>
+      </div>
+      <div>
+        <figure class="phone"><img src="guide/07-join-phone.webp" alt="선생님 휴대폰의 참여 화면: 이름 고르기, 정답률 입력, 응답 코드 만들기" loading="lazy"><figcaption>참여하는 선생님 휴대폰 화면</figcaption></figure>
+        <div class="tip"><b>💡 링크에는</b>과목명·문항 범주·교사 이름만 들어 있고 학생 정보는 없습니다. 라운드가 바뀌면 새 링크를 만들어 보내세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section id="s5">
+    <h2><span class="step">STEP 5</span>결과 확인 · 협의 · 라운드 확정</h2>
+    <span class="where">왼쪽 메뉴 › 분할점수 › 추정분할점수산출결과관리</span>
+    <figure><img src="guide/05-result.webp" alt="라운드별 교사 분할점수 표, 평균, 교사 간 정답률 차이 표, 확정 버튼" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div>맨 위 안내가 <b>완료 기준</b>을 알려 줍니다. 최소 2라운드, 모든 범주의 교사 간 차이 20%p 미만입니다.</div></li>
+      <li><i>2</i><div>라운드마다 <b>교사별 분할점수와 평균</b>이 나옵니다.</div></li>
+      <li><i>3</i><div>아래 차이 표에서 <b>주황색 칸(20%p 이상)</b>이 협의할 곳입니다.<span class="sub">“왜 이 범주를 그렇게 봤는지” 이야기 나눈 뒤 → STEP 4에서 [현재 라운드 복사] → 고칠 사람만 고칩니다.</span></div></li>
+      <li><i>4</i><div>기준을 만족한 라운드에서 <b>[확정]</b>을 누릅니다. 확정한 라운드의 평균이 정기시험 추정분할점수가 됩니다.</div></li>
+    </ol>
+    <div class="warn"><b>⚠️ 하지 말아야 할 것</b>미도달 학생을 줄이려고 E를 일부러 낮게, A 비율을 늘리려고 A를 낮게 넣지 않습니다.</div>
+  </section>
+
+  <!-- STEP 6 -->
+  <section id="s6">
+    <h2><span class="step">STEP 6</span>수행평가 분할점수</h2>
+    <span class="where">왼쪽 메뉴 › 분할점수 › 수행평가추정분할점수관리</span>
+    <figure><img src="guide/08-perf.webp" alt="영역별 평가요소와 수준별 배점, 최소 능력자 점수 합계" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div>채점기준표의 평가요소마다 <b>각 성취수준의 최소 능력자가 받는 점수</b>를 넣습니다. 맨 아래 합계가 그 영역의 분할점수입니다(정수).<span class="sub">영역이 여러 개면 [영역 추가]. 채점기준이 없으면 [전체영역] 탭에서 직접 입력합니다.<br>E 분할점수는 기본점수보다 높아야 합니다.</span></div></li>
+    </ol>
+  </section>
+
+  <!-- STEP 7 -->
+  <section id="s7">
+    <h2><span class="step">STEP 7</span>학기말 추정분할점수</h2>
+    <span class="where">왼쪽 메뉴 › 분할점수 › 학기말추정분할점수산출</span>
+    <div class="svgbox">
+      <svg viewBox="0 0 980 170" role="img" aria-label="정기시험과 수행평가 분할점수를 만점으로 나누고 반영비율을 곱해 더하는 그림">
+        <g font-size="16" font-weight="800">
+          <rect x="20" y="20" width="270" height="80" rx="12" fill="#eef4ff" stroke="#bfd0ee"/><text x="155" y="50" text-anchor="middle" fill="#1b2e5a">정기시험 A/B</text><text x="155" y="80" text-anchor="middle">57.83 ÷ 72 × 40 = <tspan fill="#2f5fb3">32.13</tspan></text>
+          <text x="315" y="68" font-size="30" fill="#475569">+</text>
+          <rect x="345" y="20" width="270" height="80" rx="12" fill="#ecfdf5" stroke="#a7f3d0"/><text x="480" y="50" text-anchor="middle" fill="#065f46">수행평가 A/B</text><text x="480" y="80" text-anchor="middle">51 ÷ 60 × 60 = <tspan fill="#0f8a5f">51.00</tspan></text>
+          <text x="640" y="68" font-size="30" fill="#475569">=</text>
+          <rect x="675" y="20" width="285" height="80" rx="12" fill="#1b2e5a"/><text x="817" y="50" text-anchor="middle" fill="#cbd5e1" font-size="14">합 83.13 → 반올림</text><text x="817" y="84" text-anchor="middle" fill="#fff" font-size="26">학기말 A/B 83점</text>
+        </g>
+        <text x="20" y="140" font-size="15" fill="#475569">각 평가의 분할점수를 <tspan font-weight="800">100점 기준으로 바꾸고(÷ 만점) 반영비율만큼</tspan> 더합니다. B/C, C/D … 경계도 똑같이 계산합니다.</text>
+      </svg>
+    </div>
+    <figure><img src="guide/09-final.webp" alt="평가별 분할점수와 반영비율, 학기말 최종 추정분할점수 표" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div><b>정기시험</b>: 확정한 라운드의 평균이 자동으로 들어옵니다.</div></li>
+      <li><i>2</i><div><b>수행평가</b>: STEP 6의 영역 합계가 들어옵니다.</div></li>
+      <li><i>3</i><div><b>학기말 최종 추정분할점수</b>(소수 첫째 자리에서 반올림한 정수)입니다.<span class="sub">초록색 “모든 평가의 추정분할점수가 준비되었습니다”가 보이면 완료입니다.</span></div></li>
+    </ol>
+  </section>
+
+  <!-- STEP 8 -->
+  <section id="s8">
+    <h2><span class="step">STEP 8</span>출력하고 나이스에 입력</h2>
+    <span class="where">왼쪽 메뉴 › 출력 › 교과협의록 · 안내문 출력</span>
+    <figure><img src="guide/10-print.webp" alt="교과협의록과 학생·학부모 안내용 표 출력 화면" loading="lazy"></figure>
+    <ol class="marks">
+      <li><i>1</i><div><b>[양식1] 교과협의록</b>, <b>[양식3~6] 안내용 표</b>를 인쇄(Ctrl+P)하거나 CSV로 내려받습니다.</div></li>
+    </ol>
+    <div class="warn"><b>🏫 마지막은 반드시 나이스에서</b>추정분할점수를 쓰는 과목은 <b>나이스에서 산출·확정</b>해야 합니다. 이 도구의 값을 보며 나이스에 같은 정답률을 입력하고, 결과가 같은지 확인하세요. 이어서 학업성적관리위원회 심의 → 시험 전 공지입니다.</div>
+    <div class="tip"><b>💾 다른 컴퓨터에서 이어 하려면</b>자료는 이 브라우저에만 저장됩니다. 위쪽 [백업]으로 파일을 받아 두고, 다른 기기에서 [복원]하세요.</div>
+  </section>
+
+  <!-- 매뉴얼 -->
+  <section id="manual">
+    <h2><span class="tag">확인</span>매뉴얼 반영 확인표</h2>
+    <p class="lead">경기도교육청 「고등학교 성취평가 추정분할점수 이렇게 산출해요(실전편)」(2026.4)의 규칙이 도구 어디에 들어 있는지 정리했습니다.</p>
+    <div class="svgbox" style="overflow-x:auto"><table class="chk">
+      <thead><tr><th>매뉴얼 규칙</th><th>도구에서</th><th>반영</th></tr></thead>
+      <tbody>
+        <tr><td>문항을 유형(선택형/논술형) × 난이도(쉬움/보통/어려움)로 범주화, 최대 6개</td><td>STEP 3 문항 범주 표 자동 생성, 6개 초과 시 경고</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>교사별 분할점수 = Σ(범주 배점합 × 최소 능력자 예상 정답률)</td><td>STEP 4 맨 아래 줄. 매뉴얼 예시 김교사 57.375점과 같은 값</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>예상 정답률 A~D 5% 단위, E 1% 단위</td><td>STEP 4 입력 칸 단위, 어긋나면 빨간 안내</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>목표 성취수준 문항이면 그 수준 최소 능력자의 예상 정답률 약 65%</td><td>[목표 성취수준으로 참고값 채우기]</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>해당 과목 담당 교사 모두 입력, 결과는 교사별 분할점수의 평균</td><td>STEP 2 담당 교사 · STEP 5 평균 · STEP 4+ 공동 참여</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>최소 2라운드, 교사 간 차이 20%p 이상 범주 중심 협의</td><td>STEP 5 완료 기준 안내와 주황색 표시</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>수행평가: 채점기준 수행 수준과 성취수준 연계, 최소 능력자 점수 합(정수), E는 기본점수보다 높게</td><td>STEP 6 영역별 표 · 경고</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>학기말 = Σ(분할점수 ÷ 만점 × 반영비율), 반영비율 합 100%</td><td>STEP 7 · STEP 2 합계 확인. 매뉴얼 학기말 예시와 같은 값</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>평가단계 5수준+미도달 / 5수준 구분</td><td>STEP 2 평가단계</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>교과협의록(양식1), 학생·학부모 안내용 표(양식3~6)</td><td>STEP 8 출력</td><td class="ok">✓ 반영</td></tr>
+        <tr><td>추정분할점수 과목은 나이스에서 산출·확정</td><td>모든 화면 왼쪽 안내 · STEP 8. 이 도구는 협의·연습용</td><td class="ok">✓ 안내</td></tr>
+      </tbody></table></div>
+    <p class="src">메뉴 이름은 매뉴얼에 실린 나이스 경로(교과담임 › 분할점수 › 정기시험추정분할점수산출관리 등)를 따랐습니다. 나이스 화면은 기능 개선에 따라 바뀔 수 있고, 학교·시도교육청 지침이 있으면 그것이 우선합니다.</p>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2><span class="tag">Q&amp;A</span>자주 묻는 질문</h2>
+    <ol class="marks">
+      <li><i>Q</i><div><b>입력한 자료는 어디에 저장되나요?</b><span class="sub">지금 쓰는 브라우저에만 저장됩니다. 서버로 보내지 않습니다. 기기를 바꿀 땐 [백업] → [복원].</span></div></li>
+      <li><i>Q</i><div><b>교사 한 명이 응답을 안 하면요?</b><span class="sub">입력한 교사들만으로 평균이 계산되지만, 휴직 등 특별한 사유가 아니면 모두 참여해야 합니다.</span></div></li>
+      <li><i>Q</i><div><b>2차 정기시험은요?</b><span class="sub">STEP 2에서 [정기시험 추가] 후 STEP 3~5를 같은 방법으로 반복합니다. 화면 위쪽 ‘고사’ 칸에서 시험을 바꿉니다.</span></div></li>
+      <li><i>Q</i><div><b>확정을 되돌리고 싶어요.</b><span class="sub">STEP 5 화면에서 [확정취소]를 누르면 다시 고칠 수 있습니다.</span></div></li>
+    </ol>
+    <a class="cta" href="./">산출기 열기 →</a>
+  </section>
+</main>
+</div>
+</body>
+</html>
