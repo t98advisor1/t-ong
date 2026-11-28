@@ -51,6 +51,8 @@ function onOpen() {
   } catch(e) {}
   SpreadsheetApp.getUi()
     .createMenu("[NEIS 생기부 마스터 (math-tong)]")
+    .addItem("🧹 샘플 자료 한 번에 지우기", "clearSampleDataWithConfirm")
+    .addSeparator()
     .addItem("[원클릭 빠른 설정] 전체 10개 탭 자동 점검 & 상단 바로가기 링크 구성", "formatMasterAllInOneSheet")
     .addItem("[시트 서식·테두리·접기버튼 일괄 적용] 입력칸 구분 및 양방향 바로가기 구성", "formatMasterAllInOneSheet")
     .addItem("[API 설정] Gemini API 키 등록", "promptSetApiKey")
@@ -2237,6 +2239,16 @@ function formatWrapAllSheets() {
 function onEdit(e) {
   if (!e || !e.range) return;
   var sheet = e.range.getSheet();
+  // 0_사용안내 ①단계 체크박스(D5) → 샘플 자료 한 번에 지우기
+  if (sheet.getName() === "0_사용안내" && e.range.getA1Notation() === "D5") {
+    if (e.range.getValue() === true) {
+      var msg = clearSampleData_();
+      e.range.setValue(false);
+      sheet.getRange("C5").setNote(msg);
+      e.source.toast(msg, "🧹 샘플 지우기", 8);
+    }
+    return;
+  }
   if (sheet.getName() !== "2_교사승인명단") return;
 
   var row = e.range.getRow();
@@ -2274,4 +2286,66 @@ function onEdit(e) {
       sheet.getRange(row, 1).setValue(true);
     }
   }
+}
+
+
+/**
+ * [샘플 지우기] 가상 샘플 학생·메모를 한 번에 지웁니다.
+ * - 흰색 입력 칸(값)만 지우고, 회색 칸의 수식·드롭다운·서식은 그대로 둡니다.
+ * - 실수로 실제 자료를 지우지 않도록, 명렬표에 샘플 학생(20101 김태형)이 남아 있을 때만 동작합니다.
+ * - 0_사용안내 ①단계 체크박스 또는 상단 메뉴에서 실행합니다.
+ */
+var SAMPLE_CLEAR_TABS_ = [
+  { name: "2_학생명렬표", maxCol: 8, maxRow: 44 },
+  { name: "3_창체_행특" },
+  { name: "4_대입상담" },
+  { name: "5_상담기록" },
+  { name: "6_교과세특_연동" },
+  { name: "7_수업진도_학사일정" }
+];
+
+function hasSampleRoster_(ss) {
+  var roster = ss.getSheetByName("2_학생명렬표");
+  if (!roster || roster.getLastRow() < 5) return false;
+  var v = roster.getRange(5, 1, Math.min(40, roster.getLastRow() - 4), 2).getValues();
+  for (var i = 0; i < v.length; i++) {
+    if (String(v[i][0]).trim() === "20101" && String(v[i][1]).trim() === "김태형") return true;
+  }
+  return false;
+}
+
+function clearSampleData_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!hasSampleRoster_(ss)) {
+    return "샘플 학생(20101 김태형)이 없어 지우지 않았습니다. 이미 지웠거나 실제 자료가 들어 있습니다.";
+  }
+  var total = 0;
+  for (var t = 0; t < SAMPLE_CLEAR_TABS_.length; t++) {
+    var cfg = SAMPLE_CLEAR_TABS_[t];
+    var sh = ss.getSheetByName(cfg.name);
+    if (!sh) continue;
+    var lastRow = Math.min(sh.getLastRow(), cfg.maxRow || sh.getLastRow());
+    var lastCol = Math.min(sh.getLastColumn(), cfg.maxCol || sh.getLastColumn());
+    if (lastRow < 5 || lastCol < 1) continue;
+    var rng = sh.getRange(5, 1, lastRow - 4, lastCol);
+    var vals = rng.getValues(), fx = rng.getFormulas(), a1 = [];
+    for (var r = 0; r < vals.length; r++) {
+      for (var c = 0; c < vals[r].length; c++) {
+        if (!fx[r][c] && vals[r][c] !== "" && vals[r][c] !== null) {
+          a1.push(sh.getRange(r + 5, c + 1).getA1Notation());
+        }
+      }
+    }
+    if (a1.length) { sh.getRangeList(a1).clearContent(); total += a1.length; }
+  }
+  return "✅ 샘플 " + total + "칸을 지웠습니다. 이제 ②단계: 명렬표에 우리 학생 학번·성명을 넣으세요.";
+}
+
+function clearSampleDataWithConfirm() {
+  var ui = SpreadsheetApp.getUi();
+  var ans = ui.alert("🧹 샘플 자료 지우기",
+    "명렬표·창체·대입상담·상담기록·교과세특·학사일정의 샘플 내용을 지웁니다.\n(수식·드롭다운·서식은 그대로 남습니다)\n\n진행할까요?",
+    ui.ButtonSet.YES_NO);
+  if (ans !== ui.Button.YES) return;
+  ui.alert(clearSampleData_());
 }
